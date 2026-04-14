@@ -25,66 +25,113 @@
         }
     </script>
     <style>
-        body { background-color: #09090b; color: #FAFAFA; font-family: 'Inter', sans-serif; overflow: hidden; margin: 0; padding: 0; }
+        /* Variables de color para el cambio de tema */
+        :root {
+            --bg-color: #09090b;
+            --card-color: #18181b;
+            --text-color: #FAFAFA;
+            --visor-bg: #000000;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
 
-        /* Visor de PIN hundido y elegante */
+        /* TEMA CREMOSO (Off-white) */
+        body.modo-crema {
+            --bg-color: #FDFBF7;
+            --card-color: #ffffff;
+            --text-color: #18181b;
+            --visor-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+            margin: 0; 
+            padding: 0; 
+            transition: all 0.4s ease; 
+        }
+
+        /* Visor de PIN */
         .visor-screen {
-            background-color: #000000;
-            border: 1px solid #27272a;
-            box-shadow: inset 0 6px 15px rgba(0, 0, 0, 0.8);
+            background-color: var(--visor-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: inset 0 6px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease;
         }
 
-        /* Botones numéricos individuales con volumen */
+        /* Botones numéricos */
         .key-btn {
-            background-color: #18181b;
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            background-color: var(--card-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
             border-top: 1px solid rgba(255, 255, 255, 0.08); 
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
+        body.modo-crema .key-btn {
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
         .key-btn:hover {
-            background-color: #27272a;
             transform: translateY(-3px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.6);
+            opacity: 0.9;
         }
+
         .key-btn:active {
             transform: scale(0.95);
-            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        /* Botón OK: Más grande y vibrante */
+        /* Botón OK */
         .btn-ok {
             background: linear-gradient(180deg, #3B82F6 0%, #2563EB 100%);
             border: 1px solid #2563EB;
             border-top: 1px solid #93C5FD;
             box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-            transition: all 0.15s ease;
-        }
-        .btn-ok:hover {
-            filter: brightness(1.1);
-            transform: translateY(-3px);
-            box-shadow: 0 12px 25px rgba(59, 130, 246, 0.4);
+            color: white !important; /* Siempre blanco por el fondo azul */
         }
 
-        /* Animación para el cursor */
-        .cursor-blink {
-            animation: blink 1s infinite;
+        /* Botón de cambio de tema */
+        .theme-toggle {
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
+
+        .cursor-blink { animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body class="min-h-screen w-full flex flex-col items-center justify-center relative">
 
+    <script>
+        if (localStorage.getItem('tema-ollintem') === 'crema') {
+            document.body.classList.add('modo-crema');
+        }
+    </script>
+
+    <div class="fixed top-8 right-8 z-50">
+        <button onclick="toggleTheme()" class="theme-toggle px-5 py-2.5 rounded-full flex items-center gap-3 text-[10px] font-black tracking-widest uppercase shadow-lg">
+            <i id="themeIcon" class="fas fa-moon text-ol-blue"></i>
+            <span id="themeText">Modo Claro</span>
+        </button>
+    </div>
+
     <div class="w-full max-w-[440px] px-6 flex flex-col items-center">
         
         <div class="flex flex-col items-center mb-12">
-            <div class="w-20 h-20 bg-ol-card border border-white/10 rounded-[1.5rem] flex items-center justify-center shadow-2xl mb-6 p-2">
+            <div class="w-20 h-20 bg-white border border-gray-200 rounded-[1.5rem] flex items-center justify-center shadow-xl mb-6 p-2 overflow-hidden">
                 <img src="{{ asset('images/logo.jpeg') }}" alt="Logo" class="w-full h-full object-contain rounded-xl">
             </div>
-            <h1 class="text-4xl font-black tracking-widest text-white leading-none uppercase">
+            <h1 class="text-4xl font-black tracking-widest leading-none uppercase">
                 Ollintem <span class="text-ol-blue">Pro</span>
             </h1>
-            <p class="text-[11px] uppercase tracking-[0.4em] text-ol-text-muted font-bold mt-4">Punto de Venta</p>
+            <p class="text-[11px] uppercase tracking-[0.4em] font-bold mt-4 opacity-60">Punto de Venta</p>
         </div>
 
         @if($errors->any())
@@ -99,48 +146,77 @@
         </form>
 
         <div class="w-full h-24 visor-screen rounded-3xl mb-10 flex items-center justify-center gap-3 relative overflow-hidden">
-            <span id="pinDisplay" class="text-[48px] font-black tracking-[0.5em] text-white mt-2"></span>
+            <span id="pinDisplay" class="text-[48px] font-black tracking-[0.5em] mt-2"></span>
             <span class="cursor-blink w-[3px] h-10 bg-ol-blue rounded-full"></span>
         </div>
 
         <div class="grid grid-cols-4 gap-5 w-full">
+            <button type="button" onclick="appendNumber('1')" class="key-btn h-20 rounded-3xl text-3xl font-bold">1</button>
+            <button type="button" onclick="appendNumber('2')" class="key-btn h-20 rounded-3xl text-3xl font-bold">2</button>
+            <button type="button" onclick="appendNumber('3')" class="key-btn h-20 rounded-3xl text-3xl font-bold">3</button>
             
-            <button type="button" onclick="appendNumber('1')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">1</button>
-            <button type="button" onclick="appendNumber('2')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">2</button>
-            <button type="button" onclick="appendNumber('3')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">3</button>
-            
-            <button type="button" onclick="submitForm()" class="btn-ok col-span-1 row-span-2 rounded-3xl flex flex-col items-center justify-center text-white group">
-                <span class="font-black text-3xl leading-tight tracking-wider">OK</span>
-                <span class="text-[10px] font-bold uppercase tracking-widest opacity-90 mt-2">Entrar</span>
+            <button type="button" onclick="submitForm()" class="btn-ok col-span-1 row-span-2 rounded-3xl flex flex-col items-center justify-center group">
+                <span class="font-black text-3xl leading-tight">OK</span>
+                <span class="text-[10px] font-bold uppercase mt-2 opacity-90">Entrar</span>
             </button>
 
-            <button type="button" onclick="appendNumber('4')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">4</button>
-            <button type="button" onclick="appendNumber('5')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">5</button>
-            <button type="button" onclick="appendNumber('6')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">6</button>
+            <button type="button" onclick="appendNumber('4')" class="key-btn h-20 rounded-3xl text-3xl font-bold">4</button>
+            <button type="button" onclick="appendNumber('5')" class="key-btn h-20 rounded-3xl text-3xl font-bold">5</button>
+            <button type="button" onclick="appendNumber('6')" class="key-btn h-20 rounded-3xl text-3xl font-bold">6</button>
 
-            <button type="button" onclick="appendNumber('7')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">7</button>
-            <button type="button" onclick="appendNumber('8')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">8</button>
-            <button type="button" onclick="appendNumber('9')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">9</button>
+            <button type="button" onclick="appendNumber('7')" class="key-btn h-20 rounded-3xl text-3xl font-bold">7</button>
+            <button type="button" onclick="appendNumber('8')" class="key-btn h-20 rounded-3xl text-3xl font-bold">8</button>
+            <button type="button" onclick="appendNumber('9')" class="key-btn h-20 rounded-3xl text-3xl font-bold">9</button>
             
-            <button type="button" onclick="deleteNumber()" class="key-btn col-span-1 h-20 rounded-3xl flex flex-col items-center justify-center group">
+            <button type="button" onclick="deleteNumber()" class="key-btn col-span-1 h-20 rounded-3xl flex flex-col items-center justify-center">
                 <i class="fas fa-backspace text-rose-500 text-2xl mb-1"></i>
-                <span class="text-[9px] font-black text-rose-500 tracking-tighter uppercase">Borrar</span>
+                <span class="text-[9px] font-black text-rose-500 uppercase">Borrar</span>
             </button>
 
             <div class="col-span-1"></div>
-            <button type="button" onclick="appendNumber('0')" class="key-btn h-20 rounded-3xl text-3xl font-bold text-white">0</button>
+            <button type="button" onclick="appendNumber('0')" class="key-btn h-20 rounded-3xl text-3xl font-bold">0</button>
             <div class="col-span-2"></div>
         </div>
     </div>
 
     <div class="absolute bottom-8 w-full text-center">
-        <p class="text-[10px] text-ol-text-muted font-bold tracking-[0.4em] uppercase opacity-40">© 2026 Softrestaurant Ollintem</p>
+        <p class="text-[10px] font-bold tracking-[0.4em] uppercase opacity-40">© 2026 Softrestaurant Ollintem</p>
     </div>
 
     <script>
+        const body = document.body;
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
         const pinHidden = document.getElementById('pinHidden');
         const pinDisplay = document.getElementById('pinDisplay');
         const pinForm = document.getElementById('pinForm');
+
+        // Asegurarnos de que el icono coincida con la memoria al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            if (body.classList.contains('modo-crema')) {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+                themeIcon.classList.replace('text-ol-blue', 'text-orange-500');
+                themeText.innerText = "Modo Negro";
+            }
+        });
+
+        function toggleTheme() {
+            body.classList.toggle('modo-crema');
+            
+            // Guardar en la memoria para que el Dashboard lo lea
+            const esCrema = body.classList.contains('modo-crema');
+            localStorage.setItem('tema-ollintem', esCrema ? 'crema' : 'negro');
+
+            if (esCrema) {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+                themeIcon.classList.replace('text-ol-blue', 'text-orange-500');
+                themeText.innerText = "Modo Negro";
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+                themeIcon.classList.replace('text-orange-500', 'text-ol-blue');
+                themeText.innerText = "Modo Claro";
+            }
+        }
 
         function updateDisplay() {
             if (navigator.vibrate) navigator.vibrate(10); 
@@ -160,9 +236,7 @@
         }
 
         function submitForm() {
-            if (pinHidden.value.length >= 2) {
-                pinForm.submit();
-            }
+            if (pinHidden.value.length >= 2) pinForm.submit();
         }
 
         document.addEventListener('keydown', (e) => {
