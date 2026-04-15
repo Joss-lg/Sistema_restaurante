@@ -27,6 +27,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/admin/empleados/store', [EmpleadoController::class, 'store'])
         ->name('admin.empleados.store');
+    
+    Route::delete('/admin/empleados/{id}', [EmpleadoController::class, 'destroy'])->name('admin.empleados.destroy');
 
     // Permisos (Acción de guardado)
     Route::post('/admin/permisos/store', [PermisoController::class, 'store'])

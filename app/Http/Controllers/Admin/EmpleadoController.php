@@ -38,9 +38,21 @@ class EmpleadoController extends Controller
             'rol' => $request->rol,
             'password' => Hash::make($request->codigo_empleado), 
         ]);
+        
 
         
         return redirect()->route('admin.empleados.index')
                         ->with('success', '¡Empleado registrado! Ahora puedes asignar sus permisos en la tabla.');
     }
+
+    public function destroy($id)
+    {
+        $empleado = \App\Models\User::findOrFail($id);
+        $empleado->delete();
+
+        // Redirigimos con un mensaje de éxito (opcional)
+        return redirect()->back()->with('success', 'Empleado eliminado correctamente.');
+    }
+
+
 }

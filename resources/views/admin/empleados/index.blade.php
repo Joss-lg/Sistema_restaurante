@@ -28,7 +28,7 @@
     </script>
 
     <style>
-        /* ================= VARIABLES DE TEMA OPTIMIZADAS ================= */
+
         :root {
             --bg-color: #030303; 
             --sidebar-bg: rgba(6, 6, 8, 0.8);
@@ -37,8 +37,10 @@
             --text-color: #FAFAFA;
             --text-muted: #81818a; 
             --border-color: rgba(255, 255, 255, 0.04);
+            
             --glass-bg: linear-gradient(145deg, rgba(20, 20, 23, 0.8) 0%, rgba(10, 10, 12, 0.6) 100%);
             --glass-hover: linear-gradient(145deg, rgba(25, 25, 29, 0.9) 0%, rgba(12, 12, 14, 0.8) 100%);
+            
             --input-bg: #111114; 
         }
 
@@ -50,20 +52,54 @@
             --text-color: #0F1012; 
             --text-muted: #6B7280; 
             --border-color: rgba(0, 0, 0, 0.06);
+
             --glass-bg: rgba(255, 255, 255, 0.9);
             --glass-hover: #ffffff;
+            
             --input-bg: #F4F4F6; 
         }
 
-        body { background-color: var(--bg-color); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; color: var(--text-color); overflow-x: hidden; margin: 0; padding: 0; transition: background-color 0.4s ease, color 0.4s ease; }
+ 
+        body { 
+            background-color: var(--bg-color); 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased; 
+            color: var(--text-color); 
+            overflow-x: hidden; 
+            margin: 0; 
+            padding: 0; 
+            transition: background-color 0.4s ease, color 0.4s ease; 
+        }
         
-        .glass-card { backdrop-filter: blur(20px); border: 1px solid var(--border-color); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        body:not(.modo-crema) .glass-card { background: var(--glass-bg); box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(0, 0, 0, 0.7); }
-        body.modo-crema .glass-card { background: var(--glass-bg); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.01); }
+        .glass-card { 
+            backdrop-filter: blur(20px); 
+            border: 1px solid var(--border-color); 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        
+        body:not(.modo-crema) .glass-card { 
+            background: var(--glass-bg);
+            box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(0, 0, 0, 0.7); 
+        }
+        
+        body.modo-crema .glass-card {
+            background: var(--glass-bg);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+        }
+
         .glass-card:hover { transform: translateY(-4px); border-color: var(--border-color); }
-        body.modo-crema .glass-card:hover { background: var(--glass-hover); box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.05); }
         
-        .text-metallic { background: linear-gradient(180deg, var(--text-color) 0%, var(--text-muted) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        body.modo-crema .glass-card:hover { 
+            background: var(--glass-hover);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.05); 
+        }
+        
+        .text-metallic {
+            background: linear-gradient(180deg, var(--text-color) 0%, var(--text-muted) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -110,7 +146,7 @@
                     
                     <a href="{{ route('admin.dashboard') }}" class="nav-link flex items-center gap-4 text-luxury-muted hover:text-luxury-text px-3 py-3 rounded-xl font-medium transition-all group border border-transparent hover:bg-black/5 modo-crema:hover:bg-zinc-100/70">
                         <i class="fas fa-th-large w-5 text-center transition-all group-hover:scale-110 shrink-0"></i>
-                        <span class="sidebar-text">Dashboard</span>
+                            <span class="sidebar-text">Dashboard</span>
                     </a>
                     
                     <a href="#" class="nav-link flex items-center gap-4 text-luxury-muted hover:text-luxury-text px-3 py-3 rounded-xl font-medium transition-all group border border-transparent hover:bg-black/5 modo-crema:hover:bg-zinc-100/70">
@@ -118,7 +154,7 @@
                         <span class="sidebar-text">Inventario</span>
                     </a>
                     
-                    <a href="{{ route('admin.empleados.index') }}" class="nav-link relative flex items-center gap-4 bg-gradient-to-r from-luxury-accent/10 to-transparent text-luxury-text px-3 py-3 rounded-xl font-semibold transition-all border border-luxury-border border-l-0 group">
+                    <a href="#" class="nav-link relative flex items-center gap-4 bg-gradient-to-r from-luxury-accent/10 to-transparent text-luxury-text px-3 py-3 rounded-xl font-semibold transition-all border border-luxury-border border-l-0 group">
                         <div class="sidebar-text absolute left-0 top-0 bottom-0 w-[3px] bg-luxury-accent rounded-r-md shadow-[0_0_12px_rgba(59,130,246,0.9)]"></div>
                         <i class="fas fa-users w-5 text-center text-luxury-accent drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] group-hover:scale-110 transition-transform shrink-0"></i>
                         <span class="sidebar-text">Empleados</span>
@@ -137,7 +173,7 @@
             </div>
 
             <div class="p-6 border-t border-luxury-border">
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="#" method="POST">
                     @csrf
                     <button type="submit" class="nav-link w-full flex items-center justify-center gap-2.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 text-rose-500/80 hover:text-rose-500 py-3 rounded-xl transition-all duration-300 text-xs font-bold group shadow-sm">
                         <i class="fas fa-sign-out-alt transition-transform group-hover:-translate-x-1 shrink-0"></i>
@@ -174,42 +210,74 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden hover:border-rose-500/50">
-                        <div class="relative z-10 flex flex-col h-full justify-between">
+                @php
+                    $totalAdmin = 0;
+                    $totalCapitan = 0;
+                    $totalMesero = 0;
+                    $totalCocinero = 0;
+                    $totalCajero = 0;
+
+                    if(isset($empleados)) {
+                        foreach($empleados as $emp) {
+                            $rol = strtolower($emp->rol);
+                            if($rol == 'admin' || $rol == 'administrador') $totalAdmin++;
+                            elseif($rol == 'capitan' || $rol == 'capitán') $totalCapitan++;
+                            elseif($rol == 'mesero') $totalMesero++;
+                            elseif($rol == 'cocinero' || $rol == 'cocina') $totalCocinero++;
+                            elseif($rol == 'cajero') $totalCajero++;
+                        }
+                    }
+                @endphp
+
+                <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6">
+                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-rose-500/50">
+                        <div class="flex justify-between items-start">
                             <h3 class="text-[11px] font-bold text-luxury-muted uppercase tracking-[0.1em]">Administradores</h3>
-                            <p class="text-4xl font-black text-luxury-text tracking-tighter mt-1">1</p>
+                            <div class="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-user-shield text-lg"></i>
+                            </div>
                         </div>
-                        <div class="absolute right-6 bottom-6 w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas fa-user-shield text-xl"></i>
-                        </div>
+                        <p class="text-4xl font-black text-luxury-text tracking-tighter">{{ $totalAdmin }}</p>
                     </div>
-                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden hover:border-blue-400/50">
-                        <div class="relative z-10 flex flex-col h-full justify-between">
+                    
+                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-blue-400/50">
+                        <div class="flex justify-between items-start">
                             <h3 class="text-[11px] font-bold text-luxury-muted uppercase tracking-[0.1em]">Capitanes</h3>
-                            <p class="text-4xl font-black text-luxury-text tracking-tighter mt-1">1</p>
+                            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-clipboard-list text-lg"></i>
+                            </div>
                         </div>
-                        <div class="absolute right-6 bottom-6 w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas fa-clipboard-list text-xl"></i>
-                        </div>
+                        <p class="text-4xl font-black text-luxury-text tracking-tighter">{{ $totalCapitan }}</p>
                     </div>
-                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden hover:border-emerald-400/50">
-                        <div class="relative z-10 flex flex-col h-full justify-between">
+                    
+                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-emerald-400/50">
+                        <div class="flex justify-between items-start">
                             <h3 class="text-[11px] font-bold text-luxury-muted uppercase tracking-[0.1em]">Meseros</h3>
-                            <p class="text-4xl font-black text-luxury-text tracking-tighter mt-1">1</p>
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-concierge-bell text-lg"></i>
+                            </div>
                         </div>
-                        <div class="absolute right-6 bottom-6 w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas fa-concierge-bell text-xl"></i>
-                        </div>
+                        <p class="text-4xl font-black text-luxury-text tracking-tighter">{{ $totalMesero }}</p>
                     </div>
-                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden hover:border-orange-400/50">
-                        <div class="relative z-10 flex flex-col h-full justify-between">
+                    
+                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-orange-400/50">
+                        <div class="flex justify-between items-start">
                             <h3 class="text-[11px] font-bold text-luxury-muted uppercase tracking-[0.1em]">Cocineros</h3>
-                            <p class="text-4xl font-black text-luxury-text tracking-tighter mt-1">1</p>
+                            <div class="w-10 h-10 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-fire-burner text-lg"></i>
+                            </div>
                         </div>
-                        <div class="absolute right-6 bottom-6 w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas fa-fire-burner text-xl"></i>
-                        </div>
+                        <p class="text-4xl font-black text-luxury-text tracking-tighter">{{ $totalCocinero }}</p>
+                    </div>
+
+                    <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-purple-400/50">
+                         <div class="flex justify-between items-start">
+                             <h3 class="text-[11px] font-bold text-luxury-muted uppercase tracking-[0.1em]">Cajeros</h3>
+                             <div class="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform duration-300">
+                                 <i class="fas fa-cash-register text-lg"></i>
+                             </div>
+                         </div>
+                        <p class="text-4xl font-black text-luxury-text tracking-tighter">{{ $totalCajero }}</p>
                     </div>
                 </div>
 
@@ -221,7 +289,7 @@
                         </div>
                         <div class="relative w-64">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-luxury-muted text-xs"></i>
-                            <input type="text" placeholder="Buscar empleado..." class="w-full h-10 bg-[var(--input-bg)] border border-luxury-border rounded-lg pl-10 pr-4 text-xs font-medium text-luxury-text focus:ring-1 focus:ring-luxury-accent outline-none">
+                            <input type="text" placeholder="Buscar empleado..." class="w-full h-10 bg-[var(--input-bg)] border border-luxury-border rounded-lg pl-10 pr-4 text-xs font-medium text-luxury-text focus:ring-1 focus:ring-luxury-accent outline-none transition-all shadow-inner">
                         </div>
                     </div>
 
@@ -252,7 +320,7 @@
                                     </td>
                                     
                                     <td class="py-4 px-4 tabular-nums">
-                                        <code class="text-xs font-semibold tracking-widest bg-luxury-border/30 px-2 py-1 rounded-md text-luxury-muted">{{ $empleado->codigo_empleado }}</code>
+                                        <span class="text-xs font-medium text-luxury-muted">{{ $empleado->codigo_empleado }}</span>
                                     </td>
                                     
                                     <td class="py-4 px-4">
@@ -262,29 +330,24 @@
                                             $roleName = ucfirst($empleado->rol);
 
                                             if($rolDB == 'admin' || $rolDB == 'administrador') {
-                                                // Rojo / Rose
-                                                $roleClass = 'bg-rose-500/20 border-rose-500/30 text-rose-400 modo-crema:bg-rose-100 modo-crema:border-rose-200 modo-crema:text-rose-700';
+                                                $roleClass = 'bg-[#1E1214] border-rose-500/20 text-rose-400 modo-crema:bg-rose-50 modo-crema:border-rose-200 modo-crema:text-rose-600';
                                                 $roleName = 'Administrador';
                                             } elseif($rolDB == 'capitan' || $rolDB == 'capitán') {
-                                                // Azul / Blue
-                                                $roleClass = 'bg-blue-500/20 border-blue-500/30 text-blue-400 modo-crema:bg-blue-100 modo-crema:border-blue-200 modo-crema:text-blue-700';
+                                                $roleClass = 'bg-[#11141A] border-blue-500/20 text-blue-400 modo-crema:bg-blue-50 modo-crema:border-blue-200 modo-crema:text-blue-600';
                                                 $roleName = 'Capitán';
                                             } elseif($rolDB == 'mesero') {
-                                                // Verde / Emerald
-                                                $roleClass = 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 modo-crema:bg-emerald-100 modo-crema:border-emerald-200 modo-crema:text-emerald-700';
+                                                $roleClass = 'bg-[#111613] border-emerald-500/20 text-emerald-400 modo-crema:bg-zinc-100 modo-crema:border-zinc-200 modo-crema:text-zinc-600';
                                                 $roleName = 'Mesero';
                                             } elseif($rolDB == 'cocinero' || $rolDB == 'cocina') {
-                                                // Naranja / Orange
-                                                $roleClass = 'bg-orange-500/20 border-orange-500/30 text-orange-400 modo-crema:bg-orange-100 modo-crema:border-orange-200 modo-crema:text-orange-700';
+                                                $roleClass = 'bg-[#1A1411] border-orange-500/20 text-orange-400 modo-crema:bg-orange-50 modo-crema:border-orange-200 modo-crema:text-orange-600';
                                                 $roleName = 'Cocinero';
                                             } else {
-                                                // Cajero u otros (Morado / Purple)
-                                                $roleClass = 'bg-purple-500/20 border-purple-500/30 text-purple-400 modo-crema:bg-purple-100 modo-crema:border-purple-200 modo-crema:text-purple-700';
+                                                $roleClass = 'bg-[#15121A] border-purple-500/20 text-purple-400 modo-crema:bg-purple-50 modo-crema:border-purple-200 modo-crema:text-purple-600';
                                                 if($rolDB == 'cajero') $roleName = 'Cajero';
                                             }
                                         @endphp
                                         
-                                        <span class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border {{ $roleClass }}">
+                                        <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border {{ $roleClass }}">
                                             {{ $roleName }}
                                         </span>
                                     </td>
@@ -297,7 +360,7 @@
                                                            name="permisos[{{ $empleado->id }}][]"
                                                            value="{{ $permiso->id }}"
                                                            id="p-{{ $empleado->id }}-{{ $permiso->id }}"
-                                                           class="w-3.5 h-3.5 rounded-md border-luxury-border modo-crema:border-zinc-300 bg-transparent text-luxury-accent cursor-pointer" 
+                                                           class="w-3.5 h-3.5 rounded-sm border-luxury-border modo-crema:border-zinc-300 bg-transparent text-luxury-accent cursor-pointer" 
                                                            style="accent-color: #3B82F6;"
                                                            {{ $empleado->tienePermiso($permiso->slug) ? 'checked' : '' }}>
                                                     <label for="p-{{ $empleado->id }}-{{ $permiso->id }}" class="text-[10px] font-medium text-luxury-muted cursor-pointer select-none hover:text-luxury-text transition-colors">
@@ -310,12 +373,20 @@
 
                                     <td class="py-4 px-4 text-right">
                                         <div class="flex items-center justify-end gap-2.5">
-                                            <button class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-luxury-muted hover:text-luxury-accent transition-all outline-none">
+                                            <a href="#" 
+                                               class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-luxury-muted hover:text-luxury-accent transition-all outline-none">
                                                 <i class="fas fa-edit text-xs"></i>
-                                            </button>
-                                            <button class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-luxury-muted hover:text-rose-500 transition-all outline-none">
-                                                <i class="fas fa-trash text-xs"></i>
-                                            </button>
+                                            </a>
+                                            
+                                            <form id="delete-form-{{ $empleado->id }}" action="{{ route('admin.empleados.destroy', $empleado->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" 
+                                                    onclick="confirmarEliminacion('{{ $empleado->id }}', '{{ $empleado->nombre }}')" 
+                                                    class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-luxury-muted hover:text-rose-500 transition-all outline-none">
+                                                    <i class="fas fa-trash text-xs"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -348,7 +419,7 @@
 
     <div id="employeeModal" class="fixed inset-0 bg-black/80 modo-crema:bg-zinc-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
         
-        <div class="relative bg-[var(--card-color)] border border-luxury-border rounded-[2.5rem] p-10 w-full max-w-[460px] shadow-[0_30px_70px_-10px_rgba(0,0,0,0.8)] modo-crema:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] transform scale-95 transition-all duration-300" id="modalContent">
+        <div class="relative bg-[var(--card-color)] border border-luxury-border rounded-[2.5rem] p-10 w-full max-w-[460px] shadow-[0_30px_70px_-10px_rgba(0,0,0,0.8)] modo-crema:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] transform scale-95 transition-all duration-300 overflow-visible" id="modalContent">
             
             <div class="absolute top-[-10%] left-[-10%] w-52 h-52 rounded-full bg-blue-600/10 modo-crema:bg-blue-600/5 blur-[90px] pointer-events-none z-0"></div>
             <div class="absolute bottom-[-10%] right-[-10%] w-48 h-48 rounded-full bg-orange-600/10 modo-crema:bg-orange-600/5 blur-[90px] pointer-events-none z-0"></div>
@@ -363,7 +434,7 @@
                 </button>
             </div>
 
-            <form action="{{ route('admin.empleados.store') }}" method="POST" class="space-y-7 z-10 relative">
+            <form action="#" method="POST" class="space-y-7 z-10 relative">
                 @csrf
                 
                 <div>
@@ -386,7 +457,7 @@
                         <i class="fas fa-chevron-down text-luxury-muted transition-transform" id="dropdownIcon"></i>
                     </button>
                     
-                    <div id="dropdownMenu" class="absolute top-full left-0 mt-2 w-full bg-[var(--card-color)] border border-luxury-border rounded-xl shadow-2xl z-50 py-2.5 overflow-hidden backdrop-blur-3xl opacity-0 pointer-events-none transform -translate-y-2 transition-all duration-200">
+                    <div id="dropdownMenu" class="absolute top-full left-0 mt-2 w-full max-h-48 overflow-y-auto bg-[var(--card-color)] border border-luxury-border rounded-xl shadow-2xl z-50 py-2.5 opacity-0 pointer-events-none transform -translate-y-2 transition-all duration-200">
                         @php
                             $rolesList = ['Administrador' => 'admin', 'Capitán' => 'capitan', 'Mesero' => 'mesero', 'Cocinero' => 'cocina', 'Cajero' => 'cajero'];
                         @endphp
@@ -400,7 +471,7 @@
                 </div>
 
                 <div class="flex justify-end gap-3 mt-10 pt-4 border-t border-luxury-border">
-                    <button type="button" onclick="closeModal()" class="px-7 py-3 rounded-xl text-xs font-bold text-luxury-muted hover:text-luxury-text bg-luxury-border hover:bg-black/10 transition-all outline-none shadow-inner">
+                    <button type="button" onclick="closeModal()" class="px-7 py-3 rounded-xl text-xs font-bold text-luxury-muted hover:text-luxury-text bg-luxury-border hover:bg-black/10 transition-all outline-none shadow-inner modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200">
                         Cancelar
                     </button>
                     <button type="submit" class="px-8 py-3 rounded-xl text-xs font-bold bg-luxury-accent text-white hover:bg-luxury-accent/90 shadow-[0_8px_20px_-6px_rgba(59,130,246,0.5)] hover:-translate-y-0.5 transition-all outline-none">
@@ -411,19 +482,46 @@
         </div>
     </div>
 
+    <div id="deleteModal" class="fixed inset-0 bg-black/80 modo-crema:bg-zinc-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-100 pointer-events-auto transition-all duration-300">
+        <div class="relative bg-[var(--card-color)] border border-luxury-border rounded-[2.5rem] p-10 w-full max-w-[400px] shadow-[0_30px_70px_-10px_rgba(0,0,0,0.8)] modo-crema:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] transform transition-all duration-300">
+            
+            <div class="absolute top-[-10%] left-[-10%] w-48 h-48 rounded-full bg-rose-600/10 modo-crema:bg-rose-600/5 blur-[80px] pointer-events-none z-0"></div>
+
+            <div class="flex flex-col items-center text-center relative z-10">
+                <div class="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mb-6 shadow-inner">
+                    <i class="fas fa-exclamation-triangle text-2xl"></i>
+                </div>
+                
+                <h2 class="text-xl font-black text-luxury-text tracking-tight mb-2">¿Eliminar Empleado?</h2>
+                <p class="text-xs text-luxury-muted font-medium mb-6 leading-relaxed">
+                    Estás a punto de eliminar a <br>
+                    <span id="nombreEmpleadoEliminar" class="font-bold text-luxury-text text-sm block mt-1"></span>
+                </p>
+                <p class="text-[10px] text-rose-500/80 font-bold uppercase tracking-widest bg-rose-500/5 px-4 py-2 rounded-lg mb-8 border border-rose-500/10">Esta acción no se puede deshacer</p>
+
+                <div class="flex w-full gap-3">
+                    <button type="button" onclick="cerrarModalEliminar()" class="flex-1 py-3.5 rounded-xl text-xs font-bold text-luxury-muted hover:text-luxury-text bg-luxury-border hover:bg-black/10 transition-all outline-none shadow-inner modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200">
+                        Cancelar
+                    </button>
+                    <button type="button" id="btnConfirmarEliminar" class="flex-1 py-3.5 rounded-xl text-xs font-bold bg-rose-500 text-white hover:bg-rose-600 shadow-[0_8px_20px_-6px_rgba(244,63,94,0.5)] hover:-translate-y-0.5 transition-all outline-none">
+                        Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Sidebar Toggle
         document.getElementById('toggleSidebar').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const texts = document.querySelectorAll('.sidebar-text');
-            const navLinks = document.querySelectorAll('.nav-link');
-            const logoIcon = document.getElementById('logo-icon');
             sidebar.classList.toggle('w-[260px]');
             sidebar.classList.toggle('w-[88px]');
             texts.forEach(el => { el.classList.toggle('hidden'); el.classList.toggle('opacity-0'); });
-            navLinks.forEach(el => { el.classList.toggle('justify-center'); el.classList.toggle('px-3'); });
-            logoIcon.classList.toggle('hidden');
         });
 
+        // Theme Logic
         function toggleTheme() {
             const body = document.body;
             body.classList.toggle('modo-crema');
@@ -452,6 +550,7 @@
             actualizarIcono(esCrema);
         });
 
+        // Modal Logic
         const modal = document.getElementById('employeeModal');
         const modalContent = document.getElementById('modalContent');
         const dropdownMenu = document.getElementById('dropdownMenu');
@@ -469,6 +568,7 @@
             if (!dropdownMenu.classList.contains('opacity-0')) toggleDropdown();
         }
 
+        // Dropdown Logic
         function toggleDropdown() {
             const isOpen = !dropdownMenu.classList.contains('opacity-0');
             if (isOpen) {
@@ -485,6 +585,7 @@
         function selectRole(name, techValue) {
             document.getElementById('dropdownSelected').innerText = name;
             document.getElementById('rol_input').value = techValue;
+            
             const options = document.querySelectorAll('.role-option');
             options.forEach(opt => {
                 const spanText = opt.querySelector('span').innerText;
@@ -507,25 +608,36 @@
             if (container && !container.contains(e.target) && !dropdownMenu.classList.contains('opacity-0')) toggleDropdown();
         });
 
+        let formIdParaEliminar = null;
+
         function confirmarEliminacion(id, nombre) {
-            // La ventana de confirmación nativa del navegador
-            if (confirm('¿Seguro que quieres eliminar a ' + nombre + '? Esta acción no se puede deshacer.')) {
-                // Si el usuario acepta, buscamos el formulario por su ID y lo enviamos
-                const formulario = document.getElementById('delete-form-' + id);
-                if (formulario) {
-                    formulario.submit();
-                }
-            }
+            formIdParaEliminar = 'delete-form-' + id;
+            
+            const txtNombre = document.getElementById('nombreEmpleadoEliminar');
+            if(txtNombre) txtNombre.innerText = nombre;
+            
+            const delModal = document.getElementById('deleteModal');
+            if(delModal) delModal.classList.remove('hidden');
         }
 
-        /**
-         * Lógica para abrir el modal de edición y cargar datos
-         */
+        function cerrarModalEliminar() {
+            const delModal = document.getElementById('deleteModal');
+            if(delModal) delModal.classList.add('hidden');
+            formIdParaEliminar = null;
+        }
+
+        const btnConfirmar = document.getElementById('btnConfirmarEliminar');
+        if(btnConfirmar) {
+            btnConfirmar.addEventListener('click', function() {
+                if (formIdParaEliminar) {
+                    document.getElementById(formIdParaEliminar).submit();
+                }
+            });
+        }
+
         function openEditModal(empleado) {
-            // Aquí pondrás la lógica para llenar el modal de editar que hablamos antes
             console.log("Editando a:", empleado.nombre);
         }
-
     </script>
 </body>
 </html>
