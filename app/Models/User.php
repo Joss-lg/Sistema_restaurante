@@ -17,8 +17,8 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'nombre',
-        'correo',
-        'contrasena',
+        'email',
+        'password',
         'codigo_empleado', // PIN de acceso
         'rol',
         'esta_activo',
@@ -28,7 +28,7 @@ class User extends Authenticatable
      * Atributos ocultos para la serialización.
      */
     protected $hidden = [
-        'contrasena',
+        'password',
         'remember_token',
     ];
 
@@ -39,17 +39,17 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'contrasena' => 'hashed',
+            'password' => 'hashed',
             'esta_activo' => 'boolean', // Para manejarlo como true/false fácilmente
         ];
     }
 
     /**
-     * Indica a Laravel que use 'contrasena' para el password.
+     * Indica a Laravel que use 'password' para el password.
      */
     public function getAuthPassword()
     {
-        return $this->contrasena;
+        return $this->password;
     }
 
     // --- MÓDULO DE PERMISOS ---

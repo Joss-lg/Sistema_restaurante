@@ -53,6 +53,12 @@
             transition: all 0.4s ease; 
         }
 
+        /* LÓGICA DE CAMBIO DE LOGOS */
+        .logo-claro { display: none; } /* Oculta el logo claro (logo2) por defecto */
+        
+        body.modo-crema .logo-oscuro { display: none; } /* Oculta logo oscuro (logo) en modo crema */
+        body.modo-crema .logo-claro { display: block; } /* Muestra logo claro (logo2) en modo crema */
+
         /* Visor de PIN */
         .visor-screen {
             background-color: var(--visor-bg);
@@ -92,7 +98,7 @@
             border: 1px solid #2563EB;
             border-top: 1px solid #93C5FD;
             box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-            color: white !important; /* Siempre blanco por el fondo azul */
+            color: white !important;
         }
 
         /* Botón de cambio de tema */
@@ -110,6 +116,7 @@
 <body class="min-h-screen w-full flex flex-col items-center justify-center relative">
 
     <script>
+        // Cargar el tema desde la memoria antes de renderizar para evitar parpadeos
         if (localStorage.getItem('tema-ollintem') === 'crema') {
             document.body.classList.add('modo-crema');
         }
@@ -125,11 +132,13 @@
     <div class="w-full max-w-[440px] px-6 flex flex-col items-center">
         
         <div class="flex flex-col items-center mb-12">
-            <div class="w-20 h-20 bg-white border border-gray-200 rounded-[1.5rem] flex items-center justify-center shadow-xl mb-6 p-2 overflow-hidden">
-                <img src="{{ asset('images/logo.jpeg') }}" alt="Logo" class="w-full h-full object-contain rounded-xl">
-            </div>
+            
+            <img src="{{ asset('images/logo.png') }}" alt="Logo Ollintem" class="logo-oscuro mx-auto w-32 h-32 mb-4 object-contain">
+            
+            <img src="{{ asset('images/logo2.png') }}" alt="Logo Ollintem" class="logo-claro mx-auto w-32 h-32 mb-4 object-contain">
+            
             <h1 class="text-4xl font-black tracking-widest leading-none uppercase">
-                Ollintem <span class="text-ol-blue">Pro</span>
+                OLLINTEM <span class="text-ol-blue">PRO</span>
             </h1>
             <p class="text-[11px] uppercase tracking-[0.4em] font-bold mt-4 opacity-60">Punto de Venta</p>
         </div>
@@ -140,7 +149,7 @@
             </div>
         @endif
 
-        <form action="{{ route('login') }}" method="POST" id="pinForm" class="hidden">
+        <form action="{{ route('login.pin') }}" method="POST" id="pinForm" class="hidden">
             @csrf
             <input type="password" name="codigo_empleado" id="pinHidden">
         </form>
