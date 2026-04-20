@@ -16,39 +16,49 @@
             </button>
         </div>
 
-        <nav class="px-5 py-8 space-y-4" id="nav-container">
-            <p class="sidebar-text px-3 text-[8.5px] font-black text-[var(--text-muted)]/70 uppercase tracking-[0.25em] mb-5 transition-opacity duration-200">Principal</p>
+        <nav class="py-6 space-y-1" id="nav-container">
+            <p class="sidebar-text px-8 text-[8.5px] font-black text-[var(--text-muted)]/70 uppercase tracking-[0.25em] mb-4 transition-opacity duration-200">Principal</p>
             
-            <a href="{{ route('admin.dashboard') ?? '#' }}" class="relative flex items-center gap-4 px-3 py-1 transition-all group">
-                @if(request()->routeIs('admin.dashboard'))
-                    <div class="absolute left-[-20px] top-[-4px] bottom-[-4px] w-[3px] bg-[#3B82F6] rounded-r-md shadow-[0_0_10px_rgba(59,130,246,0.8)]"></div>
-                @endif
-                <i class="fas fa-th-large w-5 text-center transition-all group-hover:scale-110 shrink-0 {{ request()->routeIs('admin.dashboard') ? 'text-[#3B82F6] drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-color)]' }}"></i>
-                <span class="sidebar-text text-sm {{ request()->routeIs('admin.dashboard') ? 'text-[#3B82F6] font-bold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }} transition-opacity duration-200">Dashboard</span>
+            <a href="{{ route('admin.dashboard') ?? '#' }}" class="relative flex items-center gap-4 px-4 py-3 mx-4 rounded-xl transition-all group {{ request()->routeIs('admin.dashboard') ? 'bg-[#111114] border border-[var(--border-color)] border-l-[3px] border-l-[#3B82F6] shadow-md modo-crema:bg-white' : 'border border-transparent' }}">
+                <i class="fas fa-th-large w-5 text-center transition-all group-hover:scale-110 shrink-0 {{ request()->routeIs('admin.dashboard') ? 'text-[#3B82F6]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-color)]' }}"></i>
+                <span class="sidebar-text text-sm transition-opacity duration-200 {{ request()->routeIs('admin.dashboard') ? 'text-[var(--text-color)] font-bold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }}">Dashboard</span>
             </a>
 
-            <a href="#" class="relative flex items-center gap-4 px-3 py-1 transition-all group">
+            <a href="#" class="relative flex items-center gap-4 px-4 py-3 mx-4 rounded-xl transition-all group border border-transparent">
                 <i class="fas fa-cube w-5 text-center transition-all group-hover:scale-110 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--text-color)]"></i>
                 <span class="sidebar-text text-sm font-medium text-[var(--text-muted)] group-hover:text-[var(--text-color)] transition-opacity duration-200">Inventario</span>
             </a>
             
-            <a href="{{ route('admin.empleados.index') ?? '#' }}" class="relative flex items-center gap-4 px-3 py-1 transition-all group">
-                @if(request()->routeIs('admin.empleados.*'))
-                    <div class="absolute left-[-20px] top-[-4px] bottom-[-4px] w-[3px] bg-[#3B82F6] rounded-r-md shadow-[0_0_10px_rgba(59,130,246,0.8)]"></div>
-                @endif
-                <i class="fas fa-users w-5 text-center transition-all group-hover:scale-110 shrink-0 {{ request()->routeIs('admin.empleados.*') ? 'text-[#3B82F6] drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-color)]' }}"></i>
-                <span class="sidebar-text text-sm {{ request()->routeIs('admin.empleados.*') ? 'text-[#3B82F6] font-bold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }} transition-opacity duration-200">Empleados</span>
+            <a href="{{ route('admin.empleados.index') ?? '#' }}" class="relative flex items-center gap-4 px-4 py-3 mx-4 rounded-xl transition-all group {{ request()->routeIs('admin.empleados.*') ? 'bg-[#111114] border border-[var(--border-color)] border-l-[3px] border-l-[#3B82F6] shadow-md modo-crema:bg-white' : 'border border-transparent' }}">
+                <i class="fas fa-users w-5 text-center transition-all group-hover:scale-110 shrink-0 {{ request()->routeIs('admin.empleados.*') ? 'text-[#3B82F6]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-color)]' }}"></i>
+                <span class="sidebar-text text-sm transition-opacity duration-200 {{ request()->routeIs('admin.empleados.*') ? 'text-[var(--text-color)] font-bold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }}">Empleados</span>
             </a>
             
-            <a href="#" class="relative flex items-center gap-4 px-3 py-1 transition-all group">
+            <a href="#" class="relative flex items-center gap-4 px-4 py-3 mx-4 rounded-xl transition-all group border border-transparent">
                 <i class="fas fa-utensils w-5 text-center transition-all group-hover:scale-110 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--text-color)]"></i>
                 <span class="sidebar-text text-sm font-medium text-[var(--text-muted)] group-hover:text-[var(--text-color)] transition-opacity duration-200">Alimentos</span>
+            </a>
+
+            <a href="#" class="relative flex items-center gap-4 px-4 py-3 mx-4 rounded-xl transition-all group border border-transparent">
+                <i class="fas fa-tags w-5 text-center transition-all group-hover:scale-110 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--text-color)]"></i>
+                <span class="sidebar-text text-sm font-medium text-[var(--text-muted)] group-hover:text-[var(--text-color)] transition-opacity duration-200">Promociones</span>
             </a>
         </nav>
     </div>
 
-    <div class="p-6 border-t border-[var(--border-color)]">
-        <a href="/login" class="w-full flex items-center justify-center gap-2.5 text-[var(--text-muted)] hover:text-rose-500 py-3 transition-all duration-300 text-xs font-bold group">
+    <div class="p-6 border-t border-[var(--border-color)] flex flex-col gap-6">
+        
+        <div class="flex items-center gap-3 overflow-hidden">
+            <div class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center font-black text-xs shrink-0 modo-crema:bg-black modo-crema:text-white">
+                AD
+            </div>
+            <div class="sidebar-text whitespace-nowrap transition-opacity duration-200">
+                <p class="text-sm font-bold text-[var(--text-color)] leading-none mb-1">Admin Principal</p>
+                <p class="text-[8px] text-[var(--text-muted)] uppercase tracking-widest font-black">Gerencia</p>
+            </div>
+        </div>
+
+        <a href="/login" class="w-full flex items-center justify-center gap-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] hover:bg-black/20 text-[var(--text-muted)] hover:text-white py-3 rounded-xl transition-all duration-300 text-xs font-bold group modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200">
             <i class="fas fa-sign-out-alt transition-transform group-hover:-translate-x-1 shrink-0"></i>
             <span class="sidebar-text transition-opacity duration-200">Cerrar Sesión</span>
         </a>

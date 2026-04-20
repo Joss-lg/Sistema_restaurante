@@ -41,9 +41,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [EmpleadoController::class, 'index'])->name('admin.empleados.index');
         Route::post('/store', [EmpleadoController::class, 'store'])->name('admin.empleados.store');
         Route::delete('/{id}', [EmpleadoController::class, 'destroy'])->name('admin.empleados.destroy');
+        
+        // ---> NUEVAS RUTAS PARA LA MATRIZ DE PERMISOS <---
+        Route::get('/{id}/permisos', [EmpleadoController::class, 'permisos'])->name('admin.empleados.permisos');
+        Route::post('/{id}/permisos', [EmpleadoController::class, 'actualizarPermisos'])->name('admin.empleados.permisos.update');
     });
 
-    /* --- Módulo de Permisos --- */
+    /* --- Módulo de Permisos (General) --- */
     Route::post('/admin/permisos/store', [PermisoController::class, 'store'])
         ->name('permisos.store');
 

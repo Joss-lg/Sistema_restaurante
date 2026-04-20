@@ -13,30 +13,22 @@ class UsuarioAdminSeeder extends Seeder
     {
         // 1. Creamos el Usuario Administrador Maestro
         $admin = User::updateOrCreate(
-            ['email' => 'admin@ollintem.com'], // Buscamos por email
+            ['email' => 'admin@ollintem.com'],
             [
                 'nombre' => 'Sebastian Admin',
-                'password' => Hash::make('admin123'), // Contraseña para el Panel Web
-                'codigo_empleado' => '1010',         // PIN para el Teclado Numérico
+                'password' => Hash::make('admin123'),
+                'codigo_empleado' => '1010',
                 'rol' => 'admin',
                 'esta_activo' => true,
             ]
         );
 
-        // 2. Definimos los permisos iniciales del sistema
-        $permisosData = [
-            ['nombre' => 'Acceso al POS', 'slug' => 'pos.access', 'descripcion' => 'Permite usar el teclado numérico'],
-            ['nombre' => 'Abrir Caja', 'slug' => 'caja.abrir', 'descripcion' => 'Permite realizar apertura de turno'],
-            ['nombre' => 'Cancelar Comanda', 'slug' => 'comanda.cancelar', 'descripcion' => 'Permite borrar platillos de una orden'],
-            ['nombre' => 'Ver Reportes', 'slug' => 'reportes.ver', 'descripcion' => 'Acceso a las gráficas de ventas'],
-        ];
+        // 2. En lugar de una lista manual, tomamos TODOS los permisos de la base de datos
+        // Esto incluye los de Inventario, Mesas, Cocina, etc., que creó el otro Seeder.
+        $todosLosPermisos = Permiso::all();
 
-        foreach ($permisosData as $p) {
-            $permiso = Permiso::updateOrCreate(['slug' => $p['slug']], $p);
-            
-            // 3. Asignamos los permisos al Admin (Modo Dios)
-            // Usamos syncWithoutDetaching para evitar duplicados al re-ejecutar el seeder
-            $admin->permisos()->syncWithoutDetaching([$permiso->id]);
-        }
+        // 3. Se los asignamos todos de un golpe
+        // Usamos sync() para que el Admin siempre esté actualizado con lo último
+        $admin->permisos()->sync($todosLosPermisos->pluck('id'));
     }
 }

@@ -69,6 +69,7 @@
 </head>
 <body class="selection:bg-[#3B82F6]/30 selection:text-[var(--text-color)]">
 
+
     <script>
         if (localStorage.getItem('tema-ollintem') === 'crema') {
             document.body.classList.add('modo-crema');

@@ -1,23 +1,33 @@
-public function run()
-{
-    $permisos = [
-        // CATEGORÍA: VENTAS/MESAS
-        ['nombre' => 'Ver Tablero de Mesas', 'slug' => 'ver_mesas'],
-        ['nombre' => 'Tomar Comandas', 'slug' => 'tomar_comandas'],
-        
-        // CATEGORÍA: COCINA
-        ['nombre' => 'Ver Monitor de Cocina', 'slug' => 'ver_cocina'],
-        
-        // CATEGORÍA: ADMIN
-        ['nombre' => 'Gestionar Inventario', 'slug' => 'ver_inventario'],
-        ['nombre' => 'Administrar Empleados', 'slug' => 'admin_empleados'],
-    ];
+<?php
 
-    foreach ($permisos as $permiso) {
-        // updateOrCreate evita que se dupliquen si vuelves a correr el seeder
-        \App\Models\Permiso::updateOrCreate(
-            ['slug' => $permiso['slug']], 
-            ['nombre' => $permiso['nombre']]
-        );
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Permiso;
+
+class PermisosSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $modulos = [
+            'dashboard'   => ['ver'],
+            'empleados'   => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],
+            'inventario'  => ['ver', 'agregar', 'editar', 'eliminar'],
+            'productos'   => ['ver', 'agregar', 'editar', 'eliminar'],
+            'categorias'  => ['ver', 'agregar', 'editar', 'eliminar'],
+            'mesas'       => ['ver', 'agregar', 'editar', 'eliminar'],
+            'promociones' => ['ver', 'agregar', 'editar', 'eliminar'],
+            'cocina'      => ['ver', 'editar'], 
+            'turnos'      => ['ver', 'abrir', 'cerrar'],
+        ];
+
+        foreach ($modulos as $modulo => $acciones) {
+            foreach ($acciones as $accion) {
+                Permiso::updateOrCreate(
+                    ['slug' => "$modulo.$accion"],
+                    ['nombre' => ucfirst($accion) . " " . ucfirst($modulo)]
+                );
+            }
+        }
     }
 }

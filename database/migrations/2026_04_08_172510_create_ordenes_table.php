@@ -17,8 +17,14 @@ return new class extends Migration
             $table->foreignId('mesa_id')->constrained('mesas');
             $table->foreignId('mesero_id')->constrained('users');
             $table->foreignId('capitan_id')->nullable()->constrained('users');
+            
             $table->string('estado'); // Ej: pendiente, en proceso, servida, pagada
+            
+            // --- CAMPOS FINANCIEROS ---
             $table->decimal('total', 10, 2)->default(0);
+            $table->decimal('propina', 10, 2)->default(0); // <--- AGREGADO AQUÍ
+            $table->string('metodo_pago')->nullable(); // Ej: efectivo, tarjeta, transferencia
+            
             $table->timestamp('abierta_el')->nullable();
             $table->timestamp('cerrada_el')->nullable();
             $table->softDeletes();

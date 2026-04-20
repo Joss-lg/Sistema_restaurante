@@ -15,15 +15,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 1. Primero creamos todos los permisos
+        $this->call(PermisosSeeder::class);
 
-       // User::factory()->create([
-          //  'name' => 'Test User',
-          //  'email' => 'test@example.com',
-       // ]);
-       
-        $this->call([
-            UsuarioAdminSeeder::class,
-        ]);
+        // 2. Luego creamos al Admin (que ya podrá tomar los permisos creados arriba)
+        $this->call(UsuarioAdminSeeder::class);
     }
 }

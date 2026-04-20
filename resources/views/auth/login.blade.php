@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ollintem Pro - Acceso</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
     <script>
         tailwind.config = {
             theme: {
@@ -152,6 +150,7 @@
         <form action="{{ route('login.pin') }}" method="POST" id="pinForm" class="hidden">
             @csrf
             <input type="password" name="codigo_empleado" id="pinHidden">
+
         </form>
 
         <div class="w-full h-24 visor-screen rounded-3xl mb-10 flex items-center justify-center gap-3 relative overflow-hidden">

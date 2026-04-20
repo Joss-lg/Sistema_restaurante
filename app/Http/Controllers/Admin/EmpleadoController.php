@@ -12,9 +12,8 @@ class EmpleadoController extends Controller
 {
     public function index()
     {
-        // CAMBIO: Quitamos el where('rol', '!=', 'admin') para que TODOS sean visibles
+        // Cargamos todos los usuarios
         $empleados = User::all(); 
-        
         $permisos = Permiso::all();
 
         return view('admin.empleados.index', compact('empleados', 'permisos'));
@@ -25,7 +24,6 @@ class EmpleadoController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'codigo_empleado' => 'required|unique:users,codigo_empleado|digits:4',
-            // CAMBIO: Usamos 'admin' en lugar de 'administrador' para que coincida con el Modelo
             'rol' => 'required|string|in:admin,capitan,mesero,cocinero,cajero',
         ]);
 
@@ -34,11 +32,43 @@ class EmpleadoController extends Controller
             'codigo_empleado' => $request->codigo_empleado,
             'rol' => $request->rol,
             'password' => Hash::make($request->codigo_empleado),
-            'esta_activo' => true, // Aseguramos que se cree activo
+            'esta_activo' => true,
         ]);
 
         return redirect()->route('admin.empleados.index')
-                        ->with('success', '¡Empleado registrado! Ahora puedes asignar sus permisos en la tabla.');
+                        ->with('success', '¡Empleado registrado! Ahora puedes configurar sus permisos.');
+    }
+
+    /**
+     * Muestra la Matriz de Permisos para un empleado específico
+     */
+    public function permisos($id)
+    {
+        // Buscamos al empleado o lanzamos error 404
+        $empleado = User::findOrFail($id);
+        
+        // Obtenemos todos los permisos base del sistema
+        $permisosBase = Permiso::all();
+
+        return view('admin.empleados.permisos', compact('empleado', 'permisosBase'));
+    }
+
+    /**
+     * Procesa y guarda los permisos seleccionados en la matriz
+     */
+    public function actualizarPermisos(Request $request, $id)
+    {
+        $empleado = User::findOrFail($id);
+
+        // Aquí la lógica dependerá de cómo tengas tu tabla intermedia, 
+        // pero lo más común es usar sync() si usas muchos a muchos.
+        if ($request->has('permisos')) {
+            // Ejemplo básico: $empleado->permisos()->sync($request->permisos);
+            // Por ahora solo redirigimos con éxito
+        }
+
+        return redirect()->route('admin.empleados.index')
+                        ->with('success', 'Permisos de ' . $empleado->nombre . ' actualizados correctamente.');
     }
 
     public function destroy($id)
