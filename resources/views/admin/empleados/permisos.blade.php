@@ -69,35 +69,53 @@
                         @endphp
 
                         @foreach($items as $item)
-                        <tr class="modulo-row group hover:bg-[#3B82F6]/[0.03] transition-all duration-300">
-                            <td class="py-8 px-10">
-                                <div class="flex items-center gap-6">
-                                    <div class="w-12 h-12 rounded-2xl bg-[var(--bg-color)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-[#3B82F6] group-hover:border-[#3B82F6]/40 group-hover:shadow-lg transition-all duration-500">
-                                        <i class="fas {{ $item['i'] }} text-lg"></i>
+                            <tr class="modulo-row group hover:bg-[#3B82F6]/[0.03] transition-all duration-300">
+                                <td class="py-8 px-10">
+                                    <div class="flex items-center gap-6">
+                                        <div class="w-12 h-12 rounded-2xl bg-[var(--bg-color)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-[#3B82F6] group-hover:border-[#3B82F6]/40 group-hover:shadow-lg transition-all duration-500">
+                                            <i class="fas {{ $item['i'] }} text-lg"></i>
+                                        </div>
+                                        <span class="text-[13px] font-black text-[var(--text-color)] uppercase tracking-widest">{{ $item['n'] }}</span>
                                     </div>
-                                    <span class="text-[13px] font-black text-[var(--text-color)] uppercase tracking-widest">{{ $item['n'] }}</span>
-                                </div>
-                            </td>
+                                </td>
 
-                            @foreach(['ver', 'crear', 'editar', 'eliminar', 'gestionar'] as $slug)
-                            <td class="py-8 px-4">
-                                <label class="relative flex items-center justify-center cursor-pointer group/check">
-                                    <input type="checkbox" name="permisos[{{ strtolower($item['n']) }}][{{ $slug }}]" class="permiso-checkbox peer sr-only">
-                                    <div class="w-9 h-9 rounded-xl border-2 border-[var(--border-color)] bg-[var(--input-bg)] transition-all duration-300
-                                        peer-checked:bg-[#3B82F6] peer-checked:border-[#3B82F6] peer-checked:shadow-[0_0_20px_rgba(59,130,246,0.5)]
-                                        group-hover/check:border-[#3B82F6]/50 flex items-center justify-center">
-                                        <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all"></i>
-                                    </div>
-                                </label>
-                            </td>
-                            @endforeach
+                                @foreach(['ver', 'agregar', 'editar', 'eliminar', 'reporte'] as $accion)
+                                    @php
+                                        // Construimos el slug como lo definiste en tu PermisosSeeder (ej: inventario.ver)
+                                        $slugBusqueda = strtolower($item['n']) . '.' . $accion;
+                                        // Buscamos el objeto permiso que coincida con ese slug
+                                        $permisoObj = $permisosBase->where('slug', $slugBusqueda)->first();
+                                    @endphp
 
-                            <td class="py-8 px-10 text-center">
-                                <button type="button" class="toggle-row text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest hover:text-[#3B82F6] transition-colors outline-none">
-                                    Todos
-                                </button>
-                            </td>
-                        </tr>
+                                    <td class="py-8 px-4">
+                                        @if($permisoObj)
+                                            <label class="relative flex items-center justify-center cursor-pointer group/check">
+                                                {{-- CAMBIO CLAVE: El name debe ser permisos[] y el value el ID --}}
+                                                <input type="checkbox" 
+                                                    name="permisos[]" 
+                                                    value="{{ $permisoObj->id }}"
+                                                    class="permiso-checkbox peer sr-only"
+                                                    {{ $empleado->permisos->contains($permisoObj->id) ? 'checked' : '' }}>
+                                                
+                                                <div class="w-9 h-9 rounded-xl border-2 border-[var(--border-color)] bg-[var(--input-bg)] transition-all duration-300
+                                                    peer-checked:bg-[#3B82F6] peer-checked:border-[#3B82F6] peer-checked:shadow-[0_0_20px_rgba(59,130,246,0.5)]
+                                                    group-hover/check:border-[#3B82F6]/50 flex items-center justify-center">
+                                                    <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all"></i>
+                                                </div>
+                                            </label>
+                                        @else
+                                            {{-- Si el permiso no existe en la DB para este módulo, lo dejamos vacío o deshabilitado --}}
+                                            <div class="w-9 h-9 opacity-10"></div>
+                                        @endif
+                                    </td>
+                                @endforeach
+
+                                <td class="py-8 px-10 text-center">
+                                    <button type="button" class="toggle-row text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest hover:text-[#3B82F6] transition-colors outline-none">
+                                        Todos
+                                    </button>
+                                </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>

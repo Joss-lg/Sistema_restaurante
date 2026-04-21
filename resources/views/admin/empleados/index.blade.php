@@ -164,16 +164,24 @@
 
                         <td class="py-4 px-4 text-right">
                             <div class="flex items-center justify-end gap-2.5">
-                                <a href="#" class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-[#3B82F6] transition-all outline-none">
+                                <button type="button" 
+                                        data-id="{{ $empleado->id }}"
+                                        data-nombre="{{ $empleado->nombre }}"
+                                        data-codigo="{{ $empleado->codigo_empleado }}"
+                                        data-rol="{{ $empleado->rol }}"
+                                        class="btn-abrir-editar w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-[#3B82F6] transition-all outline-none">
                                     <i class="fas fa-edit text-xs"></i>
-                                </a>
+                                </button>
                                 
-                                <form id="delete-form-{{ $empleado->id }}" action="#" method="POST" class="inline">
+                               <form id="delete-form-{{ $empleado->id }}" 
+                                    action="{{ route('admin.empleados.destroy', $empleado->id) }}" 
+                                    method="POST" 
+                                    class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="button" 
-                                        onclick="confirmarEliminacion('{{ $empleado->id }}', '{{ $empleado->nombre }}')" 
-                                        class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-rose-500 transition-all outline-none">
+                                            onclick="confirmarEliminacion('{{ $empleado->id }}', '{{ $empleado->nombre }}')" 
+                                            class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-rose-500 transition-all outline-none">
                                         <i class="fas fa-trash text-xs"></i>
                                     </button>
                                 </form>
@@ -263,7 +271,7 @@
 
 @push('scripts')
 <script>
-    // --- BÚSQUEDA EN TIEMPO REAL (LÓGICA NUEVA) ---
+    // --- BÚSQUEDA EN TIEMPO REAL ---
     document.addEventListener('DOMContentLoaded', function() {
         const buscador = document.getElementById('buscadorEmpleados');
         const filas = document.querySelectorAll('.fila-empleado');
@@ -291,9 +299,69 @@
                 }
             });
         }
+
+        // --- LÓGICA DE EDICIÓN (NUEVA) ---
+        // Buscamos todos los botones de editar en la tabla
+        document.querySelectorAll('.btn-abrir-editar').forEach(boton => {
+            boton.addEventListener('click', function() {
+                // 1. Extraer datos de los atributos data-
+                const id = this.getAttribute('data-id');
+                const nombre = this.getAttribute('data-nombre');
+                const codigo = this.getAttribute('data-codigo');
+                const rol = this.getAttribute('data-rol');
+
+                // 2. Llenar los campos del modal de edición
+                // Asegúrate de que estos IDs existan en tu HTML del modal de editar
+                const inputNombre = document.getElementById('edit_nombre');
+                const inputCodigo = document.getElementById('edit_codigo_empleado');
+                const inputRol = document.getElementById('edit_rol');
+                const formEditar = document.getElementById('editEmpleadoForm');
+
+                if(inputNombre) inputNombre.value = nombre;
+                if(inputCodigo) inputCodigo.value = codigo;
+                if(inputRol) inputRol.value = rol;
+
+                // 3. Actualizar la URL del formulario dinámicamente
+                if(formEditar) {
+                    const urlAction = "{{ route('admin.empleados.update', ':id') }}".replace(':id', id);
+                    formEditar.setAttribute('action', urlAction);
+                }
+
+                // 4. Mostrar el modal
+                document.getElementById('editEmpleadoModal').classList.remove('hidden');
+            });
+        });
     });
 
-    // --- LÓGICA DE MODALES Y DROPDOWN (TU CÓDIGO ORIGINAL) ---
+    // --- LÓGICA DE EDICIÓN (ESTO ES LO QUE FALTA PARA QUE EL BOTÓN FUNCIONE) ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Escuchamos el clic en cualquier botón que tenga la clase del lápiz
+    document.querySelectorAll('.btn-abrir-editar').forEach(boton => {
+        boton.addEventListener('click', function() {
+            // 1. Extraer datos del botón (los data- que ya tienes)
+            const id = this.getAttribute('data-id');
+            const nombre = this.getAttribute('data-nombre');
+            const codigo = this.getAttribute('data-codigo');
+            const rol = this.getAttribute('data-rol');
+
+            // 2. Llenar los inputs del modal de edición
+            // Verifica que los IDs de tus inputs en el modal sean estos:
+            document.getElementById('edit_nombre').value = nombre;
+            document.getElementById('edit_codigo_empleado').value = codigo;
+            document.getElementById('edit_rol').value = rol;
+
+            // 3. Actualizar la URL del formulario para evitar el error de ruta
+            const formEditar = document.getElementById('editEmpleadoForm');
+            // Usamos la URL manual para que no falle Blade
+            formEditar.action = `/admin/empleados/${id}`;
+
+            // 4. Mostrar el modal
+            document.getElementById('editEmpleadoModal').classList.remove('hidden');
+        });
+    });
+});
+
+    // --- LÓGICA DE MODALES Y DROPDOWN (NUEVO EMPLEADO) ---
     const modal = document.getElementById('employeeModal');
     const modalContent = document.getElementById('modalContent');
     const dropdownMenu = document.getElementById('dropdownMenu');
@@ -304,11 +372,18 @@
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modalContent.classList.replace('scale-95', 'scale-100');
     }
+
     function closeModal() {
         modal.classList.add('opacity-0', 'pointer-events-none');
         modalContent.classList.replace('scale-100', 'scale-95');
-        if (!dropdownMenu.classList.contains('opacity-0')) toggleDropdown();
+        if (dropdownMenu && !dropdownMenu.classList.contains('opacity-0')) toggleDropdown();
     }
+
+    // --- CERRAR MODAL DE EDICIÓN ---
+    function cerrarEditModal() {
+        document.getElementById('editEmpleadoModal').classList.add('hidden');
+    }
+
     function toggleDropdown() {
         const isOpen = !dropdownMenu.classList.contains('opacity-0');
         if (isOpen) {
@@ -319,24 +394,31 @@
             dropdownIcon.classList.add('rotate-180', 'text-[#3B82F6]');
         }
     }
+
     function selectRole(name, techValue) {
         document.getElementById('dropdownSelected').innerText = name;
         document.getElementById('rol_input').value = techValue;
         toggleDropdown();
     }
 
+    // --- LÓGICA DE ELIMINACIÓN ---
     let formIdParaEliminar = null;
     function confirmarEliminacion(id, nombre) {
         formIdParaEliminar = 'delete-form-' + id;
         document.getElementById('nombreEmpleadoEliminar').innerText = nombre;
         document.getElementById('deleteModal').classList.remove('hidden');
     }
+
     function cerrarModalEliminar() {
         document.getElementById('deleteModal').classList.add('hidden');
         formIdParaEliminar = null;
     }
-    document.getElementById('btnConfirmarEliminar').addEventListener('click', function() {
-        if (formIdParaEliminar) document.getElementById(formIdParaEliminar).submit();
-    });
+
+    const btnConfirmar = document.getElementById('btnConfirmarEliminar');
+    if (btnConfirmar) {
+        btnConfirmar.addEventListener('click', function() {
+            if (formIdParaEliminar) document.getElementById(formIdParaEliminar).submit();
+        });
+    }
 </script>
 @endpush
