@@ -30,7 +30,7 @@ class EmpleadoController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'codigo_empleado' => 'required|unique:users,codigo_empleado|digits:4',
-            'rol' => 'required|string|in:admin,capitan,mesero,cocinero,cajero',
+                'rol' => 'required|string|in:admin,capitan,mesero,cocinero,cajero',
         ]);
 
         $empleado = User::create([

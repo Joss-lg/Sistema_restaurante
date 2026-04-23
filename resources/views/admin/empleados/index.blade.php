@@ -11,10 +11,13 @@
         <div>
             <h1 class="text-3xl font-black text-[var(--text-color)] tracking-tight">Empleados</h1>
         </div>
-        <button onclick="openModal()" class="relative flex items-center gap-2.5 bg-[#3B82F6] border border-[#3B82F6]/50 text-white hover:bg-[#3B82F6]/90 px-7 py-3 rounded-xl text-xs font-bold transition-all duration-300 shadow-[0_8px_20px_-6px_rgba(59,130,246,0.5)] hover:shadow-[0_12px_25px_-4px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 group">
-            <i class="fas fa-plus"></i> 
-            <span>Agregar Empleado</span>
-        </button>
+        <div class="relative group">
+            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500 pointer-events-none"></div>
+            <button onclick="openModal()" class="relative flex items-center gap-2.5 bg-[#3B82F6] border border-white/10 text-white px-7 py-3.5 rounded-xl text-xs font-bold transition-all duration-300 hover:-translate-y-0.5 outline-none">
+                <i class="fas fa-plus"></i> 
+                <span>Agregar Empleado</span>
+            </button>
+        </div>
     </div>
 
     @php
@@ -33,58 +36,63 @@
     @endphp
 
     <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6">
-        <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-rose-500/50">
-            <div class="flex justify-between items-start">
+        <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden transition-all hover:border-rose-500/50 shadow-sm">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-rose-500/10 to-transparent rounded-full -mr-10 -mt-10 blur-2xl transition-all group-hover:bg-rose-500/20"></div>
+            <div class="flex justify-between items-start relative z-10">
                 <h3 class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">Administradores</h3>
-                <div class="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 group-hover:scale-110 transition-transform duration-300">
+                <div class="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-user-shield text-lg"></i>
                 </div>
             </div>
-            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter">{{ $totalAdmin }}</p>
+            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter relative z-10">{{ $totalAdmin }}</p>
         </div>
         
-        <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-blue-400/50">
-            <div class="flex justify-between items-start">
+        <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden transition-all hover:border-blue-400/50 shadow-sm">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -mr-10 -mt-10 blur-2xl transition-all group-hover:bg-blue-500/20"></div>
+            <div class="flex justify-between items-start relative z-10">
                 <h3 class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">Capitanes</h3>
-                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform duration-300">
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-clipboard-list text-lg"></i>
                 </div>
             </div>
-            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter">{{ $totalCapitan }}</p>
+            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter relative z-10">{{ $totalCapitan }}</p>
         </div>
         
-        <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-emerald-400/50">
-            <div class="flex justify-between items-start">
+        <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden transition-all hover:border-emerald-400/50 shadow-sm">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-full -mr-10 -mt-10 blur-2xl transition-all group-hover:bg-emerald-500/20"></div>
+            <div class="flex justify-between items-start relative z-10">
                 <h3 class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">Meseros</h3>
-                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform duration-300">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-concierge-bell text-lg"></i>
                 </div>
             </div>
-            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter">{{ $totalMesero }}</p>
+            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter relative z-10">{{ $totalMesero }}</p>
         </div>
         
-        <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-orange-400/50">
-            <div class="flex justify-between items-start">
+        <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden transition-all hover:border-orange-400/50 shadow-sm">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-500/10 to-transparent rounded-full -mr-10 -mt-10 blur-2xl transition-all group-hover:bg-orange-500/20"></div>
+            <div class="flex justify-between items-start relative z-10">
                 <h3 class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">Cocineros</h3>
-                <div class="w-10 h-10 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform duration-300">
+                <div class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-fire-burner text-lg"></i>
                 </div>
             </div>
-            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter">{{ $totalCocinero }}</p>
+            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter relative z-10">{{ $totalCocinero }}</p>
         </div>
 
-        <div class="glass-card rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative hover:border-purple-400/50">
-             <div class="flex justify-between items-start">
+        <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[1.5rem] p-6 flex flex-col justify-between h-32 group relative overflow-hidden transition-all hover:border-purple-400/50 shadow-sm">
+             <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full -mr-10 -mt-10 blur-2xl transition-all group-hover:bg-purple-500/20"></div>
+             <div class="flex justify-between items-start relative z-10">
                  <h3 class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">Cajeros</h3>
-                 <div class="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform duration-300">
+                 <div class="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform duration-500">
                      <i class="fas fa-cash-register text-lg"></i>
                  </div>
              </div>
-            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter">{{ $totalCajero }}</p>
+            <p class="text-5xl font-black text-[var(--text-color)] tracking-tighter relative z-10">{{ $totalCajero }}</p>
         </div>
     </div> 
     
-    <div class="glass-card rounded-[2rem] p-8 lg:p-10 w-full flex-1 flex flex-col modo-crema:shadow-2xl">
+    <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[2rem] p-8 lg:p-10 w-full flex-1 flex flex-col shadow-sm">
         
         <div class="mb-8 flex justify-between items-center">
             <div class="flex flex-col">
@@ -92,8 +100,10 @@
                 <p class="text-xs text-[var(--text-muted)] mt-1 font-medium">{{ count($empleados ?? []) }} registrados en el sistema</p>
             </div>
             <div class="relative w-64">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs"></i>
-                <input type="text" id="buscadorEmpleados" placeholder="Buscar empleado..." class="w-full h-10 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg pl-10 pr-4 text-xs font-medium text-[var(--text-color)] focus:ring-1 focus:ring-[#3B82F6] outline-none transition-all shadow-inner">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-[var(--text-muted)] text-xs"></i>
+                </div>
+                <input type="text" id="buscadorEmpleados" placeholder="Buscar empleado..." class="w-full h-11 bg-black/5 modo-crema:bg-zinc-100/50 border border-transparent rounded-xl pl-10 pr-4 text-xs font-medium text-[var(--text-color)] focus:bg-[var(--card-color)] focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10 outline-none transition-all">
             </div>
         </div>
 
@@ -164,27 +174,35 @@
 
                         <td class="py-4 px-4 text-right">
                             <div class="flex items-center justify-end gap-2.5">
-                                <button type="button" 
-                                        data-id="{{ $empleado->id }}"
-                                        data-nombre="{{ $empleado->nombre }}"
-                                        data-codigo="{{ $empleado->codigo_empleado }}"
-                                        data-rol="{{ $empleado->rol }}"
-                                        class="btn-abrir-editar w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-[#3B82F6] transition-all outline-none">
-                                    <i class="fas fa-edit text-xs"></i>
-                                </button>
                                 
-                               <form id="delete-form-{{ $empleado->id }}" 
-                                    action="{{ route('admin.empleados.destroy', $empleado->id) }}" 
-                                    method="POST" 
-                                    class="inline">
-                                    @csrf
-                                    @method('DELETE')
+                                {{-- CONDICIÓN PARA EDITAR --}}
+                                @if(auth()->user()->tienePermiso('empleados', 'editar'))
                                     <button type="button" 
-                                            onclick="confirmarEliminacion('{{ $empleado->id }}', '{{ $empleado->nombre }}')" 
-                                            class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-rose-500 transition-all outline-none">
-                                        <i class="fas fa-trash text-xs"></i>
+                                            data-id="{{ $empleado->id }}"
+                                            data-nombre="{{ $empleado->nombre }}"
+                                            data-codigo="{{ $empleado->codigo_empleado }}"
+                                            data-rol="{{ $empleado->rol }}"
+                                            class="btn-abrir-editar w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-[#3B82F6] transition-all outline-none">
+                                        <i class="fas fa-edit text-xs pointer-events-none"></i>
                                     </button>
-                                </form>
+                                @endif
+                                
+                                {{-- CONDICIÓN PARA BORRAR --}}
+                                @if(auth()->user()->tienePermiso('empleados', 'borrar'))
+                                    <form id="delete-form-{{ $empleado->id }}" 
+                                        action="{{ route('admin.empleados.destroy', $empleado->id) }}" 
+                                        method="POST" 
+                                        class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" 
+                                                onclick="confirmarEliminacion('{{ $empleado->id }}', '{{ $empleado->nombre }}')" 
+                                                class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-rose-500 transition-all outline-none">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </form>
+                                @endif
+
                             </div>
                         </td>
                     </tr>
@@ -267,11 +285,122 @@
         </div>
     </div>
 </div>
+
+@include('admin.empleados.modal-editar')
+
 @endsection
 
 @push('scripts')
 <script>
-    // --- BÚSQUEDA EN TIEMPO REAL ---
+    // --- 1. DELEGACIÓN DE EVENTOS PARA EL BOTÓN EDITAR ---
+    document.body.addEventListener('click', function(e) {
+        const botonEditar = e.target.closest('.btn-abrir-editar');
+        
+        if (botonEditar) {
+            e.preventDefault(); 
+
+            const id = botonEditar.getAttribute('data-id');
+            const nombre = botonEditar.getAttribute('data-nombre');
+            const codigo = botonEditar.getAttribute('data-codigo');
+            const rol = botonEditar.getAttribute('data-rol').toLowerCase();
+
+            const inNombre = document.getElementById('edit_nombre');
+            const inCodigo = document.getElementById('edit_codigo_empleado');
+            const inRol = document.getElementById('edit_rol');
+            const editForm = document.getElementById('editEmpleadoForm');
+
+            if (inNombre) inNombre.value = nombre;
+            if (inCodigo) inCodigo.value = codigo;
+            if (inRol) inRol.value = rol;
+
+            // También llenamos el dropdown visual personalizado
+            const rolesMap = {
+                'admin': 'Administrador', 'administrador': 'Administrador',
+                'capitan': 'Capitán', 'capitán': 'Capitán',
+                'mesero': 'Mesero', 'cocinero': 'Cocinero', 'cajero': 'Cajero'
+            };
+            const labelDropdown = document.getElementById('editDropdownSelected');
+            const inputOculto = document.getElementById('edit_rol_input');
+            if (labelDropdown) labelDropdown.innerText = rolesMap[rol] || 'Seleccionar...';
+            if (inputOculto) inputOculto.value = rol;
+
+            if (editForm) editForm.action = `/admin/empleados/${id}`;
+
+            const editModal = document.getElementById('editEmpleadoModal');
+            const editModalContent = document.getElementById('editModalContent');
+
+            if (editModal) {
+                editModal.classList.remove('hidden');
+                setTimeout(() => {
+                    editModal.classList.remove('opacity-0');
+                    if (editModalContent) editModalContent.classList.replace('scale-95', 'scale-100');
+                }, 10);
+            }
+        }
+    });
+
+    // --- 2. FUNCIONES DEL MODAL EDITAR (CON CORRECCIÓN DE DROPDOWN) ---
+    window.cerrarEditModal = function() {
+        const editModal = document.getElementById('editEmpleadoModal');
+        const editModalContent = document.getElementById('editModalContent');
+        
+        if (editModal) editModal.classList.add('opacity-0');
+        if (editModalContent) editModalContent.classList.replace('scale-100', 'scale-95');
+        
+        // Cerrar menú por si quedó abierto
+        if(typeof window.cerrarMenuEdit === 'function') window.cerrarMenuEdit();
+        
+        setTimeout(() => {
+            if (editModal) editModal.classList.add('hidden');
+        }, 300);
+    }
+
+    // AQUI ESTA LA CORRECCIÓN: el event.stopPropagation()
+    window.toggleEditDropdown = function(event) {
+        if(event) event.stopPropagation(); // <-- Detiene el clic para que no lo cierre
+        
+        const menu = document.getElementById('editDropdownMenu');
+        const icon = document.getElementById('editDropdownIcon');
+        if(!menu) return;
+
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            setTimeout(() => {
+                menu.classList.remove('opacity-0', 'translate-y-[-10px]');
+                if(icon) icon.classList.add('rotate-180');
+            }, 10);
+        } else {
+            window.cerrarMenuEdit();
+        }
+    }
+
+    window.cerrarMenuEdit = function() {
+        const menu = document.getElementById('editDropdownMenu');
+        const icon = document.getElementById('editDropdownIcon');
+        if(!menu || menu.classList.contains('hidden')) return;
+        
+        menu.classList.add('opacity-0', 'translate-y-[-10px]');
+        if(icon) icon.classList.remove('rotate-180');
+        setTimeout(() => menu.classList.add('hidden'), 300);
+    }
+
+    window.selectEditRole = function(label, value) {
+        const selected = document.getElementById('editDropdownSelected');
+        const input = document.getElementById('edit_rol_input');
+        if(selected) selected.innerText = label;
+        if(input) input.value = value;
+        window.cerrarMenuEdit();
+    }
+
+    // Cierra el menú al dar clic fuera
+    document.addEventListener('click', (e) => {
+        const container = document.getElementById('editDropdownContainer');
+        if (container && !container.contains(e.target)) {
+            window.cerrarMenuEdit();
+        }
+    });
+
+    // --- 3. BÚSQUEDA EN TIEMPO REAL ---
     document.addEventListener('DOMContentLoaded', function() {
         const buscador = document.getElementById('buscadorEmpleados');
         const filas = document.querySelectorAll('.fila-empleado');
@@ -299,125 +428,68 @@
                 }
             });
         }
-
-        // --- LÓGICA DE EDICIÓN (NUEVA) ---
-        // Buscamos todos los botones de editar en la tabla
-        document.querySelectorAll('.btn-abrir-editar').forEach(boton => {
-            boton.addEventListener('click', function() {
-                // 1. Extraer datos de los atributos data-
-                const id = this.getAttribute('data-id');
-                const nombre = this.getAttribute('data-nombre');
-                const codigo = this.getAttribute('data-codigo');
-                const rol = this.getAttribute('data-rol');
-
-                // 2. Llenar los campos del modal de edición
-                // Asegúrate de que estos IDs existan en tu HTML del modal de editar
-                const inputNombre = document.getElementById('edit_nombre');
-                const inputCodigo = document.getElementById('edit_codigo_empleado');
-                const inputRol = document.getElementById('edit_rol');
-                const formEditar = document.getElementById('editEmpleadoForm');
-
-                if(inputNombre) inputNombre.value = nombre;
-                if(inputCodigo) inputCodigo.value = codigo;
-                if(inputRol) inputRol.value = rol;
-
-                // 3. Actualizar la URL del formulario dinámicamente
-                if(formEditar) {
-                    const urlAction = "{{ route('admin.empleados.update', ':id') }}".replace(':id', id);
-                    formEditar.setAttribute('action', urlAction);
-                }
-
-                // 4. Mostrar el modal
-                document.getElementById('editEmpleadoModal').classList.remove('hidden');
-            });
-        });
     });
 
-    // --- LÓGICA DE EDICIÓN (ESTO ES LO QUE FALTA PARA QUE EL BOTÓN FUNCIONE) ---
-document.addEventListener('DOMContentLoaded', function() {
-    // Escuchamos el clic en cualquier botón que tenga la clase del lápiz
-    document.querySelectorAll('.btn-abrir-editar').forEach(boton => {
-        boton.addEventListener('click', function() {
-            // 1. Extraer datos del botón (los data- que ya tienes)
-            const id = this.getAttribute('data-id');
-            const nombre = this.getAttribute('data-nombre');
-            const codigo = this.getAttribute('data-codigo');
-            const rol = this.getAttribute('data-rol');
-
-            // 2. Llenar los inputs del modal de edición
-            // Verifica que los IDs de tus inputs en el modal sean estos:
-            document.getElementById('edit_nombre').value = nombre;
-            document.getElementById('edit_codigo_empleado').value = codigo;
-            document.getElementById('edit_rol').value = rol;
-
-            // 3. Actualizar la URL del formulario para evitar el error de ruta
-            const formEditar = document.getElementById('editEmpleadoForm');
-            // Usamos la URL manual para que no falle Blade
-            formEditar.action = `/admin/empleados/${id}`;
-
-            // 4. Mostrar el modal
-            document.getElementById('editEmpleadoModal').classList.remove('hidden');
-        });
-    });
-});
-
-    // --- LÓGICA DE MODALES Y DROPDOWN (NUEVO EMPLEADO) ---
+    // --- 4. MODALES GENERALES (NUEVO Y ELIMINAR) ---
     const modal = document.getElementById('employeeModal');
     const modalContent = document.getElementById('modalContent');
     const dropdownMenu = document.getElementById('dropdownMenu');
     const dropdownIcon = document.getElementById('dropdownIcon');
-    const dropdownBtn = document.getElementById('dropdownBtn');
 
-    function openModal() {
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-        modalContent.classList.replace('scale-95', 'scale-100');
+    window.openModal = function() {
+        if(modal) modal.classList.remove('opacity-0', 'pointer-events-none');
+        if(modalContent) modalContent.classList.replace('scale-95', 'scale-100');
     }
 
-    function closeModal() {
-        modal.classList.add('opacity-0', 'pointer-events-none');
-        modalContent.classList.replace('scale-100', 'scale-95');
-        if (dropdownMenu && !dropdownMenu.classList.contains('opacity-0')) toggleDropdown();
+    window.closeModal = function() {
+        if(modal) modal.classList.add('opacity-0', 'pointer-events-none');
+        if(modalContent) modalContent.classList.replace('scale-100', 'scale-95');
+        if (dropdownMenu && !dropdownMenu.classList.contains('opacity-0')) window.toggleDropdown();
     }
 
-    // --- CERRAR MODAL DE EDICIÓN ---
-    function cerrarEditModal() {
-        document.getElementById('editEmpleadoModal').classList.add('hidden');
-    }
-
-    function toggleDropdown() {
+    window.toggleDropdown = function() {
+        if(!dropdownMenu) return;
         const isOpen = !dropdownMenu.classList.contains('opacity-0');
         if (isOpen) {
             dropdownMenu.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
-            dropdownIcon.classList.remove('rotate-180', 'text-[#3B82F6]');
+            if(dropdownIcon) dropdownIcon.classList.remove('rotate-180', 'text-[#3B82F6]');
         } else {
             dropdownMenu.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
-            dropdownIcon.classList.add('rotate-180', 'text-[#3B82F6]');
+            if(dropdownIcon) dropdownIcon.classList.add('rotate-180', 'text-[#3B82F6]');
         }
     }
 
-    function selectRole(name, techValue) {
-        document.getElementById('dropdownSelected').innerText = name;
-        document.getElementById('rol_input').value = techValue;
-        toggleDropdown();
+    window.selectRole = function(name, techValue) {
+        const selected = document.getElementById('dropdownSelected');
+        const input = document.getElementById('rol_input');
+        if(selected) selected.innerText = name;
+        if(input) input.value = techValue;
+        window.toggleDropdown();
     }
 
-    // --- LÓGICA DE ELIMINACIÓN ---
+    // ELIMINACIÓN
     let formIdParaEliminar = null;
-    function confirmarEliminacion(id, nombre) {
+    window.confirmarEliminacion = function(id, nombre) {
         formIdParaEliminar = 'delete-form-' + id;
-        document.getElementById('nombreEmpleadoEliminar').innerText = nombre;
-        document.getElementById('deleteModal').classList.remove('hidden');
+        const elimNombre = document.getElementById('nombreEmpleadoEliminar');
+        const elimModal = document.getElementById('deleteModal');
+        if(elimNombre) elimNombre.innerText = nombre;
+        if(elimModal) elimModal.classList.remove('hidden');
     }
 
-    function cerrarModalEliminar() {
-        document.getElementById('deleteModal').classList.add('hidden');
+    window.cerrarModalEliminar = function() {
+        const elimModal = document.getElementById('deleteModal');
+        if(elimModal) elimModal.classList.add('hidden');
         formIdParaEliminar = null;
     }
 
     const btnConfirmar = document.getElementById('btnConfirmarEliminar');
     if (btnConfirmar) {
         btnConfirmar.addEventListener('click', function() {
-            if (formIdParaEliminar) document.getElementById(formIdParaEliminar).submit();
+            if (formIdParaEliminar) {
+                const form = document.getElementById(formIdParaEliminar);
+                if(form) form.submit();
+            }
         });
     }
 </script>
