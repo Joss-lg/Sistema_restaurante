@@ -49,19 +49,18 @@ class User extends Authenticatable
         return $this->belongsToMany(Permiso::class, 'permiso_user');
     }
 
-    public function tienePermiso($modulo, $accion = null) 
+    public function tienePermiso($permisoRequerido) 
     {
-
+        // Si es admin, tiene permiso a todo
         if (strtolower($this->rol) === 'admin' || strtolower($this->rol) === 'administrador') {
             return true;
         }
 
-        
-        $identificador = $accion ? strtolower($modulo) . "_" . strtolower($accion) : strtolower($modulo);
-
-        return $this->permisos->contains(function ($permiso) use ($identificador) {
-           
-            return strtolower($permiso->slug) === $identificador;
+        // Buscamos si dentro de los permisos del usuario existe el slug que le pasamos
+        return $this->permisos->contains(function ($permiso) use ($permisoRequerido) {
+            return strtolower($permiso->slug) === strtolower($permisoRequerido);
         });
     }
+
+    
 }

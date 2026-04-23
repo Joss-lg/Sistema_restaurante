@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Models\Permiso;
 use Illuminate\Http\Request;
@@ -30,5 +31,18 @@ class PermisoController extends Controller
 
         // 3. Redireccionamos con un mensaje de éxito
         return back()->with('success', 'El permiso ha sido registrado en el sistema.');
+    }
+    public function asignarPermisos(Request $request, $id)
+    {
+        // 1. Buscamos al empleado por su ID
+        $empleado = User::findOrFail($id);
+
+        // 2. Sincronizamos los permisos
+        // $request->permisos tomará el arreglo de los checkboxes marcados.
+        // Si desmarca todos, el ?? [] asegura que se borren de la base de datos.
+        $empleado->permisos()->sync($request->permisos ?? []);
+
+        // 3. Redireccionamos con mensaje de éxito
+        return back()->with('success', 'Los permisos del empleado han sido actualizados.');
     }
 }

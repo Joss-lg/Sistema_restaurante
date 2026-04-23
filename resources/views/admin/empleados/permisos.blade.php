@@ -41,15 +41,15 @@
     </div>
 
     <div class="bg-[var(--card-color)] rounded-[3rem] border border-[var(--border-color)] shadow-2xl overflow-hidden modo-crema:bg-white">
-        <form action="{{ route('admin.empleados.permisos.update', $empleado->id) }}" method="POST" id="permisosForm">
+         <form action="{{ route('admin.empleados.permisos.update', $empleado->id) }}" method="POST" id="permisosForm">
             @csrf
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse">
                     <thead>
                         <tr class="bg-black/20 modo-crema:bg-zinc-50/80 border-b border-[var(--border-color)]">
                             <th class="py-10 px-10 text-[11px] font-black text-[var(--text-color)] uppercase tracking-[0.4em] text-left">Módulos</th>
-                            @php $permisos = ['Ver', 'Crear', 'Editar', 'Borrar', 'Gestionar']; @endphp
-                            @foreach($permisos as $p)
+                            @php $permisosHeader = ['Ver', 'Crear', 'Editar', 'Borrar', 'Gestionar']; @endphp
+                            @foreach($permisosHeader as $p)
                             <th class="py-10 px-4 text-[11px] font-black text-[var(--text-color)] uppercase tracking-[0.4em] text-center">{{ $p }}</th>
                             @endforeach
                             <th class="py-10 px-10 text-[11px] font-black text-[#3B82F6] uppercase tracking-[0.4em] text-center">Acción</th>
@@ -57,14 +57,17 @@
                     </thead>
                     <tbody class="divide-y divide-[var(--border-color)]">
                         @php
+                            // AQUI ESTA LA CORRECCIÓN: Se agregó 'slug' para buscar exactamente en la BD
                             $items = [
-                                ['n' => 'Dashboard', 'i' => 'fa-chart-line'],
-                                ['n' => 'Inventario', 'i' => 'fa-boxes-stacked'],
-                                ['n' => 'Empleados', 'i' => 'fa-users-gear'],
-                                ['n' => 'Alimentos', 'i' => 'fa-utensils'],
-                                ['n' => 'Promociones', 'i' => 'fa-receipt'],
-                                ['n' => 'Caja / POS', 'i' => 'fa-vault'],
-                                ['n' => 'Configuración', 'i' => 'fa-sliders'],
+                                ['n' => 'Dashboard',     'slug' => 'dashboard',   'i' => 'fa-chart-line'],
+                                ['n' => 'Inventario',    'slug' => 'inventario',  'i' => 'fa-boxes-stacked'],
+                                ['n' => 'Empleados',     'slug' => 'empleados',   'i' => 'fa-users-gear'],
+                                ['n' => 'Alimentos',     'slug' => 'productos',   'i' => 'fa-utensils'],
+                                ['n' => 'Categorías',    'slug' => 'categorias',  'i' => 'fa-layer-group'],
+                                ['n' => 'Mesas',         'slug' => 'mesas',       'i' => 'fa-border-all'],
+                                ['n' => 'Promociones',   'slug' => 'promociones', 'i' => 'fa-receipt'],
+                                ['n' => 'Cocina',        'slug' => 'cocina',      'i' => 'fa-fire-burner'],
+                                ['n' => 'Turnos',        'slug' => 'turnos',      'i' => 'fa-clock'],
                             ];
                         @endphp
 
@@ -81,8 +84,9 @@
 
                                 @foreach(['ver', 'agregar', 'editar', 'eliminar', 'reporte'] as $accion)
                                     @php
-                                        // Construimos el slug como lo definiste en tu PermisosSeeder (ej: inventario.ver)
-                                        $slugBusqueda = strtolower($item['n']) . '.' . $accion;
+                                        // AQUI ESTA LA CORRECCIÓN: Buscamos usando el slug técnico, NO el nombre visual
+                                        $slugBusqueda = $item['slug'] . '.' . $accion;
+                                        
                                         // Buscamos el objeto permiso que coincida con ese slug
                                         $permisoObj = $permisosBase->where('slug', $slugBusqueda)->first();
                                     @endphp
@@ -90,7 +94,6 @@
                                     <td class="py-8 px-4">
                                         @if($permisoObj)
                                             <label class="relative flex items-center justify-center cursor-pointer group/check">
-                                                {{-- CAMBIO CLAVE: El name debe ser permisos[] y el value el ID --}}
                                                 <input type="checkbox" 
                                                     name="permisos[]" 
                                                     value="{{ $permisoObj->id }}"
@@ -104,8 +107,10 @@
                                                 </div>
                                             </label>
                                         @else
-                                            {{-- Si el permiso no existe en la DB para este módulo, lo dejamos vacío o deshabilitado --}}
-                                            <div class="w-9 h-9 opacity-10"></div>
+                                            {{-- Si el permiso no existe en la DB (ej: cocina.agregar), mostramos un cuadro deshabilitado --}}
+                                            <div class="flex justify-center">
+                                                <div class="w-9 h-9 rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-color)] opacity-20"></div>
+                                            </div>
                                         @endif
                                     </td>
                                 @endforeach

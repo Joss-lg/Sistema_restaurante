@@ -11,13 +11,17 @@
         <div>
             <h1 class="text-3xl font-black text-[var(--text-color)] tracking-tight">Empleados</h1>
         </div>
-        <div class="relative group">
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500 pointer-events-none"></div>
-            <button onclick="openModal()" class="relative flex items-center gap-2.5 bg-[#3B82F6] border border-white/10 text-white px-7 py-3.5 rounded-xl text-xs font-bold transition-all duration-300 hover:-translate-y-0.5 outline-none">
-                <i class="fas fa-plus"></i> 
-                <span>Agregar Empleado</span>
-            </button>
-        </div>
+
+        {{-- PROTECCIÓN DEL BOTÓN DE AGREGAR EMPLEADO --}}
+        @if(auth()->user()->tienePermiso('empleados.agregar'))
+            <div class="relative group">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500 pointer-events-none"></div>
+                <button onclick="openModal()" class="relative flex items-center gap-2.5 bg-[#3B82F6] border border-white/10 text-white px-7 py-3.5 rounded-xl text-xs font-bold transition-all duration-300 hover:-translate-y-0.5 outline-none">
+                    <i class="fas fa-plus"></i> 
+                    <span>Agregar Empleado</span>
+                </button>
+            </div>
+        @endif
     </div>
 
     @php
@@ -166,17 +170,21 @@
                         </td>
                         
                         <td class="py-4 px-4">
-                            <a href="{{ route('admin.empleados.permisos', $empleado->id) }}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-color)] bg-black/20 text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-white hover:border-[#3B82F6]/50 transition-all">
-                                <i class="fas fa-shield-halved text-[#3B82F6]"></i>
-                                Configurar
-                            </a>
+                            @if(auth()->user()->tienePermiso('empleados.reporte'))
+                                <a href="{{ route('admin.empleados.permisos', $empleado->id) }}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-color)] bg-black/20 text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-white hover:border-[#3B82F6]/50 transition-all">
+                                    <i class="fas fa-shield-halved text-[#3B82F6]"></i>
+                                    Configurar
+                                </a>
+                            @else
+                                <span class="text-[9px] font-black uppercase text-[var(--text-muted)] opacity-50">Sin acceso</span>
+                            @endif
                         </td>
 
                         <td class="py-4 px-4 text-right">
                             <div class="flex items-center justify-end gap-2.5">
                                 
                                 {{-- CONDICIÓN PARA EDITAR --}}
-                                @if(auth()->user()->tienePermiso('empleados', 'editar'))
+                                @if(auth()->user()->tienePermiso('empleados.editar'))
                                     <button type="button" 
                                             data-id="{{ $empleado->id }}"
                                             data-nombre="{{ $empleado->nombre }}"
@@ -187,8 +195,8 @@
                                     </button>
                                 @endif
                                 
-                                {{-- CONDICIÓN PARA BORRAR --}}
-                                @if(auth()->user()->tienePermiso('empleados', 'borrar'))
+                                {{-- CONDICIÓN PARA ELIMINAR --}}
+                                @if(auth()->user()->tienePermiso('empleados.eliminar'))
                                     <form id="delete-form-{{ $empleado->id }}" 
                                         action="{{ route('admin.empleados.destroy', $empleado->id) }}" 
                                         method="POST" 
