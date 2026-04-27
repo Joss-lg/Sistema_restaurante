@@ -45,11 +45,16 @@
             
             {{-- ALIMENTOS (PRODUCTOS) --}}
             @if(auth()->user()->tienePermiso('productos.ver'))
-            <a href="{{ route('admin.productos.index') ?? '#' }}" class="relative flex items-center gap-4 px-4 py-3 mx-4 rounded-xl transition-all group border border-transparent">
-                <i class="fas fa-utensils w-5 text-center transition-all group-hover:scale-110 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--text-color)]"></i>
-                <span class="sidebar-text text-sm font-medium text-[var(--text-muted)] group-hover:text-[var(--text-color)] transition-opacity duration-200">Alimentos</span>
-            </a>
-            @endif
+            <a href="{{ route('admin.productos.index') }}" 
+                class="relative flex items-center gap-4 px-4 py-3 mx-4 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.productos.*') ? 'bg-[#111114] border border-[var(--border-color)] border-l-[3px] border-l-[#3B82F6] shadow-lg modo-crema:bg-white scale-[1.02]' : 'border border-transparent hover:bg-white/5' }}">
+{{-- Icono con color reforzado --}}
+                <i class="fas fa-utensils w-5 text-center transition-all duration-300 group-hover:scale-110 shrink-0 {{ request()->routeIs('admin.productos.*') ? 'text-[#3B82F6] drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-color)]' }}"></i>
+    {{-- Texto con peso de fuente corregido --}}
+                <span class="sidebar-text text-sm transition-opacity duration-200 {{ request()->routeIs('admin.productos.*') ? 'text-[var(--text-color)] font-bold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }}">
+        Alimentos
+    </span>
+</a>    
+@endif
 
             {{-- PROMOCIONES --}}
             @if(auth()->user()->tienePermiso('promociones.ver'))

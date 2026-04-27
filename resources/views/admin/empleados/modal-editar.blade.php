@@ -84,7 +84,7 @@
                     <i class="fas fa-chevron-down text-[var(--m-muted)] transition-transform duration-300" id="editDropdownIcon"></i>
                 </button>
 
-                <div id="editDropdownMenu" class="absolute top-[calc(100%+8px)] left-0 w-full bg-[var(--m-drop-bg)] border border-[var(--m-border)] rounded-2xl shadow-2xl z-[110] py-2 hidden opacity-0 translate-y-[-10px] transition-all duration-300 overflow-hidden backdrop-blur-xl">
+                <div id="editDropdownMenu" class="absolute top-[calc(100%+8px)] left-0 w-full bg-[var(--m-drop-bg)] border border-[var(--m-border)] rounded-2xl shadow-2xl z-[110] py-2 hidden opacity-0 translate-y-[-10px] transition-all duration-300 max-h-48 overflow-y-auto backdrop-blur-xl">
                     @php
                         $roles = ['admin' => 'Administrador', 'capitan' => 'Capitán', 'mesero' => 'Mesero', 'cocinero' => 'Cocinero', 'cajero' => 'Cajero'];
                     @endphp
