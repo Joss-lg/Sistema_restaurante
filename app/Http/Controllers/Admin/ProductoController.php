@@ -37,6 +37,7 @@ class ProductoController extends Controller
      */
     public function store(Request $request)
     {
+        dd($request->all()); 
         $request->validate([
             'nombre' => 'required|string|max:255',
             'categoria_id' => 'required|exists:categorias,id',

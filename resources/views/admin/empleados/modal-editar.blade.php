@@ -44,6 +44,7 @@
             <p class="text-[11px] font-bold text-[var(--m-muted)] uppercase tracking-[0.2em] mt-2 opacity-80">Actualización de credenciales</p>
         </div>
 
+        {{-- IMPORTANTE: El ID editEmpleadoForm es clave para el JS --}}
         <form id="editEmpleadoForm" method="POST" class="space-y-7 relative z-10">
             @csrf
             @method('PUT')
@@ -110,3 +111,81 @@
         </form>
     </div>
 </div>
+
+<script>
+    /**
+     * Función principal para abrir el modal y configurar la ruta de guardado
+     */
+    function abrirModalEditar(id, nombre, codigo, rol) {
+        const modal = document.getElementById('editEmpleadoModal');
+        const content = document.getElementById('editModalContent');
+        const form = document.getElementById('editEmpleadoForm');
+
+        // 1. ASIGNAMOS LA RUTA CORRECTA DINÁMICAMENTE
+        // Esto soluciona el error 405 MethodNotAllowed
+        form.action = `/admin/empleados/${id}`;
+
+        // 2. LLENAMOS LOS CAMPOS
+        document.getElementById('edit_nombre').value = nombre;
+        document.getElementById('edit_codigo_empleado').value = codigo;
+        document.getElementById('edit_rol_input').value = rol;
+        
+        // Ajustamos el texto del dropdown
+        const rolesNombres = {
+            'admin': 'Administrador',
+            'capitan': 'Capitán',
+            'mesero': 'Mesero',
+            'cocinero': 'Cocinero',
+            'cajero': 'Cajero'
+        };
+        document.getElementById('editDropdownSelected').innerText = rolesNombres[rol] || 'Seleccionar...';
+
+        // 3. MOSTRAR CON ANIMACIÓN
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+        }, 10);
+    }
+
+    function cerrarEditModal() {
+        const modal = document.getElementById('editEmpleadoModal');
+        const content = document.getElementById('editModalContent');
+
+        modal.classList.add('opacity-0');
+        content.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 500);
+    }
+
+    // Funciones del Dropdown
+    function toggleEditDropdown(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('editDropdownMenu');
+        const icon = document.getElementById('editDropdownIcon');
+        menu.classList.toggle('hidden');
+        setTimeout(() => {
+            menu.classList.toggle('opacity-0');
+            menu.classList.toggle('translate-y-[-10px]');
+            icon.classList.toggle('rotate-180');
+        }, 10);
+    }
+
+    function selectEditRole(label, value) {
+        document.getElementById('editDropdownSelected').innerText = label;
+        document.getElementById('edit_rol_input').value = value;
+        const menu = document.getElementById('editDropdownMenu');
+        menu.classList.add('hidden', 'opacity-0', 'translate-y-[-10px]');
+    }
+
+    // Cerrar dropdown si se hace clic fuera
+    window.onclick = function(event) {
+        if (!event.target.matches('#editDropdownBtn') && !event.target.closest('#editDropdownBtn')) {
+            const menu = document.getElementById('editDropdownMenu');
+            if (menu && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden', 'opacity-0', 'translate-y-[-10px]');
+            }
+        }
+    }
+</script>

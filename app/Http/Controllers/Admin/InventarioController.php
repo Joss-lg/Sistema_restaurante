@@ -82,8 +82,8 @@ class InventarioController extends Controller
             'esta_activo' => true,
         ]);
 
-        return redirect()->route('admin.inventario.tabla-inventario')
-            ->with('success', 'Insumo registrado correctamente en el catálogo.');
+        return redirect()->route('admin.inventario.index')
+        ->with('success', 'Insumo registrado correctamente en el catálogo.');
     }
 
     /**
@@ -164,7 +164,7 @@ class InventarioController extends Controller
         ]);
 
         // 4. Redireccionamos con éxito
-        return redirect()->route('admin.inventario.tabla-inventario')
+        return redirect()->route('admin.inventario.index')
             ->with('success', 'Los datos de ' . $insumo->nombre . ' fueron actualizados correctamente.');
     }
     public function destroy($id)
@@ -175,7 +175,7 @@ class InventarioController extends Controller
             'esta_activo' => false 
         ]);
 
-        return redirect()->route('admin.inventario.tabla-inventario')
+        return redirect()->route('admin.inventario.index')
             ->with('success', 'El insumo ' . $insumo->nombre . ' fue dado de baja del almacén.');
     }
 }
