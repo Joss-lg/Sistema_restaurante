@@ -19,6 +19,14 @@
                 <input type="text" id="buscadorInventario" placeholder="Buscar ingrediente..." class="w-full h-12 bg-black/5 modo-crema:bg-black/5 border border-transparent rounded-xl pl-11 pr-4 text-xs font-bold text-[var(--text-color)] focus:bg-[var(--card-color)] focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10 outline-none transition-all">
             </div>
 
+            @if(auth()->user()->tienePermiso('gestionar.reporte'))
+            <a href="{{ route('admin.inventario.exportar_bajo_stock') }}" 
+                class="w-full md:w-auto bg-[#10B981] hover:bg-[#059669] text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-[#10B981]/20 outline-none flex items-center justify-center gap-2">
+                <i class="fas fa-file-excel"></i> Bajo Stock
+            </a>
+            @endif
+
+
             @if(auth()->user()->tienePermiso('inventario.agregar'))
             <button onclick="openModalCrear()" class="w-full md:w-auto bg-[#3B82F6] hover:bg-[#2563EB] text-white px-7 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-[#3B82F6]/20 outline-none flex items-center justify-center gap-2">
                 <i class="fas fa-plus"></i> Agregar Producto
@@ -110,7 +118,7 @@
                                 </button>
 
                                 <button type="button" title="Editar Detalles"
-                                    onclick="abrirModalEditar('{{ $item->id }}', '{{ $item->nombre }}', '{{ $item->stock_actual }}', '{{ $item->stock_minimo }}', '{{ $item->unidad_medida }}')" 
+                                    onclick="abrirModalEspecifico('modalEditar-{{ $item->id }}')" 
                                     class="w-8 h-8 flex items-center justify-center rounded-lg text-[#3B82F6] hover:bg-[#3B82F6]/10 transition-colors outline-none">
                                     <i class="fas fa-cog text-sm"></i>
                                 </button>
@@ -126,6 +134,7 @@
                             </div>
                         </td>
                     </tr>
+                    @include('admin.inventario.modal-editar', ['item' => $item])
                     @empty
                     <tr>
                         <td colspan="7" class="py-12 text-center text-[var(--text-muted)]">No hay productos registrados en el inventario.</td>
@@ -153,7 +162,7 @@
         }
     });
 
-    // --- MODAL AGREGAR (NUEVO) ---
+    // --- MODAL AGREGAR (NUEVO INSUMO) ---
     function openModalCrear() {
         const modal = document.getElementById('modalCrear');
         const container = document.getElementById('createContainer');
@@ -180,40 +189,44 @@
         }, 200);
     }
 
-    // --- MODAL EDITAR ---
-    function abrirModalEditar(id, nombre, cantidad, minimo, unidad) {
-        const modal = document.getElementById('modalEditar');
-        const container = document.getElementById('modalContainer');
-        const form = document.getElementById('formEditar');
-
-        if (!modal || !container) return;
-        if(form) form.action = `/admin/inventario/${id}`;
+    // ==========================================
+    // --- MODAL EDITAR DINÁMICO (NUEVO MÉTDO) ---
+    // ==========================================
+    function abrirModalEspecifico(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
         
-        document.getElementById('edit_nombre').value = nombre;
-        document.getElementById('edit_minimo').value = minimo;
+        // Busca el contenedor interior que tiene la animación (id empieza con modalContainer-)
+        const container = modal.querySelector('div[id^="modalContainer-"]');
         
-        const selectUnidad = document.getElementById('edit_unidad');
-        if (selectUnidad) selectUnidad.value = unidad.toLowerCase();
-
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         setTimeout(() => {
-            container.classList.remove('scale-95', 'opacity-0');
-            container.classList.add('scale-100', 'opacity-100');
+            modal.classList.remove('opacity-0');
+            if(container) {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }
         }, 10);
     }
 
-    function closeModal() {
-        const modal = document.getElementById('modalEditar');
-        const container = document.getElementById('modalContainer');
+    function cerrarModalEspecifico(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const container = modal.querySelector('div[id^="modalContainer-"]');
+        
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0');
         if(container) {
             container.classList.remove('scale-100', 'opacity-100');
             container.classList.add('scale-95', 'opacity-0');
         }
+        
         setTimeout(() => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
-        }, 200);
+        }, 300);
     }
 
     // --- MODAL ELIMINAR ---
@@ -248,12 +261,9 @@
         }, 200);
     }
 
-    function openModalMovimiento(id, nombre) { console.log('Abrir Movimiento para:', nombre); }
 </script>
 
-{{-- LLAMADA A LOS MODALES DESDE ARCHIVOS SEPARADOS --}}
 @include('admin.inventario.modal-crear')
-@include('admin.inventario.modal-editar')
 @include('admin.inventario.modal-eliminar')
-
+@include('admin.inventario.modal-movimiento')
 @endsection

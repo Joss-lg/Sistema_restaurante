@@ -8,7 +8,8 @@ use App\Http\Controllers\Admin\PermisoController;
 use App\Http\Controllers\Admin\EmpleadoController;
 use App\Http\Controllers\Admin\AlimentoController;
 use App\Http\Controllers\Admin\InventarioController;
-use App\Http\Controllers\Admin\CategoriaController; // <-- Agregada importación
+use App\Http\Controllers\Admin\CategoriaController;
+use App\Http\Controllers\Admin\CajaController;
 
 Route::get('/', function () {
     return view('auth.login'); 
@@ -20,7 +21,30 @@ Auth::routes();
 
 Route::middleware(['auth'])->group(function () {
     
-    // DASHBOARD
+    // ==========================================
+    // MÓDULO DEL MESERO (Pantalla POS completa)
+    // ==========================================
+    Route::prefix('mesero')->name('mesero.')->group(function () {
+        
+        Route::get('/dashboard', function () {
+            return view('mesero.dashboard'); 
+        })->name('dashboard');
+
+        // ---> RUTA ACTUALIZADA PARA TRAER DATOS REALES DE POSTGRESQL <---
+        Route::get('/comanda', function () {
+            // Traemos las categorías activas
+            $categorias = \App\Models\Categoria::all();
+            
+            // Traemos los productos junto con su categoría y sus modificadores de la tabla pivote
+            // Nota: Si tu modelo se llama Alimento en lugar de Producto, solo cambia la palabra aquí abajo.
+            $productos = \App\Models\Producto::with(['categoria', 'modificadores'])->get();
+            
+            return view('mesero.comanda', compact('categorias', 'productos')); 
+        })->name('comanda');
+
+    });
+    
+    // DASHBOARD ADMINISTRADOR
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     // MÓDULO DE EMPLEADOS
@@ -35,6 +59,7 @@ Route::middleware(['auth'])->group(function () {
 
     // MÓDULO DE INVENTARIO
     Route::prefix('admin/inventario')->name('admin.inventario.')->group(function () {
+        Route::get('/exportar-bajo-stock', [InventarioController::class, 'exportarBajoStock'])->name('exportar_bajo_stock');
         Route::get('/', [InventarioController::class, 'index'])->name('index');
         Route::post('/store', [InventarioController::class, 'store'])->name('store');
         Route::post('/movimiento', [InventarioController::class, 'registrarMovimiento'])->name('movimiento');
@@ -45,6 +70,12 @@ Route::middleware(['auth'])->group(function () {
     // MÓDULO DE ALIMENTOS
     Route::prefix('admin/alimentos')->name('admin.productos.')->group(function () {
         Route::get('/', [AlimentoController::class, 'index'])->name('index');
+        Route::get('/api/productos', [AlimentoController::class, 'getProductos'])->name('api.productos');
+        Route::get('/api/estadisticas', [AlimentoController::class, 'getEstadisticas'])->name('api.estadisticas');
+        Route::post('/api/store', [AlimentoController::class, 'store'])->name('api.store');
+        Route::put('/api/{id}', [AlimentoController::class, 'update'])->name('api.update');
+        Route::delete('/api/{id}', [AlimentoController::class, 'destroy'])->name('api.destroy');
+        Route::patch('/api/{id}/toggle-disponibilidad', [AlimentoController::class, 'toggleDisponibilidad'])->name('api.toggle');
     });
 
     // ==========================================
@@ -55,14 +86,29 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ==========================================
-    // MÓDULOS EN CONSTRUCCIÓN (Para que el Sidebar no truene)
+    // MÓDULO DE CAJA
     // ==========================================
     Route::prefix('admin/caja')->name('admin.caja.')->group(function () {
-        Route::get('/', function() { return "Módulo de Caja - Próximamente"; })->name('index');
+        // Vista principal de las mesas
+        Route::get('/', [CajaController::class, 'index'])->name('index');
+
+        Route::get('/cobrar/{id}', function ($id) {
+            return view('admin.caja.cobrar', ['mesaId' => $id]);
+        })->name('cobrar');
+
+        // Rutas de API y Store
+        Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
+        Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
+        Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
     });
 
+    // ==========================================
+    // MÓDULO DE MESAS ACTIVO (CORREGIDO) 
+    // ==========================================
     Route::prefix('admin/mesas')->name('admin.mesas.')->group(function () {
-        Route::get('/', function() { return "Módulo de Mesas - Próximamente"; })->name('index');
+        Route::get('/', function () {
+            return view('admin.mesas.index'); 
+        })->name('index');
     });
 
     Route::prefix('admin/cocina')->name('admin.cocina.')->group(function () {

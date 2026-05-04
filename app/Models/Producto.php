@@ -38,4 +38,13 @@ class Producto extends Model
                     ->withPivot('cantidad_usada') // Trae la columna extra de la tabla pivote
                     ->withTimestamps();
     }
+
+    // ==========================================
+    // NUEVA MAGIA: Modificadores del Platillo (Para el POS)
+    // ==========================================
+    public function modificadores()
+    {
+        // Conecta el Producto con los Modificadores pasando por tu tabla pivote 'producto_modificadores'
+        return $this->belongsToMany(Modificador::class, 'producto_modificadores');
+    }
 }

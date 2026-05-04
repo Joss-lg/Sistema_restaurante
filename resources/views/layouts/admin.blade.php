@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Ollintem Pro')</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -107,7 +108,6 @@
     </div>
 
     <script>
-        // === LÓGICA PARA EL BOTÓN DEL MENÚ (HAMBURGUESA) ===
         document.getElementById('toggleSidebar').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const texts = document.querySelectorAll('.sidebar-text');

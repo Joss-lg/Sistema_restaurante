@@ -110,8 +110,17 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        // Forzamos la redirección a la ruta que definiste en web.php
-        return redirect()->route('admin.dashboard');
+        $rol = strtolower(trim($user->rol));
+
+        // Aquí están las rutas corregidas apuntando a los nombres exactos de web.php
+        return match($rol) {
+            'administrador'  => redirect()->route('admin.dashboard'),
+            'mesero'         => redirect()->route('mesero.dashboard'),
+            'capitan'        => redirect()->route('admin.mesas.index'),
+            'cajero'         => redirect()->route('admin.caja.index'),
+            'cocinero'       => redirect()->route('admin.cocina.index'),
+            default          => redirect()->route('admin.dashboard'),
+        };
     }
 
     /**

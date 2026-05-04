@@ -135,35 +135,25 @@ class InventarioController extends Controller
             return redirect()->back()->with('error', 'Ocurrió un error al registrar el movimiento.');
         }
     }
-        /**
-     * Actualiza la información de un insumo existente (Nombre, Categoría, Precio, etc.)
-     */
+
     public function update(Request $request, $id)
     {
-        // 1. Buscamos el insumo
         $insumo = Insumo::findOrFail($id);
 
-        // 2. Validamos los datos (asegurándonos de que el nuevo código, si se envía, no choque con otro)
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'categoria_id' => 'required|exists:categorias,id',
+            'nombre'       => 'required|string|max:255',
             'unidad_medida' => 'required|string|max:20',
             'stock_minimo' => 'required|numeric|min:0',
             'precio_compra' => 'nullable|numeric|min:0',
         ]);
 
-        // 3. Actualizamos los datos
-        // OJO: No actualizamos el 'stock_actual' aquí. El stock solo se modifica 
-        // a través de la función 'registrarMovimiento' por seguridad y auditoría.
         $insumo->update([
-            'nombre' => $request->nombre,
-            'categoria_id' => $request->categoria_id,
+            'nombre'        => $request->nombre,
             'unidad_medida' => $request->unidad_medida,
-            'stock_minimo' => $request->stock_minimo,
+            'stock_minimo'  => $request->stock_minimo,
             'precio_compra' => $request->precio_compra,
         ]);
 
-        // 4. Redireccionamos con éxito
         return redirect()->route('admin.inventario.index')
             ->with('success', 'Los datos de ' . $insumo->nombre . ' fueron actualizados correctamente.');
     }
@@ -177,5 +167,52 @@ class InventarioController extends Controller
 
         return redirect()->route('admin.inventario.index')
             ->with('success', 'El insumo ' . $insumo->nombre . ' fue dado de baja del almacén.');
+    }
+        /**
+     * Exporta a Excel (CSV) los insumos con stock crítico/bajo.
+     */
+    public function exportarBajoStock()
+    {
+        // Traemos solo los que están en stock mínimo o por debajo
+        $insumos = \App\Models\Insumo::whereColumn('stock_actual', '<=', 'stock_minimo')
+                                     ->orderBy('nombre')
+                                     ->get();
+
+        $nombreArchivo = "Reporte_Bajo_Stock_" . date('Y-m-d_H-i') . ".csv";
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$nombreArchivo",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columnas = ['Código', 'Producto/Ingrediente', 'Categoría', 'Stock Actual', 'Stock Mínimo', 'Unidad de Medida'];
+
+        $callback = function() use($insumos, $columnas) {
+            $file = fopen('php://output', 'w');
+            
+            // Agregamos BOM para que Excel lea correctamente los acentos y la letra Ñ
+            fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
+            
+            // Fila de encabezados
+            fputcsv($file, $columnas);
+
+            // Filas de datos
+            foreach ($insumos as $item) {
+                fputcsv($file, [
+                    $item->codigo ?? 'S/N',
+                    $item->nombre,
+                    $item->categoria->nombre ?? 'Sin categoría', // Si tienes la relación hecha
+                    $item->stock_actual,
+                    $item->stock_minimo,
+                    $item->unidad_medida
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

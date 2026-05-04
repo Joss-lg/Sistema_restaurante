@@ -45,7 +45,7 @@
         </div>
 
         {{-- IMPORTANTE: El ID editEmpleadoForm es clave para el JS --}}
-        <form id="editEmpleadoForm" method="POST" class="space-y-7 relative z-10">
+        <form id="formEditar" action="#" method="POST" class="p-8 pt-4 space-y-6">
             @csrf
             @method('PUT')
 

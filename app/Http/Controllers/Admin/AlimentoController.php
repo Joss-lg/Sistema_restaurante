@@ -3,26 +3,128 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Producto;
+use App\Models\Categoria;
 use Illuminate\Http\Request;
-// use App\Models\Inventario; // Descomente cuando tenga el modelo
+use Illuminate\Http\JsonResponse;
 
 class AlimentoController extends Controller
 {
+    /**
+     * Mostrar la vista principal con todos los productos
+     */
     public function index()
     {
-        // === SIMULACIÓN DE DATOS (Para que el modal funcione de una vez) ===
-        // Cuando tenga base de datos, cambie esto por: Inventario::all() o similar.
-        $ingredientes_disponibles = collect([
-            (object)['id' => 1, 'nombre' => 'Harina', 'unidad' => 'gramos'],
-            (object)['id' => 2, 'nombre' => 'Salsa de Tomate', 'unidad' => 'gramos'],
-            (object)['id' => 3, 'nombre' => 'Queso Mozzarella', 'unidad' => 'gramos'],
-            (object)['id' => 4, 'nombre' => 'Aceite de Oliva', 'unidad' => 'litros'],
-            (object)['id' => 5, 'nombre' => 'Peperoni', 'unidad' => 'gramos'],
+        $categorias = Categoria::all();
+        return view('admin.alimentos.index', compact('categorias'));
+    }
+
+    /**
+     * Obtener todos los productos en formato JSON
+     */
+    public function getProductos(): JsonResponse
+    {
+        $productos = Producto::with('categoria')
+            ->get()
+            ->groupBy('categoria.nombre');
+        
+        return response()->json($productos);
+    }
+
+    /**
+     * Obtener estadísticas de productos
+     */
+    public function getEstadisticas(): JsonResponse
+    {
+        $totalProductos = Producto::count();
+        $productosDisponibles = Producto::where('esta_disponible', true)->count();
+        $totalCategorias = Categoria::count();
+
+        return response()->json([
+            'total' => $totalProductos,
+            'disponibles' => $productosDisponibles,
+            'categorias' => $totalCategorias
+        ]);
+    }
+
+    /**
+     * Guardar un nuevo producto
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'precio' => 'required|numeric|min:0',
+            'categoria_id' => 'required|exists:categorias,id',
+            'tiempo_preparacion' => 'nullable|integer|min:1',
+            'descripcion' => 'nullable|string',
         ]);
 
-        $categorias = collect(['Pizzas', 'Pastas', 'Bebidas', 'Postres', 'Ensaladas']);
+        $producto = Producto::create([
+            'nombre' => $validated['nombre'],
+            'precio' => $validated['precio'],
+            'categoria_id' => $validated['categoria_id'],
+            'tiempo_preparacion' => $validated['tiempo_preparacion'] ?? 15,
+            'esta_disponible' => true,
+        ]);
 
-        // Enviamos los datos a la vista
-        return view('admin.alimentos.index', compact('ingredientes_disponibles', 'categorias'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto creado exitosamente',
+            'producto' => $producto->load('categoria')
+        ], 201);
+    }
+
+    /**
+     * Actualizar un producto
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        $producto = Producto::findOrFail($id);
+
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'precio' => 'required|numeric|min:0',
+            'categoria_id' => 'required|exists:categorias,id',
+            'tiempo_preparacion' => 'nullable|integer|min:1',
+            'esta_disponible' => 'nullable|boolean',
+        ]);
+
+        $producto->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto actualizado exitosamente',
+            'producto' => $producto->load('categoria')
+        ]);
+    }
+
+    /**
+     * Eliminar un producto
+     */
+    public function destroy($id): JsonResponse
+    {
+        $producto = Producto::findOrFail($id);
+        $producto->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto eliminado exitosamente'
+        ]);
+    }
+
+    /**
+     * Cambiar disponibilidad de un producto
+     */
+    public function toggleDisponibilidad($id): JsonResponse
+    {
+        $producto = Producto::findOrFail($id);
+        $producto->update(['esta_disponible' => !$producto->esta_disponible]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado actualizado',
+            'disponible' => $producto->esta_disponible
+        ]);
     }
 }

@@ -30,7 +30,7 @@
                                 ['n' => 'Cocina',        'slug' => 'cocina',      'i' => 'fa-fire-burner'],
                                 ['n' => 'Inventario',    'slug' => 'inventario',  'i' => 'fa-cube'],
                                 ['n' => 'Empleados',     'slug' => 'empleados',   'i' => 'fa-users'],
-                                ['n' => 'Alimentos',     'slug' => 'productos',   'i' => 'fa-utensils'],
+                                ['n' => 'Menu',         'slug' => 'productos',   'i' => 'fa-utensils'],
                                 ['n' => 'Categorías',    'slug' => 'categorias',  'i' => 'fa-layer-group'],
                                 ['n' => 'Promociones',   'slug' => 'promociones', 'i' => 'fa-tags'],
                             ];

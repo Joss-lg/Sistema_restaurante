@@ -32,7 +32,7 @@
                         ['route' => 'admin.empleados.index', 'icon' => 'fas fa-users', 'label' => 'Empleados', 'permission' => 'empleados.ver'],
                     ],
                     'Catálogos' => [
-                        ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Alimentos', 'permission' => 'productos.ver'],
+                        ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menu', 'permission' => 'productos.ver'],
                         ['route' => 'admin.categorias.index', 'icon' => 'fas fa-layer-group', 'label' => 'Categorías', 'permission' => 'categorias.ver'],
                         ['route' => 'admin.promociones.index', 'icon' => 'fas fa-tags', 'label' => 'Promociones', 'permission' => 'promociones.ver'],
                     ]
