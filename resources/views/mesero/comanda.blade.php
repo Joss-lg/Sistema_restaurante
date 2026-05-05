@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{-- MUY IMPORTANTE: El token de seguridad para poder mandar datos a Laravel --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Comanda | Ollintem Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -51,20 +53,16 @@
 
     <script>if (localStorage.getItem('tema-ollintem') === 'crema') document.body.classList.add('modo-crema');</script>
 
-    {{-- ========================================== --}}
-    {{-- COLUMNA 1: ACCIONES RÁPIDAS                  --}}
-    {{-- ========================================== --}}
+    {{-- COLUMNA 1: ACCIONES RÁPIDAS --}}
     <aside class="w-[260px] h-full flex flex-col bg-[var(--bg-base)] border-r border-[var(--border-color)] p-4 z-20">
-        
-        <button onclick="window.location.href='{{ route('mesero.dashboard') }}'" class="w-full h-12 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-main)] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 transition-all active:scale-95 outline-none mb-6">
+        <button onclick="window.location.href='{{ route('mesero.dashboard') ?? '#' }}'" class="w-full h-12 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-main)] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 transition-all active:scale-95 outline-none mb-6">
             <i class="fas fa-times"></i> Cerrar
         </button>
 
         <div class="flex items-center justify-between px-1 mb-5">
-            <h3 class="text-2xl font-black tracking-tighter text-[var(--text-main)]">Mesa 12M</h3>
-            
+            {{-- Asumimos que le pasas la variable $mesa desde tu controlador --}}
+            <h3 class="text-2xl font-black tracking-tighter text-[var(--text-main)]">Mesa {{ $mesa->numero ?? '12M' }}</h3>
             <div class="flex gap-1">
-                {{-- BOTÓN TEMA CLARO/OSCURO --}}
                 <button onclick="toggleTheme()" class="w-9 h-9 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-color)] flex items-center justify-center hover:border-[#3B82F6]/50 transition-all outline-none shadow-sm group">
                     <i id="themeIcon" class="fas fa-sun text-sm text-[var(--text-muted)] group-hover:scale-110 transition-transform"></i>
                 </button>
@@ -112,13 +110,11 @@
         </button>
     </aside>
 
-    {{-- ========================================== --}}
-    {{-- COLUMNA 2: TICKET / COMANDA                  --}}
-    {{-- ========================================== --}}
+    {{-- COLUMNA 2: TICKET / COMANDA --}}
     <section class="w-[380px] h-full flex flex-col bg-[var(--bg-panel)] border-r border-[var(--border-color)] relative z-10 shadow-2xl">
         <div class="p-5 border-b border-[var(--border-color)]">
             <div class="flex justify-between items-center mb-5">
-                <h2 class="text-2xl font-black tracking-tighter">Mesa 12M</h2>
+                <h2 class="text-2xl font-black tracking-tighter">Mesa {{ $mesa->numero ?? '12M' }}</h2>
                 <span class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">{{ auth()->user()->nombre ?? 'GAEL' }}</span>
             </div>
 
@@ -162,35 +158,22 @@
                 <span class="text-4xl font-black text-[#3B82F6] tracking-tighter leading-none" id="txtTotal">$0.00</span>
             </div>
 
-            <button class="w-full h-[55px] rounded-xl bg-[#3B82F6] text-white text-[14px] font-black tracking-widest uppercase transition-all shadow-[0_10px_20px_-10px_rgba(59,130,246,0.6)] hover:bg-[#2563EB] active:scale-95 outline-none flex items-center justify-center gap-3">
+            {{-- BOTÓN ACTUALIZADO CON ID Y ONCLICK --}}
+            <button id="btn-enviar" onclick="enviarACocina()" class="w-full h-[55px] rounded-xl bg-[#3B82F6] text-white text-[14px] font-black tracking-widest uppercase transition-all shadow-[0_10px_20px_-10px_rgba(59,130,246,0.6)] hover:bg-[#2563EB] active:scale-95 outline-none flex items-center justify-center gap-3">
                 <i class="fas fa-paper-plane"></i>
                 <span>Enviar a Cocina</span>
             </button>
         </div>
     </section>
 
-    {{-- ========================================== --}}
-    {{-- COLUMNA 3: CATÁLOGO DE PRODUCTOS             --}}
-    {{-- ========================================== --}}
+    {{-- COLUMNA 3: CATÁLOGO DE PRODUCTOS --}}
     <main class="flex-1 flex flex-col bg-[var(--bg-base)] relative overflow-hidden">
-        
-        <div class="px-8 pt-8 pb-5 flex gap-3 overflow-x-auto hide-scroll relative z-10 border-b border-[var(--border-color)] bg-[var(--bg-panel)]" id="menuCategorias">
-            <!-- Categorías generadas dinámicamente por JS desde Laravel -->
-        </div>
+        <div class="px-8 pt-8 pb-5 flex gap-3 overflow-x-auto hide-scroll relative z-10 border-b border-[var(--border-color)] bg-[var(--bg-panel)]" id="menuCategorias"></div>
+        <div class="flex-1 p-8 overflow-y-auto hide-scroll grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 content-start relative z-10" onclick="deseleccionarTicket()" id="gridProductos"></div>
 
-        {{-- Grid de Productos --}}
-        <div class="flex-1 p-8 overflow-y-auto hide-scroll grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 content-start relative z-10" onclick="deseleccionarTicket()" id="gridProductos">
-            <!-- Productos generados dinámicamente por JS desde Laravel -->
-        </div>
-
-        {{-- BARRA DINÁMICA DE MODIFICADORES --}}
         <div id="barraModificadores" class="hidden h-[80px] bg-[#3B82F6]/5 border-t border-[#3B82F6]/20 flex items-center px-6 relative z-10 transition-all">
             <span class="text-[9px] font-black uppercase tracking-[0.2em] text-[#3B82F6] mr-4 whitespace-nowrap">Opciones:</span>
-            
-            <div id="contenedorBotonesModificadores" class="flex gap-2 overflow-x-auto hide-scroll flex-1">
-                <!-- Se llena con JS basado en la tabla pivote de modificadores -->
-            </div>
-            
+            <div id="contenedorBotonesModificadores" class="flex gap-2 overflow-x-auto hide-scroll flex-1"></div>
             <button onclick="deseleccionarTicket()" class="ml-4 w-10 h-10 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] hover:text-rose-500 hover:border-rose-500/50 transition-all outline-none">
                 <i class="fas fa-times"></i>
             </button>
@@ -216,10 +199,6 @@
         }
         document.addEventListener('DOMContentLoaded', () => actualizarIconoTema(document.body.classList.contains('modo-crema')));
 
-        // ==========================================
-        // CONEXIÓN REAL A LA BASE DE DATOS DE LARAVEL
-        // ==========================================
-        // Aquí tomamos la variable $categorias y $productos que mandaste desde web.php
         const categoriasDB = @json($categorias ?? []);
         const productosDB = @json($productos ?? []);
 
@@ -227,7 +206,6 @@
             const menuCat = document.getElementById('menuCategorias');
             const gridProd = document.getElementById('gridProductos');
             
-            // 1. Renderizar Categorías
             menuCat.innerHTML = `<button onclick="filtrarCategoria('Todos', this)" class="cat-btn px-6 py-2.5 rounded-full bg-[#3B82F6] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.4)] whitespace-nowrap outline-none transition-all">Todos</button>`;
             
             if(categoriasDB.length > 0) {
@@ -236,18 +214,12 @@
                 });
             }
 
-            // 2. Renderizar Productos y preparar sus Modificadores
             gridProd.innerHTML = '';
             
             if(productosDB.length > 0) {
                 productosDB.forEach(prod => {
-                    // Extraemos el nombre de la categoría por relación (prod.categoria.nombre)
                     const catNombre = prod.categoria ? prod.categoria.nombre : 'Sin Categoría';
-                    
-                    // Aseguramos que el precio sea un número válido
                     const precioNum = parseFloat(prod.precio) || 0;
-                    
-                    // Convertimos la relación de modificadores en un JSON string para poder pasarlo en el onclick
                     const modsJSON = prod.modificadores ? JSON.stringify(prod.modificadores).replace(/'/g, "\\'") : '[]';
 
                     gridProd.innerHTML += `
@@ -266,10 +238,8 @@
             }
         }
         
-        // Arrancar pintando el catálogo
         document.addEventListener('DOMContentLoaded', renderizarMenu);
 
-        // Lógica para el filtro de categorías
         function filtrarCategoria(nombreCat, btn) {
             document.querySelectorAll('.cat-btn').forEach(el => el.className = "cat-btn px-6 py-2.5 rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest hover:border-[#3B82F6]/50 hover:text-[var(--text-main)] transition-all whitespace-nowrap outline-none");
             btn.className = "cat-btn px-6 py-2.5 rounded-full bg-[#3B82F6] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.4)] whitespace-nowrap outline-none transition-all";
@@ -284,9 +254,6 @@
             });
         }
 
-        // ==========================================
-        // LÓGICA DEL TICKET
-        // ==========================================
         let ticketSubtotal = 0;
         let itemActivo = null; 
         let contadorItems = 0; 
@@ -301,7 +268,6 @@
             contadorItems++;
             const itemId = 'ticket-item-' + contadorItems;
             
-            // Re-convertimos el array a string seguro para incrustarlo en el HTML
             const modsString = JSON.stringify(arrayModificadores).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
             
             const itemHTML = `
@@ -310,12 +276,12 @@
                         <span class="w-6 h-6 rounded bg-[#3B82F6]/10 text-[#3B82F6] text-[10px] font-black flex items-center justify-center">1</span>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-xs font-bold text-[var(--text-main)] leading-tight">${nombre}</span>
+                        <span class="text-xs font-bold text-[var(--text-main)] leading-tight nombre-platillo">${nombre}</span>
                         <div class="modificadores-lista flex flex-wrap gap-1 mt-1 empty:hidden"></div>
                         <button onclick="eliminarItemFila(this, ${precio}); event.stopPropagation();" class="text-[9px] text-rose-500 font-bold uppercase tracking-widest text-left mt-2 hidden hover:underline btn-eliminar">Quitar platillo</button>
                     </div>
                     <div class="text-right mt-1">
-                        <span class="text-sm font-black text-[var(--text-main)]">$${parseFloat(precio).toFixed(2)}</span>
+                        <span class="text-sm font-black text-[var(--text-main)] precio-platillo" data-precio="${precio}">$${parseFloat(precio).toFixed(2)}</span>
                     </div>
                 </div>
             `;
@@ -336,7 +302,6 @@
                 itemActivo.classList.add('border-[#3B82F6]', 'shadow-[0_0_15px_rgba(59,130,246,0.15)]');
                 itemActivo.querySelector('.btn-eliminar').classList.remove('hidden');
                 
-                // Extraemos los modificadores reales de la base de datos
                 const modsString = itemActivo.getAttribute('data-modificadores');
                 const modificadoresParaPintar = JSON.parse(modsString || '[]');
                 
@@ -344,10 +309,7 @@
                 
                 if(modificadoresParaPintar.length > 0) {
                     modificadoresParaPintar.forEach(mod => {
-                        // Aquí asumimos que en tu tabla de modificadores la columna se llama 'nombre'.
-                        // Si se llama 'descripcion', cambialo a mod.descripcion
                         const nombreMod = mod.nombre || mod.descripcion || mod; 
-                        
                         const btnHTML = `<button onclick="agregarModificadorFijo('${nombreMod}')" class="px-4 py-2 rounded-xl border border-[#3B82F6]/30 bg-[var(--bg-panel)] text-[10px] font-bold text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white transition-all whitespace-nowrap outline-none active:scale-95 shadow-sm">${nombreMod}</button>`;
                         contenedorBotonesModificadores.insertAdjacentHTML('beforeend', btnHTML);
                     });
@@ -403,6 +365,66 @@
             ticketSubtotal = 0;
             actualizarTotales();
             deseleccionarTicket();
+        }
+
+        // ==========================================
+        // LA MAGIA: ENVIAR A COCINA Y OCUPAR MESA
+        // ==========================================
+        function enviarACocina() {
+            const itemsHTML = document.querySelectorAll('.ticket-item');
+            if(itemsHTML.length === 0) {
+                alert("¡Debes agregar al menos un platillo a la orden!");
+                return;
+            }
+
+            // 1. Recolectamos todo lo que está en el ticket
+            const platillosData = [];
+            itemsHTML.forEach(item => {
+                const nombre = item.querySelector('.nombre-platillo').innerText;
+                const precio = parseFloat(item.querySelector('.precio-platillo').getAttribute('data-precio'));
+                
+                const modsElementos = item.querySelectorAll('.modificadores-lista span');
+                const mods = [];
+                modsElementos.forEach(m => mods.push(m.innerText.replace('✓ ', '')));
+
+                platillosData.push({ nombre: nombre, precio: precio, modificadores: mods });
+            });
+
+            // Cambiamos el botón para que se vea pro
+            const btn = document.getElementById('btn-enviar');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Mandando orden...</span>';
+            btn.disabled = true;
+
+            // Tomamos el ID de la mesa directamente de la vista
+            const mesaId = {{ $mesa->id ?? 1 }};
+
+            // 2. Mandamos la info al Controlador en Laravel
+            fetch('/mesero/comanda/enviar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    mesa_id: mesaId,
+                    platillos: platillosData,
+                    total: ticketSubtotal + (ticketSubtotal * 0.16)
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert("✅ ¡Orden enviada a cocina! La mesa ya está ocupada.");
+                    // Redirigir al panel de mesas
+                    window.location.href = '/mesero/dashboard';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Hubo un problema al enviar la orden. Revisa la consola.");
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>Enviar a Cocina</span>';
+                btn.disabled = false;
+            });
         }
     </script>
 </body>

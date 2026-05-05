@@ -116,7 +116,7 @@ class LoginController extends Controller
         return match($rol) {
             'administrador'  => redirect()->route('admin.dashboard'),
             'mesero'         => redirect()->route('mesero.dashboard'),
-            'capitan'        => redirect()->route('admin.mesas.index'),
+            'capitan', 'capitán' => redirect()->route('mesero.dashboard'),
             'cajero'         => redirect()->route('admin.caja.index'),
             'cocinero'       => redirect()->route('admin.cocina.index'),
             default          => redirect()->route('admin.dashboard'),

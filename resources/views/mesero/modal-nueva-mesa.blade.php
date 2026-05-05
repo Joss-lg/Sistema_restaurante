@@ -83,6 +83,8 @@
                 <i class="fas fa-arrow-right"></i>
             </button>
 
+            <p id="errorMesa" class="mt-4 text-sm font-bold text-red-400 text-center hidden"></p>
+
         </div>
     </div>
 </div>
@@ -97,13 +99,46 @@
     const labelMesa = document.getElementById('labelMesa');
     const labelPersonas = document.getElementById('labelPersonas');
     const btnConfirmar = document.getElementById('btnConfirmarMesa');
+    const errorMesa = document.getElementById('errorMesa');
     
     let focoActual = 'mesa';
 
     // Función para mandar al usuario a la comanda
-    function abrirComanda() {
+    async function abrirComanda() {
         btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo...';
-        window.location.href = '/mesero/comanda';
+        btnConfirmar.disabled = true;
+
+        const mesaNumero = inputMesa.value.trim();
+        const personas = parseInt(inputPersonas.value) || 0;
+
+        try {
+            const response = await fetch('/mesero/mesa/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                },
+                body: JSON.stringify({
+                    numero: mesaNumero,
+                    capacidad: personas
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                const errorMessage = data.message || 'No se pudo abrir la mesa.';
+                errorMesa.textContent = errorMessage;
+                errorMesa.classList.remove('hidden');
+                throw new Error(errorMessage);
+            }
+
+            window.location.href = `/mesero/comanda/${data.mesa.id}`;
+        } catch (error) {
+            console.error(error);
+            btnConfirmar.innerHTML = '<span>Confirmar y Abrir</span> <i class="fas fa-arrow-right"></i>';
+            btnConfirmar.disabled = false;
+        }
     }
 
     function abrirModalMesa() {
@@ -116,6 +151,8 @@
         
         inputMesa.value = '';
         inputPersonas.value = ''; 
+        errorMesa.textContent = '';
+        errorMesa.classList.add('hidden');
         setFoco('mesa');
         validarBoton();
     }

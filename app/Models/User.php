@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 // Importamos el modelo de Permiso
+use App\Models\Mesa;
 use App\Models\Permiso;
 
 class User extends Authenticatable
@@ -47,6 +48,11 @@ class User extends Authenticatable
     {
         // Especificamos explícitamente la tabla pivote 'permiso_user'
         return $this->belongsToMany(Permiso::class, 'permiso_user');
+    }
+
+    public function mesas()
+    {
+        return $this->hasMany(Mesa::class, 'mesero_id');
     }
 
     public function tienePermiso($permisoRequerido) 

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PermisoController;
@@ -10,6 +11,8 @@ use App\Http\Controllers\Admin\AlimentoController;
 use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\CajaController;
+use App\Http\Controllers\Admin\MesaController;
+use App\Http\Controllers\ComandaController;
 
 Route::get('/', function () {
     return view('auth.login'); 
@@ -26,21 +29,34 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     Route::prefix('mesero')->name('mesero.')->group(function () {
         
+        // ---> RUTA ACTUALIZADA PARA TRAER LAS MESAS AL DASHBOARD <---
         Route::get('/dashboard', function () {
-            return view('mesero.dashboard'); 
+            $usuario = auth()->user();
+            $rol = strtolower(trim($usuario->rol));
+            $query = \App\Models\Mesa::query();
+
+            if ($rol === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
+                $query->where('mesero_id', $usuario->id);
+            } else {
+                $query->where('estado', 'ocupada');
+            }
+
+            $mesas = $query->get();
+            return view('mesero.dashboard', compact('mesas'));
         })->name('dashboard');
 
         // ---> RUTA ACTUALIZADA PARA TRAER DATOS REALES DE POSTGRESQL <---
         Route::get('/comanda', function () {
-            // Traemos las categorías activas
-            $categorias = \App\Models\Categoria::all();
-            
-            // Traemos los productos junto con su categoría y sus modificadores de la tabla pivote
-            // Nota: Si tu modelo se llama Alimento en lugar de Producto, solo cambia la palabra aquí abajo.
-            $productos = \App\Models\Producto::with(['categoria', 'modificadores'])->get();
-            
-            return view('mesero.comanda', compact('categorias', 'productos')); 
+            return redirect()->route('mesero.dashboard');
         })->name('comanda');
+
+        // ---> NUEVA RUTA PARA ENVIAR LA COMANDA <---
+        Route::post('/comanda/enviar', [ComandaController::class, 'enviar'])->name('comanda.enviar');
+
+        Route::get('/comanda/{mesa}', [ComandaController::class, 'show'])->name('comanda.show');
+
+        // ---> NUEVA RUTA PARA GUARDAR LA MESA <---
+        Route::post('/mesa/store', [ComandaController::class, 'storeMesa'])->name('mesa.store');
 
     });
     
@@ -92,23 +108,22 @@ Route::middleware(['auth'])->group(function () {
         // Vista principal de las mesas
         Route::get('/', [CajaController::class, 'index'])->name('index');
 
-        Route::get('/cobrar/{id}', function ($id) {
-            return view('admin.caja.cobrar', ['mesaId' => $id]);
-        })->name('cobrar');
+        Route::get('/cobrar/{id}', [CajaController::class, 'cobrar'])->name('cobrar');
 
         // Rutas de API y Store
         Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
         Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
         Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
+        Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
     });
 
     // ==========================================
     // MÓDULO DE MESAS ACTIVO (CORREGIDO) 
     // ==========================================
     Route::prefix('admin/mesas')->name('admin.mesas.')->group(function () {
-        Route::get('/', function () {
-            return view('admin.mesas.index'); 
-        })->name('index');
+        Route::get('/', [MesaController::class, 'index'])->name('index');
+        Route::get('/api/mesas', [MesaController::class, 'getMesas'])->name('api.mesas');
+        Route::patch('/api/{id}/estado', [MesaController::class, 'cambiarEstado'])->name('api.estado');
     });
 
     Route::prefix('admin/cocina')->name('admin.cocina.')->group(function () {

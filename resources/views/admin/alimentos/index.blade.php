@@ -53,50 +53,9 @@
     </div>
 </div>
 
-{{-- MODAL AGREGAR/EDITAR --}}
-<div id="modal-nuevo-alimento" class="fixed inset-0 z-[100] overflow-y-auto hidden opacity-0 transition-all duration-300 backdrop-blur-sm">
-    <div class="fixed inset-0 bg-black/80" onclick="closeModalAlimento()"></div>
-    <div class="flex min-h-screen items-center justify-center p-4">
-        <div class="relative glass-card bg-[var(--card-color)] border border-[var(--border-color)] w-full max-w-2xl rounded-[2.5rem] shadow-2xl transform opacity-0 translate-y-8 transition-all duration-300" id="modal-panel">
-            <div class="p-10">
-                <div class="flex justify-between items-start mb-8">
-                    <div>
-                        <h2 class="text-3xl font-black text-[var(--text-color)] tracking-tight" id="modal-title">Nuevo Platillo</h2>
-                        <p class="text-[var(--text-muted)] mt-1" id="modal-subtitle">Configuración estética del menú</p>
-                    </div>
-                    <button onclick="closeModalAlimento()" class="text-gray-500 hover:text-white transition"><i class="fas fa-times text-2xl"></i></button>
-                </div>
-
-                <form id="formulario-alimento" onsubmit="guardarAlimento(event)">
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="col-span-2">
-                            <label class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Nombre del Platillo</label>
-                            <input type="text" id="nombre" name="nombre" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] placeholder:text-[var(--text-muted)] focus:ring-2 focus:ring-blue-500 transition" placeholder="Ej: Lasagna de la Casa" required>
-                        </div>
-                        <div class="col-span-1">
-                            <label class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Precio</label>
-                            <input type="number" id="precio" name="precio" step="0.01" min="0" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 transition" placeholder="0.00" required>
-                        </div>
-                        <div class="col-span-1">
-                            <label class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Categoría</label>
-                            <select id="categoria_id" name="categoria_id" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 transition appearance-none" required>
-                                <option value="">Selecciona una categoría</option>
-                                @foreach($categorias as $categoria)
-                                    <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mt-10 flex gap-4">
-                        <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition shadow-lg shadow-blue-900/40" id="btn-guardar">GUARDAR CAMBIOS</button>
-                        <button type="button" onclick="closeModalAlimento()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-400 font-black py-4 rounded-2xl transition">CANCELAR</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+{{-- COMPONENTES MODALES --}}
+@include('admin.alimentos.modal-crear')
+@include('admin.alimentos.modal-eliminar')
 
 <script>
     // Estado global
@@ -152,7 +111,7 @@
         container.innerHTML = '';
 
         if (Object.keys(estadoGlobal.productos).length === 0) {
-            container.innerHTML = '<p class="text-center text-[var(--text-muted)] py-12">No hay platillos registrados aún.</p>';
+            container.innerHTML = '<p class="text-center text-[var(--text-muted)] py-12 font-bold">No hay platillos registrados aún.</p>';
             return;
         }
 
@@ -166,7 +125,7 @@
             
             seccion.innerHTML = `
                 <div class="flex items-center gap-4 mb-6 border-b border-gray-800 pb-4">
-                    <div class="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-500 text-2xl">
+                    <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-[#3B82F6] text-2xl border border-[#3B82F6]/20">
                         <i class="${icono}"></i>
                     </div>
                     <div>
@@ -191,30 +150,38 @@
     function crearCardProducto(producto) {
         const card = document.createElement('div');
         card.className = 'glass-card rounded-3xl p-5 border border-[var(--border-color)] hover:border-[var(--text-muted)] transition-all group';
+        
+        // Ver si tiene modificadores para mostrarlos en la tarjeta (opcional, se ve pro)
+        let etiquetasMods = '';
+        if(producto.modificadores && producto.modificadores.length > 0) {
+            etiquetasMods = `<p class="text-[10px] text-[var(--text-muted)] mt-1 truncate"><i class="fas fa-list-ul mr-1"></i> ${producto.modificadores.map(m => m.nombre).join(', ')}</p>`;
+        }
+
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
-                <div>
-                    <h3 class="text-lg font-black text-[var(--text-color)] tracking-tight group-hover:text-blue-400 transition">${producto.nombre}</h3>
+                <div class="overflow-hidden pr-2">
+                    <h3 class="text-lg font-black text-[var(--text-color)] tracking-tight group-hover:text-blue-400 transition truncate">${producto.nombre}</h3>
+                    ${etiquetasMods}
                     <div class="flex gap-2 mt-2">
                         <span class="bg-black/50 ${producto.esta_disponible ? 'text-green-400 border-green-900/50' : 'text-red-400 border-red-900/50'} text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter border">${producto.esta_disponible ? 'Disponible' : 'No disponible'}</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button class="w-10 h-10 rounded-xl bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition flex items-center justify-center" onclick="editarProducto(${producto.id})">
+                <div class="flex items-center gap-2 shrink-0">
+                    <button class="w-10 h-10 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] hover:border-blue-500/50 hover:text-blue-400 transition flex items-center justify-center shadow-sm" onclick="editarProducto(${producto.id})">
                         <i class="fas fa-edit text-sm"></i>
                     </button>
-                    <button class="w-10 h-10 rounded-xl bg-red-900/20 text-red-500 hover:bg-red-900/40 transition flex items-center justify-center" onclick="eliminarProducto(${producto.id})">
+                    <button class="w-10 h-10 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition flex items-center justify-center shadow-sm" onclick="eliminarProducto(${producto.id})">
                         <i class="fas fa-trash-alt text-sm"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center pt-3 border-t border-[var(--border-color)]">
+            <div class="flex justify-between items-center pt-3 border-t border-[var(--border-color)] mt-3">
                 <span class="text-xl font-black text-[var(--text-color)]">$${parseFloat(producto.precio).toFixed(2)}<span class="text-xs text-[var(--text-muted)] font-medium ml-1 uppercase">MXN</span></span>
                 <div class="flex items-center gap-2">
                     <span class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">${producto.esta_disponible ? 'Activo' : 'Inactivo'}</span>
                     <button class="w-10 h-5 rounded-full transition ${producto.esta_disponible ? 'bg-blue-600' : 'bg-gray-600'}" onclick="toggleDisponibilidad(${producto.id})">
-                        <div class="w-3 h-3 bg-white rounded-full transition ${producto.esta_disponible ? 'ml-auto mr-1' : 'ml-1'}"></div>
+                        <div class="w-3 h-3 bg-white rounded-full transition ${producto.esta_disponible ? 'ml-auto mr-1' : 'ml-1'} mt-1"></div>
                     </button>
                 </div>
             </div>
@@ -224,24 +191,29 @@
 
     // Obtener icono por categoría
     function obtenerIconoCategoria(nombre) {
-        const iconos = {
-            'Pizzas': 'fas fa-pizza-slice',
-            'Pastas': 'fas fa-utensils',
-            'Bebidas': 'fas fa-glass-water',
-            'Postres': 'fas fa-cake-slice',
-            'Ensaladas': 'fas fa-leaf',
-            'Carnes': 'fas fa-bacon',
-            'Mariscos': 'fas fa-shrimp',
-        };
-        return iconos[nombre] || 'fas fa-plate-wheat';
+        const nomNormalizado = nombre.toLowerCase();
+        if(nomNormalizado.includes('pizza')) return 'fas fa-pizza-slice';
+        if(nomNormalizado.includes('pasta')) return 'fas fa-utensils';
+        if(nomNormalizado.includes('bebida') || nomNormalizado.includes('cocteleria')) return 'fas fa-glass-water';
+        if(nomNormalizado.includes('postre')) return 'fas fa-cake-slice';
+        if(nomNormalizado.includes('ensalada') || nomNormalizado.includes('verdura')) return 'fas fa-leaf';
+        if(nomNormalizado.includes('carne') || nomNormalizado.includes('parrillada') || nomNormalizado.includes('conejo')) return 'fas fa-drumstick-bite';
+        if(nomNormalizado.includes('marisco') || nomNormalizado.includes('pescado')) return 'fas fa-fish';
+        if(nomNormalizado.includes('sopa')) return 'fas fa-bowl-food';
+        if(nomNormalizado.includes('abarrote')) return 'fas fa-box-open';
+        
+        return 'fas fa-concierge-bell'; // Icono por defecto
     }
 
-    // Abrir modal para agregar
-    function openModalAlimento() {
-        estadoGlobal.editandoId = null;
-        document.getElementById('formulario-alimento').reset();
-        document.getElementById('modal-title').textContent = 'Nuevo Platillo';
-        document.getElementById('modal-subtitle').textContent = 'Configuración estética del menú';
+    // Abrir modal para agregar o editar
+    function openModalAlimento(resetForm = true) {
+        if (resetForm) {
+            estadoGlobal.editandoId = null;
+            document.getElementById('formulario-alimento').reset();
+            document.getElementById('categoria_id').value = '';
+            document.getElementById('modal-title').textContent = 'Nuevo Platillo';
+            document.getElementById('modal-subtitle').textContent = 'Configuración estética del menú';
+        }
         
         const modal = document.getElementById('modal-nuevo-alimento');
         const panel = document.getElementById('modal-panel');
@@ -250,6 +222,14 @@
             modal.classList.add('opacity-100');
             panel.classList.add('opacity-100', 'translate-y-0');
         }, 10);
+    }
+
+    const categoriasDisponibles = @json($categorias->map(fn($categoria) => ['id' => $categoria->id, 'nombre' => $categoria->nombre]));
+
+    function obtenerCategoriaIdPorNombre(nombre) {
+        if (!nombre) return null;
+        const categoria = categoriasDisponibles.find(cat => cat.nombre.toLowerCase() === nombre.toLowerCase());
+        return categoria ? categoria.id : null;
     }
 
     // Cerrar modal
@@ -268,12 +248,20 @@
         const form = document.getElementById('formulario-alimento');
         const formData = new FormData(form);
         const data = Object.fromEntries(formData);
+        data.categoria_id = obtenerCategoriaIdPorNombre(data.categoria_nombre);
+        document.getElementById('categoria_id').value = data.categoria_id ?? '';
 
         const url = estadoGlobal.editandoId 
             ? `/admin/alimentos/api/${estadoGlobal.editandoId}`
             : '/admin/alimentos/api/store';
         
         const metodo = estadoGlobal.editandoId ? 'PUT' : 'POST';
+
+        // Cambiar el texto del botón a "Guardando..."
+        const btnGuardar = document.getElementById('btn-guardar');
+        const textoOriginal = btnGuardar.textContent;
+        btnGuardar.textContent = 'GUARDANDO...';
+        btnGuardar.disabled = true;
 
         fetch(url, {
             method: metodo,
@@ -292,10 +280,17 @@
             cargarProductos();
             cargarEstadisticas();
             mostrarNotificacion(resultado.message, 'success');
+            
+            // Recargar para que la nueva categoría aparezca en el datalist
+            setTimeout(() => window.location.reload(), 1000);
         })
         .catch(error => {
             mostrarNotificacion('Error al guardar el platillo', 'error');
             console.error(error);
+        })
+        .finally(() => {
+            btnGuardar.textContent = textoOriginal;
+            btnGuardar.disabled = false;
         });
     }
 
@@ -310,12 +305,20 @@
         estadoGlobal.editandoId = id;
         document.getElementById('nombre').value = producto.nombre || '';
         document.getElementById('precio').value = producto.precio || '';
-        document.getElementById('categoria_id').value = producto.categoria_id || '';
+        
+        // Asignamos el nombre de la categoría en lugar del ID
+        document.getElementById('categoria_nombre').value = producto.categoria ? producto.categoria.nombre : '';        document.getElementById('categoria_id').value = producto.categoria ? producto.categoria.id : '';        
+        // Llenar el campo de modificadores (Convierte el array a una cadena separada por comas)
+        let modsString = '';
+        if (producto.modificadores && producto.modificadores.length > 0) {
+            modsString = producto.modificadores.map(m => m.nombre).join(', ');
+        }
+        document.getElementById('modificadores_input').value = modsString;
         
         document.getElementById('modal-title').textContent = 'Editar Platillo';
         document.getElementById('modal-subtitle').textContent = 'Actualiza la información del platillo';
         
-        openModalAlimento();
+        openModalAlimento(false);
     }
 
     // Encontrar producto por ID
@@ -325,27 +328,12 @@
 
     // Eliminar producto
     function eliminarProducto(id) {
-        if (!confirm('¿Estás seguro de que deseas eliminar este platillo?')) return;
-
-        fetch(`/admin/alimentos/api/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Error en la solicitud');
-            return response.json();
-        })
-        .then(resultado => {
-            cargarProductos();
-            cargarEstadisticas();
-            mostrarNotificacion(resultado.message, 'success');
-        })
-        .catch(error => {
-            mostrarNotificacion('Error al eliminar el platillo', 'error');
-            console.error(error);
-        });
+        const producto = encontrarProductoPorId(id);
+        if (!producto) {
+            console.error('Producto no encontrado:', id);
+            return;
+        }
+        abrirModalEliminar(id, producto.nombre);
     }
 
     // Toggle disponibilidad

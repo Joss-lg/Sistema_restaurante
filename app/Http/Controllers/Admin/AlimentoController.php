@@ -7,6 +7,7 @@ use App\Models\Producto;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class AlimentoController extends Controller
 {
@@ -55,15 +56,24 @@ class AlimentoController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric|min:0',
-            'categoria_id' => 'required|exists:categorias,id',
+            'categoria_id' => 'nullable|exists:categorias,id',
+            'categoria_nombre' => 'required|string|max:255',
             'tiempo_preparacion' => 'nullable|integer|min:1',
             'descripcion' => 'nullable|string',
         ]);
 
+        $categoriaId = $validated['categoria_id'] ?? null;
+        if (!$categoriaId) {
+            $categoriaId = Categoria::firstOrCreate(
+                ['nombre' => $validated['categoria_nombre']],
+                ['slug' => Str::slug($validated['categoria_nombre'])]
+            )->id;
+        }
+
         $producto = Producto::create([
             'nombre' => $validated['nombre'],
             'precio' => $validated['precio'],
-            'categoria_id' => $validated['categoria_id'],
+            'categoria_id' => $categoriaId,
             'tiempo_preparacion' => $validated['tiempo_preparacion'] ?? 15,
             'esta_disponible' => true,
         ]);
@@ -85,10 +95,22 @@ class AlimentoController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric|min:0',
-            'categoria_id' => 'required|exists:categorias,id',
+            'categoria_id' => 'nullable|exists:categorias,id',
+            'categoria_nombre' => 'required|string|max:255',
             'tiempo_preparacion' => 'nullable|integer|min:1',
             'esta_disponible' => 'nullable|boolean',
         ]);
+
+        $categoriaId = $validated['categoria_id'] ?? null;
+        if (!$categoriaId) {
+            $categoriaId = Categoria::firstOrCreate(
+                ['nombre' => $validated['categoria_nombre']],
+                ['slug' => Str::slug($validated['categoria_nombre'])]
+            )->id;
+        }
+
+        $validated['categoria_id'] = $categoriaId;
+        unset($validated['categoria_nombre']);
 
         $producto->update($validated);
 

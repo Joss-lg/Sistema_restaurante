@@ -6,8 +6,22 @@
     </div>
 
     {{-- Contenedor Animado Flotante --}}
+    @php
+        $totalMesas = isset($mesas) ? $mesas->count() : 0;
+        $mesasActivas = isset($mesas) ? $mesas->where('estado', 'ocupada')->count() : 0;
+    @endphp
+
+    @php $esCapitan = strtolower(trim(auth()->user()->rol ?? '')) === 'capitan'; @endphp
+
     <div class="animate-float flex flex-col items-center relative z-10">
         
+        @if($esCapitan)
+            <div class="mb-8 w-full max-w-2xl p-4 rounded-3xl border border-[var(--border-color)] bg-[rgba(255,255,255,0.04)] text-center">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-[#38bdf8] font-black mb-2">Panel del Capitán</p>
+                <p class="text-sm text-[var(--text-muted)] leading-relaxed">Aquí ves todas las mesas abiertas y puedes enviar comanda a cualquier mesa directamente.</p>
+            </div>
+        @endif
+
         <button type="button" onclick="abrirModalMesa()" class="group outline-none flex flex-col items-center cursor-pointer">
             
             {{-- El Botón Azul con efecto Glass e Inner Shadow --}}
@@ -39,5 +53,19 @@
             </div>
 
         </button>
+
+        <div class="mt-16 p-6 rounded-[2rem] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] backdrop-blur-xl shadow-[0_30px_60px_-30px_rgba(0,0,0,0.45)] text-center">
+            <p class="text-sm text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3">Resumen de mesas</p>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Mesas totales</p>
+                    <p class="text-3xl font-black text-white mt-2">{{ $totalMesas }}</p>
+                </div>
+                <div class="p-4 rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Mesas abiertas</p>
+                    <p class="text-3xl font-black text-[#34D399] mt-2">{{ $mesasActivas }}</p>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
