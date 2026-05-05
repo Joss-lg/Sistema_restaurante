@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('permisos', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre'); // Ejemplo: 'crear_pedido'
+            $table->string('nombre'); 
+            $table->string('descripcion')->nullable();// Ejemplo: 'crear_pedido'
             $table->string('slug')->unique(); // Ejemplo: 'crear-pedido' (para el código)
             $table->timestamps();
         });
