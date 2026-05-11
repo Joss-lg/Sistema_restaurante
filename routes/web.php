@@ -11,8 +11,10 @@ use App\Http\Controllers\Admin\AlimentoController;
 use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\CajaController;
+use App\Http\Controllers\Admin\CocinaController;
 use App\Http\Controllers\Admin\MesaController;
 use App\Http\Controllers\ComandaController;
+use App\Http\Controllers\Admin\PromocionController;
 
 Route::get('/', function () {
     return view('auth.login'); 
@@ -29,19 +31,27 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     Route::prefix('mesero')->name('mesero.')->group(function () {
         
-        // ---> RUTA ACTUALIZADA PARA TRAER LAS MESAS AL DASHBOARD <---
+        // ---> RUTA DEL DASHBOARD DEL MESERO / FILTRADO POR ROL EN BACKEND <---
         Route::get('/dashboard', function () {
-            $usuario = auth()->user();
-            $rol = strtolower(trim($usuario->rol));
-            $query = \App\Models\Mesa::query();
+            $esCapitan = strtolower(auth()->user()->rol ?? '') === 'capitan';
 
-            if ($rol === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
-                $query->where('mesero_id', $usuario->id);
+            if ($esCapitan) {
+                $mesas = \App\Models\Mesa::orderBy('numero', 'asc')->get();
             } else {
-                $query->where('estado', 'ocupada');
+                if (Schema::hasColumn('mesas', 'mesero_id')) {
+                    $mesas = \App\Models\Mesa::where(function ($query) {
+                            $query->where('estado', 'disponible')
+                                  ->orWhere('mesero_id', auth()->id());
+                        })
+                        ->orderBy('numero', 'asc')
+                        ->get();
+                } else {
+                    $mesas = \App\Models\Mesa::where('estado', 'disponible')
+                        ->orderBy('numero', 'asc')
+                        ->get();
+                }
             }
 
-            $mesas = $query->get();
             return view('mesero.dashboard', compact('mesas'));
         })->name('dashboard');
 
@@ -117,6 +127,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
     });
 
+
+
     // ==========================================
     // MÓDULO DE MESAS ACTIVO (CORREGIDO) 
     // ==========================================
@@ -124,14 +136,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [MesaController::class, 'index'])->name('index');
         Route::get('/api/mesas', [MesaController::class, 'getMesas'])->name('api.mesas');
         Route::patch('/api/{id}/estado', [MesaController::class, 'cambiarEstado'])->name('api.estado');
+        Route::put('/api/{id}', [MesaController::class, 'update'])->name('api.update');
+        Route::delete('/api/{id}', [MesaController::class, 'destroy'])->name('api.destroy');
     });
 
     Route::prefix('admin/cocina')->name('admin.cocina.')->group(function () {
-        Route::get('/', function() { return "Módulo de Cocina KDS - Próximamente"; })->name('index');
+        Route::get('/', [CocinaController::class, 'index'])->name('index');
+        Route::patch('/orden/{id}/estado', [CocinaController::class, 'actualizarEstado'])->name('orden.estado');
     });
 
     Route::prefix('admin/promociones')->name('admin.promociones.')->group(function () {
-        Route::get('/', function() { return "Módulo de Promociones - Próximamente"; })->name('index');
+        Route::get('/', [PromocionController::class, 'index'])->name('index');
+        Route::get('/crear', [PromocionController::class, 'create'])->name('create');
+        Route::post('/store', [PromocionController::class, 'store'])->name('store');
+        Route::get('/{promocion}/editar', [PromocionController::class, 'edit'])->name('edit');
+        Route::put('/{promocion}', [PromocionController::class, 'update'])->name('update');
+        Route::delete('/{promocion}', [PromocionController::class, 'destroy'])->name('destroy');
     });
 
     // PERMISOS Y LOGOUT

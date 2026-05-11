@@ -47,4 +47,8 @@ class Producto extends Model
         // Conecta el Producto con los Modificadores pasando por tu tabla pivote 'producto_modificadores'
         return $this->belongsToMany(Modificador::class, 'producto_modificadores');
     }
+    public function promociones()
+    {
+        return $this->belongsToMany(Promocion::class, 'promocion_productos');
+    }
 }

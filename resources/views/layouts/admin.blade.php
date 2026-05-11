@@ -39,7 +39,10 @@
             --border-color: rgba(255, 255, 255, 0.04);
             --glass-bg: linear-gradient(145deg, rgba(20, 20, 23, 0.8) 0%, rgba(10, 10, 12, 0.6) 100%);
             --glass-hover: linear-gradient(145deg, rgba(25, 25, 29, 0.9) 0%, rgba(12, 12, 14, 0.8) 100%);
-            --input-bg: #111114; 
+            --input-bg: #111114;
+            --panel-card: rgba(15, 23, 42, 0.75);
+            --panel-border: rgba(59, 130, 246, 0.20);
+            --panel-secondary: rgba(148, 163, 184, 0.12);
         }
 
         body.modo-crema {
@@ -52,18 +55,30 @@
             --border-color: rgba(0, 0, 0, 0.06);
             --glass-bg: rgba(255, 255, 255, 0.9);
             --glass-hover: #ffffff;
-            --input-bg: #F4F4F6; 
+            --input-bg: #F4F4F6;
+            --panel-card: rgba(255, 255, 255, 0.90);
+            --panel-border: rgba(59, 130, 246, 0.16);
+            --panel-secondary: rgba(148, 163, 184, 0.08);
         }
 
         body { background-color: var(--bg-color); font-family: 'Inter', sans-serif; color: var(--text-color); overflow-x: hidden; margin: 0; padding: 0; transition: background-color 0.4s ease, color 0.4s ease; }
         
-        .glass-card { backdrop-filter: blur(20px); border: 1px solid var(--border-color); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card { backdrop-filter: blur(20px); border: 1px solid var(--border-color); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background-color: var(--glass-bg); }
         
-        body:not(.modo-crema) .glass-card { background: var(--glass-bg); box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
-        body.modo-crema .glass-card { background: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005); }
+        body:not(.modo-crema) .glass-card { background-color: var(--glass-bg); box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
+        body.modo-crema .glass-card { background-color: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005); }
         
         .glass-card:hover { transform: translateY(-4px); border-color: rgba(59, 130, 246, 0.2); }
-        body.modo-crema .glass-card:hover { background: #ffffff; box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.03); }
+        body.modo-crema .glass-card:hover { background-color: #ffffff; box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.03); }
+
+        body:not(.modo-crema) .glass-card.kitchen-card { background: var(--panel-card); border-color: var(--panel-border); }
+        body.modo-crema .glass-card.kitchen-card { background: var(--panel-card); border-color: var(--panel-border); }
+        .kitchen-card:hover { transform: translateY(-2px); }
+        .accent-title { color: #38bdf8; }
+        .kitchen-pill { background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.18); color: #0ea5e9; }
+        body:not(.modo-crema) .kitchen-pill { background: rgba(59, 130, 246, 0.16); color: #bfdbfe; border-color: rgba(147, 197, 253, 0.2); }
+        .product-item { background: var(--panel-secondary); }
+        body.modo-crema .product-item { background: rgba(148, 163, 184, 0.05); }
         
         ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
     </style>

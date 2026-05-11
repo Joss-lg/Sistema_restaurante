@@ -70,36 +70,36 @@
         </div>
 
         <div class="grid grid-cols-2 gap-3 flex-1 overflow-y-auto hide-scroll pb-4 pr-1">
-            <button class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6]/50 transition-all active:scale-95 group outline-none">
+            <button id="btn-personas" onclick="ajustarPersonas()" class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6]/50 transition-all active:scale-95 group outline-none">
                 <i class="fas fa-user-friends text-[#3B82F6] mb-2 text-xl drop-shadow-[0_0_8px_rgba(59,130,246,0.4)]"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest text-[#3B82F6]">Personas</span>
-                <span class="text-[10px] font-bold text-[#3B82F6] mt-0.5">4</span>
+                <span id="txtPersonas" class="text-[10px] font-bold text-[#3B82F6] mt-0.5">4</span>
             </button>
-            <button class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-emerald-500/50 transition-all active:scale-95 group outline-none">
+            <button onclick="irAPagar()" class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-emerald-500/50 transition-all active:scale-95 group outline-none">
                 <i class="fas fa-credit-card text-emerald-500 mb-2 text-xl drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest text-emerald-500">Pagar</span>
             </button>
-            <button class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#8B5CF6]/50 transition-all active:scale-95 group outline-none">
+            <button onclick="agregarNota()" class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#8B5CF6]/50 transition-all active:scale-95 group outline-none">
                 <i class="fas fa-comment-alt text-[#8B5CF6] mb-2 text-xl drop-shadow-[0_0_8px_rgba(139,92,246,0.4)]"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest text-[#8B5CF6]">Nota</span>
             </button>
-            <button class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-rose-500/50 transition-all active:scale-95 group outline-none">
+            <button onclick="aplicarDescuento()" class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-rose-500/50 transition-all active:scale-95 group outline-none">
                 <i class="fas fa-percent text-rose-500 mb-2 text-xl drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest text-rose-500">Desc.</span>
             </button>
-            <button class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-amber-400/50 transition-all active:scale-95 group outline-none">
+            <button onclick="abrirCajon()" class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-amber-400/50 transition-all active:scale-95 group outline-none">
                 <i class="fas fa-cash-register text-amber-400 mb-2 text-xl drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest text-amber-400">Cajón</span>
             </button>
-            <button class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6]/50 transition-all active:scale-95 group outline-none">
+            <button onclick="mostrarPromociones()" class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6]/50 transition-all active:scale-95 group outline-none">
                 <i class="fas fa-tag text-[#3B82F6] mb-2 text-xl drop-shadow-[0_0_8px_rgba(59,130,246,0.4)]"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest text-[#3B82F6]">Promos</span>
             </button>
-            <button class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[var(--text-muted)] transition-all active:scale-95 group outline-none">
+            <button onclick="dividirItemActivo()" class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[var(--text-muted)] transition-all active:scale-95 group outline-none">
                 <i class="fas fa-cut text-[var(--text-muted)] mb-2 text-xl group-hover:text-[var(--text-main)] transition-colors"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-[var(--text-main)]">Dividir</span>
             </button>
-            <button class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-rose-500/50 transition-all active:scale-95 group outline-none">
+            <button onclick="eliminarItemSeleccionado()" class="flex flex-col items-center justify-center h-[95px] rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-rose-500/50 transition-all active:scale-95 group outline-none">
                 <i class="fas fa-trash text-rose-500 mb-2 text-xl drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest text-rose-500">Eliminar</span>
             </button>
@@ -114,7 +114,10 @@
     <section class="w-[380px] h-full flex flex-col bg-[var(--bg-panel)] border-r border-[var(--border-color)] relative z-10 shadow-2xl">
         <div class="p-5 border-b border-[var(--border-color)]">
             <div class="flex justify-between items-center mb-5">
-                <h2 class="text-2xl font-black tracking-tighter">Mesa {{ $mesa->numero ?? '12M' }}</h2>
+                <div>
+                    <h2 class="text-2xl font-black tracking-tighter">Mesa {{ $mesa->numero ?? '12M' }}</h2>
+                    <span id="badgePersonas" class="inline-flex items-center gap-2 mt-2 rounded-full bg-[#1f2937] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[#93c5fd] font-black">Personas: 4</span>
+                </div>
                 <span class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">{{ auth()->user()->nombre ?? 'GAEL' }}</span>
             </div>
 
@@ -180,6 +183,68 @@
         </div>
     </main>
 
+    {{-- MODAL NOTA --}}
+    <div id="modalNota" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="w-full max-w-md rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.25em] text-[#3B82F6] font-black">Nota de platillo</p>
+                    <h2 class="text-xl font-black mt-2">Agrega un comentario</h2>
+                </div>
+                <button onclick="cerrarModal('modalNota')" class="text-[var(--text-muted)] hover:text-white outline-none"><i class="fas fa-times"></i></button>
+            </div>
+            <textarea id="notaTextarea" rows="5" class="w-full rounded-3xl border border-[var(--border-color)] bg-[var(--bg-base)] p-4 text-sm text-[var(--text-main)] outline-none resize-none" placeholder="Ej. Sin cebolla, extra salsa, cocinar bien"></textarea>
+            <div class="mt-5 flex gap-3 justify-end">
+                <button onclick="cerrarModal('modalNota')" class="px-5 py-3 rounded-2xl border border-[var(--border-color)] text-[var(--text-muted)] hover:text-white transition-all">Cancelar</button>
+                <button onclick="guardarNota()" class="px-5 py-3 rounded-2xl bg-[#3B82F6] text-white font-black uppercase tracking-[0.15em] transition-all">Guardar nota</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL DESCUENTO --}}
+    <div id="modalDescuento" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="w-full max-w-md rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.25em] text-[#ef4444] font-black">Descuento</p>
+                    <h2 class="text-xl font-black mt-2">Aplicar porcentaje</h2>
+                </div>
+                <button onclick="cerrarModal('modalDescuento')" class="text-[var(--text-muted)] hover:text-white outline-none"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-4">
+                <label class="block text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Porcentaje</label>
+                <input id="descuentoInput" type="number" min="0" max="100" step="0.1" class="w-full rounded-3xl border border-[var(--border-color)] bg-[var(--bg-base)] p-4 text-sm text-[var(--text-main)] outline-none" placeholder="10">
+                <p class="text-[11px] text-[var(--text-muted)]">Se aplicará sobre el subtotal antes del IVA.</p>
+            </div>
+            <div class="mt-5 flex gap-3 justify-end">
+                <button onclick="cerrarModal('modalDescuento')" class="px-5 py-3 rounded-2xl border border-[var(--border-color)] text-[var(--text-muted)] hover:text-white transition-all">Cancelar</button>
+                <button onclick="guardarDescuento()" class="px-5 py-3 rounded-2xl bg-[#ef4444] text-white font-black uppercase tracking-[0.15em] transition-all">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL PERSONAS --}}
+    <div id="modalPersonas" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="w-full max-w-md rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.25em] text-[#3B82F6] font-black">Personas</p>
+                    <h2 class="text-xl font-black mt-2">Ajustar comensales</h2>
+                </div>
+                <button onclick="cerrarModal('modalPersonas')" class="text-[var(--text-muted)] hover:text-white outline-none"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-4">
+                <label class="block text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Cantidad</label>
+                <input id="personasInput" type="number" min="1" class="w-full rounded-3xl border border-[var(--border-color)] bg-[var(--bg-base)] p-4 text-sm text-[var(--text-main)] outline-none" placeholder="4">
+                <p class="text-[11px] text-[var(--text-muted)]">Define cuántos comensales tiene la mesa actualmente.</p>
+            </div>
+            <div class="mt-5 flex gap-3 justify-end">
+                <button onclick="cerrarModal('modalPersonas')" class="px-5 py-3 rounded-2xl border border-[var(--border-color)] text-[var(--text-muted)] hover:text-white transition-all">Cancelar</button>
+                <button onclick="guardarPersonas()" class="px-5 py-3 rounded-2xl bg-[#3B82F6] text-white font-black uppercase tracking-[0.15em] transition-all">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function toggleTheme() {
             const body = document.body;
@@ -223,7 +288,7 @@
                     const modsJSON = prod.modificadores ? JSON.stringify(prod.modificadores).replace(/'/g, "\\'") : '[]';
 
                     gridProd.innerHTML += `
-                        <div data-categoria-item="${catNombre}" onclick='agregarAlTicket("${prod.nombre}", ${precioNum}, "${catNombre}", ${modsJSON}); event.stopPropagation();' class="producto-card group bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-2xl p-4 flex flex-col hover:border-[#3B82F6]/50 transition-all cursor-pointer h-[200px]">
+                        <div data-categoria-item="${catNombre}" onclick='agregarAlTicket(${prod.id}, "${prod.nombre}", ${precioNum}, "${catNombre}", ${modsJSON}); event.stopPropagation();' class="producto-card group bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-2xl p-4 flex flex-col hover:border-[#3B82F6]/50 transition-all cursor-pointer h-[200px]">
                             <div class="w-full flex-1 rounded-xl bg-[var(--bg-base)] mb-4 flex flex-col items-center justify-center relative">
                                 <span class="absolute top-2 right-2 text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)] border border-[var(--border-color)] px-2 py-1 rounded">${catNombre}</span>
                                 <i class="fas fa-utensils text-5xl text-[var(--border-color)] group-hover:text-[#3B82F6]/20 transition-colors"></i>
@@ -263,33 +328,56 @@
         const barraModificadores = document.getElementById('barraModificadores');
         const contenedorBotonesModificadores = document.getElementById('contenedorBotonesModificadores');
         
-        function agregarAlTicket(nombre, precio, categoria, arrayModificadores = []) {
+        function agregarAlTicket(id, nombre, precio, categoria, arrayModificadores = []) {
             estadoVacio.classList.add('hidden');
+
+            const modsString = JSON.stringify(arrayModificadores).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+            const precioUnitario = parseFloat(precio);
+
+            const existingItem = Array.from(listaTicket.querySelectorAll('.ticket-item')).find(item => {
+                return parseInt(item.dataset.productoId, 10) === id
+                    && item.dataset.modificadores === modsString;
+            });
+
+            if (existingItem) {
+                const cantidadSpan = existingItem.querySelector('.cantidad-platillo');
+                const cantidad = parseInt(cantidadSpan.innerText, 10) + 1;
+                cantidadSpan.innerText = cantidad;
+                existingItem.dataset.cantidad = cantidad;
+
+                const precioSpan = existingItem.querySelector('.precio-platillo');
+                precioSpan.innerText = '$' + (precioUnitario * cantidad).toFixed(2);
+                existingItem.dataset.precio = precioUnitario;
+
+                ticketSubtotal += precioUnitario;
+                actualizarTotales();
+                seleccionarItem(existingItem.id);
+                return;
+            }
+
             contadorItems++;
             const itemId = 'ticket-item-' + contadorItems;
-            
-            const modsString = JSON.stringify(arrayModificadores).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
-            
+
             const itemHTML = `
-                <div id="${itemId}" data-modificadores="${modsString}" class="ticket-item animate-item bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl p-3 grid grid-cols-[40px_1fr_60px] gap-2 items-start cursor-pointer transition-all" onclick="seleccionarItem('${itemId}')">
+                <div id="${itemId}" data-producto-id="${id}" data-cantidad="1" data-precio="${precioUnitario}" data-modificadores="${modsString}" class="ticket-item animate-item bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl p-3 grid grid-cols-[40px_1fr_60px] gap-2 items-start cursor-pointer transition-all" onclick="seleccionarItem('${itemId}')">
                     <div class="flex justify-center mt-1">
-                        <span class="w-6 h-6 rounded bg-[#3B82F6]/10 text-[#3B82F6] text-[10px] font-black flex items-center justify-center">1</span>
+                        <span class="cantidad-platillo w-6 h-6 rounded bg-[#3B82F6]/10 text-[#3B82F6] text-[10px] font-black flex items-center justify-center">1</span>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-xs font-bold text-[var(--text-main)] leading-tight nombre-platillo">${nombre}</span>
                         <div class="modificadores-lista flex flex-wrap gap-1 mt-1 empty:hidden"></div>
-                        <button onclick="eliminarItemFila(this, ${precio}); event.stopPropagation();" class="text-[9px] text-rose-500 font-bold uppercase tracking-widest text-left mt-2 hidden hover:underline btn-eliminar">Quitar platillo</button>
+                        <button onclick="eliminarItemFila(this); event.stopPropagation();" class="text-[9px] text-rose-500 font-bold uppercase tracking-widest text-left mt-2 hidden hover:underline btn-eliminar">Quitar platillo</button>
                     </div>
                     <div class="text-right mt-1">
-                        <span class="text-sm font-black text-[var(--text-main)] precio-platillo" data-precio="${precio}">$${parseFloat(precio).toFixed(2)}</span>
+                        <span class="text-sm font-black text-[var(--text-main)] precio-platillo">$${precioUnitario.toFixed(2)}</span>
                     </div>
                 </div>
             `;
-            
+
             listaTicket.insertAdjacentHTML('beforeend', itemHTML);
-            ticketSubtotal += parseFloat(precio);
+            ticketSubtotal += precioUnitario;
             actualizarTotales();
-            
+
             seleccionarItem(itemId);
             listaTicket.parentElement.scrollTop = listaTicket.parentElement.scrollHeight;
         }
@@ -339,10 +427,13 @@
             }
         }
 
-        function eliminarItemFila(btn, precio) {
+        function eliminarItemFila(btn) {
             const fila = btn.closest('.ticket-item');
+            const cantidad = parseInt(fila.dataset.cantidad, 10) || 1;
+            const precioUnitario = parseFloat(fila.dataset.precio) || 0;
+            const totalFila = cantidad * precioUnitario;
             fila.remove();
-            ticketSubtotal -= parseFloat(precio);
+            ticketSubtotal -= totalFila;
             actualizarTotales();
             deseleccionarTicket();
             
@@ -363,8 +454,169 @@
             listaTicket.innerHTML = '';
             estadoVacio.classList.remove('hidden');
             ticketSubtotal = 0;
+            descuentoPorcentaje = 0;
+            notaGeneral = '';
             actualizarTotales();
             deseleccionarTicket();
+        }
+
+        function ajustarPersonas() {
+            document.getElementById('personasInput').value = numeroPersonas;
+            document.getElementById('modalPersonas').classList.remove('hidden');
+            document.getElementById('personasInput').focus();
+        }
+
+        function guardarPersonas() {
+            const valor = parseInt(document.getElementById('personasInput').value, 10);
+            if (isNaN(valor) || valor <= 0) {
+                alert('Ingresa una cantidad de personas válida.');
+                return;
+            }
+            numeroPersonas = valor;
+            document.getElementById('txtPersonas').innerText = numeroPersonas;
+            document.getElementById('badgePersonas').innerText = 'Personas: ' + numeroPersonas;
+            cerrarModal('modalPersonas');
+        }
+
+        function irAPagar() {
+            window.location.href = '{{ route('admin.caja.cobrar', $mesa->id) }}';
+        }
+
+        function agregarNota() {
+            if (!itemActivo) {
+                alert('Selecciona un platillo para agregar una nota.');
+                return;
+            }
+            document.getElementById('notaTextarea').value = '';
+            document.getElementById('modalNota').classList.remove('hidden');
+            document.getElementById('notaTextarea').focus();
+        }
+
+        function aplicarDescuento() {
+            document.getElementById('descuentoInput').value = descuentoPorcentaje;
+            document.getElementById('modalDescuento').classList.remove('hidden');
+            document.getElementById('descuentoInput').focus();
+        }
+
+        function abrirCajon() {
+            alert('Cajón de efectivo activado (simulado).');
+        }
+
+        function mostrarPromociones() {
+            window.location.href = '{{ route('admin.promociones.index') }}';
+        }
+
+        function dividirItemActivo() {
+            if (!itemActivo) {
+                alert('Selecciona un platillo para dividir.');
+                return;
+            }
+            const cantidadActual = parseInt(itemActivo.dataset.cantidad, 10) || 1;
+            if (cantidadActual <= 1) {
+                alert('No se puede dividir un platillo con cantidad 1.');
+                return;
+            }
+            const precioUnitario = parseFloat(itemActivo.dataset.precio) || 0;
+            itemActivo.dataset.cantidad = cantidadActual - 1;
+            itemActivo.querySelector('.cantidad-platillo').innerText = cantidadActual - 1;
+            itemActivo.querySelector('.precio-platillo').innerText = '$' + ((cantidadActual - 1) * precioUnitario).toFixed(2);
+
+            contadorItems++;
+            const itemId = 'ticket-item-' + contadorItems;
+            const nombre = itemActivo.querySelector('.nombre-platillo').innerText;
+            const modificadores = itemActivo.querySelector('.modificadores-lista').innerHTML;
+            const itemHTML = `
+                <div id="${itemId}" data-producto-id="${itemActivo.dataset.productoId}" data-cantidad="1" data-precio="${precioUnitario}" data-modificadores="${itemActivo.dataset.modificadores}" class="ticket-item animate-item bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl p-3 grid grid-cols-[40px_1fr_60px] gap-2 items-start cursor-pointer transition-all" onclick="seleccionarItem('${itemId}')">
+                    <div class="flex justify-center mt-1">
+                        <span class="cantidad-platillo w-6 h-6 rounded bg-[#3B82F6]/10 text-[#3B82F6] text-[10px] font-black flex items-center justify-center">1</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-[var(--text-main)] leading-tight nombre-platillo">${nombre}</span>
+                        <div class="modificadores-lista flex flex-wrap gap-1 mt-1 empty:hidden">${modificadores}</div>
+                        <button onclick="eliminarItemFila(this); event.stopPropagation();" class="text-[9px] text-rose-500 font-bold uppercase tracking-widest text-left mt-2 hidden hover:underline btn-eliminar">Quitar platillo</button>
+                    </div>
+                    <div class="text-right mt-1">
+                        <span class="text-sm font-black text-[var(--text-main)] precio-platillo">$${precioUnitario.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+            listaTicket.insertAdjacentHTML('beforeend', itemHTML);
+            actualizarTotales();
+        }
+
+        function eliminarItemSeleccionado() {
+            if (!itemActivo) {
+                alert('Selecciona un platillo para eliminar.');
+                return;
+            }
+            const cantidad = parseInt(itemActivo.dataset.cantidad, 10) || 1;
+            const precioUnitario = parseFloat(itemActivo.dataset.precio) || 0;
+            const totalFila = cantidad * precioUnitario;
+            itemActivo.remove();
+            ticketSubtotal -= totalFila;
+            actualizarTotales();
+            deseleccionarTicket();
+            if (listaTicket.children.length === 0) {
+                estadoVacio.classList.remove('hidden');
+            }
+        }
+
+        let numeroPersonas = 4;
+        let descuentoPorcentaje = 0;
+        let notaGeneral = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const badge = document.getElementById('badgePersonas');
+            if (badge) {
+                badge.innerText = 'Personas: ' + numeroPersonas;
+            }
+        });
+
+        function cerrarModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function guardarNota() {
+            const nota = document.getElementById('notaTextarea').value.trim();
+            if (!itemActivo) {
+                cerrarModal('modalNota');
+                return;
+            }
+            if (nota.length === 0) {
+                alert('La nota no puede estar vacía.');
+                return;
+            }
+            const notaPill = `<span class="text-[9px] bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] px-1.5 py-0.5 rounded shadow-sm">✎ ${nota}</span>`;
+            const contenedorList = itemActivo.querySelector('.modificadores-lista');
+            contenedorList.insertAdjacentHTML('beforeend', notaPill);
+            itemActivo.dataset.nota = nota;
+            notaGeneral = nota;
+            cerrarModal('modalNota');
+        }
+
+        function guardarDescuento() {
+            const valor = parseFloat(document.getElementById('descuentoInput').value);
+            if (isNaN(valor) || valor < 0 || valor > 100) {
+                alert('Ingresa un porcentaje válido entre 0 y 100.');
+                return;
+            }
+            descuentoPorcentaje = valor;
+            actualizarTotales();
+            cerrarModal('modalDescuento');
+        }
+
+        function obtenerSubtotalConDescuento() {
+            const subtotalConDescuento = Math.max(0, ticketSubtotal - (ticketSubtotal * (descuentoPorcentaje / 100)));
+            return subtotalConDescuento;
+        }
+
+        function actualizarTotales() {
+            const subtotalConDescuento = obtenerSubtotalConDescuento();
+            const iva = subtotalConDescuento * 0.16;
+            const total = subtotalConDescuento + iva;
+            document.getElementById('txtSubtotal').innerText = '$' + subtotalConDescuento.toFixed(2);
+            document.getElementById('txtIva').innerText = '$' + iva.toFixed(2);
+            document.getElementById('txtTotal').innerText = '$' + total.toFixed(2);
         }
 
         // ==========================================
@@ -381,13 +633,15 @@
             const platillosData = [];
             itemsHTML.forEach(item => {
                 const nombre = item.querySelector('.nombre-platillo').innerText;
-                const precio = parseFloat(item.querySelector('.precio-platillo').getAttribute('data-precio'));
-                
+                const precioUnitario = parseFloat(item.dataset.precio);
+                const cantidad = parseInt(item.dataset.cantidad, 10);
+                const productoId = parseInt(item.dataset.productoId, 10);
+
                 const modsElementos = item.querySelectorAll('.modificadores-lista span');
                 const mods = [];
                 modsElementos.forEach(m => mods.push(m.innerText.replace('✓ ', '')));
 
-                platillosData.push({ nombre: nombre, precio: precio, modificadores: mods });
+                platillosData.push({ id: productoId, nombre: nombre, cantidad: cantidad, precio: precioUnitario, notas: mods.join(', '), modificadores: mods });
             });
 
             // Cambiamos el botón para que se vea pro
@@ -403,25 +657,38 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify({
                     mesa_id: mesaId,
                     platillos: platillosData,
-                    total: ticketSubtotal + (ticketSubtotal * 0.16)
+                    total: obtenerSubtotalConDescuento() + (obtenerSubtotalConDescuento() * 0.16),
+                    personas: numeroPersonas,
+                    descuento_porcentaje: descuentoPorcentaje,
+                    nota_general: notaGeneral
                 })
             })
-            .then(res => res.json())
+            .then(async res => {
+                const data = await res.json().catch(() => null);
+                if (!res.ok) {
+                    const errorMessage = data?.message || 'Error al enviar la orden. Intenta de nuevo.';
+                    throw new Error(errorMessage);
+                }
+                return data;
+            })
             .then(data => {
-                if(data.success) {
+                if (data.success) {
                     alert("✅ ¡Orden enviada a cocina! La mesa ya está ocupada.");
-                    // Redirigir al panel de mesas
                     window.location.href = '/mesero/dashboard';
+                } else {
+                    throw new Error(data.message || 'Error al enviar la orden.');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert("Hubo un problema al enviar la orden. Revisa la consola.");
+                alert(error.message || "Hubo un problema al enviar la orden. Revisa la consola.");
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>Enviar a Cocina</span>';
                 btn.disabled = false;
             });

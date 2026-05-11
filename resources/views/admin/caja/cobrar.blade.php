@@ -14,7 +14,7 @@
             </a>
             <h1 class="text-4xl font-black text-white italic tracking-tighter uppercase">Mesa {{ $mesa->numero }}</h1>
             <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">
-                Orden #{{ $orden->numero_orden ?? 'N/A' }} • {{ $meseroNombre ?? 'Sin mesero asignado' }}
+                {{ $ordenLabel ?? 'Orden #N/A' }} • {{ $meseroNombre ?? 'Sin mesero asignado' }}
             </p>
         </div>
 
@@ -27,6 +27,7 @@
                             <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-blue-500 font-black text-xs border border-white/5">{{ $producto->cantidad }}x</div>
                             <div>
                                 <p class="text-white font-bold text-sm">{{ $producto->nombre }}</p>
+                                <p class="text-[10px] text-gray-400">Precio unitario: ${{ number_format($producto->precio_unitario, 2) }}</p>
                                 @if($producto->notas)
                                     <p class="text-[10px] text-gray-500 font-bold uppercase italic">{{ $producto->notas }}</p>
                                 @endif
@@ -50,6 +51,10 @@
                     <span class="text-white">${{ number_format($subtotal, 2) }}</span>
                 </div>
                 <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                    <span>IVA (16%)</span>
+                    <span class="text-white">${{ number_format($iva ?? 0, 2) }}</span>
+                </div>
+                <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
                     <span>Propina Sugerida</span>
                     <span class="text-white">${{ number_format($propina, 2) }}</span>
                 </div>
@@ -65,7 +70,7 @@
     <div class="w-full lg:w-3/5 p-8 lg:p-12 bg-[#0f0f12]">
         <div class="max-w-md mx-auto space-y-8">
             <input id="mesa-id" type="hidden" value="{{ $mesa->id }}">
-            <input id="orden-id" type="hidden" value="{{ $orden->id ?? '' }}">
+            <input id="orden-id" type="hidden" value="{{ $ordenId ?? '' }}">
             <input id="metodo-pago" type="hidden" value="Efectivo">
 
             <!-- Display de Efectivo (Actualizado con la clase .precio-display) -->
@@ -78,11 +83,12 @@
                     <p>Total a pagar: <strong>${{ number_format($totalPagar, 2) }}</strong></p>
                     <p>Cambio: <strong id="display-cambio">$0</strong></p>
                 </div>
+                <div id="mensaje-pago" class="mt-4 hidden rounded-3xl border border-transparent bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"></div>
             </div>
 
             <!-- Teclado Numérico (Funcional) -->
-            <div class="grid grid-cols-3 gap-4">
-                @foreach(['1','2','3','4','5','6','7','8','9','0','00','DEL'] as $key)
+            <div class="grid grid-cols-4 gap-4">
+                @foreach(['1','2','3','4','5','6','7','8','9','.','0','00','DEL'] as $key)
                     <button type="button" 
                             class="btn-tecla h-20 bg-[#141417] hover:bg-white/5 border border-white/5 rounded-2xl text-2xl font-black text-white transition-all active:scale-95 active:bg-blue-600/20 shadow-lg"
                             data-value="{{ $key }}">
@@ -126,7 +132,7 @@
         });
 
         function actualizarVista() {
-            const numero = parseInt(montoActual, 10) || 0;
+            const numero = parseFloat(montoActual) || 0;
             display.innerText = formatter.format(numero);
             const cambio = numero - totalPagar;
             displayCambio.innerText = formatter.format(Math.max(cambio, 0));
@@ -138,9 +144,13 @@
 
                 if (valor === 'DEL') {
                     montoActual = montoActual.slice(0, -1);
-                    if (montoActual === "") montoActual = "0";
+                    if (montoActual === "" || montoActual === "-" || montoActual === ".") montoActual = "0";
+                } else if (valor === '.') {
+                    if (!montoActual.includes('.')) {
+                        montoActual += '.';
+                    }
                 } else {
-                    if (montoActual.length >= 12) return;
+                    if (montoActual.length >= 14) return;
 
                     if (montoActual === "0") {
                         montoActual = valor;
@@ -153,13 +163,33 @@
             });
         });
 
-        btnFinalizar.addEventListener('click', async () => {
-            const efectivo = parseInt(montoActual, 10) || 0;
+        const mensajePago = document.getElementById('mensaje-pago');
 
-                if (totalPagar <= 0) {
-                    alert('Esta mesa no tiene monto a pagar.');
-            if (efectivo < totalPagar) {
-                alert('El efectivo recibido debe ser igual o mayor al total a pagar.');
+        function mostrarMensajePago(texto, tipo = 'error') {
+            mensajePago.classList.remove('hidden', 'bg-red-500/10', 'text-red-200', 'border-red-500/20', 'bg-emerald-500/10', 'text-emerald-200', 'border-emerald-500/20');
+            mensajePago.classList.add(tipo === 'success' ? 'bg-emerald-500/10' : 'bg-red-500/10');
+            mensajePago.classList.add(tipo === 'success' ? 'text-emerald-200' : 'text-red-200');
+            mensajePago.classList.add(tipo === 'success' ? 'border-emerald-500/20' : 'border-red-500/20');
+            mensajePago.textContent = texto;
+        }
+
+        function ocultarMensajePago() {
+            mensajePago.classList.add('hidden');
+        }
+
+        btnFinalizar.addEventListener('click', async () => {
+            const efectivo = parseFloat(montoActual) || 0;
+            const importeTotal = parseFloat(totalPagar.toFixed(2));
+
+            ocultarMensajePago();
+
+            if (importeTotal <= 0) {
+                mostrarMensajePago('Esta mesa no tiene monto a pagar.', 'error');
+                return;
+            }
+
+            if (efectivo + 0.001 < importeTotal) {
+                mostrarMensajePago('El efectivo recibido es menor al total a pagar.', 'error');
                 return;
             }
 
@@ -183,15 +213,17 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    alert(data.message || 'Error al procesar el pago.');
+                    mostrarMensajePago(data.message || 'Error al procesar el pago.', 'error');
                     return;
                 }
 
-                alert(data.message + '\nCambio: $' + data.cambio);
-                window.location.href = '{{ route('admin.caja.index') }}';
+                mostrarMensajePago(data.message + ' Cambio: $' + data.cambio, 'success');
+                setTimeout(() => {
+                    window.location.href = '{{ route('admin.caja.index') }}';
+                }, 1200);
             } catch (error) {
                 console.error(error);
-                alert('Ocurrió un error al procesar el pago.');
+                mostrarMensajePago('Ocurrió un error al procesar el pago.', 'error');
             }
         });
         

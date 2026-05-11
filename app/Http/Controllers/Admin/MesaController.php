@@ -59,4 +59,43 @@ class MesaController extends Controller
             'mesa' => $mesa
         ]);
     }
+
+    public function update(Request $request, $id): JsonResponse
+    {
+        $mesa = Mesa::findOrFail($id);
+
+        $validated = $request->validate([
+            'numero' => 'required|string|max:20|unique:mesas,numero,'.$mesa->id,
+            'capacidad' => 'required|integer|min:1',
+        ]);
+
+        $mesa->update([
+            'numero' => $validated['numero'],
+            'capacidad' => $validated['capacidad'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesa actualizada correctamente',
+            'mesa' => $mesa
+        ]);
+    }
+
+    public function destroy($id): JsonResponse
+    {
+        $mesa = Mesa::findOrFail($id);
+
+        try {
+            $mesa->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Mesa eliminada correctamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo eliminar la mesa. ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

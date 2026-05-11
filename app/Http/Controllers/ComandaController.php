@@ -35,26 +35,74 @@ class ComandaController extends Controller
 
     public function enviar(Request $request)
     {
-        // 1. Buscamos la mesa usando el ID que nos mandó la pantalla
-        $mesa = Mesa::find($request->mesa_id);
-        
-        if ($mesa) {
-            // 2. ¡EL CAMBIO MÁGICO! Pasamos la mesa a ocupada
+        try {
+            $request->validate([
+                'mesa_id' => 'required|integer|exists:mesas,id',
+                'platillos' => 'required|array|min:1',
+                'platillos.*.id' => 'required|integer|exists:productos,id',
+                'platillos.*.cantidad' => 'required|integer|min:1',
+                'platillos.*.precio' => 'required|numeric|min:0',
+                'platillos.*.notas' => 'nullable|string|max:1000',
+            ]);
+
+            $mesa = Mesa::findOrFail($request->mesa_id);
+            $usuario = auth()->user();
+
+            $subtotal = 0;
+            foreach ($request->platillos as $platillo) {
+                $subtotal += floatval($platillo['precio']) * intval($platillo['cantidad']);
+            }
+
+            $totalNeto = round($subtotal, 2);
+            $totalConIva = round($subtotal * 1.16, 2);
+
+            $orden = \App\Models\Orden::create([
+                'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                'mesa_id' => $mesa->id,
+                'mesero_id' => $usuario->id,
+                'estado' => 'pendiente',
+                'total' => $totalNeto,
+                'propina' => 0,
+                'abierta_el' => now(),
+            ]);
+
+            foreach ($request->platillos as $platillo) {
+                \App\Models\DetalleOrden::create([
+                    'orden_id' => $orden->id,
+                    'producto_id' => $platillo['id'],
+                    'cantidad' => intval($platillo['cantidad']),
+                    'precio_unitario' => floatval($platillo['precio']),
+                    'estado' => 'en cocina',
+                    'notas' => $platillo['notas'] ?? null,
+                ]);
+            }
+
             $mesa->estado = 'ocupada';
-            
-            // Opcional: si en un futuro agregas total_consumo a tu tabla mesas
-            // $mesa->total_consumo = $request->total;
-            
+            if (Schema::hasColumn('mesas', 'mesero_id') && is_null($mesa->mesero_id)) {
+                $mesa->mesero_id = auth()->id();
+            }
+            if (Schema::hasColumn('mesas', 'total_consumo')) {
+                $mesa->total_consumo = $totalConIva;
+            }
             $mesa->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Orden enviada y mesa marcada como ocupada',
+                'orden_id' => $orden->id,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validación fallida: ' . collect($e->errors())->flatten()->first(),
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo enviar la orden. ' . $e->getMessage(),
+            ], 500);
         }
-
-        // Aquí más adelante crearás el registro en tu tabla "ordenes" y "detalles_orden"
-        // Orden::create([ ... ]);
-
-        return response()->json([
-            'success' => true, 
-            'message' => 'Orden enviada y mesa marcada como ocupada'
-        ]);
     }
 
     // ==========================================

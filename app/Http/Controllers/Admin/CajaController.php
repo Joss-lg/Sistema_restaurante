@@ -15,16 +15,21 @@ class CajaController extends Controller
 {
     public function index()
     {
-        // Traemos TODAS las mesas de la base de datos
-        $mesas = Mesa::orderBy('numero', 'asc')->get();
+        // Traemos TODAS las mesas con sus órdenes activas cargadas para optimizar
+        $mesas = Mesa::orderBy('numero', 'asc')
+            ->with(['ordenesActivas' => function ($query) {
+                $query->with(['detalles.producto']);
+            }])
+            ->get();
 
         // Calculamos las estadísticas reales
         $mesasActivas = $mesas->where('estado', 'ocupada')->count();
         
-        // Calculamos el dinero flotante 
-        // (OJO: Asegúrate de que tu tabla mesas tenga una columna 'total_consumo', 
-        // o cambia este nombre por el que uses para guardar la cuenta de la mesa).
-        $totalAbierto = $mesas->where('estado', 'ocupada')->sum('total_consumo');
+        // Calculamos el dinero flotante (total de órdenes activas no pagadas)
+        $totalAbierto = $mesas->where('estado', 'ocupada')
+            ->sum(function ($mesa) {
+                return $mesa->total_consumo;
+            });
 
         return view('admin.caja.index', compact('mesas', 'mesasActivas', 'totalAbierto'));
     }
@@ -33,20 +38,32 @@ class CajaController extends Controller
     {
         $mesa = Mesa::findOrFail($id);
 
-        $orden = DB::table('ordenes')
+        $ordenes = DB::table('ordenes')
             ->where('mesa_id', $mesa->id)
             ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
             ->whereNull('deleted_at')
             ->orderByDesc('created_at')
-            ->first();
+            ->get();
 
         $productos = collect();
         $meseroNombre = $mesa->mesero?->nombre ?? 'Sin mesero asignado';
-        $subtotal = $mesa->total_consumo ?? 0;
+        $subtotal = 0;
+        $iva = 0;
         $propina = 0;
-        $totalPagar = $subtotal;
+        $totalPagar = 0;
+        $orden = null;
+        $ordenLabel = 'Orden #N/A';
+        $ordenId = null;
 
-        if ($orden) {
+        if ($ordenes->isNotEmpty()) {
+            $orden = (object) $ordenes[0];
+            $ordenId = $orden->id;
+            $ordenLabel = $ordenes->count() === 1
+                ? 'Orden #' . $orden->numero_orden
+                : $ordenes->count() . ' órdenes activas';
+
+            $ordenIds = $ordenes->pluck('id')->all();
+
             $productos = DB::table('detalles_orden')
                 ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
                 ->select(
@@ -56,13 +73,17 @@ class CajaController extends Controller
                     'detalles_orden.precio_unitario',
                     'detalles_orden.notas'
                 )
-                ->where('detalles_orden.orden_id', $orden->id)
+                ->whereIn('detalles_orden.orden_id', $ordenIds)
                 ->get();
 
             $meseroNombre = DB::table('users')->where('id', $orden->mesero_id)->value('nombre') ?? $meseroNombre;
-            $subtotal = floatval($orden->total);
-            $propina = floatval($orden->propina ?? 0);
-            $totalPagar = $subtotal + $propina;
+            $subtotal = $productos->sum(function ($item) {
+                return floatval($item->cantidad) * floatval($item->precio_unitario);
+            });
+            $subtotal = round($subtotal, 2);
+            $propina = floatval($ordenes->sum('propina'));
+            $iva = round($subtotal * 0.16, 2);
+            $totalPagar = round($subtotal + $iva + $propina, 2);
         }
 
         return view('admin.caja.cobrar', [
@@ -71,8 +92,11 @@ class CajaController extends Controller
             'productos' => $productos,
             'meseroNombre' => $meseroNombre,
             'subtotal' => $subtotal,
+            'iva' => $iva ?? 0,
             'propina' => $propina,
             'totalPagar' => $totalPagar,
+            'ordenLabel' => $ordenLabel,
+            'ordenId' => $ordenId,
         ]);
     }
 
@@ -98,7 +122,27 @@ class CajaController extends Controller
             }
         }
 
-        $total = $orden ? floatval($orden->total) + floatval($orden->propina ?? 0) : floatval($mesa->total_consumo ?? 0);
+        $ordenesActivas = DB::table('ordenes')
+            ->where('mesa_id', $validated['mesa_id'])
+            ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+            ->whereNull('deleted_at')
+            ->get();
+
+        if ($ordenesActivas->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay órdenes activas para esta mesa.',
+            ], 422);
+        }
+
+        $ordenIds = $ordenesActivas->pluck('id')->all();
+        $detalleTotal = DB::table('detalles_orden')
+            ->whereIn('orden_id', $ordenIds)
+            ->sum(DB::raw('cantidad * precio_unitario'));
+
+        $propinaTotal = floatval($ordenesActivas->sum('propina'));
+        $total = round(floatval($detalleTotal) * 1.16 + $propinaTotal, 2);
+
         $efectivo = floatval($validated['efectivo']);
 
         if ($efectivo < $total) {
@@ -108,31 +152,36 @@ class CajaController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($orden, $mesa, $validated, $total, $efectivo) {
-            if ($orden) {
-                DB::table('ordenes')
-                    ->where('id', $orden->id)
-                    ->update([
-                        'estado' => 'pagada',
-                        'metodo_pago' => $validated['metodo_pago'],
-                        'cerrada_el' => Carbon::now(),
-                    ]);
-            }
+        DB::transaction(function () use ($mesa, $validated, $total, $efectivo) {
+            DB::table('ordenes')
+                ->where('mesa_id', $mesa->id)
+                ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                ->whereNull('deleted_at')
+                ->update([
+                    'estado' => 'pagada',
+                    'metodo_pago' => $validated['metodo_pago'],
+                    'cerrada_el' => Carbon::now(),
+                ]);
 
             $mesa->estado = 'disponible';
+            if (Schema::hasColumn('mesas', 'mesero_id')) {
+                $mesa->mesero_id = null;
+            }
             if (Schema::hasColumn('mesas', 'total_consumo')) {
                 $mesa->total_consumo = 0;
             }
             $mesa->save();
 
-            CajaMovimiento::create([
-                'concepto' => 'Pago de mesa ' . $mesa->numero,
-                'monto' => $total,
-                'tipo' => 'Ingreso',
-                'responsable' => auth()->user()->nombre ?? auth()->user()->email,
-                'comentarios' => 'Pago con ' . $validated['metodo_pago'] . '. Cambio: ' . number_format($efectivo - $total, 2),
-                'estado' => 'Completado',
-            ]);
+            if (Schema::hasTable('caja_movimientos')) {
+                CajaMovimiento::create([
+                    'concepto' => 'Pago de mesa ' . $mesa->numero,
+                    'monto' => $total,
+                    'tipo' => 'Ingreso',
+                    'responsable' => auth()->user()->nombre ?? auth()->user()->email,
+                    'comentarios' => 'Pago con ' . $validated['metodo_pago'] . '. Cambio: ' . number_format($efectivo - $total, 2),
+                    'estado' => 'Completado',
+                ]);
+            }
         });
 
         return response()->json([

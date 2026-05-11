@@ -1,7 +1,7 @@
-<main class="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+<main class="flex-1 relative flex flex-col items-center overflow-y-auto hide-scroll pb-12">
     
     {{-- Resplandor radial inmersivo --}}
-    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
         <div class="absolute w-[800px] h-[800px] rounded-full" style="background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);"></div>
     </div>
 
@@ -9,16 +9,15 @@
     @php
         $totalMesas = isset($mesas) ? $mesas->count() : 0;
         $mesasActivas = isset($mesas) ? $mesas->where('estado', 'ocupada')->count() : 0;
+        $esCapitan = strtolower(trim(auth()->user()->rol ?? '')) === 'capitan';
     @endphp
 
-    @php $esCapitan = strtolower(trim(auth()->user()->rol ?? '')) === 'capitan'; @endphp
-
-    <div class="animate-float flex flex-col items-center relative z-10">
+    <div class="animate-float flex flex-col items-center relative z-10 mt-12 w-full px-8">
         
         @if($esCapitan)
-            <div class="mb-8 w-full max-w-2xl p-4 rounded-3xl border border-[var(--border-color)] bg-[rgba(255,255,255,0.04)] text-center">
-                <p class="text-[11px] uppercase tracking-[0.2em] text-[#38bdf8] font-black mb-2">Panel del Capitán</p>
-                <p class="text-sm text-[var(--text-muted)] leading-relaxed">Aquí ves todas las mesas abiertas y puedes enviar comanda a cualquier mesa directamente.</p>
+            <div class="mb-8 w-full max-w-2xl p-4 rounded-3xl border border-[#38bdf8]/30 bg-[#38bdf8]/5 text-center shadow-[0_0_20px_rgba(56,189,248,0.1)] backdrop-blur-md">
+                <p class="text-[11px] uppercase tracking-[0.2em] text-[#38bdf8] font-black mb-1"><i class="fas fa-star mr-2"></i>Panel del Capitán</p>
+                <p class="text-xs text-[var(--text-main)] font-medium">Control total activado. Tienes acceso sin restricciones a las comandas de todo el restaurante.</p>
             </div>
         @endif
 
@@ -51,21 +50,57 @@
                     Toca para comenzar
                 </p>
             </div>
-
         </button>
 
-        <div class="mt-16 p-6 rounded-[2rem] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] backdrop-blur-xl shadow-[0_30px_60px_-30px_rgba(0,0,0,0.45)] text-center">
-            <p class="text-sm text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3">Resumen de mesas</p>
+        <div class="mt-16 mb-12 w-full max-w-lg p-6 rounded-[2rem] bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] backdrop-blur-xl shadow-2xl text-center">
+            <p class="text-sm text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4 font-bold">Resumen Operativo</p>
             <div class="grid grid-cols-2 gap-4">
-                <div class="p-4 rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                <div class="p-4 rounded-3xl bg-[var(--bg-base)] border border-[var(--border-color)]">
                     <p class="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Mesas totales</p>
                     <p class="text-3xl font-black text-white mt-2">{{ $totalMesas }}</p>
                 </div>
-                <div class="p-4 rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                <div class="p-4 rounded-3xl bg-[var(--bg-base)] border border-[#34D399]/20">
                     <p class="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Mesas abiertas</p>
                     <p class="text-3xl font-black text-[#34D399] mt-2">{{ $mesasActivas }}</p>
                 </div>
             </div>
         </div>
+
+        {{-- ======================================================== --}}
+        {{-- EL MAPA DE MESAS DINÁMICO (LÓGICA DE CAPITÁN VS MESERO)  --}}
+        {{-- ======================================================== --}}
+        <div class="w-full max-w-6xl mt-4">
+            <h3 class="text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)] font-black mb-6 border-b border-[var(--border-color)] pb-3 text-left">
+                @if($esCapitan) <i class="fas fa-globe mr-2"></i> Panel de Control Global @else <i class="fas fa-user mr-2"></i> Tus Mesas Asignadas @endif
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+                @forelse($mesas as $mesa)
+                    <a href="{{ route('mesero.comanda.show', $mesa->id) }}" class="group p-5 rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6] hover:shadow-[0_10px_30px_rgba(59,130,246,0.15)] transition-all cursor-pointer flex flex-col justify-between h-[140px] relative overflow-hidden">
+                        @if($mesa->estado === 'ocupada')
+                            <div class="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-[#34D399]/20 to-transparent flex justify-end items-start p-3 rounded-tr-3xl">
+                                <span class="w-2 h-2 rounded-full bg-[#34D399] animate-pulse"></span>
+                            </div>
+                        @endif
+
+                        <div>
+                            <h4 class="text-2xl font-black text-[var(--text-main)] italic">Mesa {{ $mesa->numero }}</h4>
+                            <p class="text-[10px] font-bold uppercase tracking-widest mt-1 {{ $mesa->estado === 'ocupada' ? 'text-[#34D399]' : 'text-[var(--text-muted)]' }}">
+                                {{ $mesa->estado }}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center justify-between mt-4">
+                            <span class="text-[10px] font-bold text-[var(--text-muted)] group-hover:text-[#3B82F6] transition-colors">Entrar</span>
+                        </div>
+                    </a>
+                @empty
+                    <div class="col-span-full py-10 text-center">
+                        <p class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest">No hay mesas registradas en el sistema.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+        
     </div>
 </main>
