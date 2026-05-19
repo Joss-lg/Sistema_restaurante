@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Permiso;
+use App\Models\Rol;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,11 +16,12 @@ class EmpleadoController extends Controller
      */
     public function index()
     {
-        // Cargamos los empleados con sus permisos para evitar consultas extra (Eager Loading)
-        $empleados = User::with('permisos')->get(); 
+        // Cargamos los empleados con sus permisos y roles para evitar consultas extra (Eager Loading)
+        $empleados = User::with(['permisos', 'rol'])->get(); 
         $permisos = Permiso::all();
+        $roles = Rol::all();
 
-        return view('admin.empleados.index', compact('empleados', 'permisos'));
+        return view('admin.empleados.index', compact('empleados', 'permisos', 'roles'));
     }
 
     /**
@@ -30,13 +32,16 @@ class EmpleadoController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'codigo_empleado' => 'required|unique:users,codigo_empleado|digits:4',
-                'rol' => 'required|string|in:admin,capitan,mesero,cocinero,cajero',
+            'rol_id' => 'required|exists:roles,id',
         ]);
+
+        // Obtener el ID del rol
+        $rol = Rol::findOrFail($request->rol_id);
 
         $empleado = User::create([
             'nombre' => $request->nombre,
             'codigo_empleado' => $request->codigo_empleado,
-            'rol' => $request->rol,
+            'rol_id' => $rol->id,
             'password' => Hash::make($request->codigo_empleado),
             'esta_activo' => true,
         ]);
@@ -50,8 +55,8 @@ class EmpleadoController extends Controller
      */
     public function permisos($id)
     {
-        // Buscamos al empleado con sus permisos actuales cargados
-        $empleado = User::with('permisos')->findOrFail($id);
+        // Buscamos al empleado con sus permisos y rol actuales cargados
+        $empleado = User::with(['permisos', 'rol'])->findOrFail($id);
         
         // Obtenemos todos los permisos del sistema para mostrarlos en la matriz
         $permisosBase = Permiso::all();
@@ -64,10 +69,10 @@ class EmpleadoController extends Controller
      */
     public function actualizarPermisos(Request $request, $id)
     {
-        $empleado = User::findOrFail($id);
+        $empleado = User::with('rol')->findOrFail($id);
 
         // Seguridad: Evitar que el admin se bloquee a sí mismo
-        if ($empleado->rol === 'admin' && $id == auth()->id()) {
+        if ($empleado->rol && $empleado->rol->slug === 'admin' && $id == auth()->id()) {
             return redirect()->back()->with('error', 'No puedes modificar tus propios permisos de administrador.');
         }
 
@@ -84,10 +89,10 @@ class EmpleadoController extends Controller
 
     public function destroy($id)
     {
-        $empleado = User::findOrFail($id);
+        $empleado = User::with('rol')->findOrFail($id);
         
         // Seguridad: Evitar eliminar al admin principal
-        if ($empleado->rol === 'admin') {
+        if ($empleado->rol && $empleado->rol->slug === 'admin') {
             return redirect()->back()->with('error', 'No se puede eliminar a un administrador del sistema.');
         }
 
@@ -96,13 +101,13 @@ class EmpleadoController extends Controller
         return redirect()->back()->with('success', 'Empleado eliminado correctamente.');
     }
 
-        public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         // 1. Validar los datos (el PIN debe ser único excepto para el mismo usuario)
         $request->validate([
             'nombre' => 'required|string|max:255',
             'codigo_empleado' => 'required|digits:4|unique:users,codigo_empleado,' . $id,
-            'rol' => 'required|string',
+            'rol_id' => 'required|exists:roles,id',
         ]);
 
         // 2. Buscar al empleado y actualizar
@@ -111,7 +116,7 @@ class EmpleadoController extends Controller
         $empleado->update([
             'nombre' => $request->nombre,
             'codigo_empleado' => $request->codigo_empleado,
-            'rol' => $request->rol,
+            'rol_id' => $request->rol_id,
             // Opcional: Si quieres que el password se actualice si cambian el PIN
             'password' => Hash::make($request->codigo_empleado),
         ]);

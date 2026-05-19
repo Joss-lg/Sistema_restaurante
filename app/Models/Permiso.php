@@ -4,33 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// Importamos el modelo User para la relación
-use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Permiso extends Model
 {
     use HasFactory;
 
-    /**
-     * Definimos la tabla si el nombre es distinto al plural (opcional pero seguro)
-     */
     protected $table = 'permisos';
 
-    /**
-     * Campos que el Administrador podrá llenar desde el sistema.
-     */
     protected $fillable = [
         'nombre',      // Ejemplo: "Gestionar Inventario"
-        'slug',        // Ejemplo: "gestionar-inventario" (clave para el código)
-        'descripcion'  // Ejemplo: "Permite al usuario editar stock y precios"
+        'slug',        // Ejemplo: "gestionar-inventario"
+        'descripcion'  // Ejemplo: "Permite editar stock y precios"
     ];
 
     /**
-     * Relación inversa: Un permiso puede estar asignado a muchos usuarios.
+     * Relación con los Roles: Un permiso puede estar en muchos roles.
+     * Usamos la tabla 'permiso_rol' que migramos recientemente.
      */
-    public function usuarios()
+    public function roles(): BelongsToMany
     {
-        // Especificamos la tabla pivote que ya creaste en tus migraciones
+        return $this->belongsToMany(Rol::class, 'permiso_rol');
+    }
+
+    /**
+     * Mantenemos la relación con usuarios por si decides asignar 
+     * permisos individuales sin pasar por un rol (opcional).
+     */
+    public function usuarios(): BelongsToMany
+    {
         return $this->belongsToMany(User::class, 'permiso_user');
     }
 }

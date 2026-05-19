@@ -15,15 +15,20 @@ class ComandaController extends Controller
         $mesa = Mesa::findOrFail($mesaId);
         $usuario = auth()->user();
 
-        $rol = strtolower(trim($usuario->rol));
+        // Cargar la relación de rol si no está cargada
+        if (!$usuario->relationLoaded('rol')) {
+            $usuario->load('rol');
+        }
 
-        if ($rol === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
+        $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
+
+        if ($rolSlug === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
             if ($mesa->mesero_id !== $usuario->id) {
                 abort(403, 'No tienes permiso para ver esta mesa.');
             }
         }
 
-        if (in_array($rol, ['capitan', 'capitán'], true) && $mesa->estado !== 'ocupada') {
+        if (in_array($rolSlug, ['capitan'], true) && $mesa->estado !== 'ocupada') {
             abort(403, 'Solo puedes ver mesas abiertas.');
         }
 
@@ -43,6 +48,7 @@ class ComandaController extends Controller
                 'platillos.*.cantidad' => 'required|integer|min:1',
                 'platillos.*.precio' => 'required|numeric|min:0',
                 'platillos.*.notas' => 'nullable|string|max:1000',
+                'platillos.*.gramaje' => 'nullable|numeric|min:0',
             ]);
 
             $mesa = Mesa::findOrFail($request->mesa_id);
@@ -66,15 +72,23 @@ class ComandaController extends Controller
                 'abierta_el' => now(),
             ]);
 
+            $usaGramaje = Schema::hasColumn('detalles_orden', 'gramaje');
+
             foreach ($request->platillos as $platillo) {
-                \App\Models\DetalleOrden::create([
+                $detalleData = [
                     'orden_id' => $orden->id,
                     'producto_id' => $platillo['id'],
                     'cantidad' => intval($platillo['cantidad']),
                     'precio_unitario' => floatval($platillo['precio']),
                     'estado' => 'en cocina',
                     'notas' => $platillo['notas'] ?? null,
-                ]);
+                ];
+
+                if ($usaGramaje) {
+                    $detalleData['gramaje'] = isset($platillo['gramaje']) ? floatval($platillo['gramaje']) : null;
+                }
+
+                \App\Models\DetalleOrden::create($detalleData);
             }
 
             $mesa->estado = 'ocupada';
@@ -113,7 +127,9 @@ class ComandaController extends Controller
         // 1. Validamos que los datos vengan correctamente desde los inputs
         $request->validate([
             'numero' => 'required|string|max:20',
-            'capacidad' => 'required|integer|min:1'
+            'capacidad' => 'required|integer|min:1',
+            'cuenta_dividida' => 'boolean',
+            'total_cuentas_division' => 'nullable|integer|min:2|max:10',
         ]);
 
         // 2. Buscamos la mesa por número
@@ -130,10 +146,36 @@ class ComandaController extends Controller
         $mesa = $mesa ?? new Mesa(['numero' => $request->numero]);
         $mesa->capacidad = $request->capacidad;
         $mesa->estado = 'ocupada';
-        if (strtolower(trim(auth()->user()->rol)) === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
+        
+        $usuario = auth()->user();
+        if (!$usuario->relationLoaded('rol')) {
+            $usuario->load('rol');
+        }
+        
+        if (strtolower(trim($usuario->rol?->slug ?? '')) === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
             $mesa->mesero_id = auth()->id();
         }
         $mesa->save();
+
+        // 4. Si la cuenta está dividida, creamos múltiples órdenes vacías
+        if ($request->boolean('cuenta_dividida') && $request->filled('total_cuentas_division')) {
+            $totalCuentas = $request->integer('total_cuentas_division');
+            
+            for ($i = 1; $i <= $totalCuentas; $i++) {
+                \App\Models\Orden::create([
+                    'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                    'mesa_id' => $mesa->id,
+                    'mesero_id' => auth()->id(),
+                    'estado' => 'pendiente',
+                    'total' => 0,
+                    'propina' => 0,
+                    'abierta_el' => now(),
+                    'cuenta_dividida' => true,
+                    'numero_cuenta_division' => $i,
+                    'total_cuentas_division' => $totalCuentas,
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,

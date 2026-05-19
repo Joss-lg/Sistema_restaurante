@@ -8,14 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('mesas', function (Blueprint $table) {
-            if (! Schema::hasColumn('mesas', 'mesero_id')) {
+        // Verificamos primero si la columna 'mesero_id' ya existe en la tabla 'mesas'
+        if (!Schema::hasColumn('mesas', 'mesero_id')) {
+            Schema::table('mesas', function (Blueprint $table) {
                 $table->foreignId('mesero_id')
-                      ->nullable()
-                      ->constrained('users')
-                      ->nullOnDelete();
-            }
-        });
+                    ->nullable()
+                    ->constrained('users')
+                    ->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void

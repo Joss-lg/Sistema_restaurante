@@ -29,12 +29,13 @@
 
         if(isset($empleados)) {
             foreach($empleados as $emp) {
-                $rol = strtolower($emp->rol);
-                if(in_array($rol, ['admin', 'administrador'])) $totalAdmin++;
-                elseif(in_array($rol, ['capitan', 'capitán'])) $totalCapitan++;
-                elseif($rol == 'mesero') $totalMesero++;
-                elseif(in_array($rol, ['cocinero', 'cocina'])) $totalCocinero++;
-                elseif($rol == 'cajero') $totalCajero++;
+                // Ahora obtenemos el slug del rol de forma dinámica desde la relación
+                $rolSlug = strtolower($emp->rol?->slug ?? '');
+                if(in_array($rolSlug, ['admin', 'administrador'])) $totalAdmin++;
+                elseif(in_array($rolSlug, ['capitan'])) $totalCapitan++;
+                elseif($rolSlug == 'mesero') $totalMesero++;
+                elseif(in_array($rolSlug, ['cocinero'])) $totalCocinero++;
+                elseif($rolSlug == 'cajero') $totalCajero++;
             }
         }
     @endphp
@@ -143,25 +144,27 @@
                         
                         <td class="py-4 px-4">
                             @php
-                                $rolDB = strtolower($empleado->rol);
+                                $rolSlug = strtolower($empleado->rol?->slug ?? '');
                                 $roleClass = '';
-                                $roleName = ucfirst($empleado->rol);
+                                $roleName = $empleado->rol?->nombre ?? 'Sin rol';
 
-                                if(in_array($rolDB, ['admin', 'administrador'])) {
+                                if(in_array($rolSlug, ['admin', 'administrador'])) {
                                     $roleClass = 'bg-[#E11D48] text-white border-transparent';
                                     $roleName = 'Administrador';
-                                } elseif(in_array($rolDB, ['capitan', 'capitán'])) {
+                                } elseif($rolSlug == 'capitan') {
                                     $roleClass = 'bg-[#2563EB] text-white border-transparent';
                                     $roleName = 'Capitán';
-                                } elseif($rolDB == 'mesero') {
+                                } elseif($rolSlug == 'mesero') {
                                     $roleClass = 'bg-[#059669] text-white border-transparent';
                                     $roleName = 'Mesero';
-                                } elseif(in_array($rolDB, ['cocinero', 'cocina'])) {
+                                } elseif($rolSlug == 'cocinero') {
                                     $roleClass = 'bg-[#EA580C] text-white border-transparent';
                                     $roleName = 'Cocinero';
-                                } else {
+                                } elseif($rolSlug == 'cajero') {
                                     $roleClass = 'bg-[#9333EA] text-white border-transparent';
-                                    if($rolDB == 'cajero') $roleName = 'Cajero';
+                                    $roleName = 'Cajero';
+                                } else {
+                                    $roleClass = 'bg-[#6B7280] text-white border-transparent';
                                 }
                             @endphp
                             <span class="px-3.5 py-1.5 rounded-md text-[9px] font-black uppercase tracking-[0.25em] {{ $roleClass }} shadow-sm">
@@ -189,7 +192,8 @@
                                             data-id="{{ $empleado->id }}"
                                             data-nombre="{{ $empleado->nombre }}"
                                             data-codigo="{{ $empleado->codigo_empleado }}"
-                                            data-rol="{{ $empleado->rol }}"
+                                            data-rol-id="{{ $empleado->rol_id }}"
+                                            data-rol-nombre="{{ $empleado->rol?->nombre ?? 'Sin rol' }}"
                                             class="btn-abrir-editar w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 modo-crema:bg-zinc-100 modo-crema:hover:bg-zinc-200 flex items-center justify-center text-[var(--text-muted)] hover:text-[#3B82F6] transition-all outline-none">
                                         <i class="fas fa-edit text-xs pointer-events-none"></i>
                                     </button>
@@ -253,19 +257,16 @@
             </div>
             <div class="relative group" id="dropdownContainer">
                 <label class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em] mb-3 block">Rol</label>
-                <input type="hidden" name="rol" id="rol_input" value="admin">
+                <input type="hidden" name="rol_id" id="rol_id_input" value="{{ $roles->first()?->id ?? '' }}">
                 <button type="button" onclick="toggleDropdown()" id="dropdownBtn" class="flex items-center justify-between w-full h-12 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl px-5 text-sm font-bold text-[var(--text-color)] outline-none transition-all">
-                    <span id="dropdownSelected">Administrador</span>
+                    <span id="dropdownSelected">{{ $roles->first()?->nombre ?? 'Selecciona un rol' }}</span>
                     <i class="fas fa-chevron-down text-[var(--text-muted)] transition-transform" id="dropdownIcon"></i>
                 </button>
                 <div id="dropdownMenu" class="absolute top-full left-0 mt-2 w-full max-h-48 overflow-y-auto bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl shadow-2xl z-50 py-2.5 opacity-0 pointer-events-none transform -translate-y-2 transition-all">
-                    @php
-                        $rolesList = ['Administrador' => 'admin', 'Capitán' => 'capitan', 'Mesero' => 'mesero', 'Cocinero' => 'cocinero', 'Cajero' => 'cajero'];
-                    @endphp
-                    @foreach($rolesList as $name => $tech)
-                    <button type="button" onclick="selectRole('{{ $name }}', '{{ $tech }}')" class="role-option flex items-center justify-between w-full text-left px-5 py-3 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-color)] hover:bg-black/5 transition-all">
-                        <span>{{ $name }}</span>
-                        <i class="fas fa-check text-[#3B82F6] {{ $name == 'Administrador' ? 'opacity-100' : 'opacity-0' }} ml-3"></i>
+                    @foreach($roles ?? [] as $rol)
+                    <button type="button" onclick="selectRole('{{ $rol->nombre }}', '{{ $rol->id }}')" class="role-option flex items-center justify-between w-full text-left px-5 py-3 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-color)] hover:bg-black/5 transition-all" data-rol-id="{{ $rol->id }}">
+                        <span>{{ $rol->nombre }}</span>
+                        <i class="fas fa-check text-[#3B82F6] {{ $loop->first ? 'opacity-100' : 'opacity-0' }} ml-3"></i>
                     </button>
                     @endforeach
                 </div>
@@ -310,27 +311,21 @@
             const id = botonEditar.getAttribute('data-id');
             const nombre = botonEditar.getAttribute('data-nombre');
             const codigo = botonEditar.getAttribute('data-codigo');
-            const rol = botonEditar.getAttribute('data-rol').toLowerCase();
+            const rolId = botonEditar.getAttribute('data-rol-id');
+            const rolNombre = botonEditar.getAttribute('data-rol-nombre');
 
             const inNombre = document.getElementById('edit_nombre');
             const inCodigo = document.getElementById('edit_codigo_empleado');
-            const inRol = document.getElementById('edit_rol');
-            const editForm = document.getElementById('editEmpleadoForm');
+            const inRolId = document.getElementById('edit_rol_id_input');
+            const editForm = document.getElementById('formEditar');
 
             if (inNombre) inNombre.value = nombre;
             if (inCodigo) inCodigo.value = codigo;
-            if (inRol) inRol.value = rol;
+            if (inRolId) inRolId.value = rolId;
 
             // También llenamos el dropdown visual personalizado
-            const rolesMap = {
-                'admin': 'Administrador', 'administrador': 'Administrador',
-                'capitan': 'Capitán', 'capitán': 'Capitán',
-                'mesero': 'Mesero', 'cocinero': 'Cocinero', 'cajero': 'Cajero'
-            };
             const labelDropdown = document.getElementById('editDropdownSelected');
-            const inputOculto = document.getElementById('edit_rol_input');
-            if (labelDropdown) labelDropdown.innerText = rolesMap[rol] || 'Seleccionar...';
-            if (inputOculto) inputOculto.value = rol;
+            if (labelDropdown) labelDropdown.innerText = rolNombre || 'Seleccionar...';
 
             if (editForm) editForm.action = `/admin/empleados/${id}`;
 
@@ -394,7 +389,7 @@
 
     window.selectEditRole = function(label, value) {
         const selected = document.getElementById('editDropdownSelected');
-        const input = document.getElementById('edit_rol_input');
+        const input = document.getElementById('edit_rol_id_input');
         if(selected) selected.innerText = label;
         if(input) input.value = value;
         window.cerrarMenuEdit();
@@ -469,7 +464,7 @@
 
     window.selectRole = function(name, techValue) {
         const selected = document.getElementById('dropdownSelected');
-        const input = document.getElementById('rol_input');
+        const input = document.getElementById('rol_id_input');
         if(selected) selected.innerText = name;
         if(input) input.value = techValue;
         window.toggleDropdown();

@@ -16,7 +16,8 @@ class PromocionController extends Controller
         }
 
         $promociones = Promocion::with('productos')->get();
-        return view('admin.promociones.index', compact('promociones'));
+        $productos = Producto::all();
+        return view('admin.promociones.index', compact('promociones', 'productos'));
     }
 
     public function store(Request $request)
@@ -36,22 +37,23 @@ class PromocionController extends Controller
         ]);
 
         // 3. Preparación de datos
-        $data = $request->except(['productos', 'dias_semana']);
-
+        $data = $request->except(['productos', 'dias_semana', 'esta_activa']);
+    
         // Convertimos los días (ej: [1,2,4]) a JSON para la base de datos
-        // Esto es clave si tu columna 'dias_semana' es de tipo TEXT o JSON
         $data['dias_semana'] = $request->has('dias_semana') 
             ? json_encode($request->dias_semana) 
             : json_encode([]);
 
-        // Por defecto la creamos activa
-        $data['esta_activa'] = true;
+        // Asignamos el estado enviado desde el formulario
+        $data['esta_activa'] = (bool) $request->esta_activa;
 
         // 4. Persistencia en Base de Datos
         $promocion = Promocion::create($data);
 
         // 5. Relación Muchos a Muchos (Tabla promocion_productos)
-        $promocion->productos()->attach($request->productos);
+        if ($request->has('productos') && !empty($request->productos)) {
+            $promocion->productos()->attach($request->productos);
+        }
 
         return redirect()->route('admin.promociones.index')
             ->with('success', 'Promoción "' . $promocion->nombre . '" creada con éxito');

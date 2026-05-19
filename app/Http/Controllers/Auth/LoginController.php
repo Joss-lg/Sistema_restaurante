@@ -107,19 +107,26 @@ class LoginController extends Controller
 
     /**
      * Acción después de una autenticación exitosa.
+     * Ahora usa el slug del rol desde la relación dinámica
      */
     protected function authenticated(Request $request, $user)
     {
-        $rol = strtolower(trim($user->rol));
+        // Cargar el rol si no está cargado
+        if (!$user->relationLoaded('rol')) {
+            $user->load('rol');
+        }
 
-        // Aquí están las rutas corregidas apuntando a los nombres exactos de web.php
-        return match($rol) {
-            'administrador'  => redirect()->route('admin.dashboard'),
-            'mesero'         => redirect()->route('mesero.dashboard'),
-            'capitan', 'capitán' => redirect()->route('mesero.dashboard'),
-            'cajero'         => redirect()->route('admin.caja.index'),
-            'cocinero'       => redirect()->route('admin.cocina.index'),
-            default          => redirect()->route('admin.dashboard'),
+        // Usar el slug del rol (esto es más flexible que el nombre)
+        $rolSlug = strtolower(trim($user->rol?->slug ?? 'default'));
+
+        // Las rutas se basan en el slug del rol
+        return match($rolSlug) {
+            'admin', 'administrador'  => redirect()->route('admin.dashboard'),
+            'mesero'                  => redirect()->route('mesero.dashboard'),
+            'capitan'                 => redirect()->route('mesero.dashboard'),
+            'cajero'                  => redirect()->route('admin.caja.index'),
+            'cocinero'                => redirect()->route('admin.cocina.index'),
+            default                   => redirect()->route('admin.dashboard'),
         };
     }
 

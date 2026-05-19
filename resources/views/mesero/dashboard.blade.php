@@ -87,9 +87,9 @@
 
     @include('mesero.navbar')
 
-    <div class="flex-1 flex overflow-hidden">
+    <div class="flex-1 min-h-0 flex overflow-hidden">
         @include('mesero.sidebar')
-        <div class="flex-1 flex flex-col relative bg-[var(--bg-base)]">
+        <div class="flex-1 min-h-0 flex flex-col relative bg-[var(--bg-base)]">
             @include('mesero.central')
             @include('mesero.footer')
         </div>

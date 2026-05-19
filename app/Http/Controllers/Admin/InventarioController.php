@@ -9,6 +9,7 @@ use App\Models\MovimientoInventario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InventarioController extends Controller
 {
@@ -168,51 +169,22 @@ class InventarioController extends Controller
         return redirect()->route('admin.inventario.index')
             ->with('success', 'El insumo ' . $insumo->nombre . ' fue dado de baja del almacén.');
     }
-        /**
-     * Exporta a Excel (CSV) los insumos con stock crítico/bajo.
-     */
-    public function exportarBajoStock()
-    {
-        // Traemos solo los que están en stock mínimo o por debajo
-        $insumos = \App\Models\Insumo::whereColumn('stock_actual', '<=', 'stock_minimo')
-                                     ->orderBy('nombre')
-                                     ->get();
-
-        $nombreArchivo = "Reporte_Bajo_Stock_" . date('Y-m-d_H-i') . ".csv";
-
-        $headers = [
-            "Content-type"        => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename=$nombreArchivo",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        ];
-
-        $columnas = ['Código', 'Producto/Ingrediente', 'Categoría', 'Stock Actual', 'Stock Mínimo', 'Unidad de Medida'];
-
-        $callback = function() use($insumos, $columnas) {
-            $file = fopen('php://output', 'w');
-            
-            // Agregamos BOM para que Excel lea correctamente los acentos y la letra Ñ
-            fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
-            
-            // Fila de encabezados
-            fputcsv($file, $columnas);
-
-            // Filas de datos
-            foreach ($insumos as $item) {
-                fputcsv($file, [
-                    $item->codigo ?? 'S/N',
-                    $item->nombre,
-                    $item->categoria->nombre ?? 'Sin categoría', // Si tienes la relación hecha
-                    $item->stock_actual,
-                    $item->stock_minimo,
-                    $item->unidad_medida
-                ]);
+    public function exportarPdfBajoStock()
+        {
+            // 1. Validar permisos
+            if (!auth()->user()->tienePermiso('gestionar.reporte')) {
+                return back()->with('error', 'No tienes permiso para generar reportes.');
             }
-            fclose($file);
-        };
 
-        return response()->stream($callback, 200, $headers);
-    }
+            // 2. Obtener datos (donde el stock actual es menor o igual al mínimo)
+            $insumos = Insumo::whereColumn('stock_actual', '<=', 'stock_minimo')
+                            ->with('categoria') // Para que no haga muchas consultas
+                            ->get();
+
+            // 3. Pasar los datos a la vista y cargarla en DomPDF
+            $pdf = Pdf::loadView('admin.inventario.bajo_stock_pdf', compact('insumos'));
+
+            // 4. Descargar
+            return $pdf->download('Reporte_Bajo_Stock_'.date('Ymd').'.pdf');
+        }
 }

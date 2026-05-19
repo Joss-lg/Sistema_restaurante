@@ -20,10 +20,7 @@ class MesaController extends Controller
     {
         $mesas = Mesa::all();
         
-        // Enriquecer datos de mesas con información de órdenes
         $mesasConEstado = $mesas->map(function ($mesa) {
-            // Contar órdenes activas en esta mesa
-            // Estados que consideramos como "activos": pendiente, en_proceso, servida
             $ordenesActivas = DB::table('ordenes')
                 ->where('mesa_id', $mesa->id)
                 ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
@@ -67,16 +64,64 @@ class MesaController extends Controller
         $validated = $request->validate([
             'numero' => 'required|string|max:20|unique:mesas,numero,'.$mesa->id,
             'capacidad' => 'required|integer|min:1',
+            'estado' => 'required|string|in:libre,ocupada,reservada',
         ]);
 
         $mesa->update([
             'numero' => $validated['numero'],
             'capacidad' => $validated['capacidad'],
+            'estado' => $validated['estado'],
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Mesa actualizada correctamente',
+            'mesa' => $mesa
+        ]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'numero' => 'required|string|max:20|unique:mesas,numero',
+            'capacidad' => 'required|integer|min:1',
+            'estado' => 'nullable|string|in:libre,ocupada,reservada',
+            'posicion_x' => 'nullable|integer',
+            'posicion_y' => 'nullable|integer',
+        ]);
+
+        $mesa = Mesa::create([
+            'numero' => $validated['numero'],
+            'capacidad' => $validated['capacidad'],
+            'estado' => $validated['estado'] ?? 'libre',
+            'posicion_x' => $validated['posicion_x'] ?? null,
+            'posicion_y' => $validated['posicion_y'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesa creada correctamente',
+            'mesa' => $mesa
+        ]);
+    }
+
+    public function updatePosicion(Request $request, $id): JsonResponse
+    {
+        $mesa = Mesa::findOrFail($id);
+
+        $validated = $request->validate([
+            'posicion_x' => 'required|integer',
+            'posicion_y' => 'required|integer',
+        ]);
+
+        $mesa->update([
+            'posicion_x' => $validated['posicion_x'],
+            'posicion_y' => $validated['posicion_y'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Posición de la mesa guardada',
             'mesa' => $mesa
         ]);
     }
@@ -97,5 +142,65 @@ class MesaController extends Controller
                 'message' => 'No se pudo eliminar la mesa. ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /* --- NUEVO MÉTODO PARA LA CAJA (OLLINTEM PRO) --- */
+    public function cobrar($id)
+    {
+        $mesa = Mesa::findOrFail($id);
+
+        // Buscamos la orden activa
+        $orden = DB::table('ordenes')
+            ->where('mesa_id', $id)
+            ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$orden) {
+            return redirect()->back()->with('error', 'No hay una orden activa para esta mesa.');
+        }
+
+        // Lógica de cuenta dividida (verifica que estos nombres existan en tu DB)
+        $cuentasDivididas = isset($orden->cuenta_dividida) ? $orden->cuenta_dividida : false;
+        $totalCuentasDivision = isset($orden->numero_cuenta_division) ? $orden->numero_cuenta_division : 1;
+
+        // Totales base
+        $subtotal = $orden->total ?? 0;
+        $iva = $subtotal * 0.16;
+        $propina = 0; 
+        $totalPagar = $subtotal + $iva;
+
+        // Preparamos la información detallada para cada cuenta si está dividida
+        $cuentasDividadasInfo = [];
+        if ($cuentasDivididas) {
+            for ($i = 1; $i <= $totalCuentasDivision; $i++) {
+                $cuentasDividadasInfo[] = [
+                    'numero_cuenta' => $i,
+                    'subtotal' => $subtotal / $totalCuentasDivision,
+                    'iva' => $iva / $totalCuentasDivision,
+                    'propina' => $propina / $totalCuentasDivision,
+                    'total' => $totalPagar / $totalCuentasDivision,
+                    'productos' => DB::table('detalle_ordenes')->where('orden_id', $orden->id)->get()
+                ];
+            }
+        }
+
+        // Productos para el listado lateral
+        $productos = DB::table('detalle_ordenes')
+            ->where('orden_id', $orden->id)
+            ->get();
+
+        return view('admin.caja.cobrar', compact(
+            'mesa',
+            'orden',
+            'productos',
+            'cuentasDivididas',
+            'totalCuentasDivision',
+            'cuentasDividadasInfo',
+            'subtotal',
+            'iva',
+            'propina',
+            'totalPagar'
+        ));
     }
 }

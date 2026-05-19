@@ -8,7 +8,9 @@ use App\Models\Mesa; // Importamos el modelo de Mesa
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class CajaController extends Controller
@@ -45,6 +47,17 @@ class CajaController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        // Verificar si hay cuentas divididas
+        $ordenesDivididas = $ordenes->filter(function ($ordenItem) {
+            return isset($ordenItem->cuenta_dividida) && $ordenItem->cuenta_dividida;
+        });
+        $cuentasDivididas = $ordenesDivididas->isNotEmpty();
+        $ordenDividida = $ordenesDivididas->first();
+        $totalCuentasDivision = $ordenDividida->total_cuentas_division ?? null;
+        if ($cuentasDivididas && empty($totalCuentasDivision)) {
+            $totalCuentasDivision = $ordenesDivididas->count();
+        }
+
         $productos = collect();
         $meseroNombre = $mesa->mesero?->nombre ?? 'Sin mesero asignado';
         $subtotal = 0;
@@ -54,36 +67,82 @@ class CajaController extends Controller
         $orden = null;
         $ordenLabel = 'Orden #N/A';
         $ordenId = null;
+        $cuentasDividadasInfo = [];
 
         if ($ordenes->isNotEmpty()) {
-            $orden = (object) $ordenes[0];
-            $ordenId = $orden->id;
-            $ordenLabel = $ordenes->count() === 1
-                ? 'Orden #' . $orden->numero_orden
-                : $ordenes->count() . ' órdenes activas';
+            if ($cuentasDivididas) {
+                // Si hay cuentas divididas, procesarlas por separado
+                $ordenLabel = 'Cuenta dividida en ' . $totalCuentasDivision . ' cuentas';
+                
+                foreach ($ordenes as $ordenItem) {
+                    $ordenObj = \App\Models\Orden::find($ordenItem->id);
+                    $detalles = DB::table('detalles_orden')
+                        ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
+                        ->select(
+                            'detalles_orden.id',
+                            'productos.nombre as nombre',
+                            'detalles_orden.cantidad',
+                            'detalles_orden.precio_unitario',
+                            'detalles_orden.notas'
+                        )
+                        ->where('detalles_orden.orden_id', $ordenItem->id)
+                        ->get();
 
-            $ordenIds = $ordenes->pluck('id')->all();
+                    $subtotalCuenta = $detalles->sum(function ($item) {
+                        return floatval($item->cantidad) * floatval($item->precio_unitario);
+                    });
+                    $subtotalCuenta = round($subtotalCuenta, 2);
+                    $ivaCuenta = round($subtotalCuenta * 0.16, 2);
+                    $propinaCuenta = floatval($ordenItem->propina);
 
-            $productos = DB::table('detalles_orden')
-                ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
-                ->select(
-                    'detalles_orden.id',
-                    'productos.nombre as nombre',
-                    'detalles_orden.cantidad',
-                    'detalles_orden.precio_unitario',
-                    'detalles_orden.notas'
-                )
-                ->whereIn('detalles_orden.orden_id', $ordenIds)
-                ->get();
+                    $cuentasDividadasInfo[] = [
+                        'numero_cuenta' => $ordenItem->numero_cuenta_division,
+                        'orden_id' => $ordenItem->id,
+                        'numero_orden' => $ordenItem->numero_orden,
+                        'productos' => $detalles,
+                        'subtotal' => $subtotalCuenta,
+                        'iva' => $ivaCuenta,
+                        'propina' => $propinaCuenta,
+                        'total' => round($subtotalCuenta + $ivaCuenta + $propinaCuenta, 2)
+                    ];
 
-            $meseroNombre = DB::table('users')->where('id', $orden->mesero_id)->value('nombre') ?? $meseroNombre;
-            $subtotal = $productos->sum(function ($item) {
-                return floatval($item->cantidad) * floatval($item->precio_unitario);
-            });
-            $subtotal = round($subtotal, 2);
-            $propina = floatval($ordenes->sum('propina'));
-            $iva = round($subtotal * 0.16, 2);
-            $totalPagar = round($subtotal + $iva + $propina, 2);
+                    $subtotal += $subtotalCuenta;
+                    $iva += $ivaCuenta;
+                    $propina += $propinaCuenta;
+                }
+
+                $totalPagar = round($subtotal + $iva + $propina, 2);
+            } else {
+                // Comportamiento original para cuentas no divididas
+                $orden = (object) $ordenes[0];
+                $ordenId = $orden->id;
+                $ordenLabel = $ordenes->count() === 1
+                    ? 'Orden #' . $orden->numero_orden
+                    : $ordenes->count() . ' órdenes activas';
+
+                $ordenIds = $ordenes->pluck('id')->all();
+
+                $productos = DB::table('detalles_orden')
+                    ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
+                    ->select(
+                        'detalles_orden.id',
+                        'productos.nombre as nombre',
+                        'detalles_orden.cantidad',
+                        'detalles_orden.precio_unitario',
+                        'detalles_orden.notas'
+                    )
+                    ->whereIn('detalles_orden.orden_id', $ordenIds)
+                    ->get();
+
+                $meseroNombre = DB::table('users')->where('id', $orden->mesero_id)->value('nombre') ?? $meseroNombre;
+                $subtotal = $productos->sum(function ($item) {
+                    return floatval($item->cantidad) * floatval($item->precio_unitario);
+                });
+                $subtotal = round($subtotal, 2);
+                $propina = floatval($ordenes->sum('propina'));
+                $iva = round($subtotal * 0.16, 2);
+                $totalPagar = round($subtotal + $iva + $propina, 2);
+            }
         }
 
         return view('admin.caja.cobrar', [
@@ -97,20 +156,27 @@ class CajaController extends Controller
             'totalPagar' => $totalPagar,
             'ordenLabel' => $ordenLabel,
             'ordenId' => $ordenId,
+            'cuentasDivididas' => $cuentasDivididas,
+            'cuentasDividadasInfo' => $cuentasDividadasInfo,
+            'totalCuentasDivision' => $totalCuentasDivision,
+            'personasPorCuenta' => $cuentasDivididas && $totalCuentasDivision ? ceil($mesa->capacidad / max(1, $totalCuentasDivision)) : null,
         ]);
     }
 
     public function pagar(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'mesa_id' => 'required|integer|exists:mesas,id',
-            'orden_id' => 'nullable|integer|exists:ordenes,id',
-            'efectivo' => 'required|numeric|min:0',
-            'metodo_pago' => 'required|string|max:50',
-        ]);
+        try {
+            $validated = $request->validate([
+                'mesa_id' => 'required|integer|exists:mesas,id',
+                'orden_id' => 'nullable|integer|exists:ordenes,id',
+                'efectivo' => 'required|numeric|min:0',
+                'metodo_pago' => 'required|string|in:Efectivo,Transferencia,Tarjeta',
+                'referencia' => 'nullable|string|max:191',
+                'comprobante' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            ]);
 
-        $mesa = Mesa::findOrFail($validated['mesa_id']);
-        $orden = null;
+            $mesa = Mesa::findOrFail($validated['mesa_id']);
+            $orden = null;
 
         if (! empty($validated['orden_id'])) {
             $orden = DB::table('ordenes')->where('id', $validated['orden_id'])->first();
@@ -144,15 +210,33 @@ class CajaController extends Controller
         $total = round(floatval($detalleTotal) * 1.16 + $propinaTotal, 2);
 
         $efectivo = floatval($validated['efectivo']);
+        $cambio = 0;
 
-        if ($efectivo < $total) {
-            return response()->json([
-                'success' => false,
-                'message' => 'El efectivo recibido es menor al total a pagar.',
-            ], 422);
+        if ($validated['metodo_pago'] === 'Efectivo') {
+            if ($efectivo < $total) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El efectivo recibido es menor al total a pagar.',
+                ], 422);
+            }
+            $cambio = round($efectivo - $total, 2);
+        } else {
+            if ($efectivo < $total) {
+                $efectivo = $total;
+            }
+            $cambio = 0;
         }
 
-        DB::transaction(function () use ($mesa, $validated, $total, $efectivo) {
+        $comprobantePath = null;
+        $comprobanteUrl = null;
+        if ($request->hasFile('comprobante')) {
+            $comprobantePath = $request->file('comprobante')->store('comprobantes', 'public');
+            if ($comprobantePath && Storage::disk('public')->exists($comprobantePath)) {
+                $comprobanteUrl = Storage::disk('public')->url($comprobantePath);
+            }
+        }
+
+        DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio, $comprobantePath) {
             DB::table('ordenes')
                 ->where('mesa_id', $mesa->id)
                 ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
@@ -178,8 +262,11 @@ class CajaController extends Controller
                     'monto' => $total,
                     'tipo' => 'Ingreso',
                     'responsable' => auth()->user()->nombre ?? auth()->user()->email,
-                    'comentarios' => 'Pago con ' . $validated['metodo_pago'] . '. Cambio: ' . number_format($efectivo - $total, 2),
+                    'comentarios' => 'Pago con ' . $validated['metodo_pago'] . ($validated['referencia'] ? '. Ref: ' . $validated['referencia'] : '') . '. Cambio: ' . number_format($cambio, 2),
                     'estado' => 'Completado',
+                    'metodo_pago' => $validated['metodo_pago'],
+                    'referencia' => $validated['referencia'] ?? null,
+                    'comprobante' => $comprobantePath,
                 ]);
             }
         });
@@ -187,9 +274,21 @@ class CajaController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Pago registrado correctamente.',
-            'cambio' => number_format($efectivo - $total, 2),
+            'cambio' => number_format($cambio, 2),
+            'comprobante_url' => $comprobanteUrl,
         ]);
+    } catch (\Throwable $exception) {
+        Log::error('Error procesando pago de caja: ' . $exception->getMessage(), [
+            'trace' => $exception->getTraceAsString(),
+            'request' => $request->all(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Ocurrió un error al procesar el pago. Intenta nuevamente.',
+        ], 500);
     }
+}
 
     public function getEstadisticas(): JsonResponse
     {
@@ -224,7 +323,17 @@ class CajaController extends Controller
     {
         $movimientos = CajaMovimiento::orderBy('created_at', 'desc')
             ->limit(12)
-            ->get();
+            ->get()
+            ->map(function (CajaMovimiento $movimiento) {
+                $comprobanteUrl = null;
+                if ($movimiento->comprobante && Storage::disk('public')->exists($movimiento->comprobante)) {
+                    $comprobanteUrl = Storage::disk('public')->url($movimiento->comprobante);
+                }
+
+                return array_merge($movimiento->toArray(), [
+                    'comprobante_url' => $comprobanteUrl,
+                ]);
+            });
 
         return response()->json($movimientos);
     }

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\CocinaController;
 use App\Http\Controllers\Admin\MesaController;
 use App\Http\Controllers\ComandaController;
 use App\Http\Controllers\Admin\PromocionController;
+use App\Http\Controllers\Admin\RolController;
 
 Route::get('/', function () {
     return view('auth.login'); 
@@ -40,13 +41,17 @@ Route::middleware(['auth'])->group(function () {
             } else {
                 if (Schema::hasColumn('mesas', 'mesero_id')) {
                     $mesas = \App\Models\Mesa::where(function ($query) {
+                            $query->where('estado', 'ocupada')
+                                  ->where('mesero_id', auth()->id());
+                        })
+                        ->orWhere(function ($query) {
                             $query->where('estado', 'disponible')
-                                  ->orWhere('mesero_id', auth()->id());
+                                  ->where('mesero_id', auth()->id());
                         })
                         ->orderBy('numero', 'asc')
                         ->get();
                 } else {
-                    $mesas = \App\Models\Mesa::where('estado', 'disponible')
+                    $mesas = \App\Models\Mesa::where('estado', 'ocupada')
                         ->orderBy('numero', 'asc')
                         ->get();
                 }
@@ -85,7 +90,7 @@ Route::middleware(['auth'])->group(function () {
 
     // MÓDULO DE INVENTARIO
     Route::prefix('admin/inventario')->name('admin.inventario.')->group(function () {
-        Route::get('/exportar-bajo-stock', [InventarioController::class, 'exportarBajoStock'])->name('exportar_bajo_stock');
+        Route::get('/bajo-stock-pdf', [InventarioController::class, 'exportarPdfBajoStock'])->name('exportar_pdf_bajo_stock');
         Route::get('/', [InventarioController::class, 'index'])->name('index');
         Route::post('/store', [InventarioController::class, 'store'])->name('store');
         Route::post('/movimiento', [InventarioController::class, 'registrarMovimiento'])->name('movimiento');
@@ -135,6 +140,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('admin/mesas')->name('admin.mesas.')->group(function () {
         Route::get('/', [MesaController::class, 'index'])->name('index');
         Route::get('/api/mesas', [MesaController::class, 'getMesas'])->name('api.mesas');
+        Route::post('/api', [MesaController::class, 'store'])->name('api.store');
+        Route::patch('/api/{id}/posicion', [MesaController::class, 'updatePosicion'])->name('api.posicion');
         Route::patch('/api/{id}/estado', [MesaController::class, 'cambiarEstado'])->name('api.estado');
         Route::put('/api/{id}', [MesaController::class, 'update'])->name('api.update');
         Route::delete('/api/{id}', [MesaController::class, 'destroy'])->name('api.destroy');
@@ -153,6 +160,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{promocion}', [PromocionController::class, 'update'])->name('update');
         Route::delete('/{promocion}', [PromocionController::class, 'destroy'])->name('destroy');
     });
+
+    Route::get('/admin/roles', [RolController::class, 'index'])->name('roles.index');
+    Route::post('/admin/roles', [RolController::class, 'store'])->name('roles.store');
+    
 
     // PERMISOS Y LOGOUT
     Route::post('/admin/permisos/store', [PermisoController::class, 'store'])->name('permisos.store');

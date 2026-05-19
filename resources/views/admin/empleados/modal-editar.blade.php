@@ -74,7 +74,7 @@
             <div class="relative group" id="editDropdownContainer">
                 <label class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90 group-focus-within:text-[#3B82F6] transition-colors">Rol del Sistema</label>
                 
-                <input type="hidden" name="rol" id="edit_rol_input">
+                <input type="hidden" name="rol_id" id="edit_rol_id_input">
                 
                 <button type="button" onclick="toggleEditDropdown(event)" id="editDropdownBtn"
                     class="flex items-center justify-between w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl pl-5 pr-6 text-sm font-bold text-[var(--m-text)] outline-none transition-all focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10">
@@ -86,13 +86,11 @@
                 </button>
 
                 <div id="editDropdownMenu" class="absolute top-[calc(100%+8px)] left-0 w-full bg-[var(--m-drop-bg)] border border-[var(--m-border)] rounded-2xl shadow-2xl z-[110] py-2 hidden opacity-0 translate-y-[-10px] transition-all duration-300 max-h-48 overflow-y-auto backdrop-blur-xl">
-                    @php
-                        $roles = ['admin' => 'Administrador', 'capitan' => 'Capitán', 'mesero' => 'Mesero', 'cocinero' => 'Cocinero', 'cajero' => 'Cajero'];
-                    @endphp
-                    @foreach($roles as $val => $label)
-                    <button type="button" onclick="selectEditRole('{{ $label }}', '{{ $val }}')"
-                        class="flex items-center justify-between w-full px-6 py-3.5 text-sm font-bold text-[var(--m-text)] hover:bg-[var(--m-drop-hover)] hover:text-[#3B82F6] transition-all outline-none">
-                        {{ $label }}
+                    @foreach($roles ?? [] as $rol)
+                    <button type="button" onclick="selectEditRole('{{ $rol->nombre }}', '{{ $rol->id }}')"
+                        class="flex items-center justify-between w-full px-6 py-3.5 text-sm font-bold text-[var(--m-text)] hover:bg-[var(--m-drop-hover)] hover:text-[#3B82F6] transition-all outline-none"
+                        data-rol-id="{{ $rol->id }}">
+                        {{ $rol->nombre }}
                     </button>
                     @endforeach
                 </div>
@@ -116,29 +114,19 @@
     /**
      * Función principal para abrir el modal y configurar la ruta de guardado
      */
-    function abrirModalEditar(id, nombre, codigo, rol) {
+    function abrirModalEditar(id, nombre, codigo, rolId, rolNombre) {
         const modal = document.getElementById('editEmpleadoModal');
         const content = document.getElementById('editModalContent');
-        const form = document.getElementById('editEmpleadoForm');
+        const form = document.getElementById('formEditar');
 
         // 1. ASIGNAMOS LA RUTA CORRECTA DINÁMICAMENTE
-        // Esto soluciona el error 405 MethodNotAllowed
         form.action = `/admin/empleados/${id}`;
 
         // 2. LLENAMOS LOS CAMPOS
         document.getElementById('edit_nombre').value = nombre;
         document.getElementById('edit_codigo_empleado').value = codigo;
-        document.getElementById('edit_rol_input').value = rol;
-        
-        // Ajustamos el texto del dropdown
-        const rolesNombres = {
-            'admin': 'Administrador',
-            'capitan': 'Capitán',
-            'mesero': 'Mesero',
-            'cocinero': 'Cocinero',
-            'cajero': 'Cajero'
-        };
-        document.getElementById('editDropdownSelected').innerText = rolesNombres[rol] || 'Seleccionar...';
+        document.getElementById('edit_rol_id_input').value = rolId;
+        document.getElementById('editDropdownSelected').innerText = rolNombre || 'Seleccionar...';
 
         // 3. MOSTRAR CON ANIMACIÓN
         modal.classList.remove('hidden');
@@ -147,6 +135,7 @@
             content.classList.remove('scale-95');
         }, 10);
     }
+
 
     function cerrarEditModal() {
         const modal = document.getElementById('editEmpleadoModal');

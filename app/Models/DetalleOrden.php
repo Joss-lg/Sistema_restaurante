@@ -18,6 +18,7 @@ class DetalleOrden extends Model
         'precio_unitario',
         'estado',
         'notas',
+        'gramaje',
     ];
 
     protected $casts = [

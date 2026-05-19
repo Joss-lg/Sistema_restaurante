@@ -20,10 +20,10 @@
             </div>
 
             @if(auth()->user()->tienePermiso('gestionar.reporte'))
-            <a href="{{ route('admin.inventario.exportar_bajo_stock') }}" 
-                class="w-full md:w-auto bg-[#10B981] hover:bg-[#059669] text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-[#10B981]/20 outline-none flex items-center justify-center gap-2">
-                <i class="fas fa-file-excel"></i> Bajo Stock
-            </a>
+                <a href="{{ route('admin.inventario.exportar_pdf_bajo_stock') }}" 
+                class="w-full md:w-auto bg-[#e11d48] hover:bg-[#be123c] text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-[#e11d48]/20 outline-none flex items-center justify-center gap-2">
+                    <i class="fas fa-file-pdf"></i> Reporte Bajo Stock
+                </a>
             @endif
 
 

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\Permiso;
+use App\Models\Rol;
 use App\Models\User;
 
 class PermisosSeeder extends Seeder
@@ -42,7 +43,7 @@ class PermisosSeeder extends Seeder
             }
         }
 
-        // 3. MATRIZ DE ACCESOS POR ROL
+        // 3. MATRIZ DE ACCESOS POR ROL (usando slugs)
         $matrizRoles = [
             // EL ADMIN: Dueño del restaurante (Todo el acceso)
             'admin' => Permiso::pluck('id')->toArray(), 
@@ -90,16 +91,30 @@ class PermisosSeeder extends Seeder
             ]
         ];
 
-        // 4. ASIGNAMOS A LOS USUARIOS EXISTENTES
-        $usuarios = User::all();
-
-        foreach ($usuarios as $usuario) {
-            $rol = strtolower($usuario->rol); 
-            if (isset($matrizRoles[$rol])) {
-                $usuario->permisos()->sync($matrizRoles[$rol]);
+        // 4. ASIGNAMOS PERMISOS A LOS ROLES DESDE LA BASE DE DATOS
+        // Esto es mucho más flexible: si creas un nuevo rol, sus permisos se asignan automáticamente
+        foreach ($matrizRoles as $rolSlug => $permisoIds) {
+            $rol = Rol::where('slug', $rolSlug)->first();
+            
+            if ($rol) {
+                $rol->permisos()->sync($permisoIds);
             }
         }
 
-        $this->command->info('¡Módulo de Caja agregado y permisos asignados!');
+        // 5. SINCRONIZAR PERMISOS DE USUARIOS (Por si algunos usuarios tienen permisos específicos)
+        $usuarios = User::with('rol')->get();
+
+        foreach ($usuarios as $usuario) {
+            if ($usuario->rol) {
+                // Sincronizar permisos basados en el rol
+                $rolSlug = strtolower($usuario->rol->slug);
+                
+                if (isset($matrizRoles[$rolSlug])) {
+                    $usuario->permisos()->sync($matrizRoles[$rolSlug]);
+                }
+            }
+        }
+
+        $this->command->info('¡Permisos sincronizados con roles dinámicos!');
     }
 }

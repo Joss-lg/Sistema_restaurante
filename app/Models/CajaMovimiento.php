@@ -13,6 +13,9 @@ class CajaMovimiento extends Model
         'responsable',
         'comentarios',
         'estado',
+        'metodo_pago',
+        'referencia',
+        'comprobante',
     ];
 
     protected $casts = [

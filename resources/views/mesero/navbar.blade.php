@@ -1,16 +1,13 @@
 <header class="h-[76px] flex-none flex justify-between items-center px-8 glass-panel border-b border-[var(--border-color)] z-30 transition-colors duration-400">
     
     {{-- Branding --}}
-    <div class="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer">
-        <div class="w-11 h-11 bg-gradient-to-br from-[#3B82F6]/20 to-[#3B82F6]/5 border border-[#3B82F6]/40 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.2)] relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-50"></div>
-            <span class="font-black text-[#3B82F6] text-xl relative z-10 drop-shadow-md">O</span>
+<div class="flex items-center gap-4 hover:opacity-90 transition-opacity cursor-pointer">
+        <div class="w-12 h-12 rounded-3xl bg-gradient-to-br from-[#3B82F6]/20 via-[#38bdf8]/10 to-transparent border border-[#3B82F6]/30 flex items-center justify-center shadow-[0_0_22px_rgba(59,130,246,0.2)] relative overflow-hidden">
+            <span class="font-black text-[#3B82F6] text-2xl relative z-10 drop-shadow-md">O</span>
         </div>
         <div class="flex flex-col justify-center">
-            <span class="font-black tracking-tight text-[16px] text-[var(--text-main)]">
-                Ollintem <span class="text-[#3B82F6]">Pro</span>
-            </span>
-            <span class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-[0.25em] mt-0.5">Punto de Venta</span>
+            <span class="font-black tracking-[0.1em] text-[18px] text-[var(--text-main)] leading-none">Ollintem <span class="text-[#3B82F6]">Pro</span></span>
+            <span class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-[0.3em] mt-0.5">Punto de Venta</span>
         </div>
     </div>
 

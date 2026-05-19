@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('mesas', function (Blueprint $table) {
-            $table->unsignedBigInteger('mesero_id')->nullable()->after('estado');
-        });
+        // Verificamos si la columna NO existe antes de intentar crearla
+        if (!Schema::hasColumn('mesas', 'mesero_id')) {
+            Schema::table('mesas', function (Blueprint $table) {
+                $table->unsignedBigInteger('mesero_id')->nullable()->after('estado');
+            });
+        }
     }
 
     /**

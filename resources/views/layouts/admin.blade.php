@@ -71,6 +71,81 @@
         .glass-card:hover { transform: translateY(-4px); border-color: rgba(59, 130, 246, 0.2); }
         body.modo-crema .glass-card:hover { background-color: #ffffff; box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.03); }
 
+        .filter-button {
+            padding: 0.65rem 1.1rem;
+            border-radius: 0.85rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+            color: var(--text-color);
+            background-color: var(--card-color);
+            transition: all 0.25s ease;
+        }
+
+        .filter-button:hover {
+            background-color: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.35);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .filter-button--active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(14, 165, 233, 0.85));
+            border-color: rgba(59, 130, 246, 0.85);
+            color: #ffffff;
+            box-shadow: 0 16px 35px -20px rgba(59, 130, 246, 0.75);
+        }
+
+        .filter-button--active:hover {
+            transform: translateY(-1px);
+        }
+
+        .filter-button {
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px -18px rgba(0,0,0,0.5);
+        }
+
+        .header-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(59, 130, 246, 0.12);
+            color: #EFF6FF;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .header-action-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(59, 130, 246, 0.22);
+            box-shadow: 0 18px 40px -30px rgba(59, 130, 246, 0.8);
+        }
+
+        .mesa-card {
+            will-change: transform, opacity;
+            position: relative;
+            z-index: 0;
+        }
+
+        .mesa-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+            opacity: 0.4;
+            pointer-events: none;
+            border-radius: inherit;
+            z-index: -1;
+        }
+
         body:not(.modo-crema) .glass-card.kitchen-card { background: var(--panel-card); border-color: var(--panel-border); }
         body.modo-crema .glass-card.kitchen-card { background: var(--panel-card); border-color: var(--panel-border); }
         .kitchen-card:hover { transform: translateY(-2px); }
@@ -107,7 +182,12 @@
                     <p class="text-[11px] text-[var(--text-muted)] font-medium mt-1 opacity-80">@yield('header-subtitle', 'Administra tu sistema')</p>
                 </div>
                 
-                <div class="flex items-center gap-6">
+                <div class="flex items-center gap-4">
+                    @hasSection('header-actions')
+                        <div class="hidden md:flex items-center gap-3">
+                            @yield('header-actions')
+                        </div>
+                    @endif
                     <div class="w-10 h-10 rounded-xl border border-[#3B82F6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] shrink-0 overflow-hidden">
                         <img src="{{ asset('images/logo.png') }}" alt="Perfil" class="w-full h-full object-cover">
                     </div>
