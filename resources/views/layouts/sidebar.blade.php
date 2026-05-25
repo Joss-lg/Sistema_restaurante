@@ -30,6 +30,7 @@
                     ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menu', 'permission' => 'productos.ver'],
                     ['route' => 'admin.categorias.index', 'icon' => 'fas fa-layer-group', 'label' => 'Categorías', 'permission' => 'categorias.ver'],
                     ['route' => 'admin.promociones.index', 'icon' => 'fas fa-tags', 'label' => 'Promociones', 'permission' => 'promociones.ver'],
+                    ['route' => 'admin.finanzas.index', 'icon' => 'fas fa-chart-line', 'label' => 'Finanzas', 'permission' => 'finanzas.ver'],
                    ['route' => 'roles.index', 'icon' => 'fas fa-id-badge', 'label' => 'Roles', 'permission' => 'roles.ver'],
                 ];
             @endphp

@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\MesaController;
 use App\Http\Controllers\ComandaController;
 use App\Http\Controllers\Admin\PromocionController;
 use App\Http\Controllers\Admin\RolController;
+use App\Http\Controllers\Admin\FinanzasController;
 
 Route::get('/', function () {
     return view('auth.login'); 
@@ -163,7 +164,23 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/admin/roles', [RolController::class, 'index'])->name('roles.index');
     Route::post('/admin/roles', [RolController::class, 'store'])->name('roles.store');
-    
+
+    // ==========================================
+    // MÓDULO DE FINANZAS - FLUJO DE CAJA
+    // ==========================================
+    Route::prefix('admin/finanzas')->name('admin.finanzas.')->group(function () {
+        Route::get('/', [FinanzasController::class, 'index'])->name('index');
+        Route::get('/exportar-csv', [FinanzasController::class, 'exportarCSV'])->name('exportar');
+        Route::post('/estadisticas-periodo', [FinanzasController::class, 'estadisticasPeriodo'])->name('estadisticas.periodo');
+    });
+
+    Route::prefix('admin/gastos')->name('admin.gastos.')->group(function () {
+        Route::post('/', [FinanzasController::class, 'guardarGasto'])->name('store');
+    });
+
+    Route::prefix('admin/pagos-nomina')->name('admin.pagos-nomina.')->group(function () {
+        Route::post('/', [FinanzasController::class, 'guardarNomina'])->name('store');
+    });
 
     // PERMISOS Y LOGOUT
     Route::post('/admin/permisos/store', [PermisoController::class, 'store'])->name('permisos.store');

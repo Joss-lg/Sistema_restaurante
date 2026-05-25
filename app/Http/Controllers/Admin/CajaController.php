@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CajaMovimiento;
 use App\Models\Mesa; // Importamos el modelo de Mesa
+use App\Models\Orden;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -165,21 +166,22 @@ class CajaController extends Controller
 
     public function pagar(Request $request): JsonResponse
     {
-        try {
             $validated = $request->validate([
                 'mesa_id' => 'required|integer|exists:mesas,id',
                 'orden_id' => 'nullable|integer|exists:ordenes,id',
                 'efectivo' => 'required|numeric|min:0',
                 'metodo_pago' => 'required|string|in:Efectivo,Transferencia,Tarjeta',
                 'referencia' => 'nullable|string|max:191',
-                'comprobante' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            ]);
+        ]);
 
-            $mesa = Mesa::findOrFail($validated['mesa_id']);
-            $orden = null;
+        if (in_array($validated['metodo_pago'], ['Transferencia', 'Tarjeta']) && empty($validated['referencia'])) {
+            $validated['referencia'] = $this->generarReferenciaAutomatica($validated['metodo_pago']);
+        }
 
+        $mesa = Mesa::findOrFail($validated['mesa_id']);
+        $orden = null;
         if (! empty($validated['orden_id'])) {
-            $orden = DB::table('ordenes')->where('id', $validated['orden_id'])->first();
+            $orden = Orden::find($validated['orden_id']);
             if (! $orden || $orden->mesa_id != $validated['mesa_id']) {
                 return response()->json([
                     'success' => false,
@@ -227,16 +229,9 @@ class CajaController extends Controller
             $cambio = 0;
         }
 
-        $comprobantePath = null;
         $comprobanteUrl = null;
-        if ($request->hasFile('comprobante')) {
-            $comprobantePath = $request->file('comprobante')->store('comprobantes', 'public');
-            if ($comprobantePath && Storage::disk('public')->exists($comprobantePath)) {
-                $comprobanteUrl = Storage::disk('public')->url($comprobantePath);
-            }
-        }
 
-        DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio, $comprobantePath) {
+        DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio) {
             DB::table('ordenes')
                 ->where('mesa_id', $mesa->id)
                 ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
@@ -257,17 +252,23 @@ class CajaController extends Controller
             $mesa->save();
 
             if (Schema::hasTable('caja_movimientos')) {
-                CajaMovimiento::create([
+                $movimientoData = [
                     'concepto' => 'Pago de mesa ' . $mesa->numero,
                     'monto' => $total,
                     'tipo' => 'Ingreso',
                     'responsable' => auth()->user()->nombre ?? auth()->user()->email,
                     'comentarios' => 'Pago con ' . $validated['metodo_pago'] . ($validated['referencia'] ? '. Ref: ' . $validated['referencia'] : '') . '. Cambio: ' . number_format($cambio, 2),
                     'estado' => 'Completado',
-                    'metodo_pago' => $validated['metodo_pago'],
-                    'referencia' => $validated['referencia'] ?? null,
-                    'comprobante' => $comprobantePath,
-                ]);
+                ];
+
+                if (Schema::hasColumn('caja_movimientos', 'metodo_pago')) {
+                    $movimientoData['metodo_pago'] = $validated['metodo_pago'];
+                }
+                if (Schema::hasColumn('caja_movimientos', 'referencia')) {
+                    $movimientoData['referencia'] = $validated['referencia'] ?? null;
+                }
+
+                CajaMovimiento::create($movimientoData);
             }
         });
 
@@ -276,19 +277,16 @@ class CajaController extends Controller
             'message' => 'Pago registrado correctamente.',
             'cambio' => number_format($cambio, 2),
             'comprobante_url' => $comprobanteUrl,
-        ]);
-    } catch (\Throwable $exception) {
-        Log::error('Error procesando pago de caja: ' . $exception->getMessage(), [
-            'trace' => $exception->getTraceAsString(),
-            'request' => $request->all(),
+            'referencia' => $validated['referencia'] ?? null,
         ]);
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Ocurrió un error al procesar el pago. Intenta nuevamente.',
-        ], 500);
     }
-}
+
+    private function generarReferenciaAutomatica(string $metodo): string
+    {
+        $prefijo = $metodo === 'Transferencia' ? 'TRF' : 'TAR';
+        return sprintf('%s-%s-%s', $prefijo, now()->format('YmdHis'), rand(100, 999));
+    }
 
     public function getEstadisticas(): JsonResponse
     {

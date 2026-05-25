@@ -170,37 +170,45 @@
     <div class="fixed top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/5 blur-[150px] pointer-events-none z-0 modo-crema:hidden"></div>
     <div class="fixed bottom-[-20%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-orange-600/5 blur-[150px] pointer-events-none z-0 modo-crema:hidden"></div>
 
-    <div class="flex h-screen overflow-hidden relative z-10">
-
-        @include('layouts.sidebar')
-
-        <main class="flex-1 overflow-y-auto relative z-10 flex flex-col">
-            
-            <header class="backdrop-blur-2xl border-b sticky top-0 z-30 px-10 py-5 flex justify-between items-center bg-[var(--header-bg)] border-[var(--border-color)]">
-                <div class="flex flex-col">
-                    <h1 class="text-[22px] font-black text-[var(--text-color)] tracking-tight">@yield('header-title', 'Gestión de Personal')</h1>
-                    <p class="text-[11px] text-[var(--text-muted)] font-medium mt-1 opacity-80">@yield('header-subtitle', 'Administra tu sistema')</p>
-                </div>
-                
-                <div class="flex items-center gap-4">
-                    @hasSection('header-actions')
-                        <div class="hidden md:flex items-center gap-3">
-                            @yield('header-actions')
-                        </div>
-                    @endif
-                    <div class="w-10 h-10 rounded-xl border border-[#3B82F6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] shrink-0 overflow-hidden">
-                        <img src="{{ asset('images/logo.png') }}" alt="Perfil" class="w-full h-full object-cover">
-                    </div>
-                    <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-[var(--sidebar-bg)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all shadow-inner">
-                        <i id="dashThemeIcon" class="fas fa-sun text-sm"></i>
-                    </button>
-                </div>
-            </header>
-
+    @hasSection('no-sidebar')
+        <main class="flex-1 relative z-10 flex flex-col min-h-screen">
             @yield('content')
-
         </main>
-    </div>
+    @else
+        <div class="flex h-screen overflow-hidden relative z-10">
+
+            @include('layouts.sidebar')
+
+            <main class="flex-1 overflow-y-auto relative z-10 flex flex-col">
+                
+                <header class="backdrop-blur-2xl border-b sticky top-0 z-30 px-10 py-5 flex justify-between items-center bg-[var(--header-bg)] border-[var(--border-color)]">
+                    <div class="flex flex-col">
+                        <h1 class="text-[22px] font-black text-[var(--text-color)] tracking-tight">@yield('header-title', 'Gestión de Personal')</h1>
+                        <p class="text-[11px] text-[var(--text-muted)] font-medium mt-1 opacity-80">@yield('header-subtitle', 'Administra tu sistema')</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        @hasSection('header-actions')
+                            <div class="hidden md:flex items-center gap-3">
+                                @yield('header-actions')
+                            </div>
+                        @endif
+                        <div class="w-10 h-10 rounded-xl border border-[#3B82F6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] shrink-0 overflow-hidden">
+                            <img src="{{ asset('images/logo.png') }}" alt="Perfil" class="w-full h-full object-cover">
+                        </div>
+                        <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-[var(--sidebar-bg)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all shadow-inner">
+                            <i id="dashThemeIcon" class="fas fa-sun text-sm"></i>
+                        </button>
+                    </div>
+                </header>
+
+                @yield('content')
+
+            </main>
+        </div>
+    @endif
+
+    @yield('modals')
 
     <script>
         document.getElementById('toggleSidebar').addEventListener('click', function() {
