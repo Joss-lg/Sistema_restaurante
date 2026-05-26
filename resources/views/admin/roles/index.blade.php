@@ -71,6 +71,7 @@
                             <th class="pb-5 px-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Slug Identificador</th>
                             <th class="pb-5 px-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Permiso POS</th>
                             <th class="pb-5 px-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-center">Empleados</th>
+                            <th class="pb-5 px-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -99,10 +100,24 @@
                                     {{ $rol->usuarios_count }}
                                 </span>
                             </td>
+                            <td class="py-4 px-4">
+                                <div class="flex justify-center gap-2">
+                                    <button type="button" 
+                                            onclick="abrirModalEditar({{ $rol->id }}, '{{ addslashes($rol->nombre) }}', '{{ addslashes($rol->descripcion ?? '') }}', {{ $rol->puede_acceder_pos ? 'true' : 'false' }})"
+                                            class="px-3 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 text-xs font-bold uppercase tracking-widest transition-all outline-none flex items-center gap-1.5">
+                                        <i class="fas fa-pencil-alt"></i> Editar
+                                    </button>
+                                    <button type="button"
+                                            onclick="abrirModalEliminar({{ $rol->id }}, '{{ addslashes($rol->nombre) }}')"
+                                            class="px-3 py-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 text-xs font-bold uppercase tracking-widest transition-all outline-none flex items-center gap-1.5">
+                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="py-12 text-center text-zinc-500 text-sm font-medium">No se han registrado roles dinámicos aún.</td>
+                            <td colspan="5" class="py-12 text-center text-zinc-500 text-sm font-medium">No se han registrado roles dinámicos aún.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -112,4 +127,8 @@
 
     </div>
 </div>
+
+@include('admin.roles.modal-editar')
+@include('admin.roles.modal-eliminar')
+
 @endsection

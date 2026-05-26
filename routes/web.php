@@ -164,6 +164,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/admin/roles', [RolController::class, 'index'])->name('roles.index');
     Route::post('/admin/roles', [RolController::class, 'store'])->name('roles.store');
+    Route::put('/admin/roles/{id}', [RolController::class, 'update'])->name('roles.update');
+    Route::delete('/admin/roles/{id}', [RolController::class, 'destroy'])->name('roles.destroy');
 
     // ==========================================
     // MÓDULO DE FINANZAS - FLUJO DE CAJA

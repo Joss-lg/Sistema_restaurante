@@ -22,7 +22,7 @@
                     </thead>
                     <tbody class="divide-y divide-[var(--border-color)]">
                         @php
-                            // AQUI ESTA LA CORRECCIÓN: Los 9 Módulos Exactos de OLLINTEM PRO
+                            // AQUI ESTA LA CORRECCIÓN: Los 11 Módulos Exactos de OLLINTEM PRO
                             $items = [
                                 ['n' => 'Dashboard',     'slug' => 'dashboard',   'i' => 'fa-th-large'],
                                 ['n' => 'Caja',          'slug' => 'caja',        'i' => 'fa-cash-register'],
@@ -30,9 +30,11 @@
                                 ['n' => 'Cocina',        'slug' => 'cocina',      'i' => 'fa-fire-burner'],
                                 ['n' => 'Inventario',    'slug' => 'inventario',  'i' => 'fa-cube'],
                                 ['n' => 'Empleados',     'slug' => 'empleados',   'i' => 'fa-users'],
-                                ['n' => 'Menu',         'slug' => 'productos',   'i' => 'fa-utensils'],
+                                ['n' => 'Menu',          'slug' => 'productos',   'i' => 'fa-utensils'],
                                 ['n' => 'Categorías',    'slug' => 'categorias',  'i' => 'fa-layer-group'],
                                 ['n' => 'Promociones',   'slug' => 'promociones', 'i' => 'fa-tags'],
+                                ['n' => 'Finanzas',      'slug' => 'finanzas',    'i' => 'fa-chart-line'],
+                                ['n' => 'Roles',         'slug' => 'roles',       'i' => 'fa-id-badge'],
                             ];
                         @endphp
 
@@ -47,7 +49,6 @@
                                     </div>
                                 </td>
 
-                                {{-- Se agregaron las acciones de "gestionar", "abrir", "cerrar" que creamos en el Seeder --}}
                                 @foreach(['ver', 'agregar', 'editar', 'eliminar', 'gestionar'] as $accion)
                                     @php
                                         // Ajuste lógico: En la caja no hay "agregar" ni "gestionar", hay "abrir" y "cerrar"
@@ -57,6 +58,11 @@
                                         if ($item['slug'] == 'caja' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'inventario' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'empleados' && $accion == 'gestionar') $accionReal = 'reporte';
+                                        if ($item['slug'] == 'finanzas' && $accion == 'gestionar') $accionReal = 'reporte';
+                                        if ($item['slug'] == 'roles' && $accion == 'gestionar') $accionReal = null; // Roles no tiene gestionar
+
+                                        // Si la acción es null (no mapeada), no mostramos la columna
+                                        if ($accionReal === null) continue;
 
                                         $slugBusqueda = $item['slug'] . '.' . $accionReal;
                                         $permisoObj = $permisosBase->where('slug', $slugBusqueda)->first();

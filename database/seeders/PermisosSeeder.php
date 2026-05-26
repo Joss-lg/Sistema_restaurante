@@ -24,7 +24,11 @@ class PermisosSeeder extends Seeder
             'cocina'      => ['ver', 'gestionar'],
             
             // EL NUEVO MÓDULO: CAJA (Antes Turnos)
-            'caja'        => ['ver', 'abrir', 'cerrar', 'retiros', 'reporte'], 
+            'caja'        => ['ver', 'abrir', 'cerrar', 'retiros', 'reporte'],
+            
+            // MÓDULOS ADICIONALES
+            'finanzas'    => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],
+            'roles'       => ['ver', 'agregar', 'editar', 'eliminar'],
         ];
 
         // 2. CREAMOS LOS PERMISOS EN LA BASE DE DATOS

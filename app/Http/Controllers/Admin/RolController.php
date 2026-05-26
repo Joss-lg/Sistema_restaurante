@@ -44,4 +44,43 @@ class RolController extends Controller
         // Redireccionamos de vuelta a la vista con un mensaje de éxito
         return redirect()->route('roles.index')->with('success', '¡Puesto registrado con éxito de manera dinámica!');
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:255|unique:roles,nombre,' . $id,
+            'descripcion' => 'nullable|string|max:500',
+            'puede_acceder_pos' => 'required|boolean'
+        ]);
+
+        $rol = Rol::findOrFail($id);
+
+        $rol->update([
+            'nombre' => $request->nombre,
+            'slug' => Str::slug($request->nombre),
+            'descripcion' => $request->descripcion,
+            'puede_acceder_pos' => $request->puede_acceder_pos,
+        ]);
+
+        return redirect()->route('roles.index')->with('success', 'Puesto actualizado correctamente.');
+    }
+
+    /**
+     * Elimina un rol.
+     */
+    public function destroy($id)
+    {
+        $rol = Rol::withCount('usuarios')->findOrFail($id);
+
+        if ($rol->usuarios_count > 0) {
+            return redirect()->route('roles.index')->with('error', 'No se puede eliminar un puesto con empleados asignados.');
+        }
+
+        try {
+            $rol->delete();
+            return redirect()->route('roles.index')->with('success', 'Puesto eliminado correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->route('roles.index')->with('error', 'Ocurrió un error al eliminar el puesto.');
+        }
+    }
 }
