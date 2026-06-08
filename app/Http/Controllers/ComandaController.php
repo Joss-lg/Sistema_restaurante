@@ -21,6 +21,7 @@ class ComandaController extends Controller
         }
 
         $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
+        $esCapitan = $rolSlug === 'capitan';
 
         if ($rolSlug === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
             if ($mesa->mesero_id !== $usuario->id) {
@@ -28,14 +29,20 @@ class ComandaController extends Controller
             }
         }
 
-        if (in_array($rolSlug, ['capitan'], true) && $mesa->estado !== 'ocupada') {
+        if ($esCapitan && $mesa->estado !== 'ocupada') {
             abort(403, 'Solo puedes ver mesas abiertas.');
         }
 
         $categorias = Categoria::all();
         $productos = Producto::with(['categoria', 'modificadores'])->get();
+        $mesasAbiertas = collect();
+        if ($esCapitan) {
+            $mesasAbiertas = Mesa::where('estado', 'ocupada')
+                ->orderBy('numero', 'asc')
+                ->get();
+        }
 
-        return view('mesero.comanda', compact('mesa', 'categorias', 'productos'));
+        return view('mesero.comanda', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan'));
     }
 
     public function enviar(Request $request)
@@ -53,6 +60,27 @@ class ComandaController extends Controller
 
             $mesa = Mesa::findOrFail($request->mesa_id);
             $usuario = auth()->user();
+
+                $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
+                $esCapitan = $rolSlug === 'capitan';
+
+                if (!$esCapitan) {
+                    if (Schema::hasColumn('mesas', 'mesero_id')) {
+                        if ($mesa->mesero_id !== $usuario->id) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'No tienes permiso para enviar a esta mesa.',
+                            ], 403);
+                        }
+                    } else {
+                        if ($mesa->estado !== 'ocupada') {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Solo el capitán puede enviar a otras mesas abiertas.',
+                            ], 403);
+                        }
+                    }
+                }
 
             $subtotal = 0;
             foreach ($request->platillos as $platillo) {
@@ -117,6 +145,84 @@ class ComandaController extends Controller
                 'message' => 'No se pudo enviar la orden. ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Verifica el NIP del capitán y retorna las mesas abiertas.
+     */
+    public function verificarCapitan(Request $request)
+    {
+        $request->validate([
+            'nip' => 'required|string|max:50',
+        ]);
+
+        $nip = $request->input('nip');
+
+        // Buscar usuario con ese NIP que tenga rol 'capitan'
+        $usuario = \App\Models\User::where('codigo_empleado', $nip)->first();
+        if (!$usuario) {
+            return response()->json(['success' => false, 'message' => 'NIP no encontrado.'], 404);
+        }
+
+        if (!$usuario->relationLoaded('rol')) {
+            $usuario->load('rol');
+        }
+
+        $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
+        if ($rolSlug !== 'capitan') {
+            return response()->json(['success' => false, 'message' => 'Usuario no es capitán.'], 403);
+        }
+
+        // Devolver mesas abiertas
+        $mesasAbiertas = Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get(['id', 'numero', 'estado']);
+
+        return response()->json(['success' => true, 'mesas' => $mesasAbiertas]);
+    }
+
+    /**
+     * API: Retorna mesas abiertas (ocupada) para refrescar UI.
+     */
+    public function apiMesasAbiertas(Request $request)
+    {
+        $usuario = auth()->user();
+        if ($usuario && !$usuario->relationLoaded('rol')) {
+            $usuario->load('rol');
+        }
+        $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
+
+        if ($rolSlug === 'capitan') {
+            $mesasForUser = Mesa::orderBy('numero', 'asc')->get();
+        } else {
+            // Mesero normal: solo sus mesas (si existe mesero_id)
+            if (Schema::hasColumn('mesas', 'mesero_id')) {
+                $mesasForUser = Mesa::where('mesero_id', auth()->id())->orderBy('numero', 'asc')->get();
+            } else {
+                // Si no hay mesero_id, devolvemos las mesas ocupadas (limitado)
+                $mesasForUser = Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get();
+            }
+        }
+
+        $mesasAbiertas = $mesasForUser->where('estado', 'ocupada')->values();
+        $mesasLibres = $mesasForUser->where('estado', 'disponible')->values();
+
+        // Mapear solo campos necesarios y proteger total_consumo
+        $mesasAbiertasArr = $mesasAbiertas->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'numero' => $m->numero,
+                'estado' => $m->estado,
+                'capacidad' => $m->capacidad ?? null,
+                'total_consumo' => $m->total_consumo ?? 0,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'mesas_abiertas' => $mesasAbiertasArr,
+            'mesas_libres' => $mesasLibres->values(),
+            'conteo_abiertas' => $mesasAbiertasArr->count(),
+            'conteo_total' => $mesasForUser->count()
+        ]);
     }
 
     // ==========================================

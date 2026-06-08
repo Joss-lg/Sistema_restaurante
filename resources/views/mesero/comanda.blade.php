@@ -35,9 +35,36 @@
             transition: background-color 0.4s ease, color 0.4s ease;
         }
         
-        /* Ocultar barras de scroll pero mantener funcionalidad */
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Scrollbars limpias: ocultas donde se usan y con thumb discreto en WebKit */
+        .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hide-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+        .hide-scroll::-webkit-scrollbar-thumb,
+        .hide-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* Opcional: scrollbars suaves en contenido que sí debe aparecer */
+        .smooth-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .smooth-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.12);
+            border-radius: 999px;
+        }
+        .smooth-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .smooth-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.12) transparent;
+        }
         
         @keyframes fade-in-up {
             0% { opacity: 0; transform: translateY(5px); }
@@ -58,30 +85,44 @@
         }
         .toast-panel {
             min-width: 18rem;
-            max-width: 24rem;
+            max-width: 28rem;
             pointer-events: auto;
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(11, 15, 25, 0.92);
             color: #F8FAFC;
             border: 1px solid rgba(148, 163, 184, 0.15);
             border-left-width: 4px;
-            border-radius: 1rem;
-            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.18);
-            padding: 1rem 1.1rem;
+            border-radius: 1.25rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+            padding: 1rem 1.25rem;
             opacity: 0;
             transform: translateX(28px);
-            transition: opacity 0.25s ease, transform 0.25s ease;
-            font-size: 0.85rem;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            font-size: 0.95rem;
             line-height: 1.5;
             display: grid;
             grid-template-columns: auto 1fr;
-            gap: 0.75rem;
+            gap: 0.85rem;
             align-items: center;
         }
         .toast-panel.show { opacity: 1; transform: translateX(0); }
-        .toast-panel.success { border-color: #22c55e; }
-        .toast-panel.error { border-color: #ef4444; }
-        .toast-panel.info { border-color: var(--accent); }
-        .toast-panel strong { display: block; color: #f8fafc; font-weight: 700; }
+        .toast-panel.success { border-color: rgba(16, 185, 129, 0.25); }
+        .toast-panel.error { border-color: rgba(239, 68, 68, 0.25); }
+        .toast-panel.info { border-color: rgba(59, 130, 246, 0.25); }
+        .toast-panel.warning { border-color: rgba(245, 158, 11, 0.25); }
+        .toast-panel .toast-icon { width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: 1rem; background: rgba(255, 255, 255, 0.08); color: inherit; }
+        .toast-panel.success .toast-icon { background: rgba(16, 185, 129, 0.18); color: #4ade80; }
+        .toast-panel.error .toast-icon { background: rgba(239, 68, 68, 0.18); color: #f87171; }
+        .toast-panel.info .toast-icon { background: rgba(59, 130, 246, 0.18); color: #60a5fa; }
+        .toast-panel.warning .toast-icon { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+        .toast-panel strong { display: block; color: inherit; font-weight: 700; letter-spacing: 0.01em; }
+        .toast-panel span { color: rgba(248, 250, 252, 0.84); font-size: 0.88rem; line-height: 1.55; }
+        body.modo-crema .toast-panel { background: rgba(255, 255, 255, 0.96); color: #1f2937; border-color: #e5e7eb; box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08); }
+        body.modo-crema .toast-panel.success .toast-icon { background: #dcfce7; color: #166534; }
+        body.modo-crema .toast-panel.error .toast-icon { background: #fee2e2; color: #991b1b; }
+        body.modo-crema .toast-panel.info .toast-icon { background: #dbeafe; color: #1d4ed8; }
+        body.modo-crema .toast-panel.warning .toast-icon { background: #ffedd5; color: #c2410c; }
+        body.modo-crema .toast-panel span { color: #52525b; }
         
         aside, section, main, div, button { transition: background-color 0.3s ease, border-color 0.3s ease; }
     </style>
@@ -139,7 +180,7 @@
                 <span id="indicador-gramaje-pendiente" class="hidden absolute top-1 right-1 bg-[#f97316] text-white text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-md"></span>
             </button>
             
-            <button onclick="cambiarMesa()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-amber-500/50 transition-all active:scale-95 group outline-none p-2">
+            <button onclick="llamarCapitan()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-amber-500/50 transition-all active:scale-95 group outline-none p-2">
                 <i class="fas fa-exchange-alt text-amber-500 mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]"></i>
                 <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-amber-500 text-center leading-tight">Traspaso</span>
             </button>
@@ -154,10 +195,12 @@
                 <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-orange-500">Marchar</span>
             </button>
             
-            <button onclick="llamarCapitan()" class="col-span-2 h-12 lg:h-14 xl:h-16 flex items-center justify-center gap-2 rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-indigo-400/50 transition-all active:scale-95 group outline-none">
-                <i class="fas fa-user-shield text-indigo-400 text-sm xl:text-base drop-shadow-[0_0_8px_rgba(129,140,248,0.4)]"></i>
-                <span class="text-[8px] xl:text-[10px] font-black uppercase tracking-widest text-indigo-400">Capitán</span>
-            </button>
+            @if($esCapitan ?? false)
+                <button onclick="llamarCapitan()" class="col-span-2 h-12 lg:h-14 xl:h-16 flex items-center justify-center gap-2 rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-indigo-400/50 transition-all active:scale-95 group outline-none">
+                    <i class="fas fa-user-shield text-indigo-400 text-sm xl:text-base drop-shadow-[0_0_8px_rgba(129,140,248,0.4)]"></i>
+                    <span class="text-[8px] xl:text-[10px] font-black uppercase tracking-widest text-indigo-400">Capitán</span>
+                </button>
+            @endif
         </div>
 
         <button onclick="limpiarTicket()" class="mt-3 w-full h-10 xl:h-12 rounded-xl border border-rose-500/30 bg-[var(--bg-panel)] hover:bg-rose-500 hover:text-white text-rose-500 transition-all active:scale-95 outline-none flex items-center justify-center gap-2 flex-shrink-0">
@@ -165,6 +208,26 @@
             <span class="text-[8px] xl:text-[9px] font-black uppercase tracking-widest">Eliminar Todo</span>
         </button>
     </aside>
+
+    @if($esCapitan ?? false)
+        <div id="modalCapitan" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        @php $mesasAbiertas = $mesasAbiertas ?? collect(); @endphp
+        <div class="w-full max-w-lg rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-black">Autorización Capitán</p>
+                    <h2 class="text-2xl font-black text-[var(--text-main)] mt-1">Selecciona la mesa destino</h2>
+                </div>
+                <button onclick="cerrarModal('modalCapitan')" class="text-[var(--text-muted)] hover:text-white outline-none text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="capitanMesasContainer" class="grid gap-3 max-h-[420px] overflow-y-auto hide-scroll pb-2">
+                {{-- El contenido se cargará dinámicamente mediante AJAX al verificar el NIP del capitán. --}}
+            </div>
+            <div class="mt-5 text-right">
+                <button onclick="cerrarModal('modalCapitan')" class="px-5 py-2.5 rounded-xl border border-[var(--border-color)] text-xs font-bold text-[var(--text-muted)] hover:text-white transition-all">Cancelar</button>
+            </div>
+        </div>
+    @endif
 
     {{-- ========================================== --}}
     {{-- COLUMNA 2: TICKET / COMANDA (CENTRAL)      --}}
@@ -249,6 +312,7 @@
                 <i class="fas fa-paper-plane text-sm"></i>
                 <span>Enviar a Cocina</span>
             </button>
+            <p id="mensajeMesaDestino" class="mt-2 text-[10px] text-[var(--text-muted)]">Selecciona una mesa destino para enviar.</p>
         </div>
     </section>
 
@@ -863,6 +927,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const badge = document.getElementById('badgePersonas');
             if (badge) badge.innerText = 'P: ' + numeroPersonas;
+            actualizarMensajeDestino();
         });
 
         function cerrarModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -883,7 +948,7 @@
             if (!container) return;
             const toast = document.createElement('div');
             toast.className = `toast-panel ${type}`;
-            toast.innerHTML = `<div class="flex items-center justify-center w-8 h-8 rounded-xl bg-white/10 text-white">${type === 'success' ? '<i class="fas fa-check"></i>' : type === 'error' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-info"></i>'}</div><div><strong>${type === 'success' ? 'Éxito' : type === 'error' ? 'Error' : 'Aviso'}</strong><span class="block text-[0.75rem] font-medium leading-snug">${message}</span></div>`;
+            toast.innerHTML = `<div class="toast-icon">${type === 'success' ? '<i class="fas fa-check"></i>' : type === 'error' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-info"></i>'}</div><div><strong>${type === 'success' ? 'Éxito' : type === 'error' ? 'Error' : 'Aviso'}</strong><span>${message}</span></div>`;
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.add('show'));
             setTimeout(() => { toast.classList.remove('show'); toast.addEventListener('transitionend', () => toast.remove(), { once: true }); }, duration);
@@ -906,9 +971,97 @@
 
         function obtenerSubtotalConDescuento() { return Math.max(0, ticketSubtotal - (ticketSubtotal * (descuentoPorcentaje / 100))); }
         function imprimirPrecuenta() { mostrarExito("Imprimiendo pre-cuenta..."); }
-        function cambiarMesa() { const nuevaMesa = prompt("¿Traspasar a mesa?"); if(nuevaMesa) mostrarExito(`Traspasando a ${nuevaMesa}...`); }
+        function cambiarMesa() { llamarCapitan(); }
         function marcharTiempos() { mostrarExito("¡Marchando platillos!"); }
-        function llamarCapitan() { const nip = prompt("NIP Capitán:"); if(nip === "1234") { mostrarExito("Capitán autorizado."); } else if(nip) { mostrarError("NIP Incorrecto."); } }
+        let mesaDestinoSeleccionada = null;
+        let mesaDestinoSeleccionadaNumero = null;
+        let capitanAutorizado = false;
+
+        function actualizarMensajeDestino() {
+            const mensaje = document.getElementById('mensajeMesaDestino');
+            const btnEnviar = document.getElementById('btn-enviar');
+            if (capitanAutorizado && mesaDestinoSeleccionada && mesaDestinoSeleccionadaNumero) {
+                mensaje.innerText = `Destino seleccionado: Mesa ${mesaDestinoSeleccionadaNumero}`;
+                btnEnviar.innerHTML = `<i class="fas fa-paper-plane text-sm"></i> Enviar a Mesa ${mesaDestinoSeleccionadaNumero}`;
+            } else {
+                mensaje.innerText = 'Enviar a cocina o selecciona una mesa destino.';
+                btnEnviar.innerHTML = `<i class="fas fa-paper-plane text-sm"></i> <span>Enviar a Cocina</span>`;
+            }
+        }
+
+
+        async function llamarCapitan() {
+            const nip = prompt("NIP Capitán:");
+            if (!nip) return;
+
+            try {
+                const res = await fetch('/mesero/capitan/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ nip: nip.trim() })
+                });
+
+                const data = await res.json().catch(() => null);
+                if (!res.ok) throw new Error(data?.message || 'Error al verificar NIP');
+
+                if (data.success) {
+                    capitanAutorizado = true;
+                    mostrarExito('Capitán autorizado.');
+                    // render mesas
+                    const container = document.getElementById('capitanMesasContainer');
+                    container.innerHTML = '';
+                    if (Array.isArray(data.mesas) && data.mesas.length > 0) {
+                        data.mesas.forEach(m => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.dataset.mesaId = m.id;
+                            btn.className = 'w-full text-left rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] px-4 py-4 hover:border-[#3B82F6]/50 transition-all flex items-center justify-between gap-4';
+                            btn.innerHTML = `<div><p class="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] font-bold">Mesa abierta</p><h3 class="text-lg font-black text-[var(--text-main)]">${m.numero}</h3></div><span class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400"><i class="fas fa-circle text-[6px]"></i> ${m.estado ? m.estado.charAt(0).toUpperCase() + m.estado.slice(1) : ''}</span>`;
+                            btn.addEventListener('click', () => seleccionarMesaDestino(m.id, m.numero));
+                            container.appendChild(btn);
+                        });
+                        if (mesaDestinoSeleccionada) {
+                            const selectedBtn = container.querySelector(`button[data-mesa-id="${mesaDestinoSeleccionada}"]`);
+                            if (selectedBtn) {
+                                selectedBtn.classList.remove('border-[var(--border-color)]', 'bg-[var(--bg-base)]');
+                                selectedBtn.classList.add('border-blue-500/50', 'bg-blue-500/10');
+                            }
+                        }
+                    } else {
+                        container.innerHTML = `<div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] p-6 text-center text-[var(--text-muted)]"><p class="font-bold text-sm mb-2">No hay mesas abiertas disponibles.</p><p class="text-[12px]">Solo el capitán puede enviar un pedido a otra mesa abierta.</p></div>`;
+                    }
+
+                    document.getElementById('modalCapitan').classList.remove('hidden');
+                }
+            } catch (err) {
+                mostrarError(err.message || 'Error al verificar NIP');
+            }
+        }
+
+        function seleccionarMesaDestino(mesaId, mesaNumero) {
+            mesaDestinoSeleccionada = mesaId;
+            mesaDestinoSeleccionadaNumero = mesaNumero;
+            const container = document.getElementById('capitanMesasContainer');
+            if (container) {
+                container.querySelectorAll('button[data-mesa-id]').forEach(btn => {
+                    btn.classList.remove('border-blue-500/50', 'bg-blue-500/10');
+                    btn.classList.add('border-[var(--border-color)]', 'bg-[var(--bg-base)]');
+                });
+                const button = container.querySelector(`button[data-mesa-id="${mesaId}"]`);
+                if (button) {
+                    button.classList.remove('border-[var(--border-color)]', 'bg-[var(--bg-base)]');
+                    button.classList.add('border-blue-500/50', 'bg-blue-500/10');
+                }
+            }
+            actualizarMensajeDestino();
+            document.getElementById('modalCapitan').classList.add('hidden');
+            mostrarExito(`Mesa ${mesaNumero} lista para envío.`);
+        }
 
         function enviarACocina() {
             const itemsHTML = document.querySelectorAll('.ticket-item');
@@ -932,7 +1085,7 @@
             const btn = document.getElementById('btn-enviar');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             btn.disabled = true;
-            const mesaId = {{ $mesa->id ?? 1 }};
+            const mesaId = capitanAutorizado && mesaDestinoSeleccionada ? mesaDestinoSeleccionada : {{ $mesa->id ?? 1 }};
 
             fetch('/mesero/comanda/enviar', {
                 method: 'POST',

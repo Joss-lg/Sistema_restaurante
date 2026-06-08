@@ -27,13 +27,9 @@ Route::post('/login-pin', [LoginController::class, 'loginConPin'])->name('login.
 Auth::routes();
 
 Route::middleware(['auth'])->group(function () {
-    
-    // ==========================================
-    // MÓDULO DEL MESERO (Pantalla POS completa)
-    // ==========================================
+
     Route::prefix('mesero')->name('mesero.')->group(function () {
         
-        // ---> RUTA DEL DASHBOARD DEL MESERO / FILTRADO POR ROL EN BACKEND <---
         Route::get('/dashboard', function () {
             $esCapitan = strtolower(auth()->user()->rol ?? '') === 'capitan';
 
@@ -68,6 +64,11 @@ Route::middleware(['auth'])->group(function () {
 
         // ---> NUEVA RUTA PARA ENVIAR LA COMANDA <---
         Route::post('/comanda/enviar', [ComandaController::class, 'enviar'])->name('comanda.enviar');
+
+        // Verificar NIP de capitán y obtener mesas abiertas
+        Route::post('/capitan/verify', [ComandaController::class, 'verificarCapitan'])->name('capitan.verify');
+        // API para obtener mesas abiertas (JSON)
+        Route::get('/mesas/abiertas', [ComandaController::class, 'apiMesasAbiertas'])->name('mesas.abiertas');
 
         Route::get('/comanda/{mesa}', [ComandaController::class, 'show'])->name('comanda.show');
 
@@ -143,6 +144,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/mesas', [MesaController::class, 'getMesas'])->name('api.mesas');
         Route::post('/api', [MesaController::class, 'store'])->name('api.store');
         Route::patch('/api/{id}/posicion', [MesaController::class, 'updatePosicion'])->name('api.posicion');
+        Route::post('/api/posiciones', [MesaController::class, 'guardarPosiciones'])->name('api.posiciones');
+        Route::patch('/api/fusionar', [MesaController::class, 'fusionarMesas'])->name('api.fusionar');
         Route::patch('/api/{id}/estado', [MesaController::class, 'cambiarEstado'])->name('api.estado');
         Route::put('/api/{id}', [MesaController::class, 'update'])->name('api.update');
         Route::delete('/api/{id}', [MesaController::class, 'destroy'])->name('api.destroy');

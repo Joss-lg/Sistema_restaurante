@@ -9,25 +9,31 @@
 
     <div class="p-4 lg:p-6 flex justify-between items-center border-b border-[var(--border-color)]">
         <h2 class="text-[9px] lg:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">{{ $tituloMesas }}</h2>
-        <div class="w-6 lg:w-7 h-6 lg:h-7 rounded-lg border border-[var(--border-color)] bg-[var(--bg-base)] flex items-center justify-center text-[9px] lg:text-[10px] font-black text-[var(--text-main)] shadow-sm">
+        <div id="sidebarMesasActivas" class="w-6 lg:w-7 h-6 lg:h-7 rounded-lg border border-[var(--border-color)] bg-[var(--bg-base)] flex items-center justify-center text-[9px] lg:text-[10px] font-black text-[var(--text-main)] shadow-sm">
             {{ $mesasActivas }}
         </div>
     </div>
 
-    @if($mesasActivas > 0 || $mesasLibres->count() > 0)
-        <div class="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3">
-            @foreach($mesas as $mesa)
-                <a href="{{ route('mesero.comanda.show', $mesa->id) }}" class="block p-3 lg:p-4 rounded-2xl lg:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-panel)] hover:border-[#3B82F6]/40 transition-all">
-                    <div class="flex items-center justify-between gap-3 lg:gap-4">
-                        <div>
-                            <p class="text-[8px] lg:text-xs text-[var(--text-muted)] uppercase tracking-[0.2em] font-bold">Mesa</p>
-                            <h3 class="text-base lg:text-xl font-black text-[var(--text-main)]">{{ $mesa->numero }}</h3>
+    @if($mesasActivas > 0)
+        <div id="sidebarMesasList" class="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3">
+            @foreach($mesasAbiertas as $mesa)
+                <a href="{{ route('mesero.comanda.show', $mesa->id) }}" data-mesa-id="{{ $mesa->id }}" class="mesa-item block p-3 lg:p-4 rounded-2xl lg:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-panel)] hover:border-[#3B82F6]/40 transition-all">
+                    <div class="flex items-start justify-between gap-3 lg:gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-base lg:text-xl font-black text-[var(--text-main)]">Mesa {{ $mesa->numero }}</h3>
+                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-700/10 text-emerald-300 text-[10px] font-black uppercase">ACTIVA</span>
+                            </div>
+                            <div class="mt-2 flex items-center gap-3 text-[12px] text-[var(--text-muted)]">
+                                <span class="flex items-center gap-1"><i class="fas fa-user-friends text-[12px]"></i> {{ $mesa->capacidad }} personas</span>
+                                <span class="text-[var(--text-muted)]">• 0m</span>
+                                <span class="text-emerald-400 font-black">$ {{ number_format($mesa->total_consumo ?? 0, 2) }}</span>
+                            </div>
                         </div>
-                        <span class="inline-flex items-center gap-2 text-[8px] lg:text-[10px] font-black uppercase tracking-[0.2em] {{ $mesa->estado === 'ocupada' ? 'text-green-400' : 'text-sky-400' }}">
-                            <i class="fas fa-circle text-[6px] lg:text-[8px]"></i> {{ ucfirst($mesa->estado) }}
-                        </span>
+                        <div class="flex flex-col justify-between text-right">
+                            <span class="text-[#3B82F6] font-bold">Ver comanda ›</span>
+                        </div>
                     </div>
-                    <p class="mt-2 lg:mt-3 text-[8px] lg:text-[9px] text-[var(--text-muted)]">Capacidad: {{ $mesa->capacidad }}</p>
                 </a>
             @endforeach
         </div>

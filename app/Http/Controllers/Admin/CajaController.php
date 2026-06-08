@@ -41,22 +41,53 @@ class CajaController extends Controller
     {
         $mesa = Mesa::findOrFail($id);
 
-        $ordenes = DB::table('ordenes')
+        // Primero verificar si hay cuentas divididas
+        $todasLasOrdenes = DB::table('ordenes')
             ->where('mesa_id', $mesa->id)
-            ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
             ->whereNull('deleted_at')
             ->orderByDesc('created_at')
             ->get();
 
-        // Verificar si hay cuentas divididas
-        $ordenesDivididas = $ordenes->filter(function ($ordenItem) {
+        // Detectar si hay cuentas divididas
+        $ordenesDivididas = $todasLasOrdenes->filter(function ($ordenItem) {
             return isset($ordenItem->cuenta_dividida) && $ordenItem->cuenta_dividida;
         });
-        $cuentasDivididas = $ordenesDivididas->isNotEmpty();
+        $tienesCuentasDivididas = $ordenesDivididas->isNotEmpty();
+
+        // Si hay cuentas divididas, usar todas las órdenes (incluso las pagadas)
+        // Si no, filtrar por estados específicos
+        if ($tienesCuentasDivididas) {
+            $ordenes = $ordenesDivididas;
+        } else {
+            $ordenes = $todasLasOrdenes->filter(function ($ordenItem) {
+                return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
+            });
+        }
+
+        // Ya tenemos $tienesCuentasDivididas y $ordenesDivididas del código anterior
+        $cuentasDivididas = $tienesCuentasDivididas;
+        
+        // Obtener la primera orden dividida si existe
         $ordenDividida = $ordenesDivididas->first();
-        $totalCuentasDivision = $ordenDividida->total_cuentas_division ?? null;
-        if ($cuentasDivididas && empty($totalCuentasDivision)) {
-            $totalCuentasDivision = $ordenesDivididas->count();
+        
+        // Obtener el total de cuentas a dividir
+        $totalCuentasDivision = null;
+        if ($cuentasDivididas) {
+            // Priorizar el campo total_cuentas_division de la orden
+            $totalCuentasDivision = $ordenDividida->total_cuentas_division ?? 
+                                    $ordenDividida->numero_cuenta_division ?? 
+                                    $ordenesDivididas->count();
+            
+            // Log para depuración
+            Log::info('DEBUG Cuentas Divididas:', [
+                'mesa_id' => $mesa->id,
+                'cuentasDivididas' => $cuentasDivididas,
+                'ordenDividida' => $ordenDividida,
+                'total_cuentas_division' => $ordenDividida->total_cuentas_division ?? 'NULL',
+                'numero_cuenta_division' => $ordenDividida->numero_cuenta_division ?? 'NULL',
+                'ordenesDivididas->count()' => $ordenesDivididas->count(),
+                'totalCuentasDivision FINAL' => $totalCuentasDivision
+            ]);
         }
 
         $productos = collect();
@@ -72,47 +103,69 @@ class CajaController extends Controller
 
         if ($ordenes->isNotEmpty()) {
             if ($cuentasDivididas) {
-                // Si hay cuentas divididas, procesarlas por separado
-                $ordenLabel = 'Cuenta dividida en ' . $totalCuentasDivision . ' cuentas';
+                // Establece el label para cuentas divididas
+                $ordenLabel = 'Dividida en ' . $totalCuentasDivision . ' personas';
                 
-                foreach ($ordenes as $ordenItem) {
-                    $ordenObj = \App\Models\Orden::find($ordenItem->id);
-                    $detalles = DB::table('detalles_orden')
-                        ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
-                        ->select(
-                            'detalles_orden.id',
-                            'productos.nombre as nombre',
-                            'detalles_orden.cantidad',
-                            'detalles_orden.precio_unitario',
-                            'detalles_orden.notas'
-                        )
-                        ->where('detalles_orden.orden_id', $ordenItem->id)
-                        ->get();
+                // Si hay cuentas divididas, necesitamos sumar TODOS los productos
+                // y dividir el total entre el número de personas
+                
+                // Obtener TODAS las órdenes (divididas + normales) de la mesa
+                $todasLasOrdenesDelMesa = DB::table('ordenes')
+                    ->where('mesa_id', $mesa->id)
+                    ->whereNull('deleted_at')
+                    ->get();
+                
+                // Obtener todos los detalles de TODAS las órdenes
+                $ordenIds = $todasLasOrdenesDelMesa->pluck('id')->toArray();
+                $todosLosDetalles = DB::table('detalles_orden')
+                    ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
+                    ->select(
+                        'detalles_orden.id',
+                        'productos.nombre as nombre',
+                        'detalles_orden.cantidad',
+                        'detalles_orden.precio_unitario',
+                        'detalles_orden.notas'
+                    )
+                    ->whereIn('detalles_orden.orden_id', $ordenIds)
+                    ->get();
 
-                    $subtotalCuenta = $detalles->sum(function ($item) {
-                        return floatval($item->cantidad) * floatval($item->precio_unitario);
-                    });
-                    $subtotalCuenta = round($subtotalCuenta, 2);
-                    $ivaCuenta = round($subtotalCuenta * 0.16, 2);
-                    $propinaCuenta = floatval($ordenItem->propina);
+                // Calcular el total completo
+                $subtotalTotal = $todosLosDetalles->sum(function ($item) {
+                    return floatval($item->cantidad) * floatval($item->precio_unitario);
+                });
+                $subtotalTotal = round($subtotalTotal, 2);
+                $ivaTotal = round($subtotalTotal * 0.16, 2);
+                
+                // Obtener la propina de cualquier orden dividida (deberían ser todas iguales)
+                $propinaTotal = floatval($ordenDividida->propina ?? 0);
+                $totalOrdenCompleta = round($subtotalTotal + $ivaTotal + $propinaTotal, 2);
 
+                // Crear una cuenta por cada persona con el total dividido
+                for ($i = 1; $i <= $totalCuentasDivision; $i++) {
+                    $ordenParaEstaPersona = $ordenesDivididas->firstWhere('numero_cuenta_division', $i);
+                    
                     $cuentasDividadasInfo[] = [
-                        'numero_cuenta' => $ordenItem->numero_cuenta_division,
-                        'orden_id' => $ordenItem->id,
-                        'numero_orden' => $ordenItem->numero_orden,
-                        'productos' => $detalles,
-                        'subtotal' => $subtotalCuenta,
-                        'iva' => $ivaCuenta,
-                        'propina' => $propinaCuenta,
-                        'total' => round($subtotalCuenta + $ivaCuenta + $propinaCuenta, 2)
+                        'numero_cuenta' => $i,
+                        'orden_id' => $ordenParaEstaPersona?->id,
+                        'numero_orden' => $ordenParaEstaPersona?->numero_orden ?? 'Persona ' . $i,
+                        'productos' => $todosLosDetalles,
+                        'subtotal' => round($subtotalTotal / $totalCuentasDivision, 2),
+                        'iva' => round($ivaTotal / $totalCuentasDivision, 2),
+                        'propina' => round($propinaTotal / $totalCuentasDivision, 2),
+                        'total' => round($totalOrdenCompleta / $totalCuentasDivision, 2)
                     ];
-
-                    $subtotal += $subtotalCuenta;
-                    $iva += $ivaCuenta;
-                    $propina += $propinaCuenta;
                 }
 
+                $subtotal = $subtotalTotal;
+                $iva = $ivaTotal;
+                $propina = $propinaTotal;
+
                 $totalPagar = round($subtotal + $iva + $propina, 2);
+
+                // Ordenar las cuentas divididas por su número para una presentación consistente
+                usort($cuentasDividadasInfo, function($a, $b) {
+                    return intval($a['numero_cuenta'] ?? 0) <=> intval($b['numero_cuenta'] ?? 0);
+                });
             } else {
                 // Comportamiento original para cuentas no divididas
                 $orden = (object) $ordenes[0];
@@ -145,6 +198,15 @@ class CajaController extends Controller
                 $totalPagar = round($subtotal + $iva + $propina, 2);
             }
         }
+
+        // Log final para depuración
+        Log::info('FINAL cuentasDividadasInfo', [
+            'count' => count($cuentasDividadasInfo),
+            'data' => $cuentasDividadasInfo,
+            'cuentasDivididas' => $cuentasDivididas,
+            'totalCuentasDivision' => $totalCuentasDivision,
+            'totalPagar' => $totalPagar
+        ]);
 
         return view('admin.caja.cobrar', [
             'mesa' => $mesa,
@@ -203,13 +265,23 @@ class CajaController extends Controller
             ], 422);
         }
 
-        $ordenIds = $ordenesActivas->pluck('id')->all();
-        $detalleTotal = DB::table('detalles_orden')
-            ->whereIn('orden_id', $ordenIds)
-            ->sum(DB::raw('cantidad * precio_unitario'));
+        // Si se proporcionó orden_id, calcular totales sólo para esa orden
+        if (! empty($validated['orden_id']) && $orden) {
+            $detalleTotal = DB::table('detalles_orden')
+                ->where('orden_id', $orden->id)
+                ->sum(DB::raw('cantidad * precio_unitario'));
 
-        $propinaTotal = floatval($ordenesActivas->sum('propina'));
-        $total = round(floatval($detalleTotal) * 1.16 + $propinaTotal, 2);
+            $propinaTotal = floatval($orden->propina);
+            $total = round(floatval($detalleTotal) * 1.16 + $propinaTotal, 2);
+        } else {
+            $ordenIds = $ordenesActivas->pluck('id')->all();
+            $detalleTotal = DB::table('detalles_orden')
+                ->whereIn('orden_id', $ordenIds)
+                ->sum(DB::raw('cantidad * precio_unitario'));
+
+            $propinaTotal = floatval($ordenesActivas->sum('propina'));
+            $total = round(floatval($detalleTotal) * 1.16 + $propinaTotal, 2);
+        }
 
         $efectivo = floatval($validated['efectivo']);
         $cambio = 0;
@@ -231,25 +303,47 @@ class CajaController extends Controller
 
         $comprobanteUrl = null;
 
-        DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio) {
-            DB::table('ordenes')
+        DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio, $orden) {
+            if (! empty($orden)) {
+                // Marcar sólo la orden pagada
+                DB::table('ordenes')
+                    ->where('id', $orden->id)
+                    ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                    ->update([
+                        'estado' => 'pagada',
+                        'metodo_pago' => $validated['metodo_pago'],
+                        'cerrada_el' => Carbon::now(),
+                    ]);
+            } else {
+                // Marcar todas las órdenes activas como pagadas
+                DB::table('ordenes')
+                    ->where('mesa_id', $mesa->id)
+                    ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                    ->whereNull('deleted_at')
+                    ->update([
+                        'estado' => 'pagada',
+                        'metodo_pago' => $validated['metodo_pago'],
+                        'cerrada_el' => Carbon::now(),
+                    ]);
+            }
+
+            // Si no quedan órdenes activas, liberar la mesa
+            $remaining = DB::table('ordenes')
                 ->where('mesa_id', $mesa->id)
                 ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
                 ->whereNull('deleted_at')
-                ->update([
-                    'estado' => 'pagada',
-                    'metodo_pago' => $validated['metodo_pago'],
-                    'cerrada_el' => Carbon::now(),
-                ]);
+                ->count();
 
-            $mesa->estado = 'disponible';
-            if (Schema::hasColumn('mesas', 'mesero_id')) {
-                $mesa->mesero_id = null;
+            if ($remaining === 0) {
+                $mesa->estado = 'disponible';
+                if (Schema::hasColumn('mesas', 'mesero_id')) {
+                    $mesa->mesero_id = null;
+                }
+                if (Schema::hasColumn('mesas', 'total_consumo')) {
+                    $mesa->total_consumo = 0;
+                }
+                $mesa->save();
             }
-            if (Schema::hasColumn('mesas', 'total_consumo')) {
-                $mesa->total_consumo = 0;
-            }
-            $mesa->save();
 
             if (Schema::hasTable('caja_movimientos')) {
                 $movimientoData = [

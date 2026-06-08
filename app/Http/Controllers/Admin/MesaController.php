@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mesa;
+ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class MesaController extends Controller
 {
@@ -18,23 +20,40 @@ class MesaController extends Controller
 
     public function getMesas(): JsonResponse
     {
-        $mesas = Mesa::all();
-        
+        $mesas = Mesa::with('mesero')->get();
+
         $mesasConEstado = $mesas->map(function ($mesa) {
-            $ordenesActivas = DB::table('ordenes')
+            $ordenActiva = DB::table('ordenes')
                 ->where('mesa_id', $mesa->id)
                 ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
                 ->whereNull('deleted_at')
-                ->count();
-            
-            $ocupada = $mesa->estado === 'ocupada' || $ordenesActivas > 0;
+                ->orderByDesc('abierta_el')
+                ->first();
 
+            $ordenesActivas = $ordenActiva ? 1 : 0;
+            $ocupada = $mesa->estado === 'ocupada' || $ordenesActivas > 0;
+            $minutosActiva = 0;
+            if ($ordenActiva) {
+                $fechaInicio = $ordenActiva->abierta_el ?? $ordenActiva->created_at;
+                if ($fechaInicio) {
+                    $minutosActiva = now()->diffInMinutes($fechaInicio);
+                }
+            }
+
+            $zonaValida = in_array($mesa->seccion, ['Salón', 'Terraza', 'VIP']);
             return [
                 'id' => $mesa->id,
                 'numero' => $mesa->numero,
                 'capacidad' => $mesa->capacidad,
                 'estado' => $mesa->estado,
                 'seccion' => $mesa->seccion,
+                'zona' => $zonaValida ? $mesa->seccion : null,
+                'fusionada' => $mesa->seccion && !$zonaValida,
+                'posicion_x' => $mesa->posicion_x,
+                'posicion_y' => $mesa->posicion_y,
+                'mesero_nombre' => $mesa->mesero?->nombre ?? 'Mesero Asignado',
+                'total_cuenta' => $ordenActiva ? (float) $ordenActiva->total : 0,
+                'minutos_activa' => $minutosActiva,
                 'ordenes_activas' => $ordenesActivas,
                 'ocupada' => $ocupada,
             ];
@@ -64,13 +83,18 @@ class MesaController extends Controller
         $validated = $request->validate([
             'numero' => 'required|string|max:20|unique:mesas,numero,'.$mesa->id,
             'capacidad' => 'required|integer|min:1',
-            'estado' => 'required|string|in:libre,ocupada,reservada',
+            'estado' => 'required|string|in:disponible,ocupada,reservada',
         ]);
+
+        $estado = strtolower($validated['estado']);
+        if ($estado === 'libre') {
+            $estado = 'disponible';
+        }
 
         $mesa->update([
             'numero' => $validated['numero'],
             'capacidad' => $validated['capacidad'],
-            'estado' => $validated['estado'],
+            'estado' => $estado,
         ]);
 
         return response()->json([
@@ -85,15 +109,20 @@ class MesaController extends Controller
         $validated = $request->validate([
             'numero' => 'required|string|max:20|unique:mesas,numero',
             'capacidad' => 'required|integer|min:1',
-            'estado' => 'nullable|string|in:libre,ocupada,reservada',
+            'estado' => 'nullable|string|in:disponible,ocupada,reservada',
             'posicion_x' => 'nullable|integer',
             'posicion_y' => 'nullable|integer',
         ]);
 
+        $estado = strtolower($validated['estado'] ?? 'disponible');
+        if ($estado === 'libre') {
+            $estado = 'disponible';
+        }
+
         $mesa = Mesa::create([
             'numero' => $validated['numero'],
             'capacidad' => $validated['capacidad'],
-            'estado' => $validated['estado'] ?? 'libre',
+            'estado' => $estado,
             'posicion_x' => $validated['posicion_x'] ?? null,
             'posicion_y' => $validated['posicion_y'] ?? null,
         ]);
@@ -107,6 +136,13 @@ class MesaController extends Controller
 
     public function updatePosicion(Request $request, $id): JsonResponse
     {
+        if (!Schema::hasColumn('mesas', 'posicion_x') || !Schema::hasColumn('mesas', 'posicion_y')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La tabla mesas no tiene las columnas posicion_x y posicion_y. Ejecuta la migración correspondiente.',
+            ], 500);
+        }
+
         $mesa = Mesa::findOrFail($id);
 
         $validated = $request->validate([
@@ -123,6 +159,62 @@ class MesaController extends Controller
             'success' => true,
             'message' => 'Posición de la mesa guardada',
             'mesa' => $mesa
+        ]);
+    }
+
+    public function guardarPosiciones(Request $request): JsonResponse
+    {
+        if (!Schema::hasColumn('mesas', 'posicion_x') || !Schema::hasColumn('mesas', 'posicion_y')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La tabla mesas no tiene las columnas posicion_x y posicion_y. Ejecuta la migración correspondiente.',
+            ], 500);
+        }
+
+        $validated = $request->validate([
+            'coordenadas' => 'required|array',
+            'coordenadas.*.id' => 'required|integer|exists:mesas,id',
+            'coordenadas.*.x' => 'nullable|integer',
+            'coordenadas.*.y' => 'nullable|integer',
+        ]);
+
+        foreach ($validated['coordenadas'] as $coord) {
+            $updateData = [];
+            if (array_key_exists('x', $coord)) {
+                $updateData['posicion_x'] = $coord['x'];
+            }
+            if (array_key_exists('y', $coord)) {
+                $updateData['posicion_y'] = $coord['y'];
+            }
+            if (!empty($updateData)) {
+                Mesa::where('id', $coord['id'])->update($updateData);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Posiciones de las mesas guardadas correctamente',
+        ]);
+    }
+
+    public function fusionarMesas(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'mesas' => 'required|array|min:2',
+            'mesas.*' => 'required|integer|exists:mesas,id',
+        ]);
+
+        $fusionId = 'fusion-' . now()->timestamp . '-' . rand(100, 999);
+
+        Mesa::whereIn('id', $validated['mesas'])->update([
+            'seccion' => $fusionId,
+            'estado' => 'ocupada',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesas unidas correctamente',
+            'fusion_id' => $fusionId,
         ]);
     }
 

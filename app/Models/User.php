@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 use App\Models\Mesa;
 use App\Models\Permiso;
 use App\Models\Rol;
@@ -98,26 +99,33 @@ class User extends Authenticatable
      */
     public function tienePermiso($permisoRequerido)
     {
-        $rolSlug = $this->obtenerSlugRol();
+        $rol = $this->relationLoaded('rol')
+            ? $this->getRelation('rol')
+            : $this->rol()->first();
 
-        if (!$rolSlug) {
-            return false;
+        if ($rol instanceof Rol) {
+            $rolSlug = strtolower(trim((string) $rol->slug));
+
+            if (in_array($rolSlug, ['admin', 'administrador'], true)) {
+                return true;
+            }
+
+            if ($rol->relationLoaded('permisos')) {
+                if ($rol->permisos->contains('slug', strtolower($permisoRequerido))) {
+                    return true;
+                }
+            } else {
+                if (DB::table('permiso_rol')
+                    ->join('permisos', 'permiso_rol.permiso_id', '=', 'permisos.id')
+                    ->where('permiso_rol.rol_id', $rol->id)
+                    ->where('permisos.slug', strtolower($permisoRequerido))
+                    ->exists()) {
+                    return true;
+                }
+            }
         }
 
-        if (in_array($rolSlug, ['admin', 'administrador'], true)) {
-            return true;
-        }
-
-        $tienePermisoEnRol = false;
-        if ($this->rol instanceof Rol) {
-            $tienePermisoEnRol = $this->rol->permisos->contains('slug', strtolower($permisoRequerido));
-        }
-
-        if ($tienePermisoEnRol) {
-            return true;
-        }
-
-        return $this->permisos->contains('slug', strtolower($permisoRequerido));
+        return $this->permisos()->where('slug', strtolower($permisoRequerido))->exists();
     }
 
     /**
@@ -125,10 +133,10 @@ class User extends Authenticatable
      */
     public function puedeAccederAlSistema(): bool
     {
-        if (! $this->rol || ! $this->rol instanceof Rol) {
-            return false;
-        }
+        $rol = $this->relationLoaded('rol')
+            ? $this->getRelation('rol')
+            : $this->rol()->first();
 
-        return (bool) $this->rol->puede_acceder_pos;
+        return $rol instanceof Rol && (bool) $rol->puede_acceder_pos;
     }
 }

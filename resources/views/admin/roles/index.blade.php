@@ -15,8 +15,14 @@
     </div>
 
     @if(session('success'))
-        <div class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-xs font-bold">
-            {{ session('success') }}
+        <div class="fixed right-6 top-6 z-50 max-w-lg w-[min(95vw,420px)] rounded-2xl border border-emerald-200/60 bg-[#0B0F19]/90 px-5 py-4 shadow-2xl backdrop-blur-xl text-white text-sm font-semibold flex items-start gap-3 modo-crema:relative modo-crema:top-0 modo-crema:right-0 modo-crema:bg-white modo-crema:border-gray-100 modo-crema:text-gray-800 modo-crema:shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
+            <div class="toast-icon bg-emerald-500/15 text-emerald-200 rounded-2xl w-10 h-10 grid place-items-center">
+                <i class="fas fa-check"></i>
+            </div>
+            <div>
+                <strong class="block text-sm">Éxito</strong>
+                <p class="mt-1 text-[0.92rem] text-white/85 modo-crema:text-slate-700">{{ session('success') }}</p>
+            </div>
         </div>
     @endif
 
@@ -90,9 +96,9 @@
                             </td>
                             <td class="py-4 px-4">
                                 @if($rol->puede_acceder_pos)
-                                    <span class="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase">Permitido</span>
+                                    <span class="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 modo-crema:bg-emerald-50 modo-crema:text-emerald-900 text-[10px] font-bold uppercase">Permitido</span>
                                 @else
-                                    <span class="px-2.5 py-1 rounded bg-rose-500/10 text-rose-400 text-[10px] font-bold uppercase">Restringido</span>
+                                    <span class="px-2.5 py-1 rounded bg-rose-500/10 text-rose-400 modo-crema:bg-rose-50 modo-crema:text-rose-900 text-[10px] font-bold uppercase">Restringido</span>
                                 @endif
                             </td>
                             <td class="py-4 px-4 text-center tabular-nums">

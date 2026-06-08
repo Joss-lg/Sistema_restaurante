@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nombre');
             
             // El tipo ayuda a saber si es un descuento porcentual, monto fijo o 2x1
-            $table->string('tipo'); 
+            $table->string('tipo_promocion'); 
             
             // El valor puede ser el porcentaje (ej: 15.00) o el monto (ej: 50.00)
             $table->decimal('valor_descuento', 10, 2);

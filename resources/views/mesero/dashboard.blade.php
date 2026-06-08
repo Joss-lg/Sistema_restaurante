@@ -116,6 +116,70 @@
         }
         document.addEventListener('DOMContentLoaded', () => actualizarIcono(document.body.classList.contains('modo-crema')));
     </script>
+    <script>
+        // Poll para refrescar mesas abiertas y lista del sidebar cada 5s
+        async function refrescarMesas() {
+            try {
+                const res = await fetch('/mesero/mesas/abiertas', { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+                const data = await res.json().catch(() => null);
+                if (!res.ok || !data || !data.success) return;
+
+                // Actualizar contadores en central
+                const totalElem = document.getElementById('txtTotalMesas');
+                const abiertasElem = document.getElementById('txtMesasAbiertas');
+                if (totalElem) totalElem.innerText = data.conteo_total;
+                if (abiertasElem) abiertasElem.innerText = data.conteo_abiertas;
+
+                // Actualizar badge en sidebar
+                const badge = document.getElementById('sidebarMesasActivas');
+                if (badge) badge.innerText = data.conteo_abiertas;
+
+                // Actualizar lista de mesas en sidebar
+                const list = document.getElementById('sidebarMesasList');
+                if (list) {
+                    list.innerHTML = '';
+                    const mesas = data.mesas_abiertas || [];
+                    if (mesas.length === 0) {
+                        list.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 text-center"><h3 class="text-sm lg:text-lg font-black text-[var(--text-main)] tracking-tight mb-1 lg:mb-2">Bandeja Vacía</h3><p class="text-[8px] lg:text-xs text-[var(--text-muted)] font-medium leading-relaxed max-w-[150px] lg:max-w-[200px]">Inicia una nueva comanda desde el panel central.</p></div>`;
+                    } else {
+                        mesas.forEach(m => {
+                            const a = document.createElement('a');
+                            a.href = `/mesero/comanda/${m.id}`;
+                            a.className = 'mesa-item block p-3 lg:p-4 rounded-2xl lg:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-panel)] hover:border-[#3B82F6]/40 transition-all';
+                            const totalCons = (m.total_consumo || 0).toFixed(2);
+                            a.innerHTML = `
+                                <div class="flex items-start justify-between gap-3 lg:gap-4">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-3">
+                                            <h3 class="text-base lg:text-xl font-black text-[var(--text-main)]">Mesa ${m.numero}</h3>
+                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-700/10 text-emerald-300 text-[10px] font-black uppercase">ACTIVA</span>
+                                        </div>
+                                        <div class="mt-2 flex items-center gap-3 text-[12px] text-[var(--text-muted)]">
+                                            <span class="flex items-center gap-1"><i class="fas fa-user-friends text-[12px]"></i> ${m.capacidad ?? ''} personas</span>
+                                            <span class="text-[var(--text-muted)]">• 0m</span>
+                                            <span class="text-emerald-400 font-black">$ ${totalCons}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col justify-between text-right">
+                                        <span class="text-[#3B82F6] font-bold">Ver comanda ›</span>
+                                    </div>
+                                </div>
+                            `;
+                            list.appendChild(a);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('Error refrescando mesas:', err);
+            }
+        }
+
+        // Iniciar polling cuando la página cargue
+        document.addEventListener('DOMContentLoaded', () => {
+            refrescarMesas();
+            setInterval(refrescarMesas, 5000);
+        });
+    </script>
 @include('mesero.modal-nueva-mesa')
 </body>
 </html>

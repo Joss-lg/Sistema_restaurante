@@ -60,10 +60,12 @@ return new class extends Migration
             }
         }
 
-        // 4. Eliminar la clave foránea existente si tiene SET NULL
-        $foreignKeys = DB::select("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME='users' AND COLUMN_NAME='rol_id' AND REFERENCED_TABLE_NAME='roles'");
-        if (!empty($foreignKeys)) {
-            DB::statement("ALTER TABLE users DROP FOREIGN KEY " . $foreignKeys[0]->CONSTRAINT_NAME);
+        if (DB::getDriverName() !== 'sqlite') {
+            // 4. Eliminar la clave foránea existente si tiene SET NULL
+            $foreignKeys = DB::select("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME='users' AND COLUMN_NAME='rol_id' AND REFERENCED_TABLE_NAME='roles'");
+            if (!empty($foreignKeys)) {
+                DB::statement("ALTER TABLE users DROP FOREIGN KEY " . $foreignKeys[0]->CONSTRAINT_NAME);
+            }
         }
 
         // 5. Agregar la clave foránea con CASCADE
@@ -71,10 +73,12 @@ return new class extends Migration
             $table->foreign('rol_id')->references('id')->on('roles')->onDelete('cascade');
         });
 
-        // 6. Hacer que rol_id sea NOT NULL
-        Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('rol_id')->nullable(false)->change();
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            // 6. Hacer que rol_id sea NOT NULL
+            Schema::table('users', function (Blueprint $table) {
+                $table->unsignedBigInteger('rol_id')->nullable(false)->change();
+            });
+        }
     }
 
     /**

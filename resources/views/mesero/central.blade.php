@@ -50,11 +50,11 @@
             <div class="grid grid-cols-2 gap-3 sm:gap-4">
                 <div class="p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-[var(--bg-base)] border border-[var(--border-color)]">
                     <p class="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Mesas totales</p>
-                    <p class="text-2xl sm:text-3xl font-black text-[var(--text-main)] mt-2">{{ $totalMesas }}</p>
+                    <p id="txtTotalMesas" class="text-2xl sm:text-3xl font-black text-[var(--text-main)] mt-2">{{ $totalMesas }}</p>
                 </div>
                 <div class="p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-[var(--bg-base)] border border-[#34D399]/20">
                     <p class="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Mesas abiertas</p>
-                    <p class="text-2xl sm:text-3xl font-black text-[#34D399] mt-2">{{ $mesasActivas }}</p>
+                    <p id="txtMesasAbiertas" class="text-2xl sm:text-3xl font-black text-[#34D399] mt-2">{{ $mesasActivas }}</p>
                 </div>
             </div>
         </div>

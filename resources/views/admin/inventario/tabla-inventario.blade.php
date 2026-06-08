@@ -90,19 +90,23 @@
                                 
                                 if($porcentaje >= 150) {
                                     $colorClase = 'bg-[#22c55e]'; 
+                                    $modoClase = 'modo-crema:bg-emerald-50 modo-crema:text-emerald-900';
                                     $textoEstado = 'Óptimo';
                                 } elseif($porcentaje > 100) {
                                     $colorClase = 'bg-[#3B82F6]'; 
+                                    $modoClase = 'modo-crema:bg-blue-100 modo-crema:text-blue-900';
                                     $textoEstado = 'Bien';
                                 } elseif($porcentaje >= 50) {
                                     $colorClase = 'bg-orange-500'; 
+                                    $modoClase = 'modo-crema:bg-orange-100 modo-crema:text-orange-900';
                                     $textoEstado = 'Regular';
                                 } else {
                                     $colorClase = 'bg-rose-500'; 
+                                    $modoClase = 'modo-crema:bg-rose-50 modo-crema:text-rose-900';
                                     $textoEstado = 'Crítico';
                                 }
                             @endphp
-                            <span class="px-3 py-1.5 {{ $colorClase }} text-white rounded-full text-[11px] font-black shadow-sm uppercase tracking-wider">
+                            <span class="px-3 py-1.5 {{ $colorClase }} {{ $modoClase }} text-white rounded-full text-[11px] font-black shadow-sm uppercase tracking-wider">
                                 {{ $textoEstado }} ({{ round($porcentaje) }}%)
                             </span>
                         </td>

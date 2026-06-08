@@ -1,94 +1,169 @@
-<aside id="sidebar" class="w-[220px] backdrop-blur-2xl flex flex-col justify-between z-30 border-r shadow-2xl shrink-0 bg-[var(--sidebar-bg)] border-[var(--border-color)] transition-all duration-300">
-    <div>
-        {{-- Header del Logo --}}
-        <div class="h-20 flex items-center justify-between px-4 border-b border-[var(--border-color)]">
-            <div class="flex items-center gap-3 overflow-hidden">
-                <div id="logo-icon" class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#3B82F6]/25 via-transparent to-[#a5f3fc]/10 border border-[#3B82F6]/30 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.15)] shrink-0">
-                    <img src="{{ asset('images/logo2.png') }}" alt="Logo" class="w-7 h-7 object-contain rounded-lg">
-                </div>
-                <div class="flex flex-col sidebar-text transition-opacity duration-200">
-                    <span class="font-black tracking-[0.16em] text-[14px] text-[var(--text-color)] leading-none">OLLINTEM <span class="font-normal text-[#3B82F6]">PRO</span></span>
-                    <span class="text-[8px] text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1 opacity-90">Sistema POS</span>
+<aside id="sidebar" class="w-[260px] bg-[var(--sidebar-bg)] backdrop-blur-2xl border-r border-[var(--border-color)] flex flex-col justify-between z-50 shrink-0 shadow-2xl overflow-x-hidden relative">
+    
+    {{-- LÓGICA CSS PURA (Adiós bugs visuales al contraer) --}}
+    <style>
+        #sidebar { transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        .sidebar-text { transition: opacity 0.2s ease, width 0.3s ease, margin 0.3s ease; white-space: nowrap; overflow: hidden; }
+        
+        /* --- ESTADO COLAPSADO (MEMORIA) --- */
+        #sidebar.colapsado { width: 88px !important; }
+        
+        /* 1. Textos se esfuman y no empujan las cajas */
+        #sidebar.colapsado .sidebar-text { width: 0 !important; opacity: 0 !important; margin: 0 !important; pointer-events: none; }
+        
+        /* 2. Menú de navegación: Centramos los iconos perfectos */
+        #sidebar.colapsado .menu-link { padding-left: 0 !important; padding-right: 0 !important; justify-content: center !important; }
+        
+        /* 3. Header: Ocultamos el logo suavemente y centramos la hamburguesa */
+        #sidebar.colapsado .logo-wrapper { opacity: 0; pointer-events: none; position: absolute; }
+        #sidebar.colapsado #toggleSidebar { right: 0; left: 0; margin: 0 auto; }
+        
+        /* 4. Footer: Modo mini y transparente */
+        #sidebar.colapsado .user-footer { padding-left: 0; padding-right: 0; background: transparent; border-color: transparent; box-shadow: none; align-items: center; margin-bottom: 1rem; }
+        #sidebar.colapsado .btn-logout { width: 44px; padding: 0; justify-content: center; }
+
+        /* Modo crema: contraste y fondo limpio en sidebar */
+        body.modo-crema #sidebar { background: rgba(255, 255, 255, 0.96); border-color: rgba(15, 23, 42, 0.08); box-shadow: 0 30px 70px rgba(15, 23, 42, 0.08); }
+        body.modo-crema #sidebar .logo-wrapper { color: #111827; }
+        body.modo-crema #sidebar .logo-wrapper .sidebar-text span:first-child { color: #111827; }
+        body.modo-crema #sidebar .logo-wrapper .sidebar-text span:last-child { color: #6b7280; }
+        body.modo-crema #sidebar .menu-link { border-color: rgba(15, 23, 42, 0.08); }
+        body.modo-crema #sidebar .menu-link:hover { background: rgba(15, 23, 42, 0.04); }
+        body.modo-crema #sidebar .menu-link .sidebar-text { color: #4b5563; }
+        body.modo-crema #sidebar .menu-link .menu-icon { background: rgba(248, 250, 252, 0.96); border-color: rgba(15, 23, 42, 0.08); color: #374151; }
+        body.modo-crema #sidebar .menu-link.active { background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.18); box-shadow: 0 12px 30px rgba(59, 130, 246, 0.12); }
+        body.modo-crema .user-footer { background: #ffffff; border-color: rgba(15, 23, 42, 0.08); box-shadow: 0 25px 50px rgba(15, 23, 42, 0.06); }
+        body.modo-crema .btn-logout { background: #f8fafc; border-color: rgba(15, 23, 42, 0.08); color: #374151; }
+        body.modo-crema .btn-logout:hover { background: #e2e8f0; color: #b91c1c; }
+    </style>
+
+    {{-- Header del Logo --}}
+    <div class="h-24 flex items-center px-5 relative shrink-0 w-full transition-all">
+        <div class="absolute top-1/2 left-10 -translate-y-1/2 w-20 h-20 bg-blue-500/10 blur-[30px] rounded-full pointer-events-none"></div>
+        
+        <div class="logo-wrapper flex items-center relative z-10 w-full transition-opacity duration-300">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 p-[1px] shadow-[0_0_15px_rgba(59,130,246,0.3)] shrink-0">
+                <div class="w-full h-full bg-[var(--card-color)] rounded-[11px] flex items-center justify-center">
+                    <img src="{{ asset('images/logo2.png') }}" alt="Logo" class="w-6 h-6 object-contain">
                 </div>
             </div>
-            <button id="toggleSidebar" class="text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all outline-none shrink-0 cursor-pointer z-50">
-                <i class="fas fa-bars text-base"></i>
-            </button>
+            <div class="sidebar-text ml-3 flex flex-col">
+                <span class="font-black tracking-[0.15em] text-[15px] text-[var(--text-color)] leading-none">
+                    OLLINTEM <span class="text-blue-500">PRO</span>
+                </span>
+                <span class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-[0.25em] mt-1.5">Sistema POS</span>
+            </div>
         </div>
-
-        <nav class="py-6 space-y-1 overflow-y-auto max-h-[calc(100vh-14rem)] scrollbar-hide" id="nav-container">
-            
-            {{-- Definimos todos los módulos con estilo moderno --}}
-            @php
-                $seccionesMenu = [
-                    ['route' => 'admin.dashboard', 'icon' => 'fas fa-th-large', 'label' => 'Dashboard', 'permission' => 'dashboard.ver'],
-                    ['route' => 'admin.caja.index', 'icon' => 'fas fa-cash-register', 'label' => 'Caja', 'permission' => 'caja.ver'],
-                    ['route' => 'admin.mesas.index', 'icon' => 'fas fa-chair', 'label' => 'Mesas', 'permission' => 'mesas.ver'],
-                    ['route' => 'admin.cocina.index', 'icon' => 'fas fa-fire-burner', 'label' => 'Cocina', 'permission' => 'cocina.ver'],
-                    ['route' => 'admin.inventario.index', 'icon' => 'fas fa-cube', 'label' => 'Inventario', 'permission' => 'inventario.ver'],
-                    ['route' => 'admin.empleados.index', 'icon' => 'fas fa-users', 'label' => 'Empleados', 'permission' => 'empleados.ver'],
-                    ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menu', 'permission' => 'productos.ver'],
-                    ['route' => 'admin.categorias.index', 'icon' => 'fas fa-layer-group', 'label' => 'Categorías', 'permission' => 'categorias.ver'],
-                    ['route' => 'admin.promociones.index', 'icon' => 'fas fa-tags', 'label' => 'Promociones', 'permission' => 'promociones.ver'],
-                    ['route' => 'admin.finanzas.index', 'icon' => 'fas fa-chart-line', 'label' => 'Finanzas', 'permission' => 'finanzas.ver'],
-                   ['route' => 'roles.index', 'icon' => 'fas fa-id-badge', 'label' => 'Roles', 'permission' => 'roles.ver'],
-                ];
-            @endphp
-
-            @foreach($seccionesMenu as $item)
-                @if(auth()->user()->tienePermiso($item['permission']))
-                    @php
-                        try {
-                            $url = route($item['route']);
-                            $isActive = request()->routeIs(str_replace('.index', '.*', $item['route'])) || request()->routeIs($item['route']);
-                        } catch (Exception $e) {
-                            $url = '#';
-                            $isActive = false;
-                        }
-                    @endphp
-
-                    <a href="{{ $url }}"
-                       class="relative flex items-center gap-3 px-4 py-2.5 mx-3 rounded-3xl transition-all duration-300 overflow-hidden group mb-2
-                       {{ $isActive ? 'bg-gradient-to-r from-sky-500/15 via-sky-500/10 to-transparent border-l-4 border-sky-400 shadow-[0_12px_32px_-20px_rgba(56,189,248,0.35)]' : 'border-l-4 border-transparent hover:bg-white/5 hover:border-sky-400/30' }}">
-
-                        <span class="flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-300
-                            {{ $isActive ? 'bg-sky-500/10 text-sky-300' : 'bg-white/5 text-[var(--text-muted)] group-hover:bg-sky-500/10 group-hover:text-sky-300' }}">
-                            <i class="{{ $item['icon'] }} text-sm"></i>
-                        </span>
-
-                        <span class="sidebar-text text-xs transition-all duration-300
-                            {{ $isActive ? 'text-[var(--text-color)] font-semibold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }}">
-                            {{ $item['label'] }}
-                        </span>
-
-                        @if($isActive)
-                            <span class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-sky-400 to-transparent"></span>
-                        @endif
-                    </a>
-                @endif
-            @endforeach
-
-        </nav>
+        
+        <button id="toggleSidebar" class="absolute right-4 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all cursor-pointer z-50 shrink-0">
+            <i class="fas fa-bars text-sm"></i>
+        </button>
     </div>
 
-    {{-- Footer --}}
-    <div class="p-5 border-t border-[var(--border-color)] flex flex-col gap-4">
-        <div class="flex items-center gap-2.5 overflow-hidden">
-            <div class="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center font-black text-xs shrink-0 modo-crema:bg-black modo-crema:text-white">
-                {{ substr(auth()->user()->nombre, 0, 2) }}
+    {{-- Navegación --}}
+    <nav class="py-4 px-3 space-y-2 overflow-y-auto overflow-x-hidden max-h-[calc(100vh-14rem)] scrollbar-hide relative z-10 flex-1" id="nav-container">
+        
+        @php
+            $seccionesMenu = [
+                ['route' => 'admin.dashboard', 'icon' => 'fas fa-th-large', 'label' => 'Dashboard', 'permission' => 'dashboard.ver'],
+                ['route' => 'admin.caja.index', 'icon' => 'fas fa-cash-register', 'label' => 'Caja', 'permission' => 'caja.ver'],
+                ['route' => 'admin.mesas.index', 'icon' => 'fas fa-chair', 'label' => 'Mesas', 'permission' => 'mesas.ver'],
+                ['route' => 'admin.cocina.index', 'icon' => 'fas fa-fire-burner', 'label' => 'Cocina', 'permission' => 'cocina.ver'],
+                ['route' => 'admin.inventario.index', 'icon' => 'fas fa-cube', 'label' => 'Inventario', 'permission' => 'inventario.ver'],
+                ['route' => 'admin.empleados.index', 'icon' => 'fas fa-users', 'label' => 'Empleados', 'permission' => 'empleados.ver'],
+                ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menú', 'permission' => 'productos.ver'],
+                ['route' => 'admin.categorias.index', 'icon' => 'fas fa-layer-group', 'label' => 'Categorías', 'permission' => 'categorias.ver'],
+                ['route' => 'admin.promociones.index', 'icon' => 'fas fa-tags', 'label' => 'Promociones', 'permission' => 'promociones.ver'],
+                ['route' => 'admin.finanzas.index', 'icon' => 'fas fa-chart-line', 'label' => 'Finanzas', 'permission' => 'finanzas.ver'],
+                ['route' => 'roles.index', 'icon' => 'fas fa-id-badge', 'label' => 'Roles', 'permission' => 'roles.ver'],
+            ];
+        @endphp
+
+        @foreach($seccionesMenu as $item)
+            @if(auth()->user()->tienePermiso($item['permission']))
+                @php
+                    try {
+                        $url = route($item['route']);
+                        $isActive = request()->routeIs(str_replace('.index', '.*', $item['route'])) || request()->routeIs($item['route']);
+                    } catch (Exception $e) {
+                        $url = '#';
+                        $isActive = false;
+                    }
+                @endphp
+
+                <a href="{{ $url }}"
+                   class="menu-link relative flex items-center px-3 py-2.5 rounded-xl transition-all duration-300 group overflow-hidden
+                   {{ $isActive 
+                        ? 'bg-blue-600/10 border border-blue-500/30 shadow-[0_4px_20px_rgba(59,130,246,0.08)]' 
+                        : 'border border-transparent hover:bg-[var(--input-bg)]' }}">
+
+                    {{-- Icono --}}
+                    <div class="menu-icon flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 shrink-0 relative z-10
+                        {{ $isActive 
+                            ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' 
+                            : 'bg-[var(--card-color)] border border-[var(--border-color)] text-[var(--text-muted)] group-hover:text-[var(--text-color)]' }}">
+                        <i class="{{ $item['icon'] }} text-[15px]"></i>
+                    </div>
+
+                    {{-- Texto con Margen en lugar de Gap --}}
+                    <span class="sidebar-text ml-4 text-[14px] tracking-wide
+                        {{ $isActive ? 'text-[var(--text-color)] font-bold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }}">
+                        {{ $item['label'] }}
+                    </span>
+                    
+                    {{-- Indicador Neón Lateral --}}
+                    @if($isActive)
+                        <div class="absolute left-[-1px] top-1/2 -translate-y-1/2 w-[3px] h-[60%] bg-blue-500 rounded-r-md shadow-[0_0_12px_rgba(59,130,246,0.9)]"></div>
+                    @endif
+                </a>
+            @endif
+        @endforeach
+
+    </nav>
+
+    {{-- Footer de Usuario --}}
+    <div class="user-footer p-4 mx-3 mb-5 mt-2 rounded-2xl bg-[var(--card-color)] border border-[var(--border-color)] flex flex-col gap-3 shrink-0 relative transition-all duration-300 shadow-lg">
+        <div class="flex items-center w-full">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-[0_0_10px_rgba(59,130,246,0.3)] mx-auto">
+                {{ substr(auth()->user()->nombre ?? 'U', 0, 2) }}
             </div>
-            <div class="sidebar-text whitespace-nowrap transition-opacity duration-200">
-                <p class="text-sm font-bold text-[var(--text-color)] leading-none mb-1">{{ auth()->user()->nombre }}</p>
-                <p class="text-[8px] text-[var(--text-muted)] uppercase tracking-widest font-black">{{ auth()->user()->rol }}</p>
+            <div class="sidebar-text ml-3 flex flex-col justify-center">
+                <p class="text-[13px] font-bold text-[var(--text-color)]">{{ auth()->user()->nombre ?? 'Usuario' }}</p>
+                <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-black mt-1">{{ optional(auth()->user()->rol)->nombre ?? 'Rol' }}</p>
             </div>
         </div>
 
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" class="mt-1 w-full flex justify-center">
             @csrf
-            <button type="submit" class="w-full flex items-center justify-center gap-2 bg-[var(--input-bg)] border border-[var(--border-color)] hover:bg-black/10 text-[var(--text-muted)] hover:text-[var(--text-color)] py-2.5 rounded-xl transition-all duration-300 text-xs font-bold group">
-                <i class="fas fa-sign-out-alt transition-transform group-hover:-translate-x-1 shrink-0"></i>
-                <span class="sidebar-text transition-opacity duration-200">Cerrar Sesión</span>
+            <button type="submit" class="btn-logout w-full flex items-center bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-red-500/40 hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500 py-2.5 px-3 rounded-xl transition-all duration-300 text-[11px] font-bold tracking-widest group">
+                <i class="fas fa-sign-out-alt transition-transform group-hover:-translate-x-1 shrink-0 mx-auto"></i>
+                <span class="sidebar-text ml-2">CERRAR SESIÓN</span>
             </button>
         </form>
     </div>
 </aside>
+
+{{-- SCRIPT ULTRA LIMPIO PARA LA MEMORIA LOCAL --}}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        
+        // 1. Revisar qué dice la memoria
+        if (localStorage.getItem('sidebarState') === 'collapsed') {
+            sidebar.classList.add('colapsado');
+        }
+
+        // 2. Click en el botón de hamburguesa
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('colapsado');
+            
+            // Guardar en memoria inmediatamente
+            if (sidebar.classList.contains('colapsado')) {
+                localStorage.setItem('sidebarState', 'collapsed');
+            } else {
+                localStorage.setItem('sidebarState', 'expanded');
+            }
+        });
+    });
+</script>

@@ -46,120 +46,51 @@
         }
 
         body.modo-crema {
-            --bg-color: #FAF9F6; 
-            --sidebar-bg: rgba(255, 255, 255, 0.9);
-            --header-bg: rgba(250, 249, 246, 0.8);
-            --card-color: #ffffff; 
-            --text-color: #0F1012; 
-            --text-muted: #6B7280; 
-            --border-color: rgba(0, 0, 0, 0.06);
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --glass-hover: #ffffff;
-            --input-bg: #F4F4F6;
-            --panel-card: rgba(255, 255, 255, 0.90);
-            --panel-border: rgba(59, 130, 246, 0.16);
-            --panel-secondary: rgba(148, 163, 184, 0.08);
+            --bg-color: #F5F5F7;
+            --sidebar-bg: rgba(245, 243, 239, 0.92);
+            --header-bg: rgba(250, 247, 243, 0.92);
+            --card-color: #F7F4EF;
+            --text-color: #111111;
+            --text-muted: #4F5258;
+            --border-color: rgba(79, 84, 94, 0.14);
+            --glass-bg: rgba(255, 255, 255, 0.80);
+            --glass-hover: rgba(255, 255, 255, 0.94);
+            --input-bg: #ECE9E4;
+            --panel-card: rgba(250, 247, 242, 0.94);
+            --panel-border: rgba(59, 130, 246, 0.18);
+            --panel-secondary: rgba(115, 123, 149, 0.12);
         }
 
         body { background-color: var(--bg-color); font-family: 'Inter', sans-serif; color: var(--text-color); overflow-x: hidden; margin: 0; padding: 0; transition: background-color 0.4s ease, color 0.4s ease; }
         
+        /* Animaciones Premium */
+        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+        @keyframes toastPop { 
+            0% { transform: translateX(100%) scale(0.8); opacity: 0; } 
+            45% { transform: translateX(-10px) scale(1.02); opacity: 1; } 
+            100% { transform: translateX(0) scale(1); opacity: 1; } 
+        }
+        @keyframes toastFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes progress { from { width: 100%; } to { width: 0%; } }
+
+        .toast-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .toast-card:hover { transform: translateY(-3px); box-shadow: 0 40px 90px -45px rgba(15, 23, 42, 0.85); }
+
         .glass-card { backdrop-filter: blur(20px); border: 1px solid var(--border-color); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background-color: var(--glass-bg); }
-        
         body:not(.modo-crema) .glass-card { background-color: var(--glass-bg); box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
         body.modo-crema .glass-card { background-color: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005); }
         
-        .glass-card:hover { transform: translateY(-4px); border-color: rgba(59, 130, 246, 0.2); }
-        body.modo-crema .glass-card:hover { background-color: #ffffff; box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.03); }
-
-        .filter-button {
-            padding: 0.65rem 1.1rem;
-            border-radius: 0.85rem;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            border: 1px solid transparent;
-            color: var(--text-color);
-            background-color: var(--card-color);
-            transition: all 0.25s ease;
-        }
-
-        .filter-button:hover {
-            background-color: rgba(59, 130, 246, 0.18);
-            border-color: rgba(59, 130, 246, 0.35);
-            color: #ffffff;
-            transform: translateY(-1px);
-        }
-
-        .filter-button--active {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(14, 165, 233, 0.85));
-            border-color: rgba(59, 130, 246, 0.85);
-            color: #ffffff;
-            box-shadow: 0 16px 35px -20px rgba(59, 130, 246, 0.75);
-        }
-
-        .filter-button--active:hover {
-            transform: translateY(-1px);
-        }
-
-        .filter-button {
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px -18px rgba(0,0,0,0.5);
-        }
-
-        .header-action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.8rem 1.2rem;
-            border-radius: 9999px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(59, 130, 246, 0.12);
-            color: #EFF6FF;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .header-action-btn:hover {
-            transform: translateY(-2px);
-            background: rgba(59, 130, 246, 0.22);
-            box-shadow: 0 18px 40px -30px rgba(59, 130, 246, 0.8);
-        }
-
-        .mesa-card {
-            will-change: transform, opacity;
-            position: relative;
-            z-index: 0;
-        }
-
-        .mesa-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
-            opacity: 0.4;
-            pointer-events: none;
-            border-radius: inherit;
-            z-index: -1;
-        }
-
-        body:not(.modo-crema) .glass-card.kitchen-card { background: var(--panel-card); border-color: var(--panel-border); }
-        body.modo-crema .glass-card.kitchen-card { background: var(--panel-card); border-color: var(--panel-border); }
-        .kitchen-card:hover { transform: translateY(-2px); }
-        .accent-title { color: #38bdf8; }
-        .kitchen-pill { background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.18); color: #0ea5e9; }
-        body:not(.modo-crema) .kitchen-pill { background: rgba(59, 130, 246, 0.16); color: #bfdbfe; border-color: rgba(147, 197, 253, 0.2); }
-        .product-item { background: var(--panel-secondary); }
-        body.modo-crema .product-item { background: rgba(148, 163, 184, 0.05); }
+        .filter-button { padding: 0.65rem 1.1rem; border-radius: 0.85rem; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid transparent; color: var(--text-color); background-color: var(--card-color); transition: all 0.25s ease; }
+        .filter-button:hover { background-color: rgba(59, 130, 246, 0.18); border-color: rgba(59, 130, 246, 0.35); color: #ffffff; transform: translateY(-1px); }
+        .filter-button--active { background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(14, 165, 233, 0.85)); border-color: rgba(59, 130, 246, 0.85); color: #ffffff; box-shadow: 0 16px 35px -20px rgba(59, 130, 246, 0.75); }
         
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        .header-action-btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1.2rem; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(59, 130, 246, 0.12); color: #EFF6FF; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease; }
+        .header-action-btn:hover { transform: translateY(-2px); background: rgba(59, 130, 246, 0.22); box-shadow: 0 18px 40px -30px rgba(59, 130, 246, 0.8); }
+
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
     </style>
 </head>
 <body class="selection:bg-[#3B82F6]/30 selection:text-[var(--text-color)]">
-
 
     <script>
         if (localStorage.getItem('tema-ollintem') === 'crema') {
@@ -176,11 +107,9 @@
         </main>
     @else
         <div class="flex h-screen overflow-hidden relative z-10">
-
             @include('layouts.sidebar')
 
             <main class="flex-1 overflow-y-auto relative z-10 flex flex-col">
-                
                 <header class="backdrop-blur-2xl border-b sticky top-0 z-30 px-10 py-5 flex justify-between items-center bg-[var(--header-bg)] border-[var(--border-color)]">
                     <div class="flex flex-col">
                         <h1 class="text-[22px] font-black text-[var(--text-color)] tracking-tight">@yield('header-title', 'Gestión de Personal')</h1>
@@ -203,28 +132,14 @@
                 </header>
 
                 @yield('content')
-
             </main>
         </div>
     @endif
 
     @yield('modals')
 
+    {{-- LÓGICA DE TEMA E ICONOS --}}
     <script>
-        document.getElementById('toggleSidebar').addEventListener('click', function() {
-            const sidebar = document.getElementById('sidebar');
-            const texts = document.querySelectorAll('.sidebar-text');
-            
-            if(sidebar.classList.contains('w-[260px]')) {
-                sidebar.classList.replace('w-[260px]', 'w-[88px]');
-                texts.forEach(el => el.classList.add('hidden')); 
-            } else {
-                sidebar.classList.replace('w-[88px]', 'w-[260px]');
-                texts.forEach(el => el.classList.remove('hidden')); 
-            }
-        });
-
-        // === LÓGICA DEL TEMA CLARO/OSCURO ===
         function toggleTheme() {
             const body = document.body;
             body.classList.toggle('modo-crema');
@@ -254,7 +169,33 @@
         });
     </script>
 
-    @stack('scripts')
+    {{-- NOTIFICACIONES "ULTRA PREMIUM" --}}
+    @if(session('success'))
+        <div id="toast-success" class="fixed top-6 right-6 z-[9999] w-full max-w-[17rem]">
+            <div role="status" aria-live="polite" class="toast-card overflow-hidden rounded-[24px] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.14),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(34,197,94,0.1),_transparent_30%),#020617] shadow-[0_24px_60px_-30px_rgba(0,0,0,0.75)] backdrop-blur-3xl animate-[toastPop_0.55s_cubic-bezier(0.16,1,0.3,1),toastFloat_3.8s_ease-in-out_1] relative ring-1 ring-inset ring-white/5">
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500"></div>
+                <div class="relative flex items-start gap-2 p-3">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 shadow-[0_0_18px_rgba(52,211,153,0.2)]">
+                        <i class="fas fa-check text-sm"></i>
+                    </div>
+                    <div class="flex-1 pt-0.5">
+                        <p class="text-[9px] font-black uppercase tracking-[0.45em] text-emerald-200/80">Operación Exitosa</p>
+                        <p class="mt-1 text-[13px] font-semibold text-[var(--text-color)] leading-5">{{ session('success') }}</p>
+                    </div>
+                    <button onclick="document.getElementById('toast-success')?.remove()" class="text-[var(--text-muted)] hover:text-white transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-emerald-400/50">
+                        <i class="fas fa-times text-[10px]"></i>
+                    </button>
+                </div>
+                <div class="absolute bottom-0 left-0 h-1 w-full bg-white/10">
+                    <div class="h-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 animate-[progress_3.8s_linear_forwards]"></div>
+                </div>
+            </div>
+        </div>
+        <script>
+            setTimeout(() => { document.getElementById('toast-success')?.remove(); }, 3800);
+        </script>
+    @endif
 
+    @stack('scripts')
 </body>
 </html>

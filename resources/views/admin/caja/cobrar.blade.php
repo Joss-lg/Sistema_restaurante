@@ -43,17 +43,20 @@
         </div>
 
         @if($cuentasDivididas)
-            {{-- Selector de cuentas divididas --}}
+            {{-- Selector de personas para pagar --}}
             <div class="px-8 pb-4">
-                <div class="flex gap-2 overflow-x-auto pb-2">
+                <div class="flex gap-2 overflow-x-auto overflow-y-hidden pb-2 -mx-2 px-2">
                     @foreach($cuentasDividadasInfo as $cuenta)
                         <button 
                             type="button" 
-                            class="btn-cuenta px-4 py-2 rounded-lg font-bold text-xs whitespace-nowrap transition-all"
-                            data-cuenta="{{ $cuenta['numero_cuenta'] }}"
-                            data-orden="{{ $cuenta['orden_id'] }}"
+                            class="btn-cuenta px-3 py-2 rounded-lg font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 flex-shrink-0"
+                            data-cuenta="{{ $cuenta['numero_cuenta'] ?? $loop->iteration }}"
+                            data-orden="{{ $cuenta['orden_id'] ?? '' }}"
+                            data-total="{{ number_format($cuenta['total'] ?? 0, 2, '.', '') }}"
+                            data-estado="sin-pagar"
                             style="background-color: #141417; border: 2px solid #3B82F6; color: white;">
-                            Cuenta {{ $cuenta['numero_cuenta'] }} - ${{ number_format($cuenta['total'], 2) }}
+                            <span class="texto-cuenta text-[11px]">Persona {{ $cuenta['numero_cuenta'] ?? $loop->iteration }} - ${{ number_format($cuenta['total'] ?? 0, 2) }}</span>
+                            <i class="fas fa-check hidden opacity-0 transition-all text-xs"></i>
                         </button>
                     @endforeach
                 </div>
@@ -159,7 +162,7 @@
                         <span class="text-white" id="total-propina">${{ number_format($cuentasDividadasInfo[0]['propina'], 2) }}</span>
                     </div>
                     <input type="hidden" id="cuenta-actual" value="1">
-                    <input type="hidden" id="totales-divididas" value="{{ json_encode($cuentasDividadasInfo) }}">
+                    <input type="hidden" id="totales-divididas" value='@php echo json_encode($cuentasDividadasInfo, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK); @endphp'>
                 @else
                     <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
                         <span>Subtotal</span>
@@ -207,7 +210,7 @@
                     <span id="display-pago" class="precio-display text-6xl font-black text-white italic tracking-tighter">$0</span>
                 </div>
                 <div class="mt-4 text-sm text-gray-400">
-                    <p>Total a pagar: <strong class="text-white font-black">${{ number_format($totalPagar, 2) }}</strong></p>
+                    <p>Total a pagar: <strong id="total-pagar-derecha" class="text-white font-black">${{ number_format($totalPagar, 2) }}</strong></p>
                     <p>Cambio: <strong id="display-cambio" class="text-green-500 font-black">$0</strong></p>
                 </div>
                 <p id="nota-metodo" class="mt-4 text-sm text-gray-400">Selecciona un método para ver los detalles.</p>
@@ -280,6 +283,8 @@
         const mesaId = document.getElementById('mesa-id').value;
         const mensajePago = document.getElementById('mensaje-pago');
 
+        // Total original de toda la mesa (para cuentas divididas)
+        let totalMesaCompleta = parseFloat('{{ number_format($totalPagar, 2, ".", "") }}');
         let totalPagar = parseFloat('{{ number_format($totalPagar, 2, ".", "") }}');
         let montoActual = '0';
 
@@ -392,29 +397,55 @@
         if (botonessCuenta.length > 0) {
             botonessCuenta.forEach(btn => {
                 btn.addEventListener('click', () => {
+                    // No hacer nada si la cuenta ya está pagada
+                    if (btn.dataset.estado === 'pagada') {
+                        return;
+                    }
+
                     const nroCuenta = btn.getAttribute('data-cuenta');
-                    const totalDivididas = JSON.parse(totalDividasData.value);
+                    const totalDivididas = totalDividasData ? JSON.parse(totalDividasData.value) : [];
+                    const cuentaInfo = totalDivididas.find(c => c.numero_cuenta == nroCuenta);
 
                     document.querySelectorAll('[id^="cuenta-"]').forEach(el => el.classList.add('hidden'));
                     document.getElementById(`cuenta-${nroCuenta}`).classList.remove('hidden');
 
-                    const cuentaInfo = totalDivididas.find(c => c.numero_cuenta == nroCuenta);
-                    document.getElementById('total-subtotal').textContent = '$' + parseFloat(cuentaInfo.subtotal).toFixed(2);
-                    document.getElementById('total-iva').textContent = '$' + parseFloat(cuentaInfo.iva).toFixed(2);
-                    document.getElementById('total-propina').textContent = '$' + parseFloat(cuentaInfo.propina).toFixed(2);
+                    if (cuentaInfo) {
+                        document.getElementById('total-subtotal').textContent = '$' + parseFloat(cuentaInfo.subtotal).toFixed(2);
+                        document.getElementById('total-iva').textContent = '$' + parseFloat(cuentaInfo.iva).toFixed(2);
+                        document.getElementById('total-propina').textContent = '$' + parseFloat(cuentaInfo.propina).toFixed(2);
 
-                    totalPagar = parseFloat(cuentaInfo.total);
-                    totalPagarDisplay.textContent = '$' + totalPagar.toFixed(2);
+                        totalPagar = parseFloat(cuentaInfo.total);
+                        
+                        // Actualizar el total en el panel derecho (referencia de lo que debe pagar esta persona)
+                        const totalDerechaElement = document.getElementById('total-pagar-derecha');
+                        if (totalDerechaElement) {
+                            totalDerechaElement.textContent = '$' + totalPagar.toFixed(2);
+                        }
+                        
+                        cuentaActualInput.value = nroCuenta;
+                        document.getElementById('orden-id').value = cuentaInfo.orden_id || '';
+                    } else {
+                        // Fallback usando data-total del botón
+                        const totalCuenta = parseFloat(btn.getAttribute('data-total')) || 0;
+                        totalPagar = totalCuenta;
+                        
+                        const totalDerechaElement = document.getElementById('total-pagar-derecha');
+                        if (totalDerechaElement) {
+                            totalDerechaElement.textContent = '$' + totalCuenta.toFixed(2);
+                        }
+                    }
 
                     botonessCuenta.forEach(b => {
-                        b.style.borderColor = '#374151';
-                        b.style.backgroundColor = '#141417';
+                        if (b.dataset.estado !== 'pagada') {
+                            b.style.borderColor = '#374151';
+                            b.style.backgroundColor = '#141417';
+                        }
                     });
-                    btn.style.borderColor = '#3B82F6';
-                    btn.style.backgroundColor = '#3B82F6';
+                    if (btn.dataset.estado !== 'pagada') {
+                        btn.style.borderColor = '#3B82F6';
+                        btn.style.backgroundColor = '#3B82F6';
+                    }
 
-                    cuentaActualInput.value = nroCuenta;
-                    document.getElementById('orden-id').value = cuentaInfo.orden_id;
                     montoActual = metodoPagoInput.value === 'Efectivo' ? '0' : totalPagar.toFixed(2);
                     actualizarVista();
                 });
@@ -534,6 +565,61 @@
 
                 mostrarMensajePago(data.message + ' Cambio: $' + data.cambio, 'success');
 
+                // Marcar la cuenta actual como pagada
+                const cuentaActual = cuentaActualInput.value;
+                const botonCuentaPagada = document.querySelector(`.btn-cuenta[data-cuenta="${cuentaActual}"]`);
+                
+                if (botonCuentaPagada) {
+                    const montoPagado = parseFloat(botonCuentaPagada.getAttribute('data-total')) || 0;
+                    
+                    botonCuentaPagada.dataset.estado = 'pagada';
+                    botonCuentaPagada.style.opacity = '0.6';
+                    botonCuentaPagada.style.borderColor = '#10b981';
+                    botonCuentaPagada.style.backgroundColor = '#10b981';
+                    botonCuentaPagada.disabled = true;
+                    
+                    // Restar del total general de la mesa
+                    totalMesaCompleta = Math.max(0, totalMesaCompleta - montoPagado);
+                    totalPagarDisplay.textContent = '$' + totalMesaCompleta.toFixed(2);
+                    
+                    // Actualizar también el total en el panel derecho
+                    const totalDerechaElement = document.getElementById('total-pagar-derecha');
+                    if (totalDerechaElement) {
+                        totalDerechaElement.textContent = '$' + totalMesaCompleta.toFixed(2);
+                    }
+                    
+                    // Cambiar el texto del botón a "PAGADO"
+                    const textoSpan = botonCuentaPagada.querySelector('.texto-cuenta');
+                    if (textoSpan) {
+                        const nroPersona = botonCuentaPagada.getAttribute('data-cuenta');
+                        textoSpan.textContent = `Persona ${nroPersona} - ✓ PAGADO`;
+                    }
+                    
+                    const iconoCheck = botonCuentaPagada.querySelector('i');
+                    if (iconoCheck) {
+                        iconoCheck.classList.remove('hidden', 'opacity-0');
+                        iconoCheck.classList.add('opacity-100');
+                    }
+                }
+
+                // Verificar si hay más cuentas sin pagar
+                const cuentasSinPagar = document.querySelectorAll('.btn-cuenta[data-estado="sin-pagar"]');
+                
+                if (cuentasSinPagar.length > 0) {
+                    // Hay más cuentas por pagar
+                    setTimeout(() => {
+                        // Limpiar el monto y permitir seleccionar la siguiente cuenta
+                        montoActual = metodoPagoInput.value === 'Efectivo' ? '0' : totalPagar.toFixed(2);
+                        actualizarVista();
+                        
+                        // Seleccionar automáticamente la siguiente cuenta sin pagar
+                        const siguienteCuenta = cuentasSinPagar[0];
+                        siguienteCuenta.click();
+                    }, 800);
+                    return;
+                }
+
+                // Si no hay más cuentas, redirigir a mesas
                 if (data.comprobante_url) {
                     const enlace = document.createElement('a');
                     enlace.href = data.comprobante_url;
@@ -554,6 +640,13 @@
         });
 
         setMetodoPago('Efectivo');
+        
+        // Si hay cuentas divididas, seleccionar el primer botón automáticamente
+        const primerBotonCuenta = document.querySelector('.btn-cuenta');
+        if (primerBotonCuenta) {
+            primerBotonCuenta.click();
+        }
+        
         actualizarVista();
     });
 </script>

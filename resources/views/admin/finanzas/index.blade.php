@@ -136,11 +136,11 @@
 
                         <td class="py-4 px-4">
                             @if($flujo->tipo === 'ingreso')
-                                <span class="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-2 w-fit">
+                                <span class="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 modo-crema:bg-emerald-50 modo-crema:text-emerald-900 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-2 w-fit">
                                     <i class="fas fa-arrow-up text-xs"></i> Ingreso
                                 </span>
                             @else
-                                <span class="px-3 py-1.5 bg-rose-500/10 text-rose-500 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-2 w-fit">
+                                <span class="px-3 py-1.5 bg-rose-500/10 text-rose-500 modo-crema:bg-rose-50 modo-crema:text-rose-900 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-2 w-fit">
                                     <i class="fas fa-arrow-down text-xs"></i> Egreso
                                 </span>
                             @endif

@@ -79,22 +79,25 @@ class LoginController extends Controller
     {
         // Caso A: Intento por PIN (Punto de Venta)
         if ($request->has('codigo_empleado') && !empty($request->codigo_empleado)) {
-            $user = User::where('codigo_empleado', $request->codigo_empleado)
+            $codigoEmpleado = trim($request->codigo_empleado);
+
+            $user = User::whereRaw('TRIM(codigo_empleado) = ?', [$codigoEmpleado])
                         ->where('esta_activo', true)
                         ->first();
-            
+
             if ($user) {
                 // Iniciamos sesión manualmente
                 Auth::login($user, $request->filled('remember'));
-                
+
                 // Regenerar sesión para seguridad
                 $request->session()->regenerate();
-                
+
                 // Actualizamos el último acceso
                 $user->update(['ultimo_acceso' => now()]);
-                
+
                 return true;
             }
+
             return false;
         }
 

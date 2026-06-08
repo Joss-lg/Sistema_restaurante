@@ -45,7 +45,7 @@
                 </div>
             </div>
             <div class="mt-4">
-                <p class="text-[2.5rem] leading-none font-black text-metallic tracking-tighter">$0<span class="text-2xl text-[var(--text-muted)] opacity-50 font-bold">.00</span></p>
+                <p class="text-[2.5rem] leading-none font-black text-metallic tracking-tighter">${{ number_format($stats['ticket_promedio'] ?? 0, 2) }}</p>
                 <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-3 uppercase tracking-wide">Por Comensal</p>
             </div>
         </div>
@@ -58,7 +58,7 @@
                 </div>
             </div>
             <div class="mt-4">
-                <p class="text-[2.5rem] leading-none font-black text-metallic tracking-tighter">0</p>
+                <p class="text-[2.5rem] leading-none font-black text-metallic tracking-tighter">{{ number_format($stats['clientes'] ?? 0, 0) }}</p>
                 <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-3 uppercase tracking-wide">Registros</p>
             </div>
         </div>
@@ -108,13 +108,17 @@
             myChart.destroy();
         }
 
+        const chartLabels = {!! json_encode($chart['labels'] ?? ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']) !!};
+        const salesValues = {!! json_encode($chart['sales'] ?? [0, 0, 0, 0, 0, 0, 0, 0]) !!};
+        const transactionValues = {!! json_encode($chart['transactions'] ?? [0, 0, 0, 0, 0, 0, 0, 0]) !!};
+
         myChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+                labels: chartLabels,
                 datasets: [{
                     label: 'Ingresos Brutos',
-                    data: [0, 800, 4863, 2100, 900, 0, 0, 0],
+                    data: salesValues,
                     borderColor: '#F97316', 
                     backgroundColor: orangeGlow,
                     borderWidth: 3,
@@ -127,7 +131,7 @@
                     tension: 0.45 
                 }, {
                     label: 'Transacciones',
-                    data: [0, 4, 15, 8, 3, 0, 0, 0],
+                    data: transactionValues,
                     borderColor: '#3B82F6', 
                     borderWidth: 2.5,
                     borderDash: [5, 5], 
