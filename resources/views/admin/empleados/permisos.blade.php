@@ -22,7 +22,7 @@
                     </thead>
                     <tbody class="divide-y divide-[var(--border-color)]">
                         @php
-                            // AQUI ESTA LA CORRECCIÓN: Los 11 Módulos Exactos de OLLINTEM PRO
+
                             $items = [
                                 ['n' => 'Dashboard',     'slug' => 'dashboard',   'i' => 'fa-th-large'],
                                 ['n' => 'Caja',          'slug' => 'caja',        'i' => 'fa-cash-register'],

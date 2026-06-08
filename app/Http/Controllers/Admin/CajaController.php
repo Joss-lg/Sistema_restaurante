@@ -234,6 +234,8 @@ class CajaController extends Controller
                 'efectivo' => 'required|numeric|min:0',
                 'metodo_pago' => 'required|string|in:Efectivo,Transferencia,Tarjeta',
                 'referencia' => 'nullable|string|max:191',
+                'iva' => 'nullable|numeric|min:0',
+                'propina' => 'nullable|numeric|min:0',
         ]);
 
         if (in_array($validated['metodo_pago'], ['Transferencia', 'Tarjeta']) && empty($validated['referencia'])) {
@@ -271,16 +273,20 @@ class CajaController extends Controller
                 ->where('orden_id', $orden->id)
                 ->sum(DB::raw('cantidad * precio_unitario'));
 
-            $propinaTotal = floatval($orden->propina);
-            $total = round(floatval($detalleTotal) * 1.16 + $propinaTotal, 2);
+            // Usar los valores proporcionados o calcular los defaults
+            $ivaTotal = !is_null($validated['iva']) ? floatval($validated['iva']) : round(floatval($detalleTotal) * 0.16, 2);
+            $propinaTotal = !is_null($validated['propina']) ? floatval($validated['propina']) : floatval($orden->propina);
+            $total = round(floatval($detalleTotal) + $ivaTotal + $propinaTotal, 2);
         } else {
             $ordenIds = $ordenesActivas->pluck('id')->all();
             $detalleTotal = DB::table('detalles_orden')
                 ->whereIn('orden_id', $ordenIds)
                 ->sum(DB::raw('cantidad * precio_unitario'));
 
-            $propinaTotal = floatval($ordenesActivas->sum('propina'));
-            $total = round(floatval($detalleTotal) * 1.16 + $propinaTotal, 2);
+            // Usar los valores proporcionados o calcular los defaults
+            $ivaTotal = !is_null($validated['iva']) ? floatval($validated['iva']) : round(floatval($detalleTotal) * 0.16, 2);
+            $propinaTotal = !is_null($validated['propina']) ? floatval($validated['propina']) : floatval($ordenesActivas->sum('propina'));
+            $total = round(floatval($detalleTotal) + $ivaTotal + $propinaTotal, 2);
         }
 
         $efectivo = floatval($validated['efectivo']);
@@ -303,15 +309,16 @@ class CajaController extends Controller
 
         $comprobanteUrl = null;
 
-        DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio, $orden) {
+        DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio, $orden, $ivaTotal, $propinaTotal) {
             if (! empty($orden)) {
-                // Marcar sólo la orden pagada
+                // Actualizar la orden con la propina modificada si cambió
                 DB::table('ordenes')
                     ->where('id', $orden->id)
                     ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
                     ->update([
                         'estado' => 'pagada',
                         'metodo_pago' => $validated['metodo_pago'],
+                        'propina' => $propinaTotal,
                         'cerrada_el' => Carbon::now(),
                     ]);
             } else {
@@ -323,6 +330,7 @@ class CajaController extends Controller
                     ->update([
                         'estado' => 'pagada',
                         'metodo_pago' => $validated['metodo_pago'],
+                        'propina' => $propinaTotal,
                         'cerrada_el' => Carbon::now(),
                     ]);
             }
@@ -351,7 +359,7 @@ class CajaController extends Controller
                     'monto' => $total,
                     'tipo' => 'Ingreso',
                     'responsable' => auth()->user()->nombre ?? auth()->user()->email,
-                    'comentarios' => 'Pago con ' . $validated['metodo_pago'] . ($validated['referencia'] ? '. Ref: ' . $validated['referencia'] : '') . '. Cambio: ' . number_format($cambio, 2),
+                    'comentarios' => 'Pago con ' . $validated['metodo_pago'] . ($validated['referencia'] ? '. Ref: ' . $validated['referencia'] : '') . '. Cambio: ' . number_format($cambio, 2) . ' | IVA: $' . number_format($ivaTotal, 2) . ' | Propina: $' . number_format($propinaTotal, 2),
                     'estado' => 'Completado',
                 ];
 

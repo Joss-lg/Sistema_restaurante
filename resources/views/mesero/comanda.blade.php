@@ -237,15 +237,18 @@
         {{-- CABECERA ULTRA COMPACTA --}}
         <div class="p-3 xl:p-4 border-b border-[var(--border-color)] flex flex-col gap-2.5">
             
-            {{-- Tabs super estilizados --}}
-            <div class="flex bg-[var(--bg-base)] p-1 rounded-xl border border-[var(--border-color)] w-full">
-                <button onclick="cambiarTab('nueva-orden', this)" class="tab-btn flex-1 py-1.5 xl:py-2 rounded-lg bg-[#3B82F6] text-white text-[8px] xl:text-[9px] font-black uppercase tracking-widest shadow-sm outline-none transition-all">
+            {{-- Tabs super estilizados (Segmented Control iOS Modificado) --}}
+            <div class="relative flex w-full bg-[var(--bg-base)] p-1 rounded-xl border border-[var(--border-color)] shadow-inner">
+                {{-- Fondo animado --}}
+                <div id="tab-slider" class="absolute left-1 top-1 h-[calc(100%-8px)] w-[calc(33.333%-2.6px)] rounded-lg bg-[#3B82F6] shadow-[0_4px_15px_-3px_rgba(59,130,246,0.5)] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"></div>
+
+                <button onclick="cambiarTab('nueva-orden', this)" id="btn-tab-nueva-orden" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-white transition-colors duration-300 outline-none">
                     Orden
                 </button>
-                <button onclick="cambiarTab('enviados', this)" class="tab-btn flex-1 py-1.5 xl:py-2 rounded-lg text-[var(--text-muted)] text-[8px] xl:text-[9px] font-black uppercase tracking-widest outline-none hover:text-[var(--text-main)] transition-all">
+                <button onclick="cambiarTab('enviados', this)" id="btn-tab-enviados" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-300 outline-none">
                     Enviado
                 </button>
-                <button onclick="cambiarTab('comanda', this)" class="tab-btn flex-1 py-1.5 xl:py-2 rounded-lg text-[var(--text-muted)] text-[8px] xl:text-[9px] font-black uppercase tracking-widest outline-none hover:text-[var(--text-main)] transition-all">
+                <button onclick="cambiarTab('comanda', this)" id="btn-tab-comanda" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-300 outline-none">
                     Total
                 </button>
             </div>
@@ -482,7 +485,7 @@
         </div>
     </div>
 
-    {{-- LÓGICA DE JAVASCRIPT (MANTENIDA EXACTAMENTE IGUAL) --}}
+    {{-- LÓGICA DE JAVASCRIPT --}}
     <script>
         function toggleTheme() {
             const body = document.body;
@@ -503,11 +506,17 @@
         document.addEventListener('DOMContentLoaded', () => actualizarIconoTema(document.body.classList.contains('modo-crema')));
 
         function cambiarTab(pestana, btn) {
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.className = "tab-btn flex-1 py-1.5 xl:py-2 rounded-lg text-[var(--text-muted)] text-[8px] xl:text-[9px] font-black uppercase tracking-widest outline-none hover:text-[var(--text-main)] transition-all";
-            });
+            const slider = document.getElementById('tab-slider');
+            const btnOrden = document.getElementById('btn-tab-nueva-orden');
+            const btnEnviados = document.getElementById('btn-tab-enviados');
+            const btnComanda = document.getElementById('btn-tab-comanda');
 
-            btn.className = "tab-btn flex-1 py-1.5 xl:py-2 rounded-lg bg-[#3B82F6] text-white text-[8px] xl:text-[9px] font-black uppercase tracking-widest shadow-sm outline-none transition-all";
+            [btnOrden, btnEnviados, btnComanda].forEach(el => {
+                if(el) {
+                    el.classList.remove('text-white');
+                    el.classList.add('text-[var(--text-muted)]');
+                }
+            });
             
             document.getElementById('vista-nueva-orden').classList.add('hidden');
             document.getElementById('vista-nueva-orden').classList.remove('flex');
@@ -517,12 +526,21 @@
             document.getElementById('vista-comanda').classList.remove('flex');
 
             if(pestana === 'nueva-orden') {
+                if(slider) slider.style.transform = 'translateX(0%)';
+                if(btnOrden) { btnOrden.classList.add('text-white'); btnOrden.classList.remove('text-[var(--text-muted)]'); }
+                
                 document.getElementById('vista-nueva-orden').classList.remove('hidden');
                 document.getElementById('vista-nueva-orden').classList.add('flex');
             } else if (pestana === 'enviados') {
+                if(slider) slider.style.transform = 'translateX(100%)';
+                if(btnEnviados) { btnEnviados.classList.add('text-white'); btnEnviados.classList.remove('text-[var(--text-muted)]'); }
+                
                 document.getElementById('vista-enviados').classList.remove('hidden');
                 document.getElementById('vista-enviados').classList.add('flex');
             } else if (pestana === 'comanda') {
+                if(slider) slider.style.transform = 'translateX(200%)';
+                if(btnComanda) { btnComanda.classList.add('text-white'); btnComanda.classList.remove('text-[var(--text-muted)]'); }
+                
                 document.getElementById('vista-comanda').classList.remove('hidden');
                 document.getElementById('vista-comanda').classList.add('flex');
             }
@@ -661,7 +679,7 @@
         }
         
         function agregarItemAlTicketConGramaje(id, nombre, precio, categoria, gramaje = null, arrayModificadores = []) {
-            cambiarTab('nueva-orden', document.querySelectorAll('.tab-btn')[0]);
+            cambiarTab('nueva-orden', document.getElementById('btn-tab-nueva-orden'));
             estadoVacio.classList.add('hidden');
 
             const modsString = JSON.stringify(arrayModificadores).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
@@ -805,7 +823,7 @@
             let cantidad = parseInt(cantidadSpan.innerText, 10) || 1;
             
             if (cantidad <= 1) {
-                eliminarItemFila(item.querySelector('.btn-control-eliminar button'));
+                eliminarItemFila(item.querySelector('.btn-control-eliminar'));
                 return;
             }
             
@@ -826,12 +844,12 @@
                 const btn = document.getElementById(id);
                 if (tiemposMap[index] === tiempo) {
                     if (index === 0) {
-                        btn.className = 'px-3 xl:px-4 py-1.5 rounded-lg text-[9px] xl:text-[10px] font-black uppercase tracking-tight bg-[#3B82F6] text-white shadow-sm tiempo-global-btn transition-all';
+                        btn.className = 'px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight bg-[#3B82F6] text-white shadow-sm tiempo-global-btn transition-all';
                     } else {
-                        btn.className = 'px-3 xl:px-4 py-1.5 rounded-lg text-[9px] xl:text-[10px] font-black uppercase tracking-tight bg-[#f97316] text-white shadow-sm tiempo-global-btn transition-all';
+                        btn.className = 'px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight bg-[#f97316] text-white shadow-sm tiempo-global-btn transition-all';
                     }
                 } else {
-                    btn.className = 'px-3 xl:px-4 py-1.5 rounded-lg text-[9px] xl:text-[10px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn';
+                    btn.className = 'px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn';
                 }
             });
         }

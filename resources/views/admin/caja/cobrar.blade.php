@@ -146,35 +146,76 @@
 
         {{-- Footer de totales --}}
         <div class="mt-auto p-8 bg-[#1a1a1e] border-t border-white/5 sticky bottom-0 lg:relative">
-            <div class="space-y-2 mb-6" id="totales-container">
+            <div class="space-y-3 mb-6" id="totales-container">
                 @if($cuentasDivididas)
                     {{-- Mostrar totales de la primera cuenta por defecto --}}
-                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase items-center">
                         <span>Subtotal</span>
                         <span class="text-white" id="total-subtotal">${{ number_format($cuentasDividadasInfo[0]['subtotal'], 2) }}</span>
                     </div>
-                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase items-center gap-2">
                         <span>IVA (16%)</span>
-                        <span class="text-white" id="total-iva">${{ number_format($cuentasDividadasInfo[0]['iva'], 2) }}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white">$</span>
+                            <input type="number" id="total-iva" step="0.01" min="0" value="{{ number_format($cuentasDividadasInfo[0]['iva'], 2, '.', '') }}" class="w-20 bg-[#0f0f12] border border-white/10 rounded-lg px-2 py-1 text-white text-right text-xs focus:border-blue-500 focus:outline-none"/>
+                        </div>
                     </div>
-                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
-                        <span>Propina Sugerida</span>
-                        <span class="text-white" id="total-propina">${{ number_format($cuentasDividadasInfo[0]['propina'], 2) }}</span>
+                    
+                    {{-- Sección de Propina --}}
+                    <div class="mt-4 pt-3 border-t border-white/10">
+                        <p class="text-xs font-bold text-gray-500 uppercase mb-2">Propina</p>
+                        <div class="grid grid-cols-4 gap-2 mb-2">
+                            <button type="button" class="btn-propina-pct px-2 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/10" data-percent="10">10%</button>
+                            <button type="button" class="btn-propina-pct px-2 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/10" data-percent="15">15%</button>
+                            <button type="button" class="btn-propina-pct px-2 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/10" data-percent="20">20%</button>
+                            <button type="button" class="btn-propina-pct px-2 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/10" data-percent="custom">Otros</button>
+                        </div>
+                        <div id="propina-custom-input" class="hidden">
+                            <div class="flex items-center gap-2">
+                                <span class="text-white">$</span>
+                                <input type="number" id="total-propina" step="0.01" min="0" value="0.00" class="flex-1 bg-[#0f0f12] border border-white/10 rounded-lg px-2 py-1 text-white text-right text-xs focus:border-blue-500 focus:outline-none"/>
+                            </div>
+                        </div>
+                        <div id="propina-display" class="flex items-center justify-end gap-2 text-xs font-bold text-gray-400">
+                            <span>Propina:</span>
+                            <span class="text-white" id="total-propina-display">$0.00</span>
+                        </div>
                     </div>
+                    
                     <input type="hidden" id="cuenta-actual" value="1">
                     <input type="hidden" id="totales-divididas" value='@php echo json_encode($cuentasDividadasInfo, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK); @endphp'>
                 @else
-                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase items-center">
                         <span>Subtotal</span>
                         <span class="text-white">${{ number_format($subtotal ?? 0, 2) }}</span>
                     </div>
-                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase items-center gap-2">
                         <span>IVA (16%)</span>
-                        <span class="text-white">${{ number_format($iva ?? 0, 2) }}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white">$</span>
+                            <input type="number" id="total-iva" step="0.01" min="0" value="{{ number_format($iva ?? 0, 2, '.', '') }}" class="w-20 bg-[#0f0f12] border border-white/10 rounded-lg px-2 py-1 text-white text-right text-xs focus:border-blue-500 focus:outline-none"/>
+                        </div>
                     </div>
-                    <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
-                        <span>Propina Sugerida</span>
-                        <span class="text-white">${{ number_format($propina ?? 0, 2) }}</span>
+                    
+                    {{-- Sección de Propina --}}
+                    <div class="mt-4 pt-3 border-t border-white/10">
+                        <p class="text-xs font-bold text-gray-500 uppercase mb-2">Propina</p>
+                        <div class="grid grid-cols-4 gap-2 mb-2">
+                            <button type="button" class="btn-propina-pct px-2 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/10" data-percent="10">10%</button>
+                            <button type="button" class="btn-propina-pct px-2 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/10" data-percent="15">15%</button>
+                            <button type="button" class="btn-propina-pct px-2 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/10" data-percent="20">20%</button>
+                            <button type="button" class="btn-propina-pct px-2 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/10" data-percent="custom">Otros</button>
+                        </div>
+                        <div id="propina-custom-input" class="hidden">
+                            <div class="flex items-center gap-2">
+                                <span class="text-white">$</span>
+                                <input type="number" id="total-propina" step="0.01" min="0" value="0.00" class="flex-1 bg-[#0f0f12] border border-white/10 rounded-lg px-2 py-1 text-white text-right text-xs focus:border-blue-500 focus:outline-none"/>
+                            </div>
+                        </div>
+                        <div id="propina-display" class="flex items-center justify-end gap-2 text-xs font-bold text-gray-400">
+                            <span>Propina:</span>
+                            <span class="text-white" id="total-propina-display">$0.00</span>
+                        </div>
                     </div>
                 @endif
             </div>
@@ -192,65 +233,66 @@
             <input id="metodo-pago" type="hidden" value="Efectivo">
             <div class="flex-1 space-y-6 overflow-y-auto">
 
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                    <p class="text-gray-400 uppercase tracking-[0.35em] text-[10px] font-black mb-2">Método de pago</p>
-                    <span id="metodo-pago-label" class="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-white font-black uppercase tracking-[0.25em]">
-                        <i class="fas fa-money-bill-wave"></i> Efectivo
-                    </span>
-                </div>
-                <button id="btn-abrir-modal-metodo" type="button" class="bg-blue-500 hover:bg-blue-400 text-white font-black py-3 px-4 rounded-2xl uppercase text-xs tracking-[0.28em] transition-all shadow-lg shadow-blue-500/20">
-                    Seleccionar método
-                </button>
-            </div>
-
-            <div class="bg-[#141417] border border-white/10 p-10 rounded-[2.5rem] text-center shadow-2xl overflow-hidden">
-                <p id="titulo-pago" class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-4 italic">Monto a cobrar</p>
-                <div class="flex justify-center w-full">
-                    <span id="display-pago" class="precio-display text-6xl font-black text-white italic tracking-tighter">$0</span>
-                </div>
-                <div class="mt-4 text-sm text-gray-400">
-                    <p>Total a pagar: <strong id="total-pagar-derecha" class="text-white font-black">${{ number_format($totalPagar, 2) }}</strong></p>
-                    <p>Cambio: <strong id="display-cambio" class="text-green-500 font-black">$0</strong></p>
-                </div>
-                <p id="nota-metodo" class="mt-4 text-sm text-gray-400">Selecciona un método para ver los detalles.</p>
-                <div id="mensaje-pago" class="mt-4 hidden rounded-3xl border border-transparent px-4 py-3 text-sm"></div>
-            </div>
-
-            <div id="cash-section" class="grid grid-cols-4 gap-4">
-                @foreach(['1','2','3','4','5','6','7','8','9','.','0','00','DEL'] as $key)
-                    <button type="button" 
-                            class="btn-tecla h-20 bg-[#141417] hover:bg-white/5 border border-white/5 rounded-2xl text-2xl font-black text-white transition-all active:scale-95 active:bg-blue-600/20 shadow-lg"
-                            data-value="{{ $key }}">
-                        {{ $key }}
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <p class="text-gray-400 uppercase tracking-[0.35em] text-[10px] font-black mb-2">Método de pago</p>
+                        <span id="metodo-pago-label" class="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-white font-black uppercase tracking-[0.25em]">
+                            <i class="fas fa-money-bill-wave"></i> Efectivo
+                        </span>
+                    </div>
+                    <button id="btn-abrir-modal-metodo" type="button" class="bg-blue-500 hover:bg-blue-400 text-white font-black py-3 px-4 rounded-2xl uppercase text-xs tracking-[0.28em] transition-all shadow-lg shadow-blue-500/20">
+                        Seleccionar método
                     </button>
-                @endforeach
-            </div>
-
-            <div id="non-cash-section" class="hidden space-y-4 bg-[#141417] border border-white/10 rounded-[2.5rem] p-6">
-                <div class="space-y-2">
-                    <p class="text-gray-400 uppercase tracking-[0.3em] text-[10px] font-black">Datos de pago</p>
-                    <input id="referencia" type="text" placeholder="Referencia / número de operación" class="w-full rounded-2xl border border-white/10 bg-[#0f0f12] px-4 py-4 text-sm text-white outline-none focus:border-blue-500/70" />
-                    <p id="comprobante-info" class="text-[11px] text-emerald-200/80 mt-2"></p>
                 </div>
-                <div class="space-y-2">
-                    <p class="text-gray-400 uppercase tracking-[0.3em] text-[10px] font-black">Información de cuenta</p>
-                    <div id="cuenta-info" class="rounded-2xl border border-white/10 bg-[#0f0f12] p-4 text-sm text-white/80">
-                        <p class="mb-1"><strong class="text-white">Banco:</strong> Banco Central</p>
-                        <p class="mb-1"><strong class="text-white">CLABE:</strong> 002345678901234567</p>
-                        <p class="mb-1"><strong class="text-white">Titular:</strong> Ollintem Pro</p>
-                        <p class="mb-0"><strong class="text-white">Referencia:</strong> Se genera automáticamente al seleccionar el método</p>
+
+                <div class="bg-[#141417] border border-white/10 p-10 rounded-[2.5rem] text-center shadow-2xl overflow-hidden">
+                    <p id="titulo-pago" class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-4 italic">Monto a cobrar</p>
+                    <div class="flex justify-center w-full">
+                        <span id="display-pago" class="precio-display text-6xl font-black text-white italic tracking-tighter">$0</span>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-400">
+                        <p>Total a pagar: <strong id="total-pagar-derecha" class="text-white font-black">${{ number_format($totalPagar, 2) }}</strong></p>
+                        <p>Cambio: <strong id="display-cambio" class="text-green-500 font-black">$0</strong></p>
+                    </div>
+                    <p id="nota-metodo" class="mt-4 text-sm text-gray-400">Selecciona un método para ver los detalles.</p>
+                    <div id="mensaje-pago" class="mt-4 hidden rounded-3xl border border-transparent px-4 py-3 text-sm"></div>
+                </div>
+
+                <div id="cash-section" class="grid grid-cols-4 gap-4">
+                    @foreach(['1','2','3','4','5','6','7','8','9','.','0','00','DEL'] as $key)
+                        <button type="button" 
+                                class="btn-tecla h-20 bg-[#141417] hover:bg-white/5 border border-white/5 rounded-2xl text-2xl font-black text-white transition-all active:scale-95 active:bg-blue-600/20 shadow-lg"
+                                data-value="{{ $key }}">
+                            {{ $key }}
+                        </button>
+                    @endforeach
+                </div>
+
+                <div id="non-cash-section" class="hidden space-y-4 bg-[#141417] border border-white/10 rounded-[2.5rem] p-6">
+                    <div class="space-y-2">
+                        <p class="text-gray-400 uppercase tracking-[0.3em] text-[10px] font-black">Datos de pago</p>
+                        <input id="referencia" type="text" placeholder="Referencia / número de operación" class="w-full rounded-2xl border border-white/10 bg-[#0f0f12] px-4 py-4 text-sm text-white outline-none focus:border-blue-500/70" />
+                        <p id="comprobante-info" class="text-[11px] text-emerald-200/80 mt-2"></p>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-gray-400 uppercase tracking-[0.3em] text-[10px] font-black">Información de cuenta</p>
+                        <div id="cuenta-info" class="rounded-2xl border border-white/10 bg-[#0f0f12] p-4 text-sm text-white/80">
+                            <p class="mb-1"><strong class="text-white">Banco:</strong> Banco Central</p>
+                            <p class="mb-1"><strong class="text-white">CLABE:</strong> 002345678901234567</p>
+                            <p class="mb-1"><strong class="text-white">Titular:</strong> Ollintem Pro</p>
+                            <p class="mb-0"><strong class="text-white">Referencia:</strong> Se genera automáticamente al seleccionar el método</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-2 gap-4 pb-12">
-                <button type="button" id="btn-ticket" class="bg-white/5 hover:bg-white/10 text-white font-black py-5 rounded-2xl border border-white/10 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2">
-                    <i class="fas fa-print"></i> Ticket
-                </button>
-                <button type="button" id="btn-finalizar" class="bg-green-500 hover:bg-green-400 text-[#0f0f12] font-black py-5 rounded-2xl transition-all uppercase text-xs tracking-widest shadow-xl shadow-green-500/20">
-                    Finalizar Pago
-                </button>
+                <div class="grid grid-cols-2 gap-4 pb-12">
+                    <button type="button" id="btn-ticket" class="bg-white/5 hover:bg-white/10 text-white font-black py-5 rounded-2xl border border-white/10 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2">
+                        <i class="fas fa-print"></i> Ticket
+                    </button>
+                    <button type="button" id="btn-finalizar" class="bg-green-500 hover:bg-green-400 text-[#0f0f12] font-black py-5 rounded-2xl transition-all uppercase text-xs tracking-widest shadow-xl shadow-green-500/20">
+                        Finalizar Pago
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -282,16 +324,29 @@
         const cuentaInfoBox = document.getElementById('cuenta-info');
         const mesaId = document.getElementById('mesa-id').value;
         const mensajePago = document.getElementById('mensaje-pago');
+        const ivaInput = document.getElementById('total-iva');
+        const propinaInput = document.getElementById('total-propina');
+        const subtotalDisplay = document.getElementById('total-subtotal');
+        const ivaDisplay = document.getElementById('total-iva-display');
+        const propinaDisplay = document.getElementById('total-propina-display');
+        const botonesPropinaPercentaje = document.querySelectorAll('.btn-propina-pct');
+        const propinCustomInput = document.getElementById('propina-custom-input');
 
         // Total original de toda la mesa (para cuentas divididas)
         let totalMesaCompleta = parseFloat('{{ number_format($totalPagar, 2, ".", "") }}');
         let totalPagar = parseFloat('{{ number_format($totalPagar, 2, ".", "") }}');
         let montoActual = '0';
+        let subtotalActual = parseFloat('{{ number_format($subtotal ?? 0, 2, ".", "") }}');
+        let ivaActual = parseFloat('{{ number_format($iva ?? 0, 2, ".", "") }}');
+        let propinaActual = 0;
 
         if (totalDividasData) {
             const totalDivididas = JSON.parse(totalDividasData.value);
             if (totalDivididas.length > 0) {
                 totalPagar = parseFloat(totalDivididas[0].total);
+                subtotalActual = parseFloat(totalDivididas[0].subtotal);
+                ivaActual = parseFloat(totalDivididas[0].iva);
+                propinaActual = parseFloat(totalDivididas[0].propina);
             }
         }
 
@@ -300,6 +355,122 @@
             currency: 'MXN',
             minimumFractionDigits: 2
         });
+
+        // Eventos para interactuar con las teclas numéricas
+        botonesTeclado.forEach(boton => {
+            boton.addEventListener('click', () => {
+                const valor = boton.getAttribute('data-value');
+
+                if (valor === 'DEL') {
+                    if (montoActual.length > 1) {
+                        montoActual = montoActual.slice(0, -1);
+                    } else {
+                        montoActual = '0';
+                    }
+                } else if (valor === '.') {
+                    if (!montoActual.includes('.')) {
+                        montoActual += '.';
+                    }
+                } else if (valor === '00') {
+                    if (montoActual !== '0') {
+                        montoActual += '00';
+                    }
+                } else {
+                    if (montoActual === '0') {
+                        montoActual = valor;
+                    } else {
+                        montoActual += valor;
+                    }
+                }
+                actualizarVista();
+            });
+        });
+
+        // Función para recalcular el total
+        function recalcularTotal() {
+            const subtotal = subtotalActual || 0;
+            const iva = ivaActual || 0;
+            const propina = parseFloat(propinaInput?.value) || propinaActual || 0;
+            const nuevoTotal = subtotal + iva + propina;
+            
+            totalPagar = Math.round(nuevoTotal * 100) / 100; // Redondear a 2 decimales
+            propinaActual = propina;
+            
+            const totalDerechaElement = document.getElementById('total-pagar-derecha');
+            if (totalDerechaElement) {
+                totalDerechaElement.textContent = '$' + totalPagar.toFixed(2);
+            }
+            
+            // Actualizar el total general en el panel izquierdo
+            if (totalPagarDisplay) {
+                totalPagarDisplay.textContent = '$' + totalPagar.toFixed(2);
+            }
+            
+            // Actualizar display de propina
+            if (propinaDisplay) {
+                propinaDisplay.textContent = '$' + propina.toFixed(2);
+            }
+            
+            actualizarVista();
+        }
+
+        // Agregar listeners para botones de propina por porcentaje
+        botonesPropinaPercentaje.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const percent = btn.getAttribute('data-percent');
+                let nuevaPropina = 0;
+                
+                // Deseleccionar todos los botones
+                botonesPropinaPercentaje.forEach(b => {
+                    b.classList.remove('bg-blue-500/20', 'border-blue-400');
+                    b.classList.add('bg-white/5', 'border-white/10');
+                });
+                
+                // Seleccionar el botón actual
+                btn.classList.remove('bg-white/5', 'border-white/10');
+                btn.classList.add('bg-blue-500/20', 'border-blue-400');
+                
+                if (percent === 'custom') {
+                    // Mostrar input personalizado
+                    propinCustomInput.classList.remove('hidden');
+                    if (propinaInput) {
+                        propinaInput.focus();
+                    }
+                } else {
+                    // Calcular porcentaje sobre el subtotal
+                    const porcentaje = parseInt(percent) / 100;
+                    nuevaPropina = Math.round(subtotalActual * porcentaje * 100) / 100;
+                    propinCustomInput.classList.add('hidden');
+                    if (propinaInput) {
+                        propinaInput.value = nuevaPropina.toFixed(2);
+                    }
+                }
+                
+                recalcularTotal();
+            });
+        });
+
+        // Agregar listeners para cambios en el IVA
+        if (ivaInput) {
+            ivaInput.addEventListener('change', () => {
+                ivaActual = parseFloat(ivaInput.value) || 0;
+                recalcularTotal();
+            });
+            ivaInput.addEventListener('input', () => {
+                ivaActual = parseFloat(ivaInput.value) || 0;
+                recalcularTotal();
+            });
+        }
+
+        // Agregar listeners para cambios en el input personalizado de propina
+        if (propinaInput) {
+            propinaInput.addEventListener('change', () => {
+                recalcularTotal();
+            });
+            propinaInput.addEventListener('input', () => {
+                recalcularTotal();
+            });
+        }
 
         function actualizarVista() {
             const numero = parseFloat(montoActual) || 0;
@@ -335,359 +506,8 @@
                     'shadow-[0_30px_70px_-20px_rgba(56,189,248,0.35)]',
                     'shadow-[0_30px_70px_-20px_rgba(139,92,246,0.35)]'
                 );
-
-                if (btn.dataset.metodo === method) {
-                    btn.classList.add('ring-2');
-                    if (method === 'Efectivo') {
-                        btn.classList.add('bg-emerald-500/10', 'border-emerald-300/80', 'ring-emerald-300/20', 'shadow-[0_30px_70px_-20px_rgba(16,185,129,0.35)]');
-                    } else if (method === 'Transferencia') {
-                        btn.classList.add('bg-sky-500/10', 'border-sky-300/80', 'ring-sky-300/20', 'shadow-[0_30px_70px_-20px_rgba(56,189,248,0.35)]');
-                    } else if (method === 'Tarjeta') {
-                        btn.classList.add('bg-violet-500/10', 'border-violet-300/80', 'ring-violet-300/20', 'shadow-[0_30px_70px_-20px_rgba(139,92,246,0.35)]');
-                    }
-                }
-            });
-
-            if (method === 'Efectivo') {
-                cashSection.classList.remove('hidden');
-                nonCashSection.classList.add('hidden');
-                tituloPago.innerText = 'Efectivo recibido';
-                notaMetodo.innerText = 'Ingresa el efectivo recibido para calcular el cambio.';
-                referenciaInput.value = '';
-                comprobanteInfoText.innerText = '';
-                cuentaInfoBox.innerHTML = `
-                    <p class="mb-1"><strong class="text-white">Banco:</strong> Banco Central</p>
-                    <p class="mb-1"><strong class="text-white">CLABE:</strong> 002345678901234567</p>
-                    <p class="mb-1"><strong class="text-white">Titular:</strong> Ollintem Pro</p>
-                    <p class="mb-0"><strong class="text-white">Referencia:</strong> Se genera automáticamente al seleccionar el método</p>
-                `;
-                montoActual = '0';
-                displayCambio.innerText = formatter.format(0);
-            } else {
-                cashSection.classList.add('hidden');
-                nonCashSection.classList.remove('hidden');
-                tituloPago.innerText = 'Monto a cobrar';
-                referenciaInput.value = referenciaInput.value.trim() || generateAutoReference(method);
-                comprobanteInfoText.innerText = 'Comprobante generado automáticamente: ' + referenciaInput.value;
-                if (method === 'Transferencia') {
-                    notaMetodo.innerText = 'Usa los datos de cuenta y registra la referencia de transferencia.';
-                    cuentaInfoBox.innerHTML = `
-                        <p class="mb-1"><strong class="text-white">Banco:</strong> Banco Central</p>
-                        <p class="mb-1"><strong class="text-white">CLABE:</strong> 002345678901234567</p>
-                        <p class="mb-1"><strong class="text-white">Titular:</strong> Ollintem Pro</p>
-                        <p class="mb-0"><strong class="text-white">Referencia:</strong> ${referenciaInput.value}</p>
-                    `;
-                } else {
-                    notaMetodo.innerText = 'Pago con tarjeta registrado automáticamente con comprobante generado.';
-                    cuentaInfoBox.innerHTML = `
-                        <p class="mb-1"><strong class="text-white">Terminal:</strong> TPV Automático</p>
-                        <p class="mb-1"><strong class="text-white">Autorización:</strong> ${referenciaInput.value}</p>
-                        <p class="mb-0"><strong class="text-white">Titular:</strong> Ollintem Pro</p>
-                    `;
-                }
-                montoActual = totalPagar.toFixed(2);
-                displayCambio.innerText = formatter.format(0);
-            }
-
-            actualizarVista();
-            modalMetodo.classList.add('hidden');
-            unlockScroll();
-        }
-
-        if (botonessCuenta.length > 0) {
-            botonessCuenta.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // No hacer nada si la cuenta ya está pagada
-                    if (btn.dataset.estado === 'pagada') {
-                        return;
-                    }
-
-                    const nroCuenta = btn.getAttribute('data-cuenta');
-                    const totalDivididas = totalDividasData ? JSON.parse(totalDividasData.value) : [];
-                    const cuentaInfo = totalDivididas.find(c => c.numero_cuenta == nroCuenta);
-
-                    document.querySelectorAll('[id^="cuenta-"]').forEach(el => el.classList.add('hidden'));
-                    document.getElementById(`cuenta-${nroCuenta}`).classList.remove('hidden');
-
-                    if (cuentaInfo) {
-                        document.getElementById('total-subtotal').textContent = '$' + parseFloat(cuentaInfo.subtotal).toFixed(2);
-                        document.getElementById('total-iva').textContent = '$' + parseFloat(cuentaInfo.iva).toFixed(2);
-                        document.getElementById('total-propina').textContent = '$' + parseFloat(cuentaInfo.propina).toFixed(2);
-
-                        totalPagar = parseFloat(cuentaInfo.total);
-                        
-                        // Actualizar el total en el panel derecho (referencia de lo que debe pagar esta persona)
-                        const totalDerechaElement = document.getElementById('total-pagar-derecha');
-                        if (totalDerechaElement) {
-                            totalDerechaElement.textContent = '$' + totalPagar.toFixed(2);
-                        }
-                        
-                        cuentaActualInput.value = nroCuenta;
-                        document.getElementById('orden-id').value = cuentaInfo.orden_id || '';
-                    } else {
-                        // Fallback usando data-total del botón
-                        const totalCuenta = parseFloat(btn.getAttribute('data-total')) || 0;
-                        totalPagar = totalCuenta;
-                        
-                        const totalDerechaElement = document.getElementById('total-pagar-derecha');
-                        if (totalDerechaElement) {
-                            totalDerechaElement.textContent = '$' + totalCuenta.toFixed(2);
-                        }
-                    }
-
-                    botonessCuenta.forEach(b => {
-                        if (b.dataset.estado !== 'pagada') {
-                            b.style.borderColor = '#374151';
-                            b.style.backgroundColor = '#141417';
-                        }
-                    });
-                    if (btn.dataset.estado !== 'pagada') {
-                        btn.style.borderColor = '#3B82F6';
-                        btn.style.backgroundColor = '#3B82F6';
-                    }
-
-                    montoActual = metodoPagoInput.value === 'Efectivo' ? '0' : totalPagar.toFixed(2);
-                    actualizarVista();
-                });
             });
         }
-
-        botonesTeclado.forEach(boton => {
-            boton.addEventListener('click', () => {
-                const valor = boton.getAttribute('data-value');
-                if (valor === 'DEL') {
-                    montoActual = montoActual.slice(0, -1);
-                    if (montoActual === '' || montoActual === '.') montoActual = '0';
-                } else if (valor === '.') {
-                    if (!montoActual.includes('.')) montoActual += '.';
-                } else {
-                    if (montoActual === '0') montoActual = valor;
-                    else montoActual += valor;
-                }
-                actualizarVista();
-            });
-        });
-
-        metodoButtons.forEach(btn => {
-            btn.addEventListener('click', () => setMetodoPago(btn.dataset.metodo));
-        });
-
-        btnAbrirModal.addEventListener('click', () => {
-            modalMetodo.classList.remove('hidden');
-            lockScroll();
-        });
-        btnCerrarModal.addEventListener('click', () => {
-            modalMetodo.classList.add('hidden');
-            unlockScroll();
-        });
-        modalMetodo.addEventListener('click', (event) => {
-            if (event.target === modalMetodo) {
-                modalMetodo.classList.add('hidden');
-                unlockScroll();
-            }
-        });
-
-        function lockScroll() {
-            const scrollY = window.scrollY || window.pageYOffset;
-            document.body.dataset.scrollY = scrollY;
-            document.documentElement.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.top = `-${scrollY}px`;
-            document.body.style.left = '0';
-            document.body.style.right = '0';
-            document.body.style.width = '100%';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function unlockScroll() {
-            const scrollY = document.body.dataset.scrollY ? parseInt(document.body.dataset.scrollY, 10) : 0;
-            document.documentElement.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.left = '';
-            document.body.style.right = '';
-            document.body.style.width = '';
-            document.body.style.overflow = '';
-            window.scrollTo(0, scrollY);
-            delete document.body.dataset.scrollY;
-        }
-
-        function mostrarMensajePago(texto, tipo = 'error') {
-            mensajePago.classList.remove('hidden', 'bg-red-500/10', 'text-red-200', 'bg-emerald-500/10', 'text-emerald-200');
-            mensajePago.classList.add(tipo === 'success' ? 'bg-emerald-500/10' : 'bg-red-500/10');
-            mensajePago.classList.add(tipo === 'success' ? 'text-emerald-200' : 'text-red-200');
-            mensajePago.textContent = texto;
-        }
-
-        btnFinalizar.addEventListener('click', async () => {
-            const method = metodoPagoInput.value;
-            const efectivo = parseFloat(montoActual) || 0;
-
-            if (method === 'Efectivo' && efectivo < totalPagar - 0.01) {
-                mostrarMensajePago('El efectivo recibido es menor al total.');
-                return;
-            }
-
-            try {
-                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-                const ordenId = document.getElementById('orden-id').value;
-                const formData = new FormData();
-                formData.append('_token', token);
-                formData.append('mesa_id', mesaId);
-                formData.append('orden_id', ordenId);
-                formData.append('efectivo', efectivo);
-                formData.append('metodo_pago', method);
-                formData.append('referencia', referenciaInput.value.trim());
-
-                const response = await fetch('{{ route("admin.caja.api.pagar") }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': token,
-                        'Accept': 'application/json',
-                    },
-                    credentials: 'same-origin',
-                    body: formData
-                });
-
-                let data = null;
-                try {
-                    data = await response.json();
-                } catch (jsonError) {
-                    const text = await response.text();
-                    mostrarMensajePago('Error en la respuesta del servidor: ' + (text || response.statusText));
-                    return;
-                }
-
-                if (!response.ok) {
-                    mostrarMensajePago(data.message || 'Error en el pago.');
-                    return;
-                }
-
-                mostrarMensajePago(data.message + ' Cambio: $' + data.cambio, 'success');
-
-                // Marcar la cuenta actual como pagada
-                const cuentaActual = cuentaActualInput.value;
-                const botonCuentaPagada = document.querySelector(`.btn-cuenta[data-cuenta="${cuentaActual}"]`);
-                
-                if (botonCuentaPagada) {
-                    const montoPagado = parseFloat(botonCuentaPagada.getAttribute('data-total')) || 0;
-                    
-                    botonCuentaPagada.dataset.estado = 'pagada';
-                    botonCuentaPagada.style.opacity = '0.6';
-                    botonCuentaPagada.style.borderColor = '#10b981';
-                    botonCuentaPagada.style.backgroundColor = '#10b981';
-                    botonCuentaPagada.disabled = true;
-                    
-                    // Restar del total general de la mesa
-                    totalMesaCompleta = Math.max(0, totalMesaCompleta - montoPagado);
-                    totalPagarDisplay.textContent = '$' + totalMesaCompleta.toFixed(2);
-                    
-                    // Actualizar también el total en el panel derecho
-                    const totalDerechaElement = document.getElementById('total-pagar-derecha');
-                    if (totalDerechaElement) {
-                        totalDerechaElement.textContent = '$' + totalMesaCompleta.toFixed(2);
-                    }
-                    
-                    // Cambiar el texto del botón a "PAGADO"
-                    const textoSpan = botonCuentaPagada.querySelector('.texto-cuenta');
-                    if (textoSpan) {
-                        const nroPersona = botonCuentaPagada.getAttribute('data-cuenta');
-                        textoSpan.textContent = `Persona ${nroPersona} - ✓ PAGADO`;
-                    }
-                    
-                    const iconoCheck = botonCuentaPagada.querySelector('i');
-                    if (iconoCheck) {
-                        iconoCheck.classList.remove('hidden', 'opacity-0');
-                        iconoCheck.classList.add('opacity-100');
-                    }
-                }
-
-                // Verificar si hay más cuentas sin pagar
-                const cuentasSinPagar = document.querySelectorAll('.btn-cuenta[data-estado="sin-pagar"]');
-                
-                if (cuentasSinPagar.length > 0) {
-                    // Hay más cuentas por pagar
-                    setTimeout(() => {
-                        // Limpiar el monto y permitir seleccionar la siguiente cuenta
-                        montoActual = metodoPagoInput.value === 'Efectivo' ? '0' : totalPagar.toFixed(2);
-                        actualizarVista();
-                        
-                        // Seleccionar automáticamente la siguiente cuenta sin pagar
-                        const siguienteCuenta = cuentasSinPagar[0];
-                        siguienteCuenta.click();
-                    }, 800);
-                    return;
-                }
-
-                // Si no hay más cuentas, redirigir a mesas
-                if (data.comprobante_url) {
-                    const enlace = document.createElement('a');
-                    enlace.href = data.comprobante_url;
-                    enlace.download = '';
-                    enlace.target = '_blank';
-                    document.body.appendChild(enlace);
-                    enlace.click();
-                    document.body.removeChild(enlace);
-                    setTimeout(() => window.location.href = '{{ route("admin.caja.index") }}', 1200);
-                    return;
-                }
-
-                setTimeout(() => window.location.href = '{{ route("admin.caja.index") }}', 1200);
-            } catch (error) {
-                console.error('Pago error:', error);
-                mostrarMensajePago('Error de red al procesar el pago.');
-            }
-        });
-
-        setMetodoPago('Efectivo');
-        
-        // Si hay cuentas divididas, seleccionar el primer botón automáticamente
-        const primerBotonCuenta = document.querySelector('.btn-cuenta');
-        if (primerBotonCuenta) {
-            primerBotonCuenta.click();
-        }
-        
-        actualizarVista();
     });
 </script>
-
-@section('modals')
-<div id="modal-metodo" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 touch-none overscroll-contain">
-    <div class="relative w-full max-w-[920px] rounded-[2rem] bg-[var(--card-color)] border border-[var(--border-color)] shadow-[0_30px_90px_-30px_rgba(0,0,0,0.8)] max-h-[calc(100vh-3rem)] overflow-hidden">
-        <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none"></div>
-        <button id="btn-cerrar-modal-metodo" type="button" class="absolute right-5 top-5 z-10 text-gray-400 hover:text-white transition-colors">
-            <i class="fas fa-times"></i>
-        </button>
-        <div class="relative max-h-[calc(100vh-3.5rem)] overflow-y-auto p-8 sm:p-10">
-            <h2 class="text-2xl font-black text-white mb-2">Selecciona un método de pago</h2>
-            <p class="text-sm text-gray-400 mb-7">Elige el método y la referencia se generará automáticamente para transferencia o tarjeta.</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <button type="button" data-metodo="Efectivo" class="metodo-btn group relative rounded-[1.75rem] border border-emerald-400/10 bg-emerald-500/5 p-6 text-left transition duration-300 hover:border-emerald-300/70 hover:bg-emerald-500/10 min-h-[170px] shadow-[0_24px_60px_-35px_rgba(16,185,129,0.35)] overflow-visible">
-                    <div class="absolute right-5 top-5 w-12 h-12 rounded-3xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center text-lg transition duration-300 group-hover:bg-emerald-500/25">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <p class="text-[10px] uppercase tracking-[0.32em] text-emerald-200 mb-3">Efectivo</p>
-                    <p class="text-xl font-black text-white">Pago en efectivo</p>
-                    <p class="text-sm text-emerald-100/80 mt-3">Calcula cambio al instante.</p>
-                </button>
-                <button type="button" data-metodo="Transferencia" class="metodo-btn group relative rounded-[1.75rem] border border-sky-400/10 bg-sky-500/5 p-6 text-left transition duration-300 hover:border-sky-300/70 hover:bg-sky-500/10 min-h-[170px] shadow-[0_24px_60px_-35px_rgba(56,189,248,0.35)] overflow-visible">
-                    <div class="absolute right-5 top-5 w-12 h-12 rounded-3xl bg-sky-500/15 text-sky-300 flex items-center justify-center text-lg transition duration-300 group-hover:bg-sky-500/25">
-                        <i class="fas fa-exchange-alt"></i>
-                    </div>
-                    <p class="text-[10px] uppercase tracking-[0.32em] text-sky-200 mb-3">Transferencia</p>
-                    <p class="text-xl font-black text-white">Pago por transferencia</p>
-                    <p class="text-sm text-sky-100/80 mt-3">Registra la referencia de transferencia y usa los datos de cuenta.</p>
-                </button>
-                <button type="button" data-metodo="Tarjeta" class="metodo-btn group relative rounded-[1.75rem] border border-violet-400/10 bg-violet-500/5 p-6 text-left transition duration-300 hover:border-violet-300/70 hover:bg-violet-500/10 min-h-[170px] shadow-[0_24px_60px_-35px_rgba(139,92,246,0.35)] overflow-visible">
-                    <div class="absolute right-5 top-5 w-12 h-12 rounded-3xl bg-violet-500/15 text-violet-300 flex items-center justify-center text-lg transition duration-300 group-hover:bg-violet-500/25">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <p class="text-[10px] uppercase tracking-[0.32em] text-violet-200 mb-3">Tarjeta</p>
-                    <p class="text-xl font-black text-white">Cobro con tarjeta</p>
-                    <p class="text-sm text-violet-100/80 mt-3">Pago con tarjeta. Se genera comprobante automático.</p>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
