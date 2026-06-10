@@ -157,10 +157,16 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('admin/promociones')->name('admin.promociones.')->group(function () {
+        // Vista principal donde viven todos tus modales
         Route::get('/', [PromocionController::class, 'index'])->name('index');
-        Route::get('/crear', [PromocionController::class, 'create'])->name('create');
+        
+        // Procesar la creación desde el modal
         Route::post('/store', [PromocionController::class, 'store'])->name('store');
-        Route::get('/{promocion}/editar', [PromocionController::class, 'edit'])->name('edit');
+        
+        // Retorna el JSON para el modal de editar (Cambiamos /editar por /edit para estandarizar con el JS)
+        Route::get('/{promocion}/edit', [PromocionController::class, 'edit'])->name('edit');
+        
+        // Actualizar y Eliminar usando el ID/Modelo dinámico
         Route::put('/{promocion}', [PromocionController::class, 'update'])->name('update');
         Route::delete('/{promocion}', [PromocionController::class, 'destroy'])->name('destroy');
     });

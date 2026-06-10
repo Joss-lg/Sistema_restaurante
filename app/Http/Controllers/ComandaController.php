@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\Mesa;
 use App\Models\Categoria;
 use App\Models\Producto;
+use App\Models\Orden;
+use App\Models\DetalleOrden;
+use Illuminate\Support\Facades\DB;
 
 class ComandaController extends Controller
 {
@@ -42,7 +45,32 @@ class ComandaController extends Controller
                 ->get();
         }
 
-        return view('mesero.comanda', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan'));
+        // ==========================================
+        // ESTA ES LA PARTE QUE HACE QUE LA VISTA FUNCIONE
+        // Traemos los platillos de la orden actual de esta mesa
+        // ==========================================
+        $platillosEnviados = collect();
+        
+        // 1. Buscamos la orden activa de esta mesa
+        $ordenActiva = Orden::where('mesa_id', $mesa->id)
+                            ->where('estado', '!=', 'pagada')
+                            ->latest()
+                            ->first();
+
+        // 2. Si hay orden activa, traemos sus detalles (platillos)
+        if ($ordenActiva) {
+            $platillosEnviados = DetalleOrden::where('orden_id', $ordenActiva->id)
+                ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
+                ->select(
+                    'detalles_orden.*', 
+                    'productos.nombre as nombre',
+                    // Aseguramos de mandar el precio para que el JS haga la suma en la pestaña "Total"
+                    'detalles_orden.precio_unitario as precio' 
+                )
+                ->get();
+        }
+
+        return view('mesero.comanda', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan', 'platillosEnviados'));
     }
 
     public function enviar(Request $request)
@@ -61,26 +89,26 @@ class ComandaController extends Controller
             $mesa = Mesa::findOrFail($request->mesa_id);
             $usuario = auth()->user();
 
-                $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
-                $esCapitan = $rolSlug === 'capitan';
+            $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
+            $esCapitan = $rolSlug === 'capitan';
 
-                if (!$esCapitan) {
-                    if (Schema::hasColumn('mesas', 'mesero_id')) {
-                        if ($mesa->mesero_id !== $usuario->id) {
-                            return response()->json([
-                                'success' => false,
-                                'message' => 'No tienes permiso para enviar a esta mesa.',
-                            ], 403);
-                        }
-                    } else {
-                        if ($mesa->estado !== 'ocupada') {
-                            return response()->json([
-                                'success' => false,
-                                'message' => 'Solo el capitán puede enviar a otras mesas abiertas.',
-                            ], 403);
-                        }
+            if (!$esCapitan) {
+                if (Schema::hasColumn('mesas', 'mesero_id')) {
+                    if ($mesa->mesero_id !== $usuario->id) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'No tienes permiso para enviar a esta mesa.',
+                        ], 403);
+                    }
+                } else {
+                    if ($mesa->estado !== 'ocupada') {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Solo el capitán puede enviar a otras mesas abiertas.',
+                        ], 403);
                     }
                 }
+            }
 
             $subtotal = 0;
             foreach ($request->platillos as $platillo) {
@@ -147,9 +175,6 @@ class ComandaController extends Controller
         }
     }
 
-    /**
-     * Verifica el NIP del capitán y retorna las mesas abiertas.
-     */
     public function verificarCapitan(Request $request)
     {
         $request->validate([
@@ -158,7 +183,6 @@ class ComandaController extends Controller
 
         $nip = $request->input('nip');
 
-        // Buscar usuario con ese NIP que tenga rol 'capitan'
         $usuario = \App\Models\User::where('codigo_empleado', $nip)->first();
         if (!$usuario) {
             return response()->json(['success' => false, 'message' => 'NIP no encontrado.'], 404);
@@ -173,15 +197,11 @@ class ComandaController extends Controller
             return response()->json(['success' => false, 'message' => 'Usuario no es capitán.'], 403);
         }
 
-        // Devolver mesas abiertas
         $mesasAbiertas = Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get(['id', 'numero', 'estado']);
 
         return response()->json(['success' => true, 'mesas' => $mesasAbiertas]);
     }
 
-    /**
-     * API: Retorna mesas abiertas (ocupada) para refrescar UI.
-     */
     public function apiMesasAbiertas(Request $request)
     {
         $usuario = auth()->user();
@@ -193,11 +213,9 @@ class ComandaController extends Controller
         if ($rolSlug === 'capitan') {
             $mesasForUser = Mesa::orderBy('numero', 'asc')->get();
         } else {
-            // Mesero normal: solo sus mesas (si existe mesero_id)
             if (Schema::hasColumn('mesas', 'mesero_id')) {
                 $mesasForUser = Mesa::where('mesero_id', auth()->id())->orderBy('numero', 'asc')->get();
             } else {
-                // Si no hay mesero_id, devolvemos las mesas ocupadas (limitado)
                 $mesasForUser = Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get();
             }
         }
@@ -205,7 +223,6 @@ class ComandaController extends Controller
         $mesasAbiertas = $mesasForUser->where('estado', 'ocupada')->values();
         $mesasLibres = $mesasForUser->where('estado', 'disponible')->values();
 
-        // Mapear solo campos necesarios y proteger total_consumo
         $mesasAbiertasArr = $mesasAbiertas->map(function ($m) {
             return [
                 'id' => $m->id,
@@ -225,12 +242,8 @@ class ComandaController extends Controller
         ]);
     }
 
-    // ==========================================
-    // NUEVA FUNCIÓN PARA GUARDAR LA MESA
-    // ==========================================
     public function storeMesa(Request $request)
     {
-        // 1. Validamos que los datos vengan correctamente desde los inputs
         $request->validate([
             'numero' => 'required|string|max:20',
             'capacidad' => 'required|integer|min:1',
@@ -238,7 +251,6 @@ class ComandaController extends Controller
             'total_cuentas_division' => 'nullable|integer|min:2|max:10',
         ]);
 
-        // 2. Buscamos la mesa por número
         $mesa = Mesa::where('numero', $request->numero)->first();
 
         if ($mesa && $mesa->estado === 'ocupada') {
@@ -248,7 +260,6 @@ class ComandaController extends Controller
             ], 409);
         }
 
-        // 3. Creamos o actualizamos la mesa para abrirla
         $mesa = $mesa ?? new Mesa(['numero' => $request->numero]);
         $mesa->capacidad = $request->capacidad;
         $mesa->estado = 'ocupada';
@@ -263,7 +274,6 @@ class ComandaController extends Controller
         }
         $mesa->save();
 
-        // 4. Si la cuenta está dividida, creamos múltiples órdenes vacías
         if ($request->boolean('cuenta_dividida') && $request->filled('total_cuentas_division')) {
             $totalCuentas = $request->integer('total_cuentas_division');
             

@@ -31,7 +31,27 @@ class MesaController extends Controller
                 ->first();
 
             $ordenesActivas = $ordenActiva ? 1 : 0;
-            $ocupada = $mesa->estado === 'ocupada' || $ordenesActivas > 0;
+            // Si no hay órdenes activas pero el estado es ocupada, cambiar a disponible
+            $estadoReal = $mesa->estado;
+            if ($ordenesActivas === 0 && $mesa->estado === 'ocupada') {
+                // Hay un desfase: la mesa está marcada como ocupada pero no tiene órdenes activas
+                // Actualizar el estado en BD
+                DB::table('mesas')->where('id', $mesa->id)->update([
+                    'estado' => 'disponible',
+                    'updated_at' => now(),
+                ]);
+                $estadoReal = 'disponible';
+                
+                // Limpiar mesero_id y total_consumo si existen las columnas
+                if (Schema::hasColumn('mesas', 'mesero_id')) {
+                    DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
+                }
+                if (Schema::hasColumn('mesas', 'total_consumo')) {
+                    DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
+                }
+            }
+            
+            $ocupada = $estadoReal === 'ocupada' || $ordenesActivas > 0;
             $minutosActiva = 0;
             if ($ordenActiva) {
                 $fechaInicio = $ordenActiva->abierta_el ?? $ordenActiva->created_at;
@@ -45,7 +65,7 @@ class MesaController extends Controller
                 'id' => $mesa->id,
                 'numero' => $mesa->numero,
                 'capacidad' => $mesa->capacidad,
-                'estado' => $mesa->estado,
+                'estado' => $estadoReal,
                 'seccion' => $mesa->seccion,
                 'zona' => $zonaValida ? $mesa->seccion : null,
                 'fusionada' => $mesa->seccion && !$zonaValida,

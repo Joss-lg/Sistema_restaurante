@@ -15,19 +15,18 @@ return new class extends Migration
             $table->id();
 
             // FK: Referencia a la tabla de promociones
-            // onDelete('cascade') asegura que si borras una promo, se limpie esta relación
+            // Si se elimina la promoción, se borran automáticamente sus productos vinculados aquí
             $table->foreignId('promocion_id')->constrained('promociones')->onDelete('cascade');
 
             // FK: Referencia a la tabla de productos
+            // Si se elimina un producto, se remueve automáticamente de la promoción
             $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::dropIfExists('promocion_productos');

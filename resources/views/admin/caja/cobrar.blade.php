@@ -54,6 +54,7 @@
                             data-orden="{{ $cuenta['orden_id'] ?? '' }}"
                             data-total="{{ number_format($cuenta['total'] ?? 0, 2, '.', '') }}"
                             data-estado="sin-pagar"
+                            data-pagado="false"
                             style="background-color: #141417; border: 2px solid #3B82F6; color: white;">
                             <span class="texto-cuenta text-[11px]">Persona {{ $cuenta['numero_cuenta'] ?? $loop->iteration }} - ${{ number_format($cuenta['total'] ?? 0, 2) }}</span>
                             <i class="fas fa-check hidden opacity-0 transition-all text-xs"></i>
@@ -183,7 +184,7 @@
                     </div>
                     
                     <input type="hidden" id="cuenta-actual" value="1">
-                    <input type="hidden" id="totales-divididas" value='@php echo json_encode($cuentasDividadasInfo, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK); @endphp'>
+                    <input type="hidden" id="totales-divididas" value='{{ json_encode($cuentasDividadasInfo ?? [], JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK) }}'>
                 @else
                     <div class="flex justify-between text-xs font-bold text-gray-500 uppercase items-center">
                         <span>Subtotal</span>
@@ -298,6 +299,60 @@
     </div>
 </div>
 
+{{-- Modal de Método de Pago --}}
+<div id="modal-metodo" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-[#141417] border border-white/10 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+        <h2 class="text-2xl font-black text-white mb-6">Seleccionar Método de Pago</h2>
+        
+        <div class="space-y-3 mb-6">
+            <button type="button" class="metodo-btn w-full text-left p-4 rounded-2xl border-2 border-white/10 hover:border-emerald-400/50 hover:bg-emerald-500/5 transition-all font-bold text-white" data-metodo="Efectivo">
+                <i class="fas fa-money-bill-wave text-emerald-400 mr-3"></i> Efectivo
+            </button>
+            <button type="button" class="metodo-btn w-full text-left p-4 rounded-2xl border-2 border-white/10 hover:border-sky-400/50 hover:bg-sky-500/5 transition-all font-bold text-white" data-metodo="Transferencia">
+                <i class="fas fa-bank text-sky-400 mr-3"></i> Transferencia Bancaria
+            </button>
+            <button type="button" class="metodo-btn w-full text-left p-4 rounded-2xl border-2 border-white/10 hover:border-violet-400/50 hover:bg-violet-500/5 transition-all font-bold text-white" data-metodo="Tarjeta">
+                <i class="fas fa-credit-card text-violet-400 mr-3"></i> Tarjeta de Crédito
+            </button>
+        </div>
+        
+        <button type="button" id="btn-cerrar-modal-metodo" class="w-full py-3 px-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all">
+            Cancelar
+        </button>
+    </div>
+</div>
+
+{{-- Modal de Pago Exitoso --}}
+<div id="modal-exito" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="bg-gradient-to-br from-[#141417] to-[#0a0a0c] border border-emerald-500/20 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div class="flex justify-center mb-6">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30 animate-pulse">
+                <i class="fas fa-check text-3xl text-emerald-400"></i>
+            </div>
+        </div>
+        
+        <h2 id="modal-titulo" class="text-2xl font-black text-center text-white mb-2">¡Pago Exitoso!</h2>
+        <p id="modal-descripcion" class="text-center text-gray-400 text-sm mb-6">
+            Se procesó correctamente el pago de <strong id="modal-nombre-persona" class="text-emerald-400">Persona X</strong>
+        </p>
+        
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 space-y-2">
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-400">Monto pagado</span>
+                <span class="text-white font-black" id="modal-monto-pagado">$0.00</span>
+            </div>
+            <div class="flex justify-between items-center text-sm pt-2 border-t border-white/10">
+                <span class="text-gray-400" id="modal-etiqueta-total">Nuevo total en mesa</span>
+                <span class="text-emerald-400 font-black" id="modal-nuevo-total">$0.00</span>
+            </div>
+        </div>
+        
+        <button type="button" id="btn-cerrar-modal-exito" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-black rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
+            Continuar
+        </button>
+    </div>
+</div>
+
 {{-- Script de lógica del teclado --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -309,25 +364,16 @@
         const displayCambio = document.getElementById('display-cambio');
         const botonesTeclado = document.querySelectorAll('.btn-tecla');
         const btnFinalizar = document.getElementById('btn-finalizar');
+        const btnTicket = document.getElementById('btn-ticket');
         const btnAbrirModal = document.getElementById('btn-abrir-modal-metodo');
-        const btnCerrarModal = document.getElementById('btn-cerrar-modal-metodo');
-        const modalMetodo = document.getElementById('modal-metodo');
         const metodoPagoInput = document.getElementById('metodo-pago');
         const metodoPagoLabel = document.getElementById('metodo-pago-label');
-        const metodoButtons = document.querySelectorAll('.metodo-btn');
         const cashSection = document.getElementById('cash-section');
         const nonCashSection = document.getElementById('non-cash-section');
-        const tituloPago = document.getElementById('titulo-pago');
-        const notaMetodo = document.getElementById('nota-metodo');
-        const referenciaInput = document.getElementById('referencia');
-        const comprobanteInfoText = document.getElementById('comprobante-info');
-        const cuentaInfoBox = document.getElementById('cuenta-info');
         const mesaId = document.getElementById('mesa-id').value;
-        const mensajePago = document.getElementById('mensaje-pago');
+        const ordenId = document.getElementById('orden-id').value;
         const ivaInput = document.getElementById('total-iva');
         const propinaInput = document.getElementById('total-propina');
-        const subtotalDisplay = document.getElementById('total-subtotal');
-        const ivaDisplay = document.getElementById('total-iva-display');
         const propinaDisplay = document.getElementById('total-propina-display');
         const botonesPropinaPercentaje = document.querySelectorAll('.btn-propina-pct');
         const propinCustomInput = document.getElementById('propina-custom-input');
@@ -339,14 +385,21 @@
         let subtotalActual = parseFloat('{{ number_format($subtotal ?? 0, 2, ".", "") }}');
         let ivaActual = parseFloat('{{ number_format($iva ?? 0, 2, ".", "") }}');
         let propinaActual = 0;
+        let cuentaActual = 1;
+        let totalDividadasInfo = {};
 
-        if (totalDividasData) {
-            const totalDivididas = JSON.parse(totalDividasData.value);
-            if (totalDivididas.length > 0) {
-                totalPagar = parseFloat(totalDivididas[0].total);
-                subtotalActual = parseFloat(totalDivididas[0].subtotal);
-                ivaActual = parseFloat(totalDivididas[0].iva);
-                propinaActual = parseFloat(totalDivididas[0].propina);
+        if (totalDividasData && totalDividasData.value) {
+            try {
+                totalDividadasInfo = JSON.parse(totalDividasData.value);
+                if (Array.isArray(totalDividadasInfo) && totalDividadasInfo.length > 0) {
+                    totalPagar = parseFloat(totalDividadasInfo[0].total);
+                    subtotalActual = parseFloat(totalDividadasInfo[0].subtotal);
+                    ivaActual = parseFloat(totalDividadasInfo[0].iva);
+                    propinaActual = parseFloat(totalDividadasInfo[0].propina) || 0;
+                    cuentaActual = 1;
+                }
+            } catch (e) {
+                console.error('Error parsing totalDividadas:', e);
             }
         }
 
@@ -356,10 +409,11 @@
             minimumFractionDigits: 2
         });
 
-        // Eventos para interactuar con las teclas numéricas
+        // ========== TECLADO NUMÉRICO ==========
         botonesTeclado.forEach(boton => {
-            boton.addEventListener('click', () => {
-                const valor = boton.getAttribute('data-value');
+            boton.addEventListener('click', function(e) {
+                e.preventDefault();
+                const valor = this.getAttribute('data-value');
 
                 if (valor === 'DEL') {
                     if (montoActual.length > 1) {
@@ -386,27 +440,92 @@
             });
         });
 
-        // Función para recalcular el total
+        // ========== SELECTOR DE PERSONAS (CUENTA DIVIDIDA) ==========
+        botonessCuenta.forEach(boton => {
+            boton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // No permitir seleccionar si ya está pagado
+                if (this.getAttribute('data-pagado') === 'true') {
+                    return;
+                }
+                
+                const numeroCuenta = parseInt(this.getAttribute('data-cuenta'));
+                
+                // Cambiar clase activa
+                botonessCuenta.forEach(btn => {
+                    // Si está pagado, mantener su estilo de pagado
+                    if (btn.getAttribute('data-pagado') === 'true') {
+                        btn.setAttribute('style', 'background-color: #064e3b; border: 2px solid #10b981; color: #d1fae5; opacity: 0.7; cursor: not-allowed;');
+                    } else {
+                        btn.setAttribute('style', 'background-color: #141417; border: 2px solid #3B82F6; color: white;');
+                    }
+                });
+                
+                this.setAttribute('style', 'background-color: #3B82F6; border: 2px solid #1E3A8A; color: white; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);');
+                
+                // Actualizar la cuenta actual
+                cuentaActual = numeroCuenta;
+                if (cuentaActualInput) {
+                    cuentaActualInput.value = numeroCuenta;
+                }
+                
+                // Cambiar productos mostrados
+                const productosContainers = document.querySelectorAll('[id^="cuenta-"]');
+                productosContainers.forEach(container => {
+                    container.classList.add('hidden');
+                });
+                
+                const cuentaActualContainer = document.getElementById(`cuenta-${numeroCuenta}`);
+                if (cuentaActualContainer) {
+                    cuentaActualContainer.classList.remove('hidden');
+                }
+                
+                // Actualizar totales de esta cuenta
+                if (Array.isArray(totalDividadasInfo) && totalDividadasInfo.length > 0) {
+                    const cuentaInfo = totalDividadasInfo.find(c => c.numero_cuenta === numeroCuenta);
+                    if (cuentaInfo) {
+                        totalPagar = parseFloat(cuentaInfo.total) || 0;
+                        subtotalActual = parseFloat(cuentaInfo.subtotal) || 0;
+                        ivaActual = parseFloat(cuentaInfo.iva) || 0;
+                        propinaActual = parseFloat(cuentaInfo.propina) || 0;
+                        
+                        // Actualizar displays
+                        const totalSubtotalDisplay = document.getElementById('total-subtotal');
+                        if (totalSubtotalDisplay) {
+                            totalSubtotalDisplay.textContent = '$' + subtotalActual.toFixed(2);
+                        }
+                        
+                        if (ivaInput) {
+                            ivaInput.value = ivaActual.toFixed(2);
+                        }
+                        
+                        recalcularTotal();
+                        actualizarVista();
+                    }
+                }
+            });
+        });
+
+        // ========== FUNCIÓN PARA RECALCULAR TOTAL ==========
         function recalcularTotal() {
             const subtotal = subtotalActual || 0;
-            const iva = ivaActual || 0;
+            const iva = parseFloat(ivaInput?.value) || ivaActual || 0;
             const propina = parseFloat(propinaInput?.value) || propinaActual || 0;
             const nuevoTotal = subtotal + iva + propina;
             
-            totalPagar = Math.round(nuevoTotal * 100) / 100; // Redondear a 2 decimales
-            propinaActual = propina;
+            totalPagar = Math.round(nuevoTotal * 100) / 100;
             
             const totalDerechaElement = document.getElementById('total-pagar-derecha');
             if (totalDerechaElement) {
                 totalDerechaElement.textContent = '$' + totalPagar.toFixed(2);
             }
             
-            // Actualizar el total general en el panel izquierdo
             if (totalPagarDisplay) {
                 totalPagarDisplay.textContent = '$' + totalPagar.toFixed(2);
             }
             
-            // Actualizar display de propina
             if (propinaDisplay) {
                 propinaDisplay.textContent = '$' + propina.toFixed(2);
             }
@@ -414,32 +533,28 @@
             actualizarVista();
         }
 
-        // Agregar listeners para botones de propina por porcentaje
+        // ========== BOTONES DE PROPINA ==========
         botonesPropinaPercentaje.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const percent = btn.getAttribute('data-percent');
-                let nuevaPropina = 0;
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const percent = this.getAttribute('data-percent');
                 
-                // Deseleccionar todos los botones
                 botonesPropinaPercentaje.forEach(b => {
                     b.classList.remove('bg-blue-500/20', 'border-blue-400');
                     b.classList.add('bg-white/5', 'border-white/10');
                 });
                 
-                // Seleccionar el botón actual
-                btn.classList.remove('bg-white/5', 'border-white/10');
-                btn.classList.add('bg-blue-500/20', 'border-blue-400');
+                this.classList.remove('bg-white/5', 'border-white/10');
+                this.classList.add('bg-blue-500/20', 'border-blue-400');
                 
                 if (percent === 'custom') {
-                    // Mostrar input personalizado
                     propinCustomInput.classList.remove('hidden');
                     if (propinaInput) {
                         propinaInput.focus();
                     }
                 } else {
-                    // Calcular porcentaje sobre el subtotal
                     const porcentaje = parseInt(percent) / 100;
-                    nuevaPropina = Math.round(subtotalActual * porcentaje * 100) / 100;
+                    const nuevaPropina = Math.round(subtotalActual * porcentaje * 100) / 100;
                     propinCustomInput.classList.add('hidden');
                     if (propinaInput) {
                         propinaInput.value = nuevaPropina.toFixed(2);
@@ -450,64 +565,270 @@
             });
         });
 
-        // Agregar listeners para cambios en el IVA
+        // ========== CAMBIOS EN IVA Y PROPINA ==========
         if (ivaInput) {
-            ivaInput.addEventListener('change', () => {
-                ivaActual = parseFloat(ivaInput.value) || 0;
+            ivaInput.addEventListener('change', function() {
+                ivaActual = parseFloat(this.value) || 0;
                 recalcularTotal();
             });
-            ivaInput.addEventListener('input', () => {
-                ivaActual = parseFloat(ivaInput.value) || 0;
+            ivaInput.addEventListener('input', function() {
+                ivaActual = parseFloat(this.value) || 0;
                 recalcularTotal();
             });
         }
 
-        // Agregar listeners para cambios en el input personalizado de propina
         if (propinaInput) {
-            propinaInput.addEventListener('change', () => {
+            propinaInput.addEventListener('change', function() {
                 recalcularTotal();
             });
-            propinaInput.addEventListener('input', () => {
+            propinaInput.addEventListener('input', function() {
                 recalcularTotal();
             });
         }
 
+        // ========== ACTUALIZAR VISTA ==========
         function actualizarVista() {
             const numero = parseFloat(montoActual) || 0;
-            display.innerText = formatter.format(numero);
+            display.textContent = formatter.format(numero);
             const cambio = numero - totalPagar;
-            displayCambio.innerText = formatter.format(Math.max(cambio, 0));
+            displayCambio.textContent = formatter.format(Math.max(cambio, 0));
         }
 
-        function generateAutoReference(method) {
-            const now = new Date();
-            const pad = value => String(value).padStart(2, '0');
-            const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-            const random = Math.floor(Math.random() * 900 + 100);
-            return method === 'Transferencia' ? `TRF-${timestamp}-${random}` : `TAR-${timestamp}-${random}`;
-        }
-
-        function setMetodoPago(method) {
-            metodoPagoInput.value = method;
-            metodoPagoLabel.innerText = method;
-            metodoButtons.forEach(btn => {
-                btn.classList.remove(
-                    'ring-2',
-                    'ring-emerald-300/20',
-                    'ring-sky-300/20',
-                    'ring-violet-300/20',
-                    'bg-emerald-500/10',
-                    'bg-sky-500/10',
-                    'bg-violet-500/10',
-                    'border-emerald-300/80',
-                    'border-sky-300/80',
-                    'border-violet-300/80',
-                    'shadow-[0_30px_70px_-20px_rgba(16,185,129,0.35)]',
-                    'shadow-[0_30px_70px_-20px_rgba(56,189,248,0.35)]',
-                    'shadow-[0_30px_70px_-20px_rgba(139,92,246,0.35)]'
-                );
+        // ========== BOTÓN TICKET ==========
+        if (btnTicket) {
+            btnTicket.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Función de impresión en desarrollo');
             });
         }
+
+        // ========== BOTÓN FINALIZAR PAGO ==========
+        if (btnFinalizar) {
+            btnFinalizar.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const montoIngresado = parseFloat(montoActual) || 0;
+                
+                if (montoIngresado === 0) {
+                    showNotification('Por favor ingresa un monto válido', 'error');
+                    return;
+                }
+                
+                if (montoIngresado < totalPagar) {
+                    showNotification(`Monto insuficiente. Se requieren $${totalPagar.toFixed(2)}`, 'warning');
+                    return;
+                }
+                
+                // Procesar pago exitoso
+                procesarPagoExitoso(cuentaActual, totalPagar, montoIngresado);
+            });
+        }
+        
+        // ========== PROCESAR PAGO EXITOSO ==========
+        function procesarPagoExitoso(numeroCuenta, montoPersona, montoIngresado) {
+            // Obtener el orden_id correcto para esta persona (en cuenta dividida)
+            let ordenIdActual = ordenId;
+            if (Array.isArray(totalDividadasInfo) && totalDividadasInfo.length > 0) {
+                const cuentaInfo = totalDividadasInfo.find(c => c.numero_cuenta === numeroCuenta);
+                if (cuentaInfo && cuentaInfo.orden_id) {
+                    ordenIdActual = cuentaInfo.orden_id;
+                }
+            }
+            
+            // Enviar el pago al servidor
+            const pagoData = {
+                mesa_id: mesaId,
+                orden_id: ordenIdActual || null,
+                efectivo: montoIngresado,
+                metodo_pago: metodoPagoInput.value || 'Efectivo',
+                referencia: document.getElementById('referencia')?.value || null,
+                iva: ivaActual,
+                propina: parseFloat(propinaInput?.value) || 0
+            };
+
+            fetch('{{ route("admin.caja.api.pagar") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(pagoData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Verificar si es mesa dividida (hay botones de cuentas)
+                    const esMesaDividida = document.querySelectorAll('.btn-cuenta').length > 0;
+                    
+                    if (esMesaDividida) {
+                        // MESA DIVIDIDA: Procesar por personas
+                        // Marcar persona como pagada
+                        const btnCuentaPagada = document.querySelector(`.btn-cuenta[data-cuenta="${numeroCuenta}"]`);
+                        if (btnCuentaPagada) {
+                            btnCuentaPagada.setAttribute('data-pagado', 'true');
+                            btnCuentaPagada.setAttribute('style', 'background-color: #064e3b; border: 2px solid #10b981; color: #d1fae5; opacity: 0.7; cursor: not-allowed;');
+                            btnCuentaPagada.disabled = true;
+                        }
+                        
+                        // Actualizar el total general (panel izquierdo)
+                        const totalPagarDisplay = document.getElementById('total-pagar');
+                        if (totalPagarDisplay) {
+                            let totalActualMesa = parseFloat(totalPagarDisplay.textContent.replace('$', '')) || totalMesaCompleta;
+                            totalActualMesa = Math.round((totalActualMesa - montoPersona) * 100) / 100;
+                            totalPagarDisplay.textContent = '$' + totalActualMesa.toFixed(2);
+                        }
+                        
+                        // Mostrar modal de éxito
+                        showSuccessModal(numeroCuenta, montoPersona, totalPagarDisplay?.textContent || '$0.00');
+                        
+                        // Resetear el display de ingreso
+                        montoActual = '0';
+                        actualizarVista();
+                        
+                        // Buscar siguiente persona sin pagar
+                        const siguientePersona = encontrarSiguientePersonaSinPagar();
+                        if (siguientePersona) {
+                            // Seleccionar automáticamente la siguiente persona
+                            setTimeout(() => {
+                                siguientePersona.click();
+                            }, 1500);
+                        } else {
+                            // Si no hay más personas, redirigir automáticamente después de 2 segundos
+                            setTimeout(() => {
+                                window.location.href = '{{ route("admin.caja.index") }}';
+                            }, 2000);
+                        }
+                    } else {
+                        // MESA NORMAL: Redirigir automáticamente después de 1.5 segundos
+                        showSuccessModal(1, totalPagar, '$0.00');
+                        
+                        setTimeout(() => {
+                            window.location.href = '{{ route("admin.caja.index") }}';
+                        }, 1500);
+                    }
+                } else {
+                    console.error('Error en respuesta:', data.message);
+                    showNotification(data.message || 'Error procesando pago', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error en AJAX:', error);
+                showNotification('Error de conexión al procesar pago', 'error');
+            });
+        }
+        
+        // ========== ENCONTRAR SIGUIENTE PERSONA SIN PAGAR ==========
+        function encontrarSiguientePersonaSinPagar() {
+            const botonesCuenta = document.querySelectorAll('.btn-cuenta');
+            for (let btn of botonesCuenta) {
+                if (btn.getAttribute('data-pagado') !== 'true') {
+                    return btn;
+                }
+            }
+            return null;
+        }
+        
+        // ========== MOSTRAR MODAL DE ÉXITO ==========
+        function showSuccessModal(numeroCuenta, montoPagado, nuevoTotal) {
+            const modalExito = document.getElementById('modal-exito');
+            const modalNombrePersona = document.getElementById('modal-nombre-persona');
+            const modalMontoPagado = document.getElementById('modal-monto-pagado');
+            const modalNuevoTotal = document.getElementById('modal-nuevo-total');
+            const btnCerrarExito = document.getElementById('btn-cerrar-modal-exito');
+            
+            if (modalNombrePersona) {
+                modalNombrePersona.textContent = `Persona ${numeroCuenta}`;
+            }
+            if (modalMontoPagado) {
+                modalMontoPagado.textContent = '$' + montoPagado.toFixed(2);
+            }
+            if (modalNuevoTotal) {
+                modalNuevoTotal.textContent = nuevoTotal;
+            }
+            
+            if (modalExito) {
+                modalExito.classList.remove('hidden');
+            }
+            
+            if (btnCerrarExito) {
+                btnCerrarExito.onclick = function() {
+                    // Verificar si todas las personas están pagadas
+                    const personasRestantes = encontrarSiguientePersonaSinPagar();
+                    
+                    if (!personasRestantes) {
+                        // Todas pagadas, redirigir a caja
+                        window.location.href = '{{ route("admin.caja.index") }}';
+                    } else {
+                        // Aún hay personas, solo cerrar el modal
+                        modalExito.classList.add('hidden');
+                    }
+                };
+            }
+        }
+        
+        // ========== NOTIFICATION SIMPLE ==========
+        function showNotification(message, type = 'error') {
+            // Simple fallback - puede mejorarse con un toast system
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // ========== SELECTOR DE MÉTODO DE PAGO ==========
+        const btnCerrarModal = document.getElementById('btn-cerrar-modal-metodo');
+        const modalMetodo = document.getElementById('modal-metodo');
+        const metodoButtons = document.querySelectorAll('.metodo-btn');
+        
+        if (btnAbrirModal) {
+            btnAbrirModal.addEventListener('click', function(e) {
+                e.preventDefault();
+                modalMetodo.classList.remove('hidden');
+            });
+        }
+        
+        if (btnCerrarModal) {
+            btnCerrarModal.addEventListener('click', function(e) {
+                e.preventDefault();
+                modalMetodo.classList.add('hidden');
+            });
+        }
+        
+        metodoButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const metodo = this.getAttribute('data-metodo');
+                
+                metodoPagoInput.value = metodo;
+                metodoPagoLabel.textContent = metodo;
+                
+                // Mostrar/ocultar secciones según método
+                if (metodo === 'Efectivo') {
+                    cashSection.classList.remove('hidden');
+                    nonCashSection.classList.add('hidden');
+                } else {
+                    cashSection.classList.add('hidden');
+                    nonCashSection.classList.remove('hidden');
+                }
+                
+                modalMetodo.classList.add('hidden');
+            });
+        });
+
+        // Cerrar modal al hacer clic fuera
+        modalMetodo.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
+        // Inicializar vista
+        actualizarVista();
     });
 </script>
 @endsection

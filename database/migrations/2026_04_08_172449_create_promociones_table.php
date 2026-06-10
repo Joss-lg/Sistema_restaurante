@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('nombre');
             
-            // El tipo ayuda a saber si es un descuento porcentual, monto fijo o 2x1
+            // Agregamos la columna descripción para añadir texto explicativo de la promo
+            $table->text('descripcion')->nullable();
+            
+            // El tipo de promoción (formulario de texto libre donde escribes qué promoción deseas que exista)
             $table->string('tipo_promocion'); 
             
             // El valor puede ser el porcentaje (ej: 15.00) o el monto (ej: 50.00)
@@ -24,6 +27,9 @@ return new class extends Migration
             // Vigencia de la promoción
             $table->date('fecha_inicio');
             $table->date('fecha_fin');
+            
+            // Estructura JSON para almacenar los días seleccionados con el checklist (Ej: ["martes", "miercoles"])
+            $table->json('dias_semana')->nullable();
             
             // Para activar/desactivar la promo sin borrarla
             $table->boolean('esta_activa')->default(true);

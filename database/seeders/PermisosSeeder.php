@@ -12,7 +12,23 @@ class PermisosSeeder extends Seeder
 {
     public function run()
     {
-        // 1. DEFINIMOS TODOS LOS PERMISOS DEL RESTAURANTE
+        // 1. CREAMOS LOS ROLES BÁSICOS SI NO EXISTEN
+        $roles = [
+            ['slug' => 'admin', 'nombre' => 'Administrador', 'descripcion' => 'Acceso completo', 'puede_acceder_pos' => true],
+            ['slug' => 'capitan', 'nombre' => 'Capitán', 'descripcion' => 'Gerente en turno', 'puede_acceder_pos' => true],
+            ['slug' => 'mesero', 'nombre' => 'Mesero', 'descripcion' => 'Atiende mesas y crea órdenes', 'puede_acceder_pos' => false],
+            ['slug' => 'cocinero', 'nombre' => 'Cocinero', 'descripcion' => 'Cocina y gestiona pedidos', 'puede_acceder_pos' => false],
+            ['slug' => 'cajero', 'nombre' => 'Cajero', 'descripcion' => 'Opera caja y cierres', 'puede_acceder_pos' => true],
+        ];
+
+        foreach ($roles as $rolData) {
+            Rol::updateOrCreate(
+                ['slug' => $rolData['slug']],
+                $rolData
+            );
+        }
+
+        // 2. DEFINIMOS TODOS LOS PERMISOS DEL RESTAURANTE
         $modulos = [
             'dashboard'   => ['ver'],
             'inventario'  => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],

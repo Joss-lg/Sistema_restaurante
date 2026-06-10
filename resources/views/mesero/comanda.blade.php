@@ -17,6 +17,7 @@
             --text-main: #FFFFFF;
             --text-muted: #71717A;
             --accent: #3B82F6;
+            --input-bg: #141418;
         }
 
         body.modo-crema {
@@ -25,6 +26,7 @@
             --border-color: rgba(0, 0, 0, 0.08);
             --text-main: #09090B;
             --text-muted: #A1A1AA;
+            --input-bg: #E4E4E7;
         }
 
         body { 
@@ -35,93 +37,30 @@
             transition: background-color 0.4s ease, color 0.4s ease;
         }
         
-        /* Scrollbars limpias: ocultas donde se usan y con thumb discreto en WebKit */
-        .hide-scroll {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .hide-scroll::-webkit-scrollbar {
-            width: 0;
-            height: 0;
-        }
-        .hide-scroll::-webkit-scrollbar-thumb,
-        .hide-scroll::-webkit-scrollbar-track {
-            background: transparent;
-        }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scroll::-webkit-scrollbar { width: 0; height: 0; }
+        .hide-scroll::-webkit-scrollbar-thumb, .hide-scroll::-webkit-scrollbar-track { background: transparent; }
 
-        /* Opcional: scrollbars suaves en contenido que sí debe aparecer */
-        .smooth-scrollbar::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        .smooth-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.12);
-            border-radius: 999px;
-        }
-        .smooth-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .smooth-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.12) transparent;
-        }
-        
-        @keyframes fade-in-up {
-            0% { opacity: 0; transform: translateY(5px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(5px); } 100% { opacity: 1; transform: translateY(0); } }
         .animate-item { animation: fade-in-up 0.2s ease-out forwards; }
         
-        .toast-wrapper {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            align-items: flex-end;
-            pointer-events: none;
-        }
-        .toast-panel {
-            min-width: 18rem;
-            max-width: 28rem;
-            pointer-events: auto;
-            background: rgba(11, 15, 25, 0.92);
-            color: #F8FAFC;
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            border-left-width: 4px;
-            border-radius: 1.25rem;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
-            padding: 1rem 1.25rem;
-            opacity: 0;
-            transform: translateX(28px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 0.85rem;
-            align-items: center;
-        }
+        .toast-wrapper { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end; pointer-events: none; }
+        .toast-panel { min-width: 18rem; max-width: 28rem; pointer-events: auto; background: rgba(11, 15, 25, 0.92); color: #F8FAFC; border: 1px solid rgba(148, 163, 184, 0.15); border-left-width: 4px; border-radius: 1.25rem; backdrop-filter: blur(20px); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); padding: 1rem 1.25rem; opacity: 0; transform: translateX(28px); transition: opacity 0.3s ease, transform 0.3s ease; font-size: 0.95rem; line-height: 1.5; display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; align-items: center; }
         .toast-panel.show { opacity: 1; transform: translateX(0); }
         .toast-panel.success { border-color: rgba(16, 185, 129, 0.25); }
         .toast-panel.error { border-color: rgba(239, 68, 68, 0.25); }
         .toast-panel.info { border-color: rgba(59, 130, 246, 0.25); }
-        .toast-panel.warning { border-color: rgba(245, 158, 11, 0.25); }
         .toast-panel .toast-icon { width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: 1rem; background: rgba(255, 255, 255, 0.08); color: inherit; }
         .toast-panel.success .toast-icon { background: rgba(16, 185, 129, 0.18); color: #4ade80; }
         .toast-panel.error .toast-icon { background: rgba(239, 68, 68, 0.18); color: #f87171; }
         .toast-panel.info .toast-icon { background: rgba(59, 130, 246, 0.18); color: #60a5fa; }
-        .toast-panel.warning .toast-icon { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
-        .toast-panel strong { display: block; color: inherit; font-weight: 700; letter-spacing: 0.01em; }
-        .toast-panel span { color: rgba(248, 250, 252, 0.84); font-size: 0.88rem; line-height: 1.55; }
+        .toast-panel strong { display: block; color: inherit; font-weight: 700; }
+        .toast-panel span { color: rgba(248, 250, 252, 0.84); font-size: 0.88rem; }
+        
         body.modo-crema .toast-panel { background: rgba(255, 255, 255, 0.96); color: #1f2937; border-color: #e5e7eb; box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08); }
         body.modo-crema .toast-panel.success .toast-icon { background: #dcfce7; color: #166534; }
         body.modo-crema .toast-panel.error .toast-icon { background: #fee2e2; color: #991b1b; }
         body.modo-crema .toast-panel.info .toast-icon { background: #dbeafe; color: #1d4ed8; }
-        body.modo-crema .toast-panel.warning .toast-icon { background: #ffedd5; color: #c2410c; }
         body.modo-crema .toast-panel span { color: #52525b; }
         
         aside, section, main, div, button { transition: background-color 0.3s ease, border-color 0.3s ease; }
@@ -133,78 +72,122 @@
     <div id="toastContainer" class="toast-wrapper" aria-live="polite" aria-atomic="true"></div>
 
     {{-- ========================================== --}}
-    {{-- COLUMNA 1: ACCIONES RÁPIDAS (LATERAL IZQ)  --}}
+    {{-- COLUMNA 1: ACCIONES RÁPIDAS (DISEÑO LUXURY) --}}
     {{-- ========================================== --}}
     <aside class="w-[170px] md:w-[190px] xl:w-[220px] 2xl:w-[260px] flex-shrink-0 h-full flex flex-col bg-[var(--bg-base)] border-r border-[var(--border-color)] p-3 lg:p-4 z-20 transition-all">
         
-        {{-- Botón Cerrar --}}
-        <button onclick="window.location.href='{{ route('mesero.dashboard') ?? '#' }}'" class="w-full h-10 xl:h-12 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-main)] font-black text-[9px] xl:text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 transition-all active:scale-95 outline-none mb-4">
-            <i class="fas fa-times"></i> Cerrar
-        </button>
-
-        {{-- Info Mesa y Modo Claro --}}
-        <div class="flex items-center justify-between px-1 mb-4">
-            <h3 class="text-base lg:text-lg xl:text-xl font-black tracking-tighter text-[var(--text-main)] truncate">Mesa {{ $mesa->numero ?? '12M' }}</h3>
-            <button onclick="toggleTheme()" class="w-7 h-7 xl:w-8 xl:h-8 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-color)] flex items-center justify-center hover:border-[#3B82F6]/50 transition-all outline-none shadow-sm group flex-shrink-0">
-                <i id="themeIcon" class="fas fa-sun text-[10px] xl:text-xs text-[var(--text-muted)] group-hover:scale-110 transition-transform"></i>
+        {{-- Top Bar (Back & Theme) --}}
+        <div class="flex items-center gap-2 mb-4">
+            <button onclick="window.location.href='{{ route('mesero.dashboard') ?? '#' }}'" class="flex-1 h-10 xl:h-12 rounded-[14px] bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-main)] font-black text-[8px] xl:text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 hover:border-[var(--text-muted)] transition-all shadow-sm active:scale-95 outline-none">
+                <i class="fas fa-chevron-left text-[var(--text-muted)]"></i> Mesas
+            </button>
+            <button onclick="toggleTheme()" class="w-10 h-10 xl:w-12 xl:h-12 shrink-0 rounded-[14px] bg-[var(--input-bg)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-[var(--text-muted)] transition-all shadow-sm active:scale-95 outline-none group">
+                <i id="themeIcon" class="fas fa-sun text-xs group-hover:rotate-90 transition-transform duration-500"></i>
             </button>
         </div>
 
-        {{-- Grid de Botones (Más compacto y fluido) --}}
+        {{-- Info Mesa --}}
+        <div class="flex items-center justify-between px-2 mb-5">
+            <div class="flex flex-col">
+                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-0.5">Mesa Activa</span>
+                <h3 class="text-xl xl:text-2xl font-black tracking-tighter text-[var(--text-main)] leading-none">Mesa {{ $mesa->numero ?? '12M' }}</h3>
+            </div>
+            <div class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[var(--bg-base)]"></span>
+            </div>
+        </div>
+
+        {{-- Grid de Botones Premium --}}
         <div class="grid grid-cols-2 gap-2 xl:gap-3 flex-1 overflow-y-auto hide-scroll pb-2">
-            <button onclick="ajustarPersonas()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6]/50 transition-all active:scale-95 group outline-none p-2">
-                <i class="fas fa-user-friends text-[#3B82F6] mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(59,130,246,0.4)]"></i>
-                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-[#3B82F6]">Personas</span>
-                <span id="txtPersonas" class="text-[8px] xl:text-[9px] font-bold text-[#3B82F6] mt-0.5">{{ $mesa->capacidad ?? 1 }}</span>
+            
+            {{-- 1. Personas --}}
+            <button onclick="ajustarPersonas()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6]/50 hover:shadow-[0_8px_20px_-6px_rgba(59,130,246,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 flex items-center justify-center mb-2 group-hover:bg-[#3B82F6] transition-colors duration-300">
+                    <i class="fas fa-user-friends text-[#3B82F6] group-hover:text-white text-xs xl:text-sm transition-colors"></i>
+                </div>
+                <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Personas</span>
+                <span id="txtPersonas" class="text-[9px] xl:text-[10px] font-black text-[var(--text-main)] mt-0.5">{{ $mesa->capacidad ?? 1 }}</span>
             </button>
             
-            <button onclick="imprimirPrecuenta()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-slate-300/50 transition-all active:scale-95 group outline-none p-2">
-                <i class="fas fa-receipt text-slate-300 mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(203,213,225,0.4)]"></i>
-                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-slate-300 text-center leading-tight">Pre<br>Cuenta</span>
+            {{-- 2. Pre Cuenta --}}
+            <button onclick="imprimirPrecuenta()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#94A3B8]/50 hover:shadow-[0_8px_20px_-6px_rgba(148,163,184,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#94A3B8]/10 border border-[#94A3B8]/20 flex items-center justify-center mb-2 group-hover:bg-[#94A3B8] transition-colors duration-300">
+                    <i class="fas fa-receipt text-[#94A3B8] group-hover:text-white text-xs xl:text-sm transition-colors"></i>
+                </div>
+                <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors leading-tight text-center">Pre<br>Cuenta</span>
             </button>
 
-            <button onclick="agregarNota()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#8B5CF6]/50 transition-all active:scale-95 group outline-none p-2">
-                <i class="fas fa-comment-alt text-[#8B5CF6] mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(139,92,246,0.4)]"></i>
-                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-[#8B5CF6]">Nota</span>
+            {{-- 3. Nota --}}
+            <button onclick="agregarNota()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#8B5CF6]/50 hover:shadow-[0_8px_20px_-6px_rgba(139,92,246,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 flex items-center justify-center mb-2 group-hover:bg-[#8B5CF6] transition-colors duration-300">
+                    <i class="fas fa-comment-alt text-[#8B5CF6] group-hover:text-white text-xs xl:text-sm transition-colors"></i>
+                </div>
+                <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Nota</span>
             </button>
             
-            <button onclick="aplicarDescuento()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-pink-500/50 transition-all active:scale-95 group outline-none p-2">
-                <i class="fas fa-percent text-pink-500 mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(236,72,153,0.4)]"></i>
-                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-pink-500">Desc.</span>
+            {{-- 4. Desc. --}}
+            <button onclick="aplicarDescuento()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#EC4899]/50 hover:shadow-[0_8px_20px_-6px_rgba(236,72,153,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#EC4899]/10 border border-[#EC4899]/20 flex items-center justify-center mb-2 group-hover:bg-[#EC4899] transition-colors duration-300">
+                    <i class="fas fa-percent text-[#EC4899] group-hover:text-white text-xs xl:text-sm transition-colors"></i>
+                </div>
+                <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Desc.</span>
             </button>
             
-            {{-- BOTÓN GRAMAJE INTELIGENTE --}}
-            <button id="btn-gramaje" onclick="ajustarGramaje()" class="relative aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#f97316]/50 transition-all active:scale-95 group outline-none p-2">
-                <i class="fas fa-weight-scale text-[#f97316] mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]"></i>
-                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-[#f97316]">Gramaje</span>
-                <span id="indicador-gramaje-pendiente" class="hidden absolute top-1 right-1 bg-[#f97316] text-white text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-md"></span>
+            {{-- 5. Gramaje --}}
+            <button id="btn-gramaje" onclick="ajustarGramaje()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#F97316]/50 hover:shadow-[0_8px_20px_-6px_rgba(249,115,22,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#F97316]/10 border border-[#F97316]/20 flex items-center justify-center mb-2 group-hover:bg-[#F97316] transition-colors duration-300">
+                    <i class="fas fa-weight-scale text-[#F97316] group-hover:text-white text-xs xl:text-sm transition-colors"></i>
+                </div>
+                <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Gramaje</span>
+                <span id="indicador-gramaje-pendiente" class="hidden absolute top-2 right-2 bg-[#f97316] text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-md"></span>
             </button>
             
-            <button onclick="llamarCapitan()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-amber-500/50 transition-all active:scale-95 group outline-none p-2">
-                <i class="fas fa-exchange-alt text-amber-500 mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]"></i>
-                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-amber-500 text-center leading-tight">Traspaso</span>
+            {{-- 6. Traspaso --}}
+            <button onclick="llamarCapitan()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#F59E0B]/50 hover:shadow-[0_8px_20px_-6px_rgba(245,158,11,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center mb-2 group-hover:bg-[#F59E0B] transition-colors duration-300">
+                    <i class="fas fa-exchange-alt text-[#F59E0B] group-hover:text-white text-xs xl:text-sm transition-colors"></i>
+                </div>
+                <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Traspaso</span>
             </button>
             
-            <button onclick="mostrarPromociones()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6]/50 transition-all active:scale-95 group outline-none p-2">
-                <i class="fas fa-tag text-[#3B82F6] mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(59,130,246,0.4)]"></i>
-                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-[#3B82F6]">Promos</span>
+            {{-- 7. Promos --}}
+            <button onclick="mostrarPromociones()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#0EA5E9]/50 hover:shadow-[0_8px_20px_-6px_rgba(14,165,233,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#0EA5E9]/10 border border-[#0EA5E9]/20 flex items-center justify-center mb-2 group-hover:bg-[#0EA5E9] transition-colors duration-300">
+                    <i class="fas fa-tag text-[#0EA5E9] group-hover:text-white text-xs xl:text-sm transition-colors"></i>
+                </div>
+                <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Promos</span>
             </button>
             
-            <button onclick="marcharTiempos()" class="aspect-square flex flex-col items-center justify-center rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-orange-500/50 transition-all active:scale-95 group outline-none p-2">
-                <i class="fas fa-fire text-orange-500 mb-1.5 text-sm xl:text-lg drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]"></i>
-                <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-widest text-orange-500">Marchar</span>
+            {{-- 8. Marchar --}}
+            <button onclick="marcharTiempos()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#EF4444]/50 hover:shadow-[0_8px_20px_-6px_rgba(239,68,68,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/20 flex items-center justify-center mb-2 group-hover:bg-[#EF4444] transition-colors duration-300">
+                    <i class="fas fa-fire text-[#EF4444] group-hover:text-white text-xs xl:text-sm transition-colors"></i>
+                </div>
+                <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Marchar</span>
             </button>
             
             @if($esCapitan ?? false)
-                <button onclick="llamarCapitan()" class="col-span-2 h-12 lg:h-14 xl:h-16 flex items-center justify-center gap-2 rounded-xl lg:rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-indigo-400/50 transition-all active:scale-95 group outline-none">
-                    <i class="fas fa-user-shield text-indigo-400 text-sm xl:text-base drop-shadow-[0_0_8px_rgba(129,140,248,0.4)]"></i>
-                    <span class="text-[8px] xl:text-[10px] font-black uppercase tracking-widest text-indigo-400">Capitán</span>
+                <button onclick="llamarCapitan()" class="col-span-2 relative h-12 lg:h-14 xl:h-16 flex items-center justify-center gap-3 rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#6366F1]/50 hover:shadow-[0_8px_20px_-6px_rgba(99,102,241,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
+                    <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
+                    <div class="w-8 h-8 rounded-full bg-[#6366F1]/10 border border-[#6366F1]/20 flex items-center justify-center group-hover:bg-[#6366F1] transition-colors duration-300">
+                        <i class="fas fa-user-shield text-[#6366F1] group-hover:text-white text-xs transition-colors"></i>
+                    </div>
+                    <span class="text-[8px] xl:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Capitán</span>
                 </button>
             @endif
         </div>
 
-        <button onclick="limpiarTicket()" class="mt-3 w-full h-10 xl:h-12 rounded-xl border border-rose-500/30 bg-[var(--bg-panel)] hover:bg-rose-500 hover:text-white text-rose-500 transition-all active:scale-95 outline-none flex items-center justify-center gap-2 flex-shrink-0">
-            <i class="fas fa-trash-alt text-[10px]"></i>
+        <button onclick="limpiarTicket()" class="mt-4 w-full h-12 xl:h-14 rounded-[18px] border border-[#ef4444]/20 bg-[#ef4444]/5 text-[#ef4444] hover:bg-[#ef4444] hover:text-white transition-all duration-300 active:scale-95 outline-none flex items-center justify-center gap-2 flex-shrink-0 group shadow-sm">
+            <i class="fas fa-trash-alt text-[10px] group-hover:animate-pulse"></i>
             <span class="text-[8px] xl:text-[9px] font-black uppercase tracking-widest">Eliminar Todo</span>
         </button>
     </aside>
@@ -220,9 +203,7 @@
                 </div>
                 <button onclick="cerrarModal('modalCapitan')" class="text-[var(--text-muted)] hover:text-white outline-none text-xl"><i class="fas fa-times"></i></button>
             </div>
-            <div id="capitanMesasContainer" class="grid gap-3 max-h-[420px] overflow-y-auto hide-scroll pb-2">
-                {{-- El contenido se cargará dinámicamente mediante AJAX al verificar el NIP del capitán. --}}
-            </div>
+            <div id="capitanMesasContainer" class="grid gap-3 max-h-[420px] overflow-y-auto hide-scroll pb-2"></div>
             <div class="mt-5 text-right">
                 <button onclick="cerrarModal('modalCapitan')" class="px-5 py-2.5 rounded-xl border border-[var(--border-color)] text-xs font-bold text-[var(--text-muted)] hover:text-white transition-all">Cancelar</button>
             </div>
@@ -234,38 +215,28 @@
     {{-- ========================================== --}}
     <section class="w-[280px] md:w-[320px] xl:w-[360px] 2xl:w-[400px] flex-shrink-0 h-full flex flex-col bg-[var(--bg-panel)] border-r border-[var(--border-color)] relative z-10 shadow-2xl transition-all">
         
-        {{-- CABECERA ULTRA COMPACTA --}}
         <div class="p-3 xl:p-4 border-b border-[var(--border-color)] flex flex-col gap-2.5">
-            
-            {{-- Tabs super estilizados (Segmented Control iOS Modificado) --}}
             <div class="relative flex w-full bg-[var(--bg-base)] p-1 rounded-xl border border-[var(--border-color)] shadow-inner">
-                {{-- Fondo animado --}}
-                <div id="tab-slider" class="absolute left-1 top-1 h-[calc(100%-8px)] w-[calc(33.333%-2.6px)] rounded-lg bg-[#3B82F6] shadow-[0_4px_15px_-3px_rgba(59,130,246,0.5)] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"></div>
-
-                <button onclick="cambiarTab('nueva-orden', this)" id="btn-tab-nueva-orden" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-white transition-colors duration-300 outline-none">
-                    Orden
-                </button>
-                <button onclick="cambiarTab('enviados', this)" id="btn-tab-enviados" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-300 outline-none">
-                    Enviado
-                </button>
-                <button onclick="cambiarTab('comanda', this)" id="btn-tab-comanda" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-300 outline-none">
-                    Total
-                </button>
+                <div class="absolute inset-y-1 left-1 right-1 pointer-events-none">
+                    <div id="tab-slider" class="h-full w-1/3 rounded-lg bg-[#3B82F6] shadow-[0_4px_15px_-3px_rgba(59,130,246,0.5)] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"></div>
+                </div>
+                <button onclick="cambiarTab('nueva-orden', this)" id="btn-tab-nueva-orden" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-white transition-colors duration-300 outline-none">Orden</button>
+                <button onclick="cambiarTab('enviados', this)" id="btn-tab-enviados" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-300 outline-none">Enviado</button>
+                <button onclick="cambiarTab('comanda', this)" id="btn-tab-comanda" class="tab-btn relative z-10 flex-1 py-1.5 xl:py-2 text-[8px] xl:text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors duration-300 outline-none">Total</button>
             </div>
 
-            {{-- Selector Maestro de Tiempos --}}
             <div class="flex items-center justify-between bg-[var(--bg-base)] p-1.5 xl:p-2 rounded-xl border border-[var(--border-color)]">
                 <span class="text-[8px] font-black uppercase tracking-[0.2em] text-[#f97316] ml-2">Tiempos:</span>
                 <div class="flex gap-1 pr-1">
-                    <button onclick="cambiarTiempoGlobal('sin-tiempo')" id="tiempo-global-sin" class="px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight bg-[#3B82F6] text-white shadow-sm tiempo-global-btn transition-all" title="Sin Tiempo">S</button>
-                    <button onclick="cambiarTiempoGlobal('primer-tiempo')" id="tiempo-global-1" class="px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn" title="Primer Tiempo">1</button>
-                    <button onclick="cambiarTiempoGlobal('segundo-tiempo')" id="tiempo-global-2" class="px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn" title="Segundo Tiempo">2</button>
-                    <button onclick="cambiarTiempoGlobal('tercer-tiempo')" id="tiempo-global-3" class="px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn" title="Tercer Tiempo">3</button>
+                    <button onclick="cambiarTiempoGlobal('sin-tiempo')" id="tiempo-global-sin" class="px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight bg-[#3B82F6] text-white shadow-sm tiempo-global-btn transition-all outline-none" title="Sin Tiempo">S</button>
+                    <button onclick="cambiarTiempoGlobal('primer-tiempo')" id="tiempo-global-1" class="px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn outline-none" title="Primer Tiempo">1</button>
+                    <button onclick="cambiarTiempoGlobal('segundo-tiempo')" id="tiempo-global-2" class="px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn outline-none" title="Segundo Tiempo">2</button>
+                    <button onclick="cambiarTiempoGlobal('tercer-tiempo')" id="tiempo-global-3" class="px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn outline-none" title="Tercer Tiempo">3</button>
                 </div>
             </div>
         </div>
 
-        {{-- VISTA 1: NUEVA ORDEN (Ticket Actual) --}}
+        {{-- VISTA 1: NUEVA ORDEN --}}
         <div id="vista-nueva-orden" class="flex-1 overflow-y-auto hide-scroll p-3 xl:p-4 flex flex-col relative bg-[var(--bg-base)]">
             <div class="grid grid-cols-[30px_1fr_45px] gap-2 text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-2 pb-2 border-b border-[var(--border-color)]">
                 <span class="text-center">Cant.</span>
@@ -274,48 +245,102 @@
             </div>
             <div id="listaTicket" class="flex flex-col gap-2"></div>
             
-            <div id="estadoVacio" class="flex-1 flex flex-col items-center justify-center opacity-30 mt-6 transition-opacity duration-300">
-                <i class="fas fa-utensils text-3xl mb-3 text-[var(--text-muted)]"></i>
+            <div id="estadoVacio" class="flex-1 flex flex-col items-center justify-center opacity-40 mt-6 transition-opacity duration-300">
+                <div class="w-16 h-16 rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] flex items-center justify-center mb-3 shadow-inner">
+                    <i class="fas fa-utensils text-2xl text-[var(--text-muted)]"></i>
+                </div>
                 <p class="text-[9px] xl:text-[10px] font-bold text-[var(--text-muted)] text-center leading-relaxed">Ticket vacío.<br>Agrega platillos.</p>
             </div>
         </div>
 
         {{-- VISTA 2: ENVIADOS --}}
-        <div id="vista-enviados" class="hidden flex-1 overflow-y-auto hide-scroll p-3 flex-col relative bg-[var(--bg-base)]">
-            <div class="flex-1 flex flex-col items-center justify-center opacity-40 mt-6">
-                <i class="fas fa-fire text-3xl mb-3 text-orange-500"></i>
-                <p class="text-[9px] font-bold text-[var(--text-muted)] text-center leading-relaxed">No hay platillos<br>en cocina aún.</p>
-            </div>
+        <div id="vista-enviados" class="hidden flex-1 overflow-y-auto hide-scroll p-3 xl:p-4 flex-col relative bg-[var(--bg-base)]">
+            @if(isset($platillosEnviados) && count($platillosEnviados) > 0)
+                <div class="flex flex-col gap-2">
+                    <div class="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1 pb-1 border-b border-[var(--border-color)]">Estatus Actual</div>
+                    @foreach($platillosEnviados as $item)
+                        <div class="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl p-3 flex justify-between items-center shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-md bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-main)] text-[10px] font-black flex items-center justify-center">{{ $item->cantidad ?? 1 }}</span>
+                                <div>
+                                    <span class="text-[11px] font-bold text-[var(--text-main)] block leading-tight">{{ $item->nombre ?? 'Platillo' }}</span>
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                @if(($item->estado ?? 'enviado') == 'preparando')
+                                    <span class="text-[8px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-2 py-1 rounded-md border border-orange-500/20"><i class="fas fa-fire mr-1"></i>En cocina</span>
+                                @elseif(($item->estado ?? 'enviado') == 'listo')
+                                    <span class="text-[8px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20"><i class="fas fa-check mr-1"></i>Listo</span>
+                                @else
+                                    <span class="text-[8px] font-black uppercase tracking-widest text-blue-500 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20"><i class="fas fa-clock mr-1"></i>Enviado</span>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="flex-1 flex flex-col items-center justify-center opacity-40 mt-6">
+                    <div class="w-16 h-16 rounded-full bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-3">
+                        <i class="fas fa-fire text-2xl text-orange-500/60"></i>
+                    </div>
+                    <p class="text-[9px] xl:text-[10px] font-bold text-[var(--text-muted)] text-center leading-relaxed">No hay platillos<br>en cocina aún.</p>
+                </div>
+            @endif
         </div>
 
         {{-- VISTA 3: COMANDA TOTAL --}}
-        <div id="vista-comanda" class="hidden flex-1 overflow-y-auto hide-scroll p-3 flex-col relative bg-[var(--bg-base)]">
-            <div class="flex-1 flex flex-col items-center justify-center opacity-40 mt-6">
-                <i class="fas fa-receipt text-3xl mb-3 text-slate-400"></i>
-                <p class="text-[10px] font-bold text-[var(--text-muted)] text-center leading-relaxed">Resumen total<br>de la mesa</p>
+        <div id="vista-comanda" class="hidden flex-1 overflow-y-auto hide-scroll p-3 xl:p-4 flex-col relative bg-[var(--bg-base)]">
+            <div id="items-db-total" class="flex flex-col gap-2">
+                @if(isset($platillosEnviados) && count($platillosEnviados) > 0)
+                    <div class="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1 pb-1 border-b border-[var(--border-color)]">Consumo Ya en Mesa</div>
+                    @foreach($platillosEnviados as $item)
+                        <div class="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl p-2.5 flex justify-between items-center shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="w-5 h-5 rounded bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-main)] text-[9px] font-black flex items-center justify-center">{{ $item->cantidad ?? 1 }}</span>
+                                <span class="text-[10px] font-bold text-[var(--text-main)]">{{ $item->nombre ?? 'Platillo' }}</span>
+                            </div>
+                            <span class="text-[10px] font-black text-[var(--text-main)]">${{ number_format(($item->precio ?? 0) * ($item->cantidad ?? 1), 2) }}</span>
+                        </div>
+                    @endforeach
+                    <div class="flex justify-between items-center mt-2 pt-2 border-t border-[var(--border-color)]">
+                        <span class="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Subtotal ya en mesa:</span>
+                        <span class="text-[11px] font-black text-[var(--text-main)]">
+                            ${{ number_format(collect($platillosEnviados)->sum(function($i) { return ($i->precio ?? 0) * ($i->cantidad ?? 1); }), 2) }}
+                        </span>
+                    </div>
+                @endif
+            </div>
+
+            <div id="lista-comanda-total" class="flex flex-col gap-2 mt-4"></div>
+            
+            <div id="estadoVacioComanda" class="flex-1 flex-col items-center justify-center opacity-40 mt-6 {{ (isset($platillosEnviados) && count($platillosEnviados) > 0) ? 'hidden' : 'flex' }}">
+                <div class="w-16 h-16 rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] flex items-center justify-center mb-3 shadow-inner">
+                    <i class="fas fa-receipt text-2xl text-[var(--text-muted)]"></i>
+                </div>
+                <p class="text-[9px] xl:text-[10px] font-bold text-[var(--text-muted)] text-center leading-relaxed">Aún no hay<br>cuenta en esta mesa</p>
             </div>
         </div>
 
         {{-- FOOTER DE TOTALES --}}
         <div class="p-4 border-t border-[var(--border-color)] mt-auto relative z-20 bg-[var(--bg-panel)] flex-shrink-0">
             <div class="flex justify-between items-center mb-1">
-                <span class="text-[9px] xl:text-[10px] font-bold text-[var(--text-muted)]">Subtotal:</span>
+                <span class="text-[9px] xl:text-[10px] font-bold text-[var(--text-muted)]">Subtotal Nuevos:</span>
                 <span class="text-[11px] xl:text-xs font-bold text-[var(--text-main)]" id="txtSubtotal">$0.00</span>
             </div>
             <div class="flex justify-between items-center mb-2">
                 <span class="text-[9px] xl:text-[10px] font-bold text-[var(--text-muted)]">IVA (16%):</span>
                 <span class="text-[11px] xl:text-xs font-bold text-[var(--text-main)]" id="txtIva">$0.00</span>
             </div>
-            <div class="flex justify-between items-end mb-4">
-                <span class="text-xs xl:text-sm font-black tracking-widest uppercase text-[var(--text-main)]">Total:</span>
-                <span class="text-2xl xl:text-3xl font-black text-[#3B82F6] tracking-tighter leading-none" id="txtTotal">$0.00</span>
+            <div class="flex justify-between items-end mb-4 pt-2 border-t border-[var(--border-color)]">
+                <span class="text-xs xl:text-sm font-black tracking-widest uppercase text-[var(--text-main)]">Total (Incluye Mesa):</span>
+                <span class="text-3xl font-black text-[#3B82F6] tracking-tighter leading-none" id="txtTotal">$0.00</span>
             </div>
 
-            <button id="btn-enviar" onclick="enviarACocina()" class="w-full h-11 xl:h-12 rounded-xl bg-[#3B82F6] text-white text-[10px] xl:text-[11px] font-black tracking-widest uppercase transition-all shadow-[0_5px_15px_-5px_rgba(59,130,246,0.6)] hover:bg-[#2563EB] active:scale-95 outline-none flex items-center justify-center gap-2">
+            <button id="btn-enviar" onclick="enviarACocina()" class="w-full h-12 xl:h-14 rounded-xl bg-[#3B82F6] text-white text-[10px] xl:text-[11px] font-black tracking-widest uppercase transition-all shadow-[0_8px_20px_-5px_rgba(59,130,246,0.6)] hover:bg-[#2563EB] hover:-translate-y-0.5 active:scale-95 outline-none flex items-center justify-center gap-2">
                 <i class="fas fa-paper-plane text-sm"></i>
                 <span>Enviar a Cocina</span>
             </button>
-            <p id="mensajeMesaDestino" class="mt-2 text-[10px] text-[var(--text-muted)]">Selecciona una mesa destino para enviar.</p>
+            <p id="mensajeMesaDestino" class="mt-2 text-[10px] font-bold text-[var(--text-muted)] text-center">Enviando a Mesa {{ $mesa->numero ?? '12M' }}</p>
         </div>
     </section>
 
@@ -323,14 +348,8 @@
     {{-- COLUMNA 3: CATÁLOGO DE PRODUCTOS (FLEX)    --}}
     {{-- ========================================== --}}
     <main class="flex-1 min-w-0 flex flex-col bg-[var(--bg-base)] relative overflow-hidden transition-all">
-        
-        {{-- Menú de Categorías (Scroll Horizontal) --}}
         <div class="px-4 xl:px-6 pt-4 xl:pt-6 pb-2 xl:pb-3 flex gap-2 overflow-x-auto hide-scroll relative z-10 border-b border-[var(--border-color)] bg-[var(--bg-panel)] flex-shrink-0" id="menuCategorias"></div>
-        
-        {{-- Grid de Productos (Cards responsivas) --}}
-        <div class="flex-1 p-4 xl:p-6 overflow-y-auto hide-scroll grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 xl:gap-5 content-start relative z-10" onclick="deseleccionarTicket()" id="gridProductos"></div>
-
-        {{-- BARRA DE MODIFICADORES INFERIOR --}}
+        <div class="flex-1 p-4 xl:p-6 overflow-y-auto hide-scroll grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 xl:gap-6 content-start relative z-10" onclick="deseleccionarTicket()" id="gridProductos"></div>
         <div id="barraModificadores" class="hidden h-[60px] xl:h-[70px] bg-[var(--bg-panel)] border-t border-[var(--border-color)] flex items-center px-4 xl:px-6 relative z-10 transition-all flex-shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.2)]">
             <span class="text-[8px] xl:text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mr-3 whitespace-nowrap">Añadir a platillo:</span>
             <div id="contenedorBotonesModificadores" class="flex gap-2 overflow-x-auto hide-scroll flex-1 items-center"></div>
@@ -344,18 +363,13 @@
     {{-- MODALES DEL SISTEMA                        --}}
     {{-- ========================================== --}}
 
-    {{-- MODAL NOTA --}}
     <div id="modalNota" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
         <div class="w-full max-w-md rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <p class="text-[10px] uppercase tracking-[0.25em] text-[#3B82F6] font-black">Nota</p>
-                    <h2 class="text-xl font-black mt-1">Escribe la indicación</h2>
-                </div>
+                <div><p class="text-[10px] uppercase tracking-[0.25em] text-[#3B82F6] font-black">Nota</p><h2 class="text-xl font-black mt-1">Escribe la indicación</h2></div>
                 <button onclick="cerrarModal('modalNota')" class="text-[var(--text-muted)] hover:text-white outline-none text-xl"><i class="fas fa-times"></i></button>
             </div>
             <textarea id="notaTextarea" rows="4" readonly class="w-full rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] p-4 text-sm text-[var(--text-main)] outline-none resize-none" placeholder="Ej. Sin cebolla..."></textarea>
-            
             <div id="tecladoNotas" class="grid grid-cols-10 gap-1.5 mt-4">
                 <button type="button" onclick="insertarNotaCaracter('1')" class="px-1 py-2 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-main)] font-black hover:bg-[var(--bg-base)]">1</button>
                 <button type="button" onclick="insertarNotaCaracter('2')" class="px-1 py-2 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-main)] font-black hover:bg-[var(--bg-base)]">2</button>
@@ -407,14 +421,10 @@
         </div>
     </div>
 
-    {{-- MODAL DESCUENTO --}}
     <div id="modalDescuento" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
         <div class="w-full max-w-sm rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <p class="text-[10px] uppercase tracking-[0.25em] text-[#ef4444] font-black">Descuento</p>
-                    <h2 class="text-xl font-black mt-1">Aplicar porcentaje</h2>
-                </div>
+                <div><p class="text-[10px] uppercase tracking-[0.25em] text-[#ef4444] font-black">Descuento</p><h2 class="text-xl font-black mt-1">Aplicar porcentaje</h2></div>
                 <button onclick="cerrarModal('modalDescuento')" class="text-[var(--text-muted)] hover:text-white outline-none text-xl"><i class="fas fa-times"></i></button>
             </div>
             <div class="space-y-3">
@@ -428,14 +438,10 @@
         </div>
     </div>
 
-    {{-- MODAL PERSONAS --}}
     <div id="modalPersonas" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
         <div class="w-full max-w-sm rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <p class="text-[10px] uppercase tracking-[0.25em] text-[#3B82F6] font-black">Mesa</p>
-                    <h2 class="text-xl font-black mt-1">Ajustar Personas</h2>
-                </div>
+                <div><p class="text-[10px] uppercase tracking-[0.25em] text-[#3B82F6] font-black">Mesa</p><h2 class="text-xl font-black mt-1">Ajustar Personas</h2></div>
                 <button onclick="cerrarModal('modalPersonas')" class="text-[var(--text-muted)] hover:text-white outline-none text-xl"><i class="fas fa-times"></i></button>
             </div>
             <div class="space-y-3">
@@ -448,14 +454,10 @@
         </div>
     </div>
 
-    {{-- MODAL GRAMAJE --}}
     <div id="modalGramaje" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
         <div class="w-full max-w-sm rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <p class="text-[10px] uppercase tracking-[0.25em] text-[#f97316] font-black"><i class="fas fa-weight mr-1"></i>Gramaje</p>
-                    <h2 id="modalGramajeTitulo" class="text-lg font-black mt-1 truncate max-w-[200px]">Peso del platillo</h2>
-                </div>
+                <div><p class="text-[10px] uppercase tracking-[0.25em] text-[#f97316] font-black"><i class="fas fa-weight mr-1"></i>Gramaje</p><h2 id="modalGramajeTitulo" class="text-lg font-black mt-1 truncate max-w-[200px]">Peso del platillo</h2></div>
                 <button onclick="cerrarModal('modalGramaje')" class="text-[var(--text-muted)] hover:text-white outline-none text-xl"><i class="fas fa-times"></i></button>
             </div>
             <div class="space-y-4">
@@ -485,7 +487,6 @@
         </div>
     </div>
 
-    {{-- LÓGICA DE JAVASCRIPT --}}
     <script>
         function toggleTheme() {
             const body = document.body;
@@ -528,22 +529,68 @@
             if(pestana === 'nueva-orden') {
                 if(slider) slider.style.transform = 'translateX(0%)';
                 if(btnOrden) { btnOrden.classList.add('text-white'); btnOrden.classList.remove('text-[var(--text-muted)]'); }
-                
                 document.getElementById('vista-nueva-orden').classList.remove('hidden');
                 document.getElementById('vista-nueva-orden').classList.add('flex');
             } else if (pestana === 'enviados') {
                 if(slider) slider.style.transform = 'translateX(100%)';
                 if(btnEnviados) { btnEnviados.classList.add('text-white'); btnEnviados.classList.remove('text-[var(--text-muted)]'); }
-                
                 document.getElementById('vista-enviados').classList.remove('hidden');
                 document.getElementById('vista-enviados').classList.add('flex');
             } else if (pestana === 'comanda') {
                 if(slider) slider.style.transform = 'translateX(200%)';
                 if(btnComanda) { btnComanda.classList.add('text-white'); btnComanda.classList.remove('text-[var(--text-muted)]'); }
-                
                 document.getElementById('vista-comanda').classList.remove('hidden');
                 document.getElementById('vista-comanda').classList.add('flex');
+                actualizarVistaTotal();
             }
+        }
+
+        function actualizarVistaTotal() {
+            const contenedorNuevos = document.getElementById('lista-comanda-total');
+            const mensajeVacio = document.getElementById('estadoVacioComanda');
+            const itemsEnTicket = document.querySelectorAll('#listaTicket .ticket-item');
+            
+            const contenedorDB = document.getElementById('items-db-total');
+            const hayPlatillosEnDB = contenedorDB && contenedorDB.children.length > 0;
+
+            contenedorNuevos.innerHTML = '';
+
+            if (itemsEnTicket.length === 0 && !hayPlatillosEnDB) {
+                mensajeVacio.classList.remove('hidden');
+                mensajeVacio.classList.add('flex');
+            } else {
+                mensajeVacio.classList.add('hidden');
+                mensajeVacio.classList.remove('flex');
+
+                if (itemsEnTicket.length > 0) {
+                    contenedorNuevos.innerHTML += `<div class="text-[8px] font-black uppercase tracking-[0.2em] text-[#3B82F6] mb-1 pb-1 border-b border-[var(--border-color)]">Por Enviar (Nuevos)</div>`;
+                    itemsEnTicket.forEach(item => {
+                        const cant = item.querySelector('.cantidad-platillo').innerText;
+                        const nombre = item.querySelector('.nombre-platillo').innerText;
+                        const precio = item.querySelector('.precio-platillo').innerText;
+                        contenedorNuevos.innerHTML += `
+                            <div class="bg-[var(--input-bg)] border border-[#3B82F6]/30 rounded-xl p-2.5 flex justify-between items-center shadow-sm mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded bg-[#3B82F6] text-white text-[9px] font-black flex items-center justify-center">${cant}</span>
+                                    <span class="text-[10px] font-bold text-[var(--text-main)]">${nombre}</span>
+                                </div>
+                                <span class="text-[10px] font-black text-[#3B82F6]">${precio}</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+            
+            let totalHistorial = 0;
+            @if(isset($platillosEnviados) && count($platillosEnviados) > 0)
+                totalHistorial = {{ collect($platillosEnviados)->sum(function($i) { return ($i->precio ?? 0) * ($i->cantidad ?? 1); }) }};
+            @endif
+            
+            const subtotalGeneral = ticketSubtotal + totalHistorial;
+            const ivaGeneral = subtotalGeneral * 0.16;
+            const totalPagar = subtotalGeneral + ivaGeneral;
+            
+            document.getElementById('txtTotal').innerText = '$' + totalPagar.toFixed(2);
         }
 
         const categoriasDB = @json($categorias ?? []);
@@ -553,11 +600,12 @@
             const menuCat = document.getElementById('menuCategorias');
             const gridProd = document.getElementById('gridProductos');
             
-            menuCat.innerHTML = `<button onclick="filtrarCategoria('Todos', this)" class="cat-btn px-5 py-2 rounded-full bg-[#3B82F6] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(59,130,246,0.3)] whitespace-nowrap outline-none transition-all">Todos</button>`;
+            // Botón "Todos" mejorado (estilo pastilla brillante)
+            menuCat.innerHTML = `<button onclick="filtrarCategoria('Todos', this)" class="cat-btn px-6 py-2.5 rounded-full bg-gradient-to-b from-[#3B82F6] to-[#2563EB] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_8px_15px_-3px_rgba(59,130,246,0.5)] border border-[#60A5FA]/30 whitespace-nowrap outline-none transition-all active:scale-95">Todos</button>`;
             
             if(categoriasDB.length > 0) {
                 categoriasDB.forEach(cat => {
-                    menuCat.innerHTML += `<button onclick="filtrarCategoria('${cat.nombre}', this)" class="cat-btn px-5 py-2 rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest hover:border-[#3B82F6]/50 hover:text-[var(--text-main)] transition-all whitespace-nowrap outline-none">${cat.nombre}</button>`;
+                    menuCat.innerHTML += `<button onclick="filtrarCategoria('${cat.nombre}', this)" class="cat-btn px-6 py-2.5 rounded-full bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest hover:border-[#3B82F6]/40 hover:bg-[#3B82F6]/5 hover:text-[#3B82F6] transition-all whitespace-nowrap outline-none shadow-sm active:scale-95">${cat.nombre}</button>`;
                 });
             }
 
@@ -569,27 +617,66 @@
                     const precioNum = parseFloat(prod.precio) || 0;
                     const modsJSON = prod.modificadores ? JSON.stringify(prod.modificadores).replace(/'/g, "\\'") : '[]';
 
+                    // Extracción de la letra inicial para diseño tipográfico premium
+                    const letraInicial = prod.nombre.charAt(0).toUpperCase();
+
+                    // DISEÑO PREMIUM DE LA TARJETA
                     gridProd.innerHTML += `
-                        <div data-categoria-item="${catNombre}" onclick='agregarAlTicket(${prod.id}, "${prod.nombre}", ${precioNum}, "${catNombre}", ${modsJSON}); event.stopPropagation();' class="producto-card group bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-2xl p-3 flex flex-col hover:border-[#3B82F6]/50 transition-all cursor-pointer h-[120px] md:h-[130px] xl:h-[150px]">
-                            <div class="w-full flex-1 rounded-xl bg-[var(--bg-base)] mb-2 flex flex-col items-center justify-center relative">
-                                <span class="absolute top-1 right-1 text-[6px] xl:text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] border border-[var(--border-color)] px-1.5 py-0.5 rounded">${catNombre}</span>
-                                <i class="fas fa-utensils text-2xl xl:text-3xl text-[var(--border-color)] group-hover:text-[#3B82F6]/20 transition-colors"></i>
+                        <div data-categoria-item="${catNombre}" onclick='agregarAlTicket(${prod.id}, "${prod.nombre}", ${precioNum}, "${catNombre}", ${modsJSON}); event.stopPropagation();' 
+                             class="producto-card group relative bg-[var(--bg-panel)] rounded-[20px] flex flex-col cursor-pointer transition-all duration-400 h-[140px] xl:h-[160px] 
+                                    border border-[var(--border-color)] shadow-sm 
+                                    hover:border-[#3B82F6]/40 hover:shadow-[0_12px_30px_-10px_rgba(59,130,246,0.35)] hover:-translate-y-1.5 overflow-hidden">
+                            
+                            <!-- Mitad Superior (Glassmorphism + Tipografía) -->
+                            <div class="h-[55%] w-full bg-[var(--input-bg)] relative flex items-center justify-center border-b border-[var(--border-color)] overflow-hidden">
+                                <!-- Gradiente sutil para profundidad -->
+                                <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none"></div>
+                                
+                                <!-- Etiqueta de Categoría Flotante (Elegante) -->
+                                <div class="absolute top-2.5 right-2.5 bg-[var(--bg-base)]/50 backdrop-blur-md px-2 py-0.5 rounded shadow-sm border border-[var(--border-color)] z-10 transition-colors group-hover:border-[#3B82F6]/30">
+                                    <span class="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-[#3B82F6]/80">${catNombre}</span>
+                                </div>
+                                
+                                <!-- Typographic Fallback (Letra en lugar de Ícono genérico) -->
+                                <div class="relative z-10 transform group-hover:scale-[1.15] transition-transform duration-500">
+                                    <span class="text-[40px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-[var(--text-muted)] to-[var(--border-color)] group-hover:from-[#3B82F6] group-hover:to-[#60A5FA] transition-all duration-300 select-none opacity-30 group-hover:opacity-100">
+                                        ${letraInicial}
+                                    </span>
+                                </div>
                             </div>
-                            <h3 class="text-[10px] xl:text-xs font-bold text-[var(--text-main)] tracking-tight mb-0.5 truncate">${prod.nombre}</h3>
-                            <span class="text-xs xl:text-sm font-black text-[#3B82F6]">$${precioNum.toFixed(2)}</span>
+                            
+                            <!-- Mitad Inferior (Información) -->
+                            <div class="p-3.5 flex flex-col flex-1 justify-between bg-gradient-to-b from-[var(--bg-panel)] to-[var(--bg-base)]">
+                                <h3 class="text-[11px] xl:text-xs font-medium text-[var(--text-main)] tracking-tight leading-snug line-clamp-2 transition-colors">${prod.nombre}</h3>
+                                
+                                <div class="flex items-center justify-between mt-auto pt-1">
+                                    <span class="text-xs xl:text-sm font-black text-[var(--text-main)] tracking-tighter">$${precioNum.toFixed(2)}</span>
+                                    
+                                    <!-- Botón "+" animado (Micro-interacción) -->
+                                    <div class="w-6 h-6 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center opacity-0 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                        <i class="fas fa-plus text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     `;
                 });
             } else {
-                gridProd.innerHTML = `<div class="col-span-full text-center text-[var(--text-muted)] text-xs font-bold mt-10">No hay productos registrados en el menú aún.</div>`;
+                gridProd.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center text-[var(--text-muted)] mt-20 opacity-50">
+                        <div class="w-20 h-20 rounded-full border border-dashed border-[var(--border-color)] flex items-center justify-center mb-4 bg-[var(--input-bg)]">
+                            <i class="fas fa-box-open text-3xl"></i>
+                        </div>
+                        <p class="text-xs font-black tracking-widest uppercase">Menú Vacío</p>
+                    </div>`;
             }
         }
         
         document.addEventListener('DOMContentLoaded', renderizarMenu);
 
         function filtrarCategoria(nombreCat, btn) {
-            document.querySelectorAll('.cat-btn').forEach(el => el.className = "cat-btn px-5 py-2 rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest hover:border-[#3B82F6]/50 hover:text-[var(--text-main)] transition-all whitespace-nowrap outline-none");
-            btn.className = "cat-btn px-5 py-2 rounded-full bg-[#3B82F6] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(59,130,246,0.3)] whitespace-nowrap outline-none transition-all";
+            document.querySelectorAll('.cat-btn').forEach(el => el.className = "cat-btn px-6 py-2.5 rounded-full bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest hover:border-[#3B82F6]/40 hover:bg-[#3B82F6]/5 hover:text-[#3B82F6] transition-all whitespace-nowrap outline-none shadow-sm active:scale-95");
+            btn.className = "cat-btn px-6 py-2.5 rounded-full bg-gradient-to-b from-[#3B82F6] to-[#2563EB] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_8px_15px_-3px_rgba(59,130,246,0.5)] border border-[#60A5FA]/30 whitespace-nowrap outline-none transition-all active:scale-95";
             
             const todasLasCards = document.querySelectorAll('.producto-card');
             todasLasCards.forEach(card => {
@@ -606,6 +693,9 @@
         let contadorItems = 0; 
         let tiempoGlobal = 'sin-tiempo'; 
         let gramajePendiente = null;
+        let numeroPersonas = {{ $mesa->capacidad ?? 4 }};
+        let descuentoPorcentaje = 0;
+        let notaGeneral = '';
 
         const listaTicket = document.getElementById('listaTicket');
         const estadoVacio = document.getElementById('estadoVacio');
@@ -613,7 +703,77 @@
         const contenedorBotonesModificadores = document.getElementById('contenedorBotonesModificadores');
         
         function agregarAlTicket(id, nombre, precio, categoria, arrayModificadores = []) {
-            agregarItemAlTicketConGramaje(id, nombre, precio, categoria, gramajePendiente, arrayModificadores);
+            cambiarTab('nueva-orden', document.getElementById('btn-tab-nueva-orden'));
+            estadoVacio.classList.add('hidden');
+
+            const modsString = JSON.stringify(arrayModificadores).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+            const precioUnitario = parseFloat(precio);
+            const gramajeKey = gramajePendiente ? gramajePendiente.toString() : 'sin-gramaje';
+
+            const existingItem = Array.from(listaTicket.querySelectorAll('.ticket-item')).find(item => {
+                return parseInt(item.dataset.productoId, 10) === id
+                    && item.dataset.modificadores === modsString
+                    && item.dataset.gramaje === gramajeKey
+                    && item.dataset.tiempo === tiempoGlobal; 
+            });
+
+            if (existingItem) {
+                const cantidadSpan = existingItem.querySelector('.cantidad-platillo');
+                const cantidad = parseInt(cantidadSpan.innerText, 10) + 1;
+                cantidadSpan.innerText = cantidad;
+                existingItem.dataset.cantidad = cantidad;
+
+                const precioSpan = existingItem.querySelector('.precio-platillo');
+                precioSpan.innerText = '$' + (precioUnitario * cantidad).toFixed(2);
+                existingItem.dataset.precio = precioUnitario;
+
+                ticketSubtotal += precioUnitario;
+                actualizarTotales();
+                seleccionarItem(existingItem.id);
+            } else {
+                contadorItems++;
+                const itemId = 'ticket-item-' + contadorItems;
+                
+                const etiquetaGramaje = gramajePendiente ? `<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-weight-scale mr-0.5"></i>${gramajePendiente}g</span>` : '';
+                
+                let etiquetaTiempo = '';
+                if (tiempoGlobal === 'primer-tiempo') etiquetaTiempo = '<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-clock mr-1"></i>1er T.</span>';
+                else if (tiempoGlobal === 'segundo-tiempo') etiquetaTiempo = '<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-clock mr-1"></i>2do T.</span>';
+                else if (tiempoGlobal === 'tercer-tiempo') etiquetaTiempo = '<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-clock mr-1"></i>3er T.</span>';
+
+                const itemHTML = `
+                    <div id="${itemId}" data-producto-id="${id}" data-cantidad="1" data-precio="${precioUnitario}" data-modificadores="${modsString}" data-gramaje="${gramajeKey}" data-tiempo="${tiempoGlobal}" class="ticket-item animate-item bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl p-2.5 flex flex-col cursor-pointer transition-all hover:border-[#3B82F6]/50" onclick="seleccionarItem('${itemId}')">
+                        <div class="flex items-start justify-between gap-1 mb-1">
+                            <div class="flex-1">
+                                <span class="text-[9px] xl:text-[10px] font-bold text-[var(--text-main)] leading-tight nombre-platillo">${nombre}</span>
+                                <div class="flex flex-wrap gap-1 mt-1 empty:hidden">
+                                    <div class="gramaje-etiqueta empty:hidden">${etiquetaGramaje}</div>
+                                    ${etiquetaTiempo}
+                                </div>
+                                <div class="modificadores-lista flex flex-wrap gap-1 mt-1 empty:hidden"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 mt-1.5 border-t border-[var(--border-color)] pt-1.5">
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="decrementarCantidad('${itemId}'); event.stopPropagation();" class="w-5 h-5 rounded bg-rose-500/10 text-rose-500 text-[10px] font-black flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">−</button>
+                                <span class="cantidad-platillo w-5 h-5 rounded bg-[#3B82F6]/10 text-[#3B82F6] text-[9px] font-black flex items-center justify-center shadow-inner">1</span>
+                                <button onclick="incrementarCantidad('${itemId}'); event.stopPropagation();" class="w-5 h-5 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-black flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all">+</button>
+                            </div>
+                            <div class="flex-1 text-right flex flex-col">
+                                <span class="text-[10px] xl:text-xs font-black text-[var(--text-main)] precio-platillo">$${precioUnitario.toFixed(2)}</span>
+                                <button onclick="eliminarItemFila(this); event.stopPropagation();" class="hidden btn-control-eliminar text-[7px] text-rose-500 font-bold uppercase tracking-widest hover:underline mt-0.5">Quitar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                listaTicket.insertAdjacentHTML('beforeend', itemHTML);
+                ticketSubtotal += precioUnitario;
+                actualizarTotales();
+                seleccionarItem(itemId);
+                listaTicket.parentElement.scrollTop = listaTicket.parentElement.scrollHeight;
+            }
+
             if (gramajePendiente) {
                 gramajePendiente = null;
                 document.getElementById('btn-gramaje').classList.remove('border-[#f97316]', 'bg-[#f97316]/10');
@@ -677,88 +837,13 @@
             const input = document.getElementById('gramajeInput');
             input.value = input.value.slice(0, -1);
         }
-        
-        function agregarItemAlTicketConGramaje(id, nombre, precio, categoria, gramaje = null, arrayModificadores = []) {
-            cambiarTab('nueva-orden', document.getElementById('btn-tab-nueva-orden'));
-            estadoVacio.classList.add('hidden');
-
-            const modsString = JSON.stringify(arrayModificadores).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
-            const precioUnitario = parseFloat(precio);
-            const gramajeKey = gramaje ? gramaje.toString() : 'sin-gramaje';
-
-            const existingItem = Array.from(listaTicket.querySelectorAll('.ticket-item')).find(item => {
-                return parseInt(item.dataset.productoId, 10) === id
-                    && item.dataset.modificadores === modsString
-                    && item.dataset.gramaje === gramajeKey
-                    && item.dataset.tiempo === tiempoGlobal; 
-            });
-
-            if (existingItem) {
-                const cantidadSpan = existingItem.querySelector('.cantidad-platillo');
-                const cantidad = parseInt(cantidadSpan.innerText, 10) + 1;
-                cantidadSpan.innerText = cantidad;
-                existingItem.dataset.cantidad = cantidad;
-
-                const precioSpan = existingItem.querySelector('.precio-platillo');
-                precioSpan.innerText = '$' + (precioUnitario * cantidad).toFixed(2);
-                existingItem.dataset.precio = precioUnitario;
-
-                ticketSubtotal += precioUnitario;
-                actualizarTotales();
-                seleccionarItem(existingItem.id);
-                return;
-            }
-
-            contadorItems++;
-            const itemId = 'ticket-item-' + contadorItems;
-            
-            const etiquetaGramaje = gramaje ? `<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-weight-scale mr-0.5"></i>${gramaje}g</span>` : '';
-            
-            let etiquetaTiempo = '';
-            if (tiempoGlobal === 'primer-tiempo') etiquetaTiempo = '<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-clock mr-1"></i>1er T.</span>';
-            else if (tiempoGlobal === 'segundo-tiempo') etiquetaTiempo = '<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-clock mr-1"></i>2do T.</span>';
-            else if (tiempoGlobal === 'tercer-tiempo') etiquetaTiempo = '<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-clock mr-1"></i>3er T.</span>';
-
-            const itemHTML = `
-                <div id="${itemId}" data-producto-id="${id}" data-cantidad="1" data-precio="${precioUnitario}" data-modificadores="${modsString}" data-gramaje="${gramajeKey}" data-tiempo="${tiempoGlobal}" class="ticket-item animate-item bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl p-2.5 flex flex-col cursor-pointer transition-all" onclick="seleccionarItem('${itemId}')">
-                    <div class="flex items-start justify-between gap-1 mb-1">
-                        <div class="flex-1">
-                            <span class="text-[9px] xl:text-[10px] font-bold text-[var(--text-main)] leading-tight nombre-platillo">${nombre}</span>
-                            <div class="flex flex-wrap gap-1 mt-1 empty:hidden">
-                                <div class="gramaje-etiqueta empty:hidden">${etiquetaGramaje}</div>
-                                ${etiquetaTiempo}
-                            </div>
-                            <div class="modificadores-lista flex flex-wrap gap-1 mt-1 empty:hidden"></div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between gap-2 mt-1.5 border-t border-[var(--border-color)] pt-1.5">
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="decrementarCantidad('${itemId}'); event.stopPropagation();" class="w-5 h-5 rounded bg-rose-500/10 text-rose-500 text-[10px] font-black flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">−</button>
-                            <span class="cantidad-platillo w-5 h-5 rounded bg-[#3B82F6]/10 text-[#3B82F6] text-[9px] font-black flex items-center justify-center">1</span>
-                            <button onclick="incrementarCantidad('${itemId}'); event.stopPropagation();" class="w-5 h-5 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-black flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all">+</button>
-                        </div>
-                        <div class="flex-1 text-right flex flex-col">
-                            <span class="text-[10px] xl:text-xs font-black text-[var(--text-main)] precio-platillo">$${precioUnitario.toFixed(2)}</span>
-                            <button onclick="eliminarItemFila(this); event.stopPropagation();" class="hidden btn-control-eliminar text-[7px] text-rose-500 font-bold uppercase tracking-widest hover:underline mt-0.5">Quitar</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            listaTicket.insertAdjacentHTML('beforeend', itemHTML);
-            ticketSubtotal += precioUnitario;
-            actualizarTotales();
-
-            seleccionarItem(itemId);
-            listaTicket.parentElement.scrollTop = listaTicket.parentElement.scrollHeight;
-        }
 
         function seleccionarItem(id) {
             deseleccionarTicket(); 
             itemActivo = document.getElementById(id);
             if(itemActivo) {
                 itemActivo.classList.add('border-[#3B82F6]', 'shadow-[0_0_15px_rgba(59,130,246,0.15)]');
+                itemActivo.classList.remove('border-[var(--border-color)]');
                 itemActivo.querySelector('.btn-control-eliminar').classList.remove('hidden');
                 
                 const modsString = itemActivo.getAttribute('data-modificadores');
@@ -769,7 +854,7 @@
                 if(modificadoresParaPintar.length > 0) {
                     modificadoresParaPintar.forEach(mod => {
                         const nombreMod = mod.nombre || mod.descripcion || mod; 
-                        const btnHTML = `<button onclick="agregarModificadorFijo('${nombreMod}')" class="px-5 py-2 rounded-xl border border-[#3B82F6]/30 bg-[var(--bg-panel)] text-[9px] xl:text-[10px] font-bold text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white transition-all whitespace-nowrap outline-none active:scale-95 shadow-sm">${nombreMod}</button>`;
+                        const btnHTML = `<button onclick="agregarModificadorFijo('${nombreMod}')" class="px-5 py-2 rounded-xl border border-[#3B82F6]/30 bg-[var(--bg-base)] text-[9px] xl:text-[10px] font-bold text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white transition-all whitespace-nowrap outline-none active:scale-95 shadow-sm">${nombreMod}</button>`;
                         contenedorBotonesModificadores.insertAdjacentHTML('beforeend', btnHTML);
                     });
                     barraModificadores.classList.remove('hidden');
@@ -782,6 +867,7 @@
         function deseleccionarTicket() {
             document.querySelectorAll('.ticket-item').forEach(el => {
                 el.classList.remove('border-[#3B82F6]', 'shadow-[0_0_15px_rgba(59,130,246,0.15)]');
+                el.classList.add('border-[var(--border-color)]');
                 if(el.querySelector('.btn-control-eliminar')) {
                     el.querySelector('.btn-control-eliminar').classList.add('hidden');
                 }
@@ -843,13 +929,9 @@
             tiemposIds.forEach((id, index) => {
                 const btn = document.getElementById(id);
                 if (tiemposMap[index] === tiempo) {
-                    if (index === 0) {
-                        btn.className = 'px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight bg-[#3B82F6] text-white shadow-sm tiempo-global-btn transition-all';
-                    } else {
-                        btn.className = 'px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight bg-[#f97316] text-white shadow-sm tiempo-global-btn transition-all';
-                    }
+                    btn.className = `px-3 xl:px-4 py-1.5 rounded-lg text-[9px] xl:text-[10px] font-black uppercase tracking-tight text-white shadow-sm tiempo-global-btn transition-all outline-none ${index === 0 ? 'bg-[#3B82F6]' : 'bg-[#f97316]'}`;
                 } else {
-                    btn.className = 'px-2 xl:px-3 py-1 rounded text-[8px] xl:text-[9px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn';
+                    btn.className = 'px-3 xl:px-4 py-1.5 rounded-lg text-[9px] xl:text-[10px] font-black uppercase tracking-tight border border-[#f97316]/30 bg-[var(--bg-panel)] text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all tiempo-global-btn outline-none';
                 }
             });
         }
@@ -865,7 +947,7 @@
             deseleccionarTicket();
             
             if(listaTicket.children.length === 0) {
-                estadoVacio.classList.remove('hidden');
+                document.getElementById('estadoVacio').classList.remove('hidden');
             }
         }
 
@@ -875,18 +957,33 @@
             const total = subtotalConDescuento + iva;
             document.getElementById('txtSubtotal').innerText = '$' + subtotalConDescuento.toFixed(2);
             document.getElementById('txtIva').innerText = '$' + iva.toFixed(2);
-            document.getElementById('txtTotal').innerText = '$' + total.toFixed(2);
+            
+            actualizarVistaTotal();
         }
 
         function limpiarTicket() {
             listaTicket.innerHTML = '';
-            estadoVacio.classList.remove('hidden');
+            document.getElementById('estadoVacio').classList.remove('hidden');
             ticketSubtotal = 0;
             descuentoPorcentaje = 0;
             notaGeneral = '';
             actualizarTotales();
             deseleccionarTicket();
         }
+
+        function mostrarToast(message, type = 'info', duration = 3800) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast-panel ${type}`;
+            toast.innerHTML = `<div class="toast-icon">${type === 'success' ? '<i class="fas fa-check"></i>' : type === 'error' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-info"></i>'}</div><div><strong>${type === 'success' ? 'Éxito' : type === 'error' ? 'Error' : 'Aviso'}</strong><span>${message}</span></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => { toast.classList.remove('show'); toast.addEventListener('transitionend', () => toast.remove(), { once: true }); }, duration);
+        }
+
+        function mostrarError(mensaje) { mostrarToast(mensaje, 'error'); }
+        function mostrarExito(mensaje) { mostrarToast(mensaje, 'success'); }
 
         function ajustarPersonas() {
             document.getElementById('personasInput').value = numeroPersonas;
@@ -902,7 +999,6 @@
             }
             numeroPersonas = valor;
             document.getElementById('txtPersonas').innerText = numeroPersonas;
-            document.getElementById('badgePersonas').innerText = 'P: ' + numeroPersonas;
             cerrarModal('modalPersonas');
         }
 
@@ -921,7 +1017,7 @@
             document.getElementById('descuentoInput').focus();
         }
 
-        function mostrarPromociones() { window.location.href = '/admin/promociones'; }
+        function mostrarPromociones() { window.location.href = '{{ route("admin.promociones.index") ?? '#' }}'; }
 
         function eliminarItemSeleccionado() {
             if (!itemActivo) {
@@ -935,18 +1031,8 @@
             ticketSubtotal -= totalFila;
             actualizarTotales();
             deseleccionarTicket();
-            if (listaTicket.children.length === 0) estadoVacio.classList.remove('hidden');
+            if (listaTicket.children.length === 0) document.getElementById('estadoVacio').classList.remove('hidden');
         }
-
-        let numeroPersonas = {{ $mesa->capacidad ?? 4 }};
-        let descuentoPorcentaje = 0;
-        let notaGeneral = '';
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const badge = document.getElementById('badgePersonas');
-            if (badge) badge.innerText = 'P: ' + numeroPersonas;
-            actualizarMensajeDestino();
-        });
 
         function cerrarModal(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -961,19 +1047,6 @@
             cerrarModal('modalNota');
         }
 
-        function mostrarToast(message, type = 'info', duration = 3800) {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-            const toast = document.createElement('div');
-            toast.className = `toast-panel ${type}`;
-            toast.innerHTML = `<div class="toast-icon">${type === 'success' ? '<i class="fas fa-check"></i>' : type === 'error' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-info"></i>'}</div><div><strong>${type === 'success' ? 'Éxito' : type === 'error' ? 'Error' : 'Aviso'}</strong><span>${message}</span></div>`;
-            container.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.add('show'));
-            setTimeout(() => { toast.classList.remove('show'); toast.addEventListener('transitionend', () => toast.remove(), { once: true }); }, duration);
-        }
-
-        function mostrarError(mensaje) { mostrarToast(mensaje, 'error'); }
-        function mostrarExito(mensaje) { mostrarToast(mensaje, 'success'); }
         function insertarNotaCaracter(caracter) { const textarea = document.getElementById('notaTextarea'); textarea.value = textarea.value + caracter; textarea.focus(); }
         function insertarNotaEspacio() { const textarea = document.getElementById('notaTextarea'); textarea.value = textarea.value + ' '; textarea.focus(); }
         function borrarNotaCaracter() { const textarea = document.getElementById('notaTextarea'); textarea.value = textarea.value.slice(0, -1); textarea.focus(); }
@@ -991,6 +1064,7 @@
         function imprimirPrecuenta() { mostrarExito("Imprimiendo pre-cuenta..."); }
         function cambiarMesa() { llamarCapitan(); }
         function marcharTiempos() { mostrarExito("¡Marchando platillos!"); }
+
         let mesaDestinoSeleccionada = null;
         let mesaDestinoSeleccionadaNumero = null;
         let capitanAutorizado = false;
@@ -1007,30 +1081,20 @@
             }
         }
 
-
         async function llamarCapitan() {
             const nip = prompt("NIP Capitán:");
             if (!nip) return;
-
             try {
                 const res = await fetch('/mesero/capitan/verify', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                     body: JSON.stringify({ nip: nip.trim() })
                 });
-
                 const data = await res.json().catch(() => null);
                 if (!res.ok) throw new Error(data?.message || 'Error al verificar NIP');
-
                 if (data.success) {
                     capitanAutorizado = true;
                     mostrarExito('Capitán autorizado.');
-                    // render mesas
                     const container = document.getElementById('capitanMesasContainer');
                     container.innerHTML = '';
                     if (Array.isArray(data.mesas) && data.mesas.length > 0) {
@@ -1043,22 +1107,12 @@
                             btn.addEventListener('click', () => seleccionarMesaDestino(m.id, m.numero));
                             container.appendChild(btn);
                         });
-                        if (mesaDestinoSeleccionada) {
-                            const selectedBtn = container.querySelector(`button[data-mesa-id="${mesaDestinoSeleccionada}"]`);
-                            if (selectedBtn) {
-                                selectedBtn.classList.remove('border-[var(--border-color)]', 'bg-[var(--bg-base)]');
-                                selectedBtn.classList.add('border-blue-500/50', 'bg-blue-500/10');
-                            }
-                        }
                     } else {
                         container.innerHTML = `<div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] p-6 text-center text-[var(--text-muted)]"><p class="font-bold text-sm mb-2">No hay mesas abiertas disponibles.</p><p class="text-[12px]">Solo el capitán puede enviar un pedido a otra mesa abierta.</p></div>`;
                     }
-
                     document.getElementById('modalCapitan').classList.remove('hidden');
                 }
-            } catch (err) {
-                mostrarError(err.message || 'Error al verificar NIP');
-            }
+            } catch (err) { mostrarError(err.message || 'Error al verificar NIP'); }
         }
 
         function seleccionarMesaDestino(mesaId, mesaNumero) {
@@ -1096,7 +1150,6 @@
                 const modsElementos = item.querySelectorAll('.modificadores-lista span');
                 const mods = [];
                 modsElementos.forEach(m => mods.push(m.innerText.replace('✓ ', '').replace('✎ ', '')));
-
                 platillosData.push({ id: productoId, nombre: nombre, cantidad: cantidad, precio: precioUnitario, notas: mods.join(', '), modificadores: mods, gramaje: gramaje, tiempo: tiempo });
             });
 
@@ -1118,11 +1171,10 @@
             .then(data => {
                 if (data.success) {
                     mostrarExito("¡Enviado a cocina!");
-                    setTimeout(() => window.location.href = '/mesero/dashboard', 1000);
+                    setTimeout(() => window.location.href = '{{ route("mesero.dashboard") ?? '#' }}', 1000);
                 } else { throw new Error(data.message || 'Error.'); }
             })
             .catch(error => {
-                console.error('Error:', error);
                 mostrarError(error.message || "Error al enviar.");
                 btn.innerHTML = '<i class="fas fa-paper-plane text-sm"></i> <span>Enviar a Cocina</span>';
                 btn.disabled = false;

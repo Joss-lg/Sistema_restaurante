@@ -98,6 +98,11 @@
                     <div class="mb-6 flex-1">
                         <h3 class="text-xl font-black text-[var(--text-color)] tracking-tight leading-tight mb-1">{{ $promo->nombre }}</h3>
                         
+                        {{-- Descripción agregada al diseño --}}
+                        @if($promo->descripcion)
+                            <p class="text-xs font-medium text-[var(--text-muted)] line-clamp-2 mt-1 tracking-wide leading-relaxed">{{ $promo->descripcion }}</p>
+                        @endif
+                        
                         {{-- Valor Masivo --}}
                         <div class="mt-4 flex items-end gap-2">
                             <span class="bg-clip-text text-transparent bg-gradient-to-r {{ $promo->esta_activa ? 'from-blue-400 to-indigo-500' : 'from-[var(--text-muted)] to-gray-500' }} font-black text-4xl tracking-tighter">
@@ -111,7 +116,8 @@
                     <div class="mb-6">
                         <p class="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] mb-3">Días aplicables</p>
                         <div class="flex justify-between gap-1">
-                            @php $dias = json_decode($promo->dias_semana) ?? []; @endphp
+                            {{-- Modificado para usar directamente el array casteado por Eloquent --}}
+                            @php $dias = $promo->dias_semana ?? []; @endphp
                             @foreach(['L','M','M','J','V','S','D'] as $i => $d)
                                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-colors {{ in_array($i+1, $dias) ? 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.4)]' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--border-color)]' }}">
                                     {{ $d }}
@@ -132,6 +138,12 @@
                                 <i class="fas fa-pen text-xs"></i>
                             </button>
                         @endif
+
+                        @if(auth()->user()->tienePermiso('promociones', 'eliminar'))
+                            <button onclick="openDeleteModal({{ $promo->id }}, '{{ addslashes($promo->nombre) }}')" class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-muted)] transition-all hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-500">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        @endif
                     </div>
                 </article>
             @endforeach
@@ -141,6 +153,7 @@
 
 @include('admin.promociones.modal-crear')
 @include('admin.promociones.modal-editar')
+@include('admin.promociones.modal-eliminar')
 
 <script>
     function openModal(id) {
@@ -156,7 +169,6 @@
     }
 
     function togglePromo(id) {
-        // Lógica para activar/desactivar la promoción
         console.log("Toggle promo: " + id);
     }
 </script>
