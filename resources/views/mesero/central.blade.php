@@ -1,65 +1,102 @@
-<main class="flex-1 relative flex flex-col items-center overflow-y-auto hide-scroll pb-6 sm:pb-8 md:pb-12">
+<main class="flex-1 w-full h-full flex flex-col relative bg-[var(--bg-base)] p-6 lg:p-10">
     
-    {{-- Resplandor radial inmersivo --}}
-    <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
-        <div class="absolute w-[800px] h-[800px] rounded-full" style="background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);"></div>
-    </div>
-
-    {{-- Contenedor Animado Flotante --}}
     @php
         $totalMesas = isset($mesas) ? $mesas->count() : 0;
         $mesasActivas = isset($mesas) ? $mesas->where('estado', 'ocupada')->count() : 0;
         $esCapitan = strtolower(trim(auth()->user()->rol ?? '')) === 'capitan';
+        
+        // Fecha 100% en español estricto
+        date_default_timezone_set('America/Mexico_City');
+        $diasES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        $mesesES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        $diaDeLaSemana = $diasES[date('w')];
+        $diaDelMes = date('d');
+        $mesDelAño = $mesesES[date('n') - 1];
+        $fechaFormateada = $diaDeLaSemana . ', ' . $diaDelMes . ' de ' . $mesDelAño;
     @endphp
 
-    <div class="animate-float flex flex-col items-center relative z-10 mt-6 sm:mt-8 md:mt-12 w-full px-4 sm:px-6 md:px-8">
+    <div class="w-full max-w-6xl mx-auto flex flex-col h-full">
         
-        @if($esCapitan)
-            <div class="mb-6 sm:mb-8 w-full max-w-sm sm:max-w-xl md:max-w-2xl p-3 sm:p-4 rounded-2xl sm:rounded-3xl border border-[#38bdf8]/30 bg-[#38bdf8]/5 text-center shadow-[0_0_20px_rgba(56,189,248,0.1)] backdrop-blur-md">
-                <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-[#38bdf8] font-black mb-1"><i class="fas fa-star mr-2"></i>Panel del Capitán</p>
-                <p class="text-xs sm:text-sm text-[var(--text-main)] font-medium">Control total activado. Tienes acceso sin restricciones a las comandas de todo el restaurante.</p>
-            </div>
-        @endif
-
-        <button type="button" onclick="abrirModalMesa()" class="group outline-none flex flex-col items-center cursor-pointer">
-            
-            {{-- El Botón Azul con efecto Glass e Inner Shadow --}}
-            <div class="w-40 h-40 md:w-52 md:h-52 rounded-[2rem] md:rounded-[3rem] aspect-square flex flex-col items-center justify-center text-center bg-gradient-to-b from-[#4F93F7] to-[#1D4ED8] shadow-[0_20px_50px_rgba(59,130,246,0.35)] group-hover:shadow-[0_30px_60px_rgba(59,130,246,0.5)] group-hover:scale-105 transition-all duration-400 relative overflow-hidden animate-glow">
-                {{-- Brillo superior interno (Bevel) --}}
-                <div class="absolute inset-0 rounded-[2rem] md:rounded-[3rem] border-t-2 border-white/40 opacity-80"></div>
-                {{-- Reflejo diagonal --}}
-                <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-y-full group-hover:-translate-y-full transition-transform duration-700 ease-in-out"></div>
-                
-                <i class="fas fa-plus text-4xl sm:text-5xl md:text-6xl text-[var(--text-main)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] relative z-10 transition-transform group-hover:rotate-90 duration-500"></i>
-                <h2 class="mt-3 text-base sm:text-lg md:text-xl lg:text-2xl font-black text-[#3B82F6] tracking-[0.15em] uppercase drop-shadow-[0_0_15px_rgba(59,130,246,0.2)] leading-tight relative z-10">
-                    Nueva Mesa
-                </h2>
+        {{-- CABECERA --}}
+        <div class="flex justify-between items-end mb-8 w-full border-b border-[var(--border-color)] pb-4">
+            <div>
+                <h1 class="text-2xl font-black text-[var(--text-main)] tracking-tight">Panel Principal</h1>
+                <p class="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider mt-1">{{ $fechaFormateada }}</p>
             </div>
             
-            {{-- Badge Pulsante --}}
-            <div class="mt-5 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 rounded-full border border-[#3B82F6]/30 bg-[#3B82F6]/5 backdrop-blur-md shadow-[0_0_20px_rgba(59,130,246,0.1)] group-hover:bg-[#3B82F6]/10 transition-colors">
-                <p class="text-[10px] sm:text-[11px] font-black text-[#3B82F6] tracking-[0.2em] uppercase flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse"></span>
-                    Toca para comenzar
-                </p>
-            </div>
-        </button>
-
-        <div class="mt-10 sm:mt-12 md:mt-16 mb-8 sm:mb-10 md:mb-12 w-full max-w-xs sm:max-w-sm md:max-w-lg p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl md:rounded-[2rem] bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] backdrop-blur-xl shadow-2xl text-center">
-            <p class="text-xs sm:text-sm text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3 sm:mb-4 font-bold">Resumen Operativo</p>
-            <div class="grid grid-cols-2 gap-3 sm:gap-4">
-                <div class="p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-[var(--bg-base)] border border-[var(--border-color)]">
-                    <p class="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Mesas totales</p>
-                    <p id="txtTotalMesas" class="text-2xl sm:text-3xl font-black text-[var(--text-main)] mt-2">{{ $totalMesas }}</p>
-                </div>
-                <div class="p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-[var(--bg-base)] border border-[#34D399]/20">
-                    <p class="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Mesas abiertas</p>
-                    <p id="txtMesasAbiertas" class="text-2xl sm:text-3xl font-black text-[#34D399] mt-2">{{ $mesasActivas }}</p>
-                </div>
+            <div class="text-right">
+                <span class="text-2xl font-black text-[var(--text-main)] tracking-tighter" id="reloj-live">{{ date('H:i') }}</span>
+                @if($esCapitan)
+                    <div class="mt-1 flex items-center gap-1.5 justify-end">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#3B82F6]"></span>
+                        <span class="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Capitán</span>
+                    </div>
+                @endif
             </div>
         </div>
 
+        {{-- CONTENEDOR DE TARJETAS (Bento Grid Limpio) --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {{-- TARJETA PRINCIPAL: ABRIR MESA --}}
+            <div class="lg:col-span-2">
+                <button onclick="abrirModalMesa()" class="w-full h-full min-h-[220px] rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-8 flex flex-col justify-center items-center text-center transition-all duration-300 hover:border-[#3B82F6]/40 hover:bg-[var(--input-bg)] outline-none group">
+                    
+                    <div class="w-14 h-14 rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center mb-5 group-hover:bg-[#3B82F6] group-hover:border-[#3B82F6] transition-colors duration-300">
+                        <i class="fas fa-plus text-lg text-[var(--text-main)] group-hover:text-white transition-colors duration-300"></i>
+                    </div>
+                    
+                    <h2 class="text-xl font-bold text-[var(--text-main)] tracking-tight mb-1">Abrir Nueva Mesa</h2>
+                    <p class="text-xs text-[var(--text-muted)]">Asignar comensales y comenzar el servicio</p>
+                </button>
+            </div>
 
-        
+            {{-- MÉTRICAS LATERALES --}}
+            <div class="flex flex-col gap-6">
+                
+                {{-- Tarjeta: Estado de Sala --}}
+                <div class="rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 flex flex-col justify-between h-full min-h-[140px]">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Ocupación</span>
+                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-baseline gap-1.5">
+                            <span class="text-4xl font-black text-[var(--text-main)] tracking-tighter" id="txtMesasAbiertas">{{ $mesasActivas }}</span>
+                            <span class="text-sm font-medium text-[var(--text-muted)]">/ <span id="txtTotalMesas">{{ $totalMesas }}</span> mesas</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tarjeta: Administración (Bloqueado) --}}
+                <div class="rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 flex flex-col justify-between h-full min-h-[140px] opacity-60">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Corte de Turno</span>
+                        <i class="fas fa-lock text-[var(--text-muted)] text-[10px]"></i>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full border border-[var(--border-color)] flex items-center justify-center">
+                            <i class="fas fa-chart-line text-[var(--text-muted)] text-[10px]"></i>
+                        </div>
+                        <div class="flex flex-col gap-1.5 w-full">
+                            <div class="h-1.5 w-16 bg-[var(--border-color)] rounded-full"></div>
+                            <div class="h-1.5 w-10 bg-[var(--border-color)] rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
+
+    <script>
+        setInterval(() => {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const reloj = document.getElementById('reloj-live');
+            if(reloj) reloj.innerText = timeString;
+        }, 1000);
+    </script>
 </main>

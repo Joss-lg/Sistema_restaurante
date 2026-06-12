@@ -21,7 +21,8 @@
                 Historial
             </button>
 
-            @if(auth()->user()->tienePermiso('promociones', 'crear'))
+            {{-- CORREGIDO: .agregar coincide con tu seeder --}}
+            @if(auth()->user()->tienePermiso('promociones.agregar'))
                 <button onclick="openModal('modalCrear')" class="group relative flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-white transition-all hover:from-blue-500 hover:to-blue-400 shadow-[0_8px_20px_rgba(59,130,246,0.3)] hover:shadow-[0_8px_25px_rgba(59,130,246,0.5)] hover:-translate-y-0.5">
                     <i class="fas fa-plus transition-transform group-hover:rotate-90"></i>
                     Nueva Promo
@@ -64,7 +65,9 @@
             </div>
             <h2 class="text-3xl font-black text-[var(--text-color)] tracking-tight">Sin promociones activas</h2>
             <p class="mt-3 text-sm text-[var(--text-muted)] font-medium max-w-md">No tienes ninguna oferta configurada en el sistema. Crea una nueva promo para atraer más clientes.</p>
-            @if(auth()->user()->tienePermiso('promociones', 'crear'))
+            
+            {{-- CORREGIDO: .agregar --}}
+            @if(auth()->user()->tienePermiso('promociones.agregar'))
                 <button onclick="openModal('modalCrear')" class="mt-8 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-color)] px-6 py-3 text-xs font-black uppercase tracking-widest text-[var(--text-color)] transition-all hover:bg-[var(--border-color)]">
                     Comenzar ahora
                 </button>
@@ -84,7 +87,8 @@
                             <i class="fas fa-ticket-alt text-xl"></i>
                         </div>
                         
-                        @if(auth()->user()->tienePermiso('promociones', 'gestionar'))
+                        {{-- AJUSTADO: Se cambia .gestionar por .editar porque .gestionar no existe en tu seeder --}}
+                        @if(auth()->user()->tienePermiso('promociones.gestionar'))
                             <div class="relative inline-flex items-center cursor-pointer">
                                 <input id="togglePromo{{ $promo->id }}" type="checkbox" class="sr-only peer" {{ $promo->esta_activa ? 'checked' : '' }} onchange="togglePromo({{ $promo->id }})">
                                 <div class="w-11 h-6 rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all duration-300 shadow-inner relative">
@@ -98,7 +102,6 @@
                     <div class="mb-6 flex-1">
                         <h3 class="text-xl font-black text-[var(--text-color)] tracking-tight leading-tight mb-1">{{ $promo->nombre }}</h3>
                         
-                        {{-- Descripción agregada al diseño --}}
                         @if($promo->descripcion)
                             <p class="text-xs font-medium text-[var(--text-muted)] line-clamp-2 mt-1 tracking-wide leading-relaxed">{{ $promo->descripcion }}</p>
                         @endif
@@ -116,7 +119,6 @@
                     <div class="mb-6">
                         <p class="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] mb-3">Días aplicables</p>
                         <div class="flex justify-between gap-1">
-                            {{-- Modificado para usar directamente el array casteado por Eloquent --}}
                             @php $dias = $promo->dias_semana ?? []; @endphp
                             @foreach(['L','M','M','J','V','S','D'] as $i => $d)
                                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-colors {{ in_array($i+1, $dias) ? 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.4)]' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--border-color)]' }}">
@@ -133,13 +135,14 @@
                             {{ $promo->esta_activa ? 'Activa' : 'Inactiva' }}
                         </span>
                         
-                        @if(auth()->user()->tienePermiso('promociones', 'editar'))
+                        {{-- VALIDACIÓN COMPLETA DE EDICIÓN Y ELIMINACIÓN --}}
+                        @if(auth()->user()->tienePermiso('promociones.editar'))
                             <button onclick="editPromo({{ $promo->id }})" class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-muted)] transition-all hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-blue-500">
                                 <i class="fas fa-pen text-xs"></i>
                             </button>
                         @endif
 
-                        @if(auth()->user()->tienePermiso('promociones', 'eliminar'))
+                        @if(auth()->user()->tienePermiso('promociones.eliminar'))
                             <button onclick="openDeleteModal({{ $promo->id }}, '{{ addslashes($promo->nombre) }}')" class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-muted)] transition-all hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-500">
                                 <i class="fas fa-trash-alt text-xs"></i>
                             </button>

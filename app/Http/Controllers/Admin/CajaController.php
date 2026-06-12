@@ -245,11 +245,27 @@ class CajaController extends Controller
 
         // Si no hay órdenes activas, significa que todo ya fue pagado
         if ($ordenes->isEmpty()) {
-            Log::info('Mesa ya completamente pagada, redirigiendo', [
-                'mesa_id' => $mesa->id,
-                'mesa_numero' => $mesa->numero,
-            ]);
-            return redirect()->route('admin.caja.index')->with('success', 'Mesa ' . $mesa->numero . ' ya ha sido completamente pagada.');
+            // Verificar si la mesa sigue en estado "ocupada" y liberarla si es necesario
+            if ($mesa->estado === 'ocupada') {
+                DB::table('mesas')->where('id', $mesa->id)->update([
+                    'estado' => 'disponible',
+                    'updated_at' => Carbon::now(),
+                ]);
+                
+                if (Schema::hasColumn('mesas', 'mesero_id')) {
+                    DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
+                }
+                if (Schema::hasColumn('mesas', 'total_consumo')) {
+                    DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
+                }
+                
+                Log::info('Mesa liberada en cobrar() - todas las órdenes pagadas', [
+                    'mesa_id' => $mesa->id,
+                    'mesa_numero' => $mesa->numero,
+                ]);
+            }
+            
+            return redirect()->route('admin.caja.index')->with('success', 'Mesa ' . $mesa->numero . ' ya ha sido completamente pagada y liberada.');
         }
 
         return view('admin.caja.cobrar', [
@@ -412,6 +428,9 @@ class CajaController extends Controller
 
         DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio, $orden, $ivaTotal, $propinaTotal) {
             if (! empty($orden)) {
+                // Verificar si esta orden es parte de cuentas divididas
+                $esOrdenDividida = $orden->cuenta_dividida ?? false;
+                
                 // Actualizar SOLO la orden específica como pagada
                 $updated = DB::table('ordenes')
                     ->where('id', $orden->id)
@@ -429,7 +448,31 @@ class CajaController extends Controller
                     'updated_rows' => $updated,
                     'propina' => $propinaTotal,
                     'metodo_pago' => $validated['metodo_pago'],
+                    'es_orden_dividida' => $esOrdenDividida,
                 ]);
+                
+                // Si es una orden dividida, también marcar TODAS las otras órdenes divididas como pagadas
+                // para evitar que la mesa quede "atrapada" con órdenes fantasma
+                if ($esOrdenDividida) {
+                    $actualizadasDivididas = DB::table('ordenes')
+                        ->where('mesa_id', $mesa->id)
+                        ->where('cuenta_dividida', true)
+                        ->where('id', '!=', $orden->id)
+                        ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                        ->whereNull('deleted_at')
+                        ->update([
+                            'estado' => 'pagada',
+                            'metodo_pago' => $validated['metodo_pago'],
+                            'propina' => 0,  // Las órdenes divididas "fantasma" no llevan propina
+                            'cerrada_el' => Carbon::now(),
+                        ]);
+                    
+                    Log::info('Órdenes divididas adicionales marcadas como pagadas', [
+                        'mesa_id' => $mesa->id,
+                        'orden_pagada_id' => $orden->id,
+                        'ordenes_fantasma_actualizadas' => $actualizadasDivididas,
+                    ]);
+                }
             } else {
                 // Marcar TODAS las órdenes activas como pagadas (cuando no se especifica orden_id)
                 $updated = DB::table('ordenes')
@@ -626,5 +669,99 @@ class CajaController extends Controller
             'message' => 'Movimiento registrado correctamente',
             'movimiento' => $movimiento,
         ], 201);
+    }
+
+    /**
+     * Abre una mesa disponible desde el panel de caja
+     */
+    public function abrirMesa(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'mesa_id' => 'required|integer|exists:mesas,id',
+            'capacidad' => 'required|integer|min:1|max:20',
+            'cuenta_dividida' => 'boolean',
+            'total_cuentas_division' => 'nullable|integer|min:2|max:10',
+        ]);
+
+        $mesa = Mesa::findOrFail($validated['mesa_id']);
+
+        // Verificar que la mesa esté disponible
+        if ($mesa->estado !== 'disponible') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta mesa no está disponible para ocupar.',
+            ], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($mesa, $validated) {
+                // Actualizar capacidad de la mesa si se proporciona
+                if ($validated['capacidad']) {
+                    $mesa->update(['capacidad' => $validated['capacidad']]);
+                }
+
+                // Cambiar estado a ocupada
+                $mesa->update([
+                    'estado' => 'ocupada',
+                    'mesero_id' => auth()->id(),
+                    'updated_at' => Carbon::now(),
+                ]);
+
+                // Si se especifica cuenta dividida, crear múltiples órdenes vacías
+                if ($validated['cuenta_dividida'] && $validated['total_cuentas_division']) {
+                    $totalCuentas = $validated['total_cuentas_division'];
+                    
+                    for ($i = 1; $i <= $totalCuentas; $i++) {
+                        Orden::create([
+                            'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                            'mesa_id' => $mesa->id,
+                            'mesero_id' => auth()->id(),
+                            'estado' => 'pendiente',
+                            'total' => 0,
+                            'propina' => 0,
+                            'abierta_el' => now(),
+                            'cuenta_dividida' => true,
+                            'numero_cuenta_division' => $i,
+                            'total_cuentas_division' => $totalCuentas,
+                        ]);
+                    }
+                } else {
+                    // Crear una orden inicial vacía
+                    Orden::create([
+                        'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                        'mesa_id' => $mesa->id,
+                        'mesero_id' => auth()->id(),
+                        'estado' => 'pendiente',
+                        'total' => 0,
+                        'propina' => 0,
+                        'abierta_el' => now(),
+                    ]);
+                }
+
+                Log::info('Mesa abierta desde caja', [
+                    'mesa_id' => $mesa->id,
+                    'mesa_numero' => $mesa->numero,
+                    'usuario_id' => auth()->id(),
+                    'cuenta_dividida' => $validated['cuenta_dividida'] ?? false,
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mesa ' . $mesa->numero . ' abierta correctamente.',
+                'mesa_id' => $mesa->id,
+                'redirect' => route('admin.caja.index'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al abrir mesa desde caja', [
+                'mesa_id' => $validated['mesa_id'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al abrir la mesa: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

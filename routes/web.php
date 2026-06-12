@@ -132,6 +132,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
         Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
         Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
+        Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');
     });
 
 

@@ -1,55 +1,94 @@
-<aside class="hidden lg:flex flex-none w-full lg:w-[300px] xl:w-[340px] 2xl:w-[380px] min-w-[260px] h-full flex-col border-r border-[var(--border-color)] bg-[var(--bg-panel)] z-20 transition-all duration-400">
+<aside class="hidden lg:flex flex-none w-full lg:w-[320px] xl:w-[360px] min-w-[280px] h-full flex-col border-r border-[var(--border-color)] bg-[var(--bg-base)] z-20">
     @php
         $esCapitan = strtolower(trim(auth()->user()->rol ?? '')) === 'capitan';
         $mesasActivas = isset($mesas) ? $mesas->where('estado', 'ocupada')->count() : 0;
         $mesasAbiertas = isset($mesas) ? $mesas->where('estado', 'ocupada') : collect();
-        $mesasLibres = isset($mesas) ? $mesas->where('estado', 'disponible') : collect();
-        $tituloMesas = $esCapitan ? 'Mesas abiertas' : 'Mis Mesas';
+        $tituloMesas = $esCapitan ? 'Todas las Mesas' : 'Mesas Asignadas';
     @endphp
 
-    <div class="p-4 lg:p-6 flex justify-between items-center border-b border-[var(--border-color)]">
-        <h2 class="text-[9px] lg:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">{{ $tituloMesas }}</h2>
-        <div id="sidebarMesasActivas" class="w-6 lg:w-7 h-6 lg:h-7 rounded-lg border border-[var(--border-color)] bg-[var(--bg-base)] flex items-center justify-center text-[9px] lg:text-[10px] font-black text-[var(--text-main)] shadow-sm">
+    {{-- Cabecera del Sidebar --}}
+    <div class="px-7 py-7 border-b border-[var(--border-color)] bg-[var(--bg-panel)] shrink-0 flex items-center justify-between shadow-sm relative z-10">
+        <div>
+            <h2 class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em] mb-1">{{ $tituloMesas }}</h2>
+            <p class="text-[10px] font-medium text-[var(--text-muted)] opacity-60">Selecciona para operar</p>
+        </div>
+        <div class="w-8 h-8 rounded-[10px] bg-[var(--bg-base)] border border-[var(--border-highlight)] flex items-center justify-center text-[11px] font-black text-[var(--text-main)] shadow-inner">
             {{ $mesasActivas }}
         </div>
     </div>
 
+    {{-- Lista de Mesas --}}
     @if($mesasActivas > 0)
-        <div id="sidebarMesasList" class="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3">
+        <div id="sidebarMesasList" class="flex-1 overflow-y-auto p-5 space-y-4 hide-scroll bg-[var(--bg-base)]">
             @foreach($mesasAbiertas as $mesa)
-                <a href="{{ route('mesero.comanda.show', $mesa->id) }}" data-mesa-id="{{ $mesa->id }}" class="mesa-item block p-3 lg:p-4 rounded-2xl lg:rounded-3xl border border-[var(--border-color)] bg-[var(--bg-panel)] hover:border-[#3B82F6]/40 transition-all">
-                    <div class="flex items-start justify-between gap-3 lg:gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-3">
-                                <h3 class="text-base lg:text-xl font-black text-[var(--text-main)]">Mesa {{ $mesa->numero }}</h3>
-                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-700/10 text-emerald-300 text-[10px] font-black uppercase">ACTIVA</span>
+                {{-- Contenedor Exterior (Crea el efecto de marco grueso) --}}
+                <a href="{{ route('mesero.comanda.show', $mesa->id) }}" data-mesa-id="{{ $mesa->id }}" class="group block relative rounded-[24px] bg-gradient-to-b from-[var(--bg-panel)] to-[var(--bg-base)] border border-white/[0.03] p-1.5 transition-all duration-500 hover:border-[#3B82F6]/30 hover:shadow-[0_12px_30px_-10px_rgba(59,130,246,0.2)] outline-none transform hover:-translate-y-1">
+                    
+                    {{-- Sombra de bisel superior --}}
+                    <div class="absolute inset-0 rounded-[24px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] pointer-events-none"></div>
+
+                    {{-- Contenedor Interior --}}
+                    <div class="bg-[var(--bg-panel)] rounded-[18px] p-5 h-full relative z-10 shadow-sm flex flex-col group-hover:bg-[#121216] transition-colors duration-500">
+                        
+                        {{-- Top: Mesa y Botón --}}
+                        <div class="flex items-center justify-between mb-5 gap-3">
+                            <div class="flex items-center gap-3.5 overflow-hidden">
+                                {{-- Indicador Activa Ultra-Sutil --}}
+                                <div class="relative flex h-2 w-2 shrink-0 items-center justify-center">
+                                    <span class="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-emerald-400 opacity-20"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"></span>
+                                </div>
+                                <h3 class="text-[16px] font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 tracking-tight leading-none truncate group-hover:to-[#3B82F6] transition-all duration-300">Mesa {{ $mesa->numero }}</h3>
                             </div>
-                            <div class="mt-2 flex items-center gap-3 text-[12px] text-[var(--text-muted)]">
-                                <span class="flex items-center gap-1"><i class="fas fa-user-friends text-[12px]"></i> {{ $mesa->capacidad }} personas</span>
-                                <span class="text-[var(--text-muted)]">• 0m</span>
-                                <span class="text-emerald-400 font-black">$ {{ number_format($mesa->total_consumo ?? 0, 2) }}</span>
+                            
+                            {{-- Botón de Acción Cuadrado/Redondeado --}}
+                            <div class="w-8 h-8 shrink-0 rounded-[10px] bg-white/[0.02] border border-white/[0.04] flex items-center justify-center text-[var(--text-muted)] group-hover:bg-[#3B82F6] group-hover:text-white group-hover:border-transparent transition-all duration-400 shadow-sm">
+                                <i class="fas fa-chevron-right text-[10px] transform group-hover:translate-x-0.5 transition-transform"></i>
                             </div>
                         </div>
-                        <div class="flex flex-col justify-between text-right">
-                            <span class="text-[#3B82F6] font-bold">Ver comanda ›</span>
+
+                        {{-- Bottom: Métricas Estructuradas --}}
+                        <div class="pt-4 border-t border-white/[0.04] flex items-center justify-between">
+                            
+                            <div class="flex items-center gap-6">
+                                <div class="flex flex-col">
+                                    <span class="text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--text-muted)] opacity-50 mb-1">Pax</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="fas fa-user text-[var(--text-muted)] opacity-40 text-[10px]"></i>
+                                        <span class="text-[12px] font-black text-[var(--text-main)]">{{ $mesa->capacidad }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="w-[1px] h-6 bg-white/[0.04]"></div>
+                                
+                                <div class="flex flex-col">
+                                    <span class="text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--text-muted)] opacity-50 mb-1">Tiempo</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="far fa-clock text-[var(--text-muted)] opacity-40 text-[10px]"></i>
+                                        <span class="text-[12px] font-black text-[var(--text-main)]">0m</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col items-end">
+                                <span class="text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--text-muted)] opacity-50 mb-1">Total</span>
+                                <span class="text-[15px] font-black text-emerald-400 tracking-tighter leading-none drop-shadow-[0_0_10px_rgba(52,211,153,0.15)]">$ {{ number_format($mesa->total_consumo ?? 0, 2) }}</span>
+                            </div>
+
                         </div>
                     </div>
                 </a>
             @endforeach
         </div>
     @else
-        <div class="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 text-center">
-            <div class="relative mb-4 lg:mb-8">
-                <div class="absolute inset-0 border border-[var(--border-color)] rounded-full scale-150 opacity-50"></div>
-                <div class="absolute inset-0 border border-[var(--border-color)] rounded-full scale-125 opacity-70"></div>
-                <div class="w-16 lg:w-24 h-16 lg:h-24 rounded-full bg-gradient-to-br from-white/5 to-transparent border border-white/10 flex items-center justify-center shadow-inner relative z-10 backdrop-blur-sm">
-                    <i class="fas fa-receipt text-2xl lg:text-4xl text-[var(--text-muted)] drop-shadow-md"></i>
-                </div>
+        {{-- Empty State Premium --}}
+        <div class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[var(--bg-base)]">
+            <div class="w-20 h-20 rounded-[24px] bg-[var(--bg-panel)] border border-[var(--border-color)] shadow-inner flex items-center justify-center mb-5 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent"></div>
+                <i class="fas fa-layer-group text-2xl text-[var(--text-muted)] opacity-30 relative z-10"></i>
             </div>
-            <h3 class="text-sm lg:text-lg font-black text-[var(--text-main)] tracking-tight mb-1 lg:mb-2">Bandeja Vacía</h3>
-            <p class="text-[8px] lg:text-xs text-[var(--text-muted)] font-medium leading-relaxed max-w-[150px] lg:max-w-[200px]">
-                Inicia una nueva comanda desde el panel central.
-            </p>
+            <h3 class="text-[14px] font-black text-[var(--text-main)] mb-1.5 tracking-tight">Sala Despejada</h3>
+            <p class="text-[10px] text-[var(--text-muted)] leading-relaxed max-w-[180px] font-medium opacity-70">El área se encuentra sin mesas activas.</p>
         </div>
     @endif
 </aside>

@@ -124,17 +124,21 @@
                             </div>
                         </a>
                     @else
-                        <div data-mesa-status="{{ $mesa->estado }}" class="mesa-card relative overflow-hidden rounded-3xl border border-dashed border-[var(--border-color)] bg-[var(--card-color)] p-6 transition-all duration-300 opacity-60 hover:opacity-100 flex flex-col justify-between min-h-[220px]">
+                        <div data-mesa-status="{{ $mesa->estado }}" data-mesa-id="{{ $mesa->id }}" data-mesa-numero="{{ $mesa->numero }}" class="mesa-card btn-abrir-mesa relative overflow-hidden rounded-3xl border border-dashed border-[var(--border-color)] bg-[var(--card-color)] p-6 transition-all duration-300 opacity-60 hover:opacity-100 hover:border-emerald-500/50 hover:bg-emerald-500/5 flex flex-col justify-between min-h-[220px] cursor-pointer group">
                             <div class="flex justify-between items-start relative z-10">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--border-color)]">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--border-color)] group-hover:bg-emerald-500/10 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all">
                                     <i class="fas fa-chair text-xl"></i>
                                 </div>
-                                <span class="inline-flex items-center rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] px-3 py-1 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Libre</span>
+                                <span class="inline-flex items-center rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] px-3 py-1 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:bg-emerald-500/10 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all">Libre</span>
                             </div>
                             
                             <div class="relative z-10 mt-auto">
-                                <h3 class="text-[var(--text-color)] font-black text-xl tracking-tight">Mesa {{ $mesa->numero }}</h3>
-                                <p class="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Disponible para asginar</p>
+                                <h3 class="text-[var(--text-color)] font-black text-xl tracking-tight group-hover:text-emerald-400 transition-colors">Mesa {{ $mesa->numero }}</h3>
+                                <p class="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1 group-hover:text-emerald-500/70">Haz clic para ocupar</p>
+                            </div>
+
+                            <div class="absolute -right-3 -bottom-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-arrow-right text-4xl text-emerald-500/20"></i>
                             </div>
                         </div>
                     @endif
@@ -150,6 +154,47 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal para abrir mesa --}}
+    <div id="modal-abrir-mesa" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-[#141417] border border-white/10 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
+                    <i class="fas fa-door-open text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white">Ocupar Mesa</h2>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Ingresa el número de personas</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 block">Número de Personas</label>
+                    <input 
+                        type="number" 
+                        id="capacidad-personas" 
+                        min="1" 
+                        max="20" 
+                        value="1"
+                        class="w-full rounded-2xl border border-white/10 bg-[#0f0f12] px-4 py-3 text-center text-2xl font-black text-white outline-none focus:border-emerald-500/70 focus:bg-emerald-500/5 transition-all"
+                        placeholder="1"
+                    />
+                    <p class="text-[10px] text-gray-500 mt-2 text-center">Mínimo 1, Máximo 20 personas</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="btn-cerrar-modal-abrir" class="py-3 px-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-confirmar-abrir-mesa" class="py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-black rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
+                    Abrir Mesa
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -246,6 +291,91 @@
                 console.error('No se pudieron cargar los movimientos.', error);
                 contenedor.innerHTML = '<p class="text-sm text-rose-500 text-center py-4 font-bold">Error cargando historial.</p>';
             }
+        }
+    });
+
+    // ========== FUNCIONALIDAD PARA ABRIR MESAS DISPONIBLES ==========
+    const botonesAbrirMesa = document.querySelectorAll('.btn-abrir-mesa');
+    const modalAbrirMesa = document.getElementById('modal-abrir-mesa');
+    const btnConfirmarAbrir = document.getElementById('btn-confirmar-abrir-mesa');
+    const capacidadInput = document.getElementById('capacidad-personas');
+    let mesaSeleccionada = null;
+
+    botonesAbrirMesa.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            mesaSeleccionada = {
+                id: this.dataset.mesaId,
+                numero: this.dataset.mesaNumero
+            };
+            capacidadInput.value = '1';
+            modalAbrirMesa.classList.remove('hidden');
+            capacidadInput.focus();
+        });
+    });
+
+    const btnCerrarModalAbrir = document.getElementById('btn-cerrar-modal-abrir');
+    if (btnCerrarModalAbrir) {
+        btnCerrarModalAbrir.addEventListener('click', () => {
+            modalAbrirMesa.classList.add('hidden');
+            mesaSeleccionada = null;
+        });
+    }
+
+    if (btnConfirmarAbrir) {
+        btnConfirmarAbrir.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            if (!mesaSeleccionada) {
+                alert('Selecciona una mesa');
+                return;
+            }
+
+            const capacidad = parseInt(capacidadInput.value) || 1;
+
+            try {
+                const response = await fetch('{{ route("admin.caja.api.abrir-mesa") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        mesa_id: mesaSeleccionada.id,
+                        capacidad: capacidad,
+                        cuenta_dividida: false,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    modalAbrirMesa.classList.add('hidden');
+                    
+                    // Mostrar notificación de éxito
+                    const notif = document.createElement('div');
+                    notif.className = 'fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-2xl font-bold shadow-lg animate-in fade-in zoom-in z-50';
+                    notif.textContent = '✓ ' + data.message;
+                    document.body.appendChild(notif);
+                    
+                    setTimeout(() => {
+                        notif.remove();
+                        location.reload(); // Recargar para ver mesa actualizada
+                    }, 2000);
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo abrir la mesa'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al abrir la mesa');
+            }
+        });
+    }
+
+    // Permitir Enter en el input de capacidad
+    capacidadInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            btnConfirmarAbrir.click();
         }
     });
 </script>

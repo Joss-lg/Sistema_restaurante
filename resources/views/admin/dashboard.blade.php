@@ -70,9 +70,6 @@
                 <h2 class="text-xl font-black tracking-tight text-[var(--text-color)]">Análisis de Flujo</h2>
                 <p class="text-xs text-[var(--text-muted)] font-medium mt-1.5">Métricas de rendimiento a lo largo de la jornada</p>
             </div>
-            <button class="flex items-center gap-2.5 text-[11px] font-bold text-[var(--text-color)] border border-[var(--border-color)] px-5 py-2.5 rounded-xl hover:bg-black/5 modo-crema:hover:bg-zinc-100 transition-all shadow-lg group">
-                <i class="fas fa-cloud-download-alt text-[#3B82F6] group-hover:scale-110 transition-transform"></i> Exportar
-            </button>
         </div>
         
         <div class="w-full relative flex-1 min-h-[300px]">

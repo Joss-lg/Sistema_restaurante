@@ -790,19 +790,36 @@
     async function confirmarEliminarMesa() {
         const id = document.getElementById('eliminarMesaId').value;
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const btnEliminar = event.target;
+        btnEliminar.disabled = true;
+        btnEliminar.textContent = 'Eliminando...';
 
         try {
             const response = await fetch(`/admin/mesas/api/${id}`, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }
             });
+            
             const data = await response.json();
-            if (response.ok && data.success) {
+            
+            if (data.success) {
+                // Éxito: cerrar modal y recargar
                 cerrarModalEliminarMesa();
+                await new Promise(resolve => setTimeout(resolve, 300)); // Esperar a que se cierre el modal
                 cargarMesas();
-                mostrarExito('Mesa destruida permanentemente.');
-            } else { mostrarError(data.message || 'No se pudo eliminar la mesa.'); }
-        } catch (error) { mostrarError('Error de red al intentar borrar.'); }
+                mostrarExito('Mesa ' + (document.getElementById('eliminarMesaNumero').textContent || '') + ' eliminada correctamente.');
+            } else {
+                // Error: mostrar mensaje pero no cerrar modal
+                mostrarError(data.message || 'No se pudo eliminar la mesa.');
+                btnEliminar.disabled = false;
+                btnEliminar.textContent = 'Eliminar';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarError('Error al eliminar la mesa: ' + error.message);
+            btnEliminar.disabled = false;
+            btnEliminar.textContent = 'Eliminar';
+        }
     }
 </script>
 @endsection

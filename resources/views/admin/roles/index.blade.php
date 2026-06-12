@@ -111,12 +111,12 @@
                                     <button type="button" 
                                             onclick="abrirModalEditar({{ $rol->id }}, '{{ addslashes($rol->nombre) }}', '{{ addslashes($rol->descripcion ?? '') }}', {{ $rol->puede_acceder_pos ? 'true' : 'false' }})"
                                             class="px-3 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 text-xs font-bold uppercase tracking-widest transition-all outline-none flex items-center gap-1.5">
-                                        <i class="fas fa-pencil-alt"></i> Editar
+                                        <i class="fas fa-pencil-alt"></i> 
                                     </button>
                                     <button type="button"
                                             onclick="abrirModalEliminar({{ $rol->id }}, '{{ addslashes($rol->nombre) }}')"
                                             class="px-3 py-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 text-xs font-bold uppercase tracking-widest transition-all outline-none flex items-center gap-1.5">
-                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                        <i class="fas fa-trash-alt"></i> 
                                     </button>
                                 </div>
                             </td>

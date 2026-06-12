@@ -36,7 +36,7 @@ class PermisosSeeder extends Seeder
             'productos'   => ['ver', 'agregar', 'editar', 'eliminar'], 
             'categorias'  => ['ver', 'agregar', 'editar', 'eliminar'],
             'mesas'       => ['ver', 'agregar', 'editar', 'eliminar'],
-            'promociones' => ['ver', 'agregar', 'editar', 'eliminar'],
+            'promociones' => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],
             'cocina'      => ['ver', 'gestionar'],
             
             // EL NUEVO MÓDULO: CAJA (Antes Turnos)
