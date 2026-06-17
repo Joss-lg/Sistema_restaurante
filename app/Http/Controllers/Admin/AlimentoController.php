@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Producto;
 use App\Models\Categoria;
+use App\Models\Insumo;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
@@ -17,7 +18,9 @@ class AlimentoController extends Controller
     public function index()
     {
         $categorias = Categoria::all();
-        return view('admin.alimentos.index', compact('categorias'));
+        $insumosDisponibles = Insumo::where('esta_activo', true)->orderBy('nombre')->get();
+
+        return view('admin.alimentos.index', compact('categorias', 'insumosDisponibles'));
     }
 
     /**
@@ -25,7 +28,7 @@ class AlimentoController extends Controller
      */
     public function getProductos(): JsonResponse
     {
-        $productos = Producto::with('categoria')
+        $productos = Producto::with(['categoria', 'insumos'])
             ->get()
             ->groupBy('categoria.nombre');
         
@@ -60,6 +63,10 @@ class AlimentoController extends Controller
             'categoria_nombre' => 'required|string|max:255',
             'tiempo_preparacion' => 'nullable|integer|min:1',
             'descripcion' => 'nullable|string',
+            'insumos' => 'nullable|array',
+            'insumos.*' => 'nullable|exists:insumos,id',
+            'cantidades' => 'nullable|array',
+            'cantidades.*' => 'nullable|numeric|min:0.001',
         ]);
 
         $categoriaId = $validated['categoria_id'] ?? null;
@@ -75,8 +82,22 @@ class AlimentoController extends Controller
             'precio' => $validated['precio'],
             'categoria_id' => $categoriaId,
             'tiempo_preparacion' => $validated['tiempo_preparacion'] ?? 15,
+            'descripcion' => $validated['descripcion'] ?? null,
             'esta_disponible' => true,
         ]);
+
+        if (!empty($validated['insumos']) && !empty($validated['cantidades'])) {
+            $receta = [];
+            foreach ($validated['insumos'] as $index => $insumoId) {
+                $cantidad = $validated['cantidades'][$index] ?? null;
+                if ($insumoId && $cantidad && floatval($cantidad) > 0) {
+                    $receta[$insumoId] = ['cantidad_usada' => floatval($cantidad)];
+                }
+            }
+            if (!empty($receta)) {
+                $producto->insumos()->sync($receta);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -99,6 +120,11 @@ class AlimentoController extends Controller
             'categoria_nombre' => 'required|string|max:255',
             'tiempo_preparacion' => 'nullable|integer|min:1',
             'esta_disponible' => 'nullable|boolean',
+            'descripcion' => 'nullable|string',
+            'insumos' => 'nullable|array',
+            'insumos.*' => 'nullable|exists:insumos,id',
+            'cantidades' => 'nullable|array',
+            'cantidades.*' => 'nullable|numeric|min:0.001',
         ]);
 
         $categoriaId = $validated['categoria_id'] ?? null;
@@ -112,7 +138,25 @@ class AlimentoController extends Controller
         $validated['categoria_id'] = $categoriaId;
         unset($validated['categoria_nombre']);
 
-        $producto->update($validated);
+        $producto->update([
+            'nombre' => $validated['nombre'],
+            'precio' => $validated['precio'],
+            'categoria_id' => $validated['categoria_id'],
+            'tiempo_preparacion' => $validated['tiempo_preparacion'] ?? $producto->tiempo_preparacion,
+            'descripcion' => $validated['descripcion'] ?? $producto->descripcion,
+            'esta_disponible' => $validated['esta_disponible'] ?? $producto->esta_disponible,
+        ]);
+
+        $receta = [];
+        if (!empty($validated['insumos']) && !empty($validated['cantidades'])) {
+            foreach ($validated['insumos'] as $index => $insumoId) {
+                $cantidad = $validated['cantidades'][$index] ?? null;
+                if ($insumoId && $cantidad && floatval($cantidad) > 0) {
+                    $receta[$insumoId] = ['cantidad_usada' => floatval($cantidad)];
+                }
+            }
+        }
+        $producto->insumos()->sync($receta);
 
         return response()->json([
             'success' => true,

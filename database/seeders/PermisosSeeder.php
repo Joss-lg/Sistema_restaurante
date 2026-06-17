@@ -38,11 +38,7 @@ class PermisosSeeder extends Seeder
             'mesas'       => ['ver', 'agregar', 'editar', 'eliminar'],
             'promociones' => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],
             'cocina'      => ['ver', 'gestionar'],
-            
-            // EL NUEVO MÓDULO: CAJA (Antes Turnos)
-            'caja'        => ['ver', 'abrir', 'cerrar', 'retiros', 'reporte'],
-            
-            // MÓDULOS ADICIONALES
+            'caja'        => ['ver', 'abrir', 'cerrar', 'retiros', 'reporte'], 
             'finanzas'    => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],
             'roles'       => ['ver', 'agregar', 'editar', 'eliminar'],
         ];

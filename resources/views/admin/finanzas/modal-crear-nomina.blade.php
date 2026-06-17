@@ -40,7 +40,7 @@
                 </div>
             </div>
 
-            <!-- PERÍODO -->
+
             <div class="space-y-2">
                 <label class="flex items-center gap-2 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">
                     <i class="fas fa-calendar opacity-40"></i> Período

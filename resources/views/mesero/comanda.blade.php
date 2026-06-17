@@ -14,6 +14,7 @@
             --bg-base: #050505; 
             --bg-panel: #0E0E12; 
             --border-color: #1F1F24; 
+            --border-highlight: rgba(255, 255, 255, 0.05);
             --text-main: #FFFFFF;
             --text-muted: #71717A;
             --accent: #3B82F6;
@@ -24,6 +25,7 @@
             --bg-base: #F4F4F5; 
             --bg-panel: #FFFFFF;
             --border-color: rgba(0, 0, 0, 0.08);
+            --border-highlight: rgba(0, 0, 0, 0.04);
             --text-main: #09090B;
             --text-muted: #A1A1AA;
             --input-bg: #E4E4E7;
@@ -38,9 +40,8 @@
         }
         
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        .hide-scroll::-webkit-scrollbar { width: 0; height: 0; }
-        .hide-scroll::-webkit-scrollbar-thumb, .hide-scroll::-webkit-scrollbar-track { background: transparent; }
-
+        .hide-scroll::-webkit-scrollbar { width: 0; height: 0; display: none !important; }
+        
         @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(5px); } 100% { opacity: 1; transform: translateY(0); } }
         .animate-item { animation: fade-in-up 0.2s ease-out forwards; }
         
@@ -72,11 +73,10 @@
     <div id="toastContainer" class="toast-wrapper" aria-live="polite" aria-atomic="true"></div>
 
     {{-- ========================================== --}}
-    {{-- COLUMNA 1: ACCIONES RÁPIDAS (DISEÑO LUXURY) --}}
+    {{-- COLUMNA 1: ACCIONES RÁPIDAS --}}
     {{-- ========================================== --}}
     <aside class="w-[170px] md:w-[190px] xl:w-[220px] 2xl:w-[260px] flex-shrink-0 h-full flex flex-col bg-[var(--bg-base)] border-r border-[var(--border-color)] p-3 lg:p-4 z-20 transition-all">
         
-        {{-- Top Bar (Back & Theme) --}}
         <div class="flex items-center gap-2 mb-4">
             <button onclick="window.location.href='{{ route('mesero.dashboard') ?? '#' }}'" class="flex-1 h-10 xl:h-12 rounded-[14px] bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-main)] font-black text-[8px] xl:text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 hover:border-[var(--text-muted)] transition-all shadow-sm active:scale-95 outline-none">
                 <i class="fas fa-chevron-left text-[var(--text-muted)]"></i> Mesas
@@ -86,7 +86,6 @@
             </button>
         </div>
 
-        {{-- Info Mesa --}}
         <div class="flex items-center justify-between px-2 mb-5">
             <div class="flex flex-col">
                 <span class="text-[7px] xl:text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-0.5">Mesa Activa</span>
@@ -98,10 +97,7 @@
             </div>
         </div>
 
-        {{-- Grid de Botones Premium --}}
         <div class="grid grid-cols-2 gap-2 xl:gap-3 flex-1 overflow-y-auto hide-scroll pb-2">
-            
-            {{-- 1. Personas --}}
             <button onclick="ajustarPersonas()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#3B82F6]/50 hover:shadow-[0_8px_20px_-6px_rgba(59,130,246,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
                 <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
                 <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 flex items-center justify-center mb-2 group-hover:bg-[#3B82F6] transition-colors duration-300">
@@ -111,7 +107,6 @@
                 <span id="txtPersonas" class="text-[9px] xl:text-[10px] font-black text-[var(--text-main)] mt-0.5">{{ $mesa->capacidad ?? 1 }}</span>
             </button>
             
-            {{-- 2. Pre Cuenta --}}
             <button onclick="imprimirPrecuenta()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#94A3B8]/50 hover:shadow-[0_8px_20px_-6px_rgba(148,163,184,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
                 <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
                 <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#94A3B8]/10 border border-[#94A3B8]/20 flex items-center justify-center mb-2 group-hover:bg-[#94A3B8] transition-colors duration-300">
@@ -120,7 +115,6 @@
                 <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors leading-tight text-center">Pre<br>Cuenta</span>
             </button>
 
-            {{-- 3. Nota --}}
             <button onclick="agregarNota()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#8B5CF6]/50 hover:shadow-[0_8px_20px_-6px_rgba(139,92,246,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
                 <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
                 <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 flex items-center justify-center mb-2 group-hover:bg-[#8B5CF6] transition-colors duration-300">
@@ -129,7 +123,6 @@
                 <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Nota</span>
             </button>
             
-            {{-- 4. Desc. --}}
             <button onclick="aplicarDescuento()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#EC4899]/50 hover:shadow-[0_8px_20px_-6px_rgba(236,72,153,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
                 <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
                 <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#EC4899]/10 border border-[#EC4899]/20 flex items-center justify-center mb-2 group-hover:bg-[#EC4899] transition-colors duration-300">
@@ -138,7 +131,6 @@
                 <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Desc.</span>
             </button>
             
-            {{-- 5. Gramaje --}}
             <button id="btn-gramaje" onclick="ajustarGramaje()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#F97316]/50 hover:shadow-[0_8px_20px_-6px_rgba(249,115,22,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
                 <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
                 <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#F97316]/10 border border-[#F97316]/20 flex items-center justify-center mb-2 group-hover:bg-[#F97316] transition-colors duration-300">
@@ -148,7 +140,6 @@
                 <span id="indicador-gramaje-pendiente" class="hidden absolute top-2 right-2 bg-[#f97316] text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-md"></span>
             </button>
             
-            {{-- 6. Traspaso --}}
             <button onclick="llamarCapitan()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#F59E0B]/50 hover:shadow-[0_8px_20px_-6px_rgba(245,158,11,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
                 <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
                 <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center mb-2 group-hover:bg-[#F59E0B] transition-colors duration-300">
@@ -157,7 +148,6 @@
                 <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Traspaso</span>
             </button>
             
-            {{-- 7. Promos --}}
             <button onclick="mostrarPromociones()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#0EA5E9]/50 hover:shadow-[0_8px_20px_-6px_rgba(14,165,233,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
                 <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
                 <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#0EA5E9]/10 border border-[#0EA5E9]/20 flex items-center justify-center mb-2 group-hover:bg-[#0EA5E9] transition-colors duration-300">
@@ -166,7 +156,6 @@
                 <span class="text-[7px] xl:text-[8px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Promos</span>
             </button>
             
-            {{-- 8. Marchar --}}
             <button onclick="marcharTiempos()" class="relative w-full aspect-square flex flex-col items-center justify-center rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-[#EF4444]/50 hover:shadow-[0_8px_20px_-6px_rgba(239,68,68,0.2)] transition-all duration-300 active:scale-95 group overflow-hidden">
                 <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity modo-crema:via-black/10"></div>
                 <div class="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/20 flex items-center justify-center mb-2 group-hover:bg-[#EF4444] transition-colors duration-300">
@@ -186,7 +175,7 @@
             @endif
         </div>
 
-        <button onclick="limpiarTicket()" class="mt-4 w-full h-12 xl:h-14 rounded-[18px] border border-[#ef4444]/20 bg-[#ef4444]/5 text-[#ef4444] hover:bg-[#ef4444] hover:text-white transition-all duration-300 active:scale-95 outline-none flex items-center justify-center gap-2 flex-shrink-0 group shadow-sm">
+        <button onclick="limpiarTicket()" class="mt-4 w-full h-12 xl:h-14 rounded-[18px] border border-rose-500/20 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all duration-300 active:scale-95 outline-none flex items-center justify-center gap-2 flex-shrink-0 group shadow-sm">
             <i class="fas fa-trash-alt text-[10px] group-hover:animate-pulse"></i>
             <span class="text-[8px] xl:text-[9px] font-black uppercase tracking-widest">Eliminar Todo</span>
         </button>
@@ -243,7 +232,8 @@
                 <span>Platillo</span>
                 <span class="text-right">Monto</span>
             </div>
-            <div id="listaTicket" class="flex flex-col gap-2"></div>
+            
+            <div id="listaTicket" class="flex flex-col gap-3 pb-4"></div>
             
             <div id="estadoVacio" class="flex-1 flex flex-col items-center justify-center opacity-40 mt-6 transition-opacity duration-300">
                 <div class="w-16 h-16 rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] flex items-center justify-center mb-3 shadow-inner">
@@ -321,7 +311,7 @@
             </div>
         </div>
 
-        {{-- FOOTER DE TOTALES --}}
+        {{-- FOOTER DE TOTALES (ELEGANT DESIGN) --}}
         <div class="p-4 border-t border-[var(--border-color)] mt-auto relative z-20 bg-[var(--bg-panel)] flex-shrink-0">
             <div class="flex justify-between items-center mb-1">
                 <span class="text-[9px] xl:text-[10px] font-bold text-[var(--text-muted)]">Subtotal Nuevos:</span>
@@ -331,16 +321,19 @@
                 <span class="text-[9px] xl:text-[10px] font-bold text-[var(--text-muted)]">IVA (16%):</span>
                 <span class="text-[11px] xl:text-xs font-bold text-[var(--text-main)]" id="txtIva">$0.00</span>
             </div>
-            <div class="flex justify-between items-end mb-4 pt-2 border-t border-[var(--border-color)]">
-                <span class="text-xs xl:text-sm font-black tracking-widest uppercase text-[var(--text-main)]">Total (Incluye Mesa):</span>
-                <span class="text-3xl font-black text-[#3B82F6] tracking-tighter leading-none" id="txtTotal">$0.00</span>
+            <div class="flex justify-between items-end mb-4 pt-4 border-t border-[var(--border-color)]">
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-black tracking-widest uppercase text-[var(--text-muted)] mb-1">Total a pagar</span>
+                    <span class="text-[10px] font-bold text-[var(--text-muted)]">Incluye todo el consumo</span>
+                </div>
+                <span class="text-3xl font-black text-emerald-400 tracking-tighter leading-none drop-shadow-[0_0_12px_rgba(52,211,153,0.15)]" id="txtTotal">$0.00</span>
             </div>
 
-            <button id="btn-enviar" onclick="enviarACocina()" class="w-full h-12 xl:h-14 rounded-xl bg-[#3B82F6] text-white text-[10px] xl:text-[11px] font-black tracking-widest uppercase transition-all shadow-[0_8px_20px_-5px_rgba(59,130,246,0.6)] hover:bg-[#2563EB] hover:-translate-y-0.5 active:scale-95 outline-none flex items-center justify-center gap-2">
+            <button id="btn-enviar" onclick="enviarACocina()" class="w-full h-12 xl:h-14 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white text-[10px] xl:text-[11px] font-black tracking-widest uppercase transition-all shadow-[0_8px_20px_-5px_rgba(59,130,246,0.4)] hover:shadow-[0_8px_25px_-5px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 active:scale-95 outline-none flex items-center justify-center gap-2 border border-[#60A5FA]/30">
                 <i class="fas fa-paper-plane text-sm"></i>
                 <span>Enviar a Cocina</span>
             </button>
-            <p id="mensajeMesaDestino" class="mt-2 text-[10px] font-bold text-[var(--text-muted)] text-center">Enviando a Mesa {{ $mesa->numero ?? '12M' }}</p>
+            <p id="mensajeMesaDestino" class="mt-2.5 text-[10px] font-bold text-[var(--text-muted)] text-center">Enviando a Mesa {{ $mesa->numero ?? '12M' }}</p>
         </div>
     </section>
 
@@ -600,7 +593,6 @@
             const menuCat = document.getElementById('menuCategorias');
             const gridProd = document.getElementById('gridProductos');
             
-            // Botón "Todos" mejorado (estilo pastilla brillante)
             menuCat.innerHTML = `<button onclick="filtrarCategoria('Todos', this)" class="cat-btn px-6 py-2.5 rounded-full bg-gradient-to-b from-[#3B82F6] to-[#2563EB] text-white text-[10px] font-black uppercase tracking-widest shadow-[0_8px_15px_-3px_rgba(59,130,246,0.5)] border border-[#60A5FA]/30 whitespace-nowrap outline-none transition-all active:scale-95">Todos</button>`;
             
             if(categoriasDB.length > 0) {
@@ -616,28 +608,19 @@
                     const catNombre = prod.categoria ? prod.categoria.nombre : 'Sin Categoría';
                     const precioNum = parseFloat(prod.precio) || 0;
                     const modsJSON = prod.modificadores ? JSON.stringify(prod.modificadores).replace(/'/g, "\\'") : '[]';
-
-                    // Extracción de la letra inicial para diseño tipográfico premium
                     const letraInicial = prod.nombre.charAt(0).toUpperCase();
 
-                    // DISEÑO PREMIUM DE LA TARJETA
                     gridProd.innerHTML += `
                         <div data-categoria-item="${catNombre}" onclick='agregarAlTicket(${prod.id}, "${prod.nombre}", ${precioNum}, "${catNombre}", ${modsJSON}); event.stopPropagation();' 
                              class="producto-card group relative bg-[var(--bg-panel)] rounded-[20px] flex flex-col cursor-pointer transition-all duration-400 h-[140px] xl:h-[160px] 
                                     border border-[var(--border-color)] shadow-sm 
                                     hover:border-[#3B82F6]/40 hover:shadow-[0_12px_30px_-10px_rgba(59,130,246,0.35)] hover:-translate-y-1.5 overflow-hidden">
                             
-                            <!-- Mitad Superior (Glassmorphism + Tipografía) -->
                             <div class="h-[55%] w-full bg-[var(--input-bg)] relative flex items-center justify-center border-b border-[var(--border-color)] overflow-hidden">
-                                <!-- Gradiente sutil para profundidad -->
                                 <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none"></div>
-                                
-                                <!-- Etiqueta de Categoría Flotante (Elegante) -->
                                 <div class="absolute top-2.5 right-2.5 bg-[var(--bg-base)]/50 backdrop-blur-md px-2 py-0.5 rounded shadow-sm border border-[var(--border-color)] z-10 transition-colors group-hover:border-[#3B82F6]/30">
                                     <span class="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-[#3B82F6]/80">${catNombre}</span>
                                 </div>
-                                
-                                <!-- Typographic Fallback (Letra en lugar de Ícono genérico) -->
                                 <div class="relative z-10 transform group-hover:scale-[1.15] transition-transform duration-500">
                                     <span class="text-[40px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-[var(--text-muted)] to-[var(--border-color)] group-hover:from-[#3B82F6] group-hover:to-[#60A5FA] transition-all duration-300 select-none opacity-30 group-hover:opacity-100">
                                         ${letraInicial}
@@ -645,14 +628,10 @@
                                 </div>
                             </div>
                             
-                            <!-- Mitad Inferior (Información) -->
                             <div class="p-3.5 flex flex-col flex-1 justify-between bg-gradient-to-b from-[var(--bg-panel)] to-[var(--bg-base)]">
                                 <h3 class="text-[11px] xl:text-xs font-medium text-[var(--text-main)] tracking-tight leading-snug line-clamp-2 transition-colors">${prod.nombre}</h3>
-                                
                                 <div class="flex items-center justify-between mt-auto pt-1">
                                     <span class="text-xs xl:text-sm font-black text-[var(--text-main)] tracking-tighter">$${precioNum.toFixed(2)}</span>
-                                    
-                                    <!-- Botón "+" animado (Micro-interacción) -->
                                     <div class="w-6 h-6 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center opacity-0 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                                         <i class="fas fa-plus text-[10px]"></i>
                                     </div>
@@ -742,27 +721,37 @@
                 else if (tiempoGlobal === 'tercer-tiempo') etiquetaTiempo = '<span class="text-[7px] bg-[#f97316]/10 border border-[#f97316]/30 text-[#f97316] px-1 py-0.5 rounded font-black uppercase tracking-widest"><i class="fas fa-clock mr-1"></i>3er T.</span>';
 
                 const itemHTML = `
-                    <div id="${itemId}" data-producto-id="${id}" data-cantidad="1" data-precio="${precioUnitario}" data-modificadores="${modsString}" data-gramaje="${gramajeKey}" data-tiempo="${tiempoGlobal}" class="ticket-item animate-item bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl p-2.5 flex flex-col cursor-pointer transition-all hover:border-[#3B82F6]/50" onclick="seleccionarItem('${itemId}')">
-                        <div class="flex items-start justify-between gap-1 mb-1">
+                    <div id="${itemId}" data-producto-id="${id}" data-cantidad="1" data-precio="${precioUnitario}" data-modificadores="${modsString}" data-gramaje="${gramajeKey}" data-tiempo="${tiempoGlobal}" class="ticket-item animate-item relative w-full rounded-[24px] bg-gradient-to-b from-[var(--bg-panel)] to-[var(--bg-base)] border border-white/[0.05] p-4 flex flex-col gap-3 cursor-pointer transition-all duration-300 outline-none transform hover:-translate-y-0.5" onclick="seleccionarItem('${itemId}')">
+                        
+                        <div class="flex justify-between items-start gap-3 relative z-10">
                             <div class="flex-1">
-                                <span class="text-[9px] xl:text-[10px] font-bold text-[var(--text-main)] leading-tight nombre-platillo">${nombre}</span>
-                                <div class="flex flex-wrap gap-1 mt-1 empty:hidden">
+                                <h3 class="text-[14px] font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 tracking-tight leading-tight nombre-platillo">${nombre}</h3>
+                                <div class="flex flex-wrap gap-1.5 mt-1.5 empty:hidden">
                                     <div class="gramaje-etiqueta empty:hidden">${etiquetaGramaje}</div>
                                     ${etiquetaTiempo}
                                 </div>
-                                <div class="modificadores-lista flex flex-wrap gap-1 mt-1 empty:hidden"></div>
                             </div>
+                            <span class="text-[15px] font-black text-emerald-400 tracking-tighter drop-shadow-[0_0_8px_rgba(52,211,153,0.2)] precio-platillo">$${precioUnitario.toFixed(2)}</span>
                         </div>
-                        <div class="flex items-center justify-between gap-2 mt-1.5 border-t border-[var(--border-color)] pt-1.5">
-                            <div class="flex items-center gap-1.5">
-                                <button onclick="decrementarCantidad('${itemId}'); event.stopPropagation();" class="w-5 h-5 rounded bg-rose-500/10 text-rose-500 text-[10px] font-black flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">−</button>
-                                <span class="cantidad-platillo w-5 h-5 rounded bg-[#3B82F6]/10 text-[#3B82F6] text-[9px] font-black flex items-center justify-center shadow-inner">1</span>
-                                <button onclick="incrementarCantidad('${itemId}'); event.stopPropagation();" class="w-5 h-5 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-black flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all">+</button>
+
+                        <div class="modificadores-lista w-full rounded-[12px] bg-[#F59E0B]/[0.05] border border-[#F59E0B]/[0.15] px-3.5 py-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 empty:hidden relative z-10"></div>
+
+                        <div class="flex items-center justify-between pt-3 mt-1 relative z-10">
+                            <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent"></div>
+                            
+                            <div class="flex items-center bg-[var(--bg-base)] rounded-[14px] p-1 border border-white/[0.02] shadow-[inset_0_2px_5px_rgba(0,0,0,0.4)]" onclick="event.stopPropagation();">
+                                <button type="button" onclick="decrementarCantidad('${itemId}')" class="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--text-muted)] hover:bg-white/[0.05] hover:text-[var(--text-main)] transition-colors outline-none">
+                                    <i class="fas fa-minus text-[11px]"></i>
+                                </button>
+                                <span class="cantidad-platillo w-8 text-center text-[13px] font-black text-[var(--text-main)]">1</span>
+                                <button type="button" onclick="incrementarCantidad('${itemId}')" class="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--text-muted)] hover:bg-[#3B82F6]/20 hover:text-[#3B82F6] transition-colors outline-none">
+                                    <i class="fas fa-plus text-[11px]"></i>
+                                </button>
                             </div>
-                            <div class="flex-1 text-right flex flex-col">
-                                <span class="text-[10px] xl:text-xs font-black text-[var(--text-main)] precio-platillo">$${precioUnitario.toFixed(2)}</span>
-                                <button onclick="eliminarItemFila(this); event.stopPropagation();" class="hidden btn-control-eliminar text-[7px] text-rose-500 font-bold uppercase tracking-widest hover:underline mt-0.5">Quitar</button>
-                            </div>
+
+                            <button type="button" onclick="eliminarItemFila(this); event.stopPropagation();" class="hidden btn-control-eliminar w-10 h-10 rounded-[14px] bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white hover:border-transparent hover:shadow-[0_4px_15px_rgba(244,63,94,0.4)] transition-all duration-300 outline-none">
+                                <i class="fas fa-trash-alt text-[12px]"></i>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -842,9 +831,10 @@
             deseleccionarTicket(); 
             itemActivo = document.getElementById(id);
             if(itemActivo) {
-                itemActivo.classList.add('border-[#3B82F6]', 'shadow-[0_0_15px_rgba(59,130,246,0.15)]');
-                itemActivo.classList.remove('border-[var(--border-color)]');
+                itemActivo.classList.add('bg-[#1E293B]/40', 'border-[#3B82F6]/40', 'shadow-[0_8px_25px_-5px_rgba(59,130,246,0.15)]');
+                itemActivo.classList.remove('bg-[var(--bg-panel)]', 'border-white/[0.05]');
                 itemActivo.querySelector('.btn-control-eliminar').classList.remove('hidden');
+                itemActivo.querySelector('.btn-control-eliminar').classList.add('flex');
                 
                 const modsString = itemActivo.getAttribute('data-modificadores');
                 const modificadoresParaPintar = JSON.parse(modsString || '[]');
@@ -866,10 +856,11 @@
 
         function deseleccionarTicket() {
             document.querySelectorAll('.ticket-item').forEach(el => {
-                el.classList.remove('border-[#3B82F6]', 'shadow-[0_0_15px_rgba(59,130,246,0.15)]');
-                el.classList.add('border-[var(--border-color)]');
+                el.classList.remove('bg-[#1E293B]/40', 'border-[#3B82F6]/40', 'shadow-[0_8px_25px_-5px_rgba(59,130,246,0.15)]');
+                el.classList.add('bg-[var(--bg-panel)]', 'border-white/[0.05]');
                 if(el.querySelector('.btn-control-eliminar')) {
                     el.querySelector('.btn-control-eliminar').classList.add('hidden');
+                    el.querySelector('.btn-control-eliminar').classList.remove('flex');
                 }
             });
             itemActivo = null;
@@ -879,8 +870,10 @@
         function agregarModificadorFijo(texto) {
             if (itemActivo) {
                 const contenedorList = itemActivo.querySelector('.modificadores-lista');
-                const pillHTML = `<span class="text-[7px] bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] px-1 py-0.5 rounded shadow-sm">✓ ${texto}</span>`;
-                contenedorList.insertAdjacentHTML('beforeend', pillHTML);
+                const tieneHijos = contenedorList.children.length > 0;
+                const separador = tieneHijos ? `<span class="opacity-30 text-[#F59E0B] text-[10px] mx-1">•</span>` : `<i class="fas fa-pen text-[#F59E0B] opacity-70 text-[9px] mr-1 mt-[1px]"></i>`;
+                const notaTexto = `<span class="text-[11px] font-black uppercase tracking-wider text-[#F59E0B] leading-none inline-flex items-center">${separador} <span class="nota-texto-real ml-0.5">${texto}</span></span>`;
+                contenedorList.insertAdjacentHTML('beforeend', notaTexto);
             }
         }
 
@@ -1040,8 +1033,13 @@
             const nota = document.getElementById('notaTextarea').value.trim();
             if (!itemActivo) { cerrarModal('modalNota'); return; }
             if (nota.length === 0) { mostrarError('Nota vacía.'); return; }
-            const notaPill = `<span class="text-[7px] bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] px-1.5 py-0.5 rounded shadow-sm">✎ ${nota}</span>`;
-            itemActivo.querySelector('.modificadores-lista').insertAdjacentHTML('beforeend', notaPill);
+            
+            const contenedorList = itemActivo.querySelector('.modificadores-lista');
+            const tieneHijos = contenedorList.children.length > 0;
+            const separador = tieneHijos ? `<span class="opacity-30 text-[#F59E0B] text-[10px] mx-1">•</span>` : `<i class="fas fa-pen text-[#F59E0B] opacity-70 text-[9px] mr-1 mt-[1px]"></i>`;
+            const notaTexto = `<span class="text-[11px] font-black uppercase tracking-wider text-[#F59E0B] leading-none inline-flex items-center">${separador} <span class="nota-texto-real ml-0.5">${nota}</span></span>`;
+            
+            contenedorList.insertAdjacentHTML('beforeend', notaTexto);
             itemActivo.dataset.nota = nota;
             notaGeneral = nota;
             cerrarModal('modalNota');
@@ -1147,9 +1145,9 @@
                 const productoId = parseInt(item.dataset.productoId, 10);
                 const gramaje = item.dataset.gramaje === 'sin-gramaje' ? null : item.dataset.gramaje;
                 const tiempo = item.dataset.tiempo; 
-                const modsElementos = item.querySelectorAll('.modificadores-lista span');
+                const modsElementos = item.querySelectorAll('.nota-texto-real');
                 const mods = [];
-                modsElementos.forEach(m => mods.push(m.innerText.replace('✓ ', '').replace('✎ ', '')));
+                modsElementos.forEach(m => mods.push(m.innerText.trim()));
                 platillosData.push({ id: productoId, nombre: nombre, cantidad: cantidad, precio: precioUnitario, notas: mods.join(', '), modificadores: mods, gramaje: gramaje, tiempo: tiempo });
             });
 

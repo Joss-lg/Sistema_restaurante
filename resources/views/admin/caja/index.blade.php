@@ -15,6 +15,8 @@
     $mesasLibres = $mesas->where('estado', 'disponible')->count();
 @endphp
 
+<div id="toastContainer" class="toast-wrapper" aria-live="polite" aria-atomic="true"></div>
+
 <div class="p-6 lg:p-8 w-full max-w-[1600px] mx-auto space-y-8 relative z-10">
     
     <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
@@ -132,9 +134,24 @@
                                 <span class="inline-flex items-center rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] px-3 py-1 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:bg-emerald-500/10 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all">Libre</span>
                             </div>
                             
-                            <div class="relative z-10 mt-auto">
-                                <h3 class="text-[var(--text-color)] font-black text-xl tracking-tight group-hover:text-emerald-400 transition-colors">Mesa {{ $mesa->numero }}</h3>
-                                <p class="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1 group-hover:text-emerald-500/70">Haz clic para ocupar</p>
+                            <div class="relative z-10 mt-auto flex flex-col gap-2">
+                                <div>
+                                    <h3 class="text-[var(--text-color)] font-black text-xl tracking-tight group-hover:text-emerald-400 transition-colors">Mesa {{ $mesa->numero }}</h3>
+                                    <p class="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1 group-hover:text-emerald-500/70">Haz clic para ocupar</p>
+                                </div>
+                                
+                                @if(auth()->user()->tienePermiso('mesas.eliminar'))
+                                    <button 
+                                        type="button"
+                                        data-mesa-delete="true"
+                                        data-mesa-id="{{ $mesa->id }}"
+                                        data-mesa-numero="{{ $mesa->numero }}"
+                                        class="btn-eliminar-mesa mt-2 w-full py-2 px-3 bg-red-500/15 hover:bg-red-500/30 text-red-400 hover:text-red-300 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-red-500/30 hover:border-red-500/50 transition-all duration-200 flex items-center justify-center gap-2"
+                                    >
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                        <span>Eliminar</span>
+                                    </button>
+                                @endif
                             </div>
 
                             <div class="absolute -right-3 -bottom-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -190,6 +207,32 @@
                 </button>
                 <button type="button" id="btn-confirmar-abrir-mesa" class="py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-black rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
                     Abrir Mesa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal para confirmar eliminación de mesa --}}
+    <div id="modal-eliminar-mesa" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-[#141417] border border-white/10 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-500">
+                    <i class="fas fa-trash-alt text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white">Eliminar Mesa</h2>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Esta acción no se puede deshacer</p>
+                </div>
+            </div>
+            
+            <p id="modal-eliminar-mensaje" class="text-sm text-gray-300 mb-6">¿Estás seguro de que deseas eliminar la Mesa?</p>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="btn-cancelar-eliminar" class="py-3 px-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-confirmar-eliminar" class="py-3 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-black rounded-2xl transition-all shadow-lg shadow-red-500/20">
+                    Eliminar Mesa
                 </button>
             </div>
         </div>
@@ -303,6 +346,11 @@
 
     botonesAbrirMesa.forEach(btn => {
         btn.addEventListener('click', function(e) {
+            // Detener si el clic fue en el botón de eliminar o sus hijos
+            if (e.target.closest('[data-mesa-delete="true"]')) {
+                return;
+            }
+            
             e.preventDefault();
             mesaSeleccionada = {
                 id: this.dataset.mesaId,
@@ -378,6 +426,118 @@
             btnConfirmarAbrir.click();
         }
     });
+
+    // ========== EVENT LISTENER PARA BOTONES DE ELIMINAR MESA ==========
+    const botonesEliminar = document.querySelectorAll('[data-mesa-delete="true"]');
+    botonesEliminar.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            const mesaId = this.dataset.mesaId;
+            const mesaNumero = this.dataset.mesaNumero;
+            abrirModalEliminarMesa(mesaId, mesaNumero);
+        });
+    });
+    
+    // Función para eliminar mesa
+    let mesaAEliminar = null;
+    
+    function abrirModalEliminarMesa(mesaId, mesaNumero) {
+        
+        const modalEliminar = document.getElementById('modal-eliminar-mesa');
+        const mensajeModal = document.getElementById('modal-eliminar-mensaje');
+        
+        mesaAEliminar = { id: mesaId, numero: mesaNumero };
+        mensajeModal.textContent = `¿Estás seguro de que deseas eliminar la Mesa ${mesaNumero}?`;
+        modalEliminar.classList.remove('hidden');
+    }
+
+    // Botón cancelar eliminar
+    document.getElementById('btn-cancelar-eliminar').addEventListener('click', function() {
+        document.getElementById('modal-eliminar-mesa').classList.add('hidden');
+        mesaAEliminar = null;
+    });
+
+    // Botón confirmar eliminar
+    document.getElementById('btn-confirmar-eliminar').addEventListener('click', async function() {
+        if (!mesaAEliminar) return;
+
+        const { id: mesaId, numero: mesaNumero } = mesaAEliminar;
+
+        try {
+            const response = await fetch(`/admin/caja/${mesaId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('modal-eliminar-mesa').classList.add('hidden');
+                mostrarExito(`Mesa ${mesaNumero} eliminada exitosamente`);
+                setTimeout(() => location.reload(), 800);
+            } else {
+                mostrarError(data.message || 'Error al eliminar la mesa');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarError('Error al eliminar la mesa');
+        }
+    });
+
+    // Funciones de toast
+    function mostrarToast(message, type = 'info', duration = 3800) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-panel ${type}`;
+        
+        let iconHtml = type === 'success' 
+            ? '<i class="fas fa-check"></i>' 
+            : type === 'error' 
+            ? '<i class="fas fa-exclamation-triangle"></i>' 
+            : '<i class="fas fa-info"></i>';
+        
+        const titulo = type === 'success' 
+            ? 'Éxito' 
+            : type === 'error' 
+            ? 'Error' 
+            : 'Notificación';
+        
+        toast.innerHTML = `<div class="toast-icon">${iconHtml}</div><div><strong>${titulo}</strong><span>${message}</span></div>`;
+        container.appendChild(toast);
+        
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => { 
+            toast.classList.remove('show'); 
+            setTimeout(() => toast.remove(), 300); 
+        }, duration);
+    }
+    
+    function mostrarError(mensaje) { mostrarToast(mensaje, 'error'); }
+    function mostrarExito(mensaje) { mostrarToast(mensaje, 'success'); }
 </script>
+
+<style>
+    .toast-wrapper { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end; pointer-events: none; }
+    .toast-panel { min-width: 18rem; max-width: 28rem; pointer-events: auto; background: rgba(11, 15, 25, 0.92); color: #F8FAFC; border: 1px solid rgba(148, 163, 184, 0.15); border-left-width: 4px; border-radius: 1.25rem; backdrop-filter: blur(20px); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); padding: 1rem 1.25rem; opacity: 0; transform: translateX(28px); transition: opacity 0.3s ease, transform 0.3s ease; font-size: 0.95rem; line-height: 1.5; display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; align-items: center; }
+    .toast-panel.show { opacity: 1; transform: translateX(0); }
+    .toast-panel.success { border-color: rgba(16, 185, 129, 0.25); }
+    .toast-panel.error { border-color: rgba(239, 68, 68, 0.25); }
+    .toast-panel.info { border-color: rgba(59, 130, 246, 0.25); }
+    .toast-panel .toast-icon { width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: 1rem; background: rgba(255, 255, 255, 0.08); color: inherit; }
+    .toast-panel.success .toast-icon { background: rgba(16, 185, 129, 0.18); color: #4ade80; }
+    .toast-panel.error .toast-icon { background: rgba(239, 68, 68, 0.18); color: #f87171; }
+    .toast-panel.info .toast-icon { background: rgba(59, 130, 246, 0.18); color: #60a5fa; }
+    .toast-panel strong { display: block; color: inherit; font-weight: 700; }
+    .toast-panel span { color: rgba(248, 250, 252, 0.84); font-size: 0.88rem; }
+</style>
+
 @endpush
 @endsection

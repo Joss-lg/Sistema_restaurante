@@ -132,6 +132,52 @@ class CajaController extends Controller
         $ordenId = null;
         $cuentasDividadasInfo = [];
 
+        // Si hay cuentas divididas, solo mostrar las ACTIVAS (no pagadas)
+        if ($tienesCuentasDivididas) {
+            $ordenes = $ordenesDivididas->filter(function ($ordenItem) {
+                return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
+            });
+        } else {
+            $ordenes = $todasLasOrdenes->filter(function ($ordenItem) {
+                return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
+            });
+        }
+
+        $cuentasDivididas = $tienesCuentasDivididas;
+        
+        // Obtener la primera orden dividida ACTIVA si existe
+        $ordenDividida = $ordenes->first();
+        
+        // Obtener el total de cuentas a dividir (buscar en TODAS las ordenes divididas para encontrar el máximo)
+        $totalCuentasDivision = null;
+        if ($cuentasDivididas) {
+            $maxNumeroCuenta = $ordenesDivididas->max(function ($orden) {
+                return intval($orden->numero_cuenta_division ?? 0);
+            });
+            
+            $totalCuentasDivision = $ordenDividida?->total_cuentas_division ?? 
+                                    $maxNumeroCuenta ??
+                                    $ordenesDivididas->count();
+            
+            Log::info('DEBUG cobrar() - Cuentas Divididas', [
+                'mesa_id' => $mesa->id,
+                'totalCuentasDivision_FINAL' => $totalCuentasDivision,
+                'ordenes_activas_divididas' => $ordenes->count(),
+                'max_numero_cuenta' => $maxNumeroCuenta,
+            ]);
+        }
+
+        $productos = collect();
+        $meseroNombre = $mesa->mesero?->nombre ?? 'Sin mesero asignado';
+        $subtotal = 0;
+        $iva = 0;
+        $propina = 0;
+        $totalPagar = 0;
+        $orden = null;
+        $ordenLabel = 'Orden #N/A';
+        $ordenId = null;
+        $cuentasDividadasInfo = [];
+
         if ($ordenes->isNotEmpty()) {
             if ($cuentasDivididas) {
                 // Establece el label para cuentas divididas
@@ -173,7 +219,7 @@ class CajaController extends Controller
 
                 // Crear una cuenta por cada persona con el total dividido
                 for ($i = 1; $i <= $totalCuentasDivision; $i++) {
-                    // Buscar la orden ACTIVA para esta persona (no incluir pagadas)
+                    // Buscar la orden ACTIVA para esta persona
                     $ordenParaEstaPersona = $ordenes->firstWhere('numero_cuenta_division', $i);
                     
                     // Solo agregar a cuentasDividadasInfo si está activa
@@ -197,7 +243,7 @@ class CajaController extends Controller
 
                 $totalPagar = round($subtotal + $iva + $propina, 2);
 
-                // Ordenar las cuentas divididas por su número para una presentación consistente
+                // Ordenar las cuentas divididas por su número
                 usort($cuentasDividadasInfo, function($a, $b) {
                     return intval($a['numero_cuenta'] ?? 0) <=> intval($b['numero_cuenta'] ?? 0);
                 });
@@ -209,7 +255,13 @@ class CajaController extends Controller
                     ? 'Orden #' . $orden->numero_orden
                     : $ordenes->count() . ' órdenes activas';
 
-                $ordenIds = $ordenes->pluck('id')->all();
+                // Obtener TODOS los productos de TODAS las órdenes (no solo activas)
+                $todasLasOrdenesDelMesa = DB::table('ordenes')
+                    ->where('mesa_id', $mesa->id)
+                    ->whereNull('deleted_at')
+                    ->get();
+                
+                $ordenIds = $todasLasOrdenesDelMesa->pluck('id')->toArray();
 
                 $productos = DB::table('detalles_orden')
                     ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
@@ -240,8 +292,19 @@ class CajaController extends Controller
             'data' => $cuentasDividadasInfo,
             'cuentasDivididas' => $cuentasDivididas,
             'totalCuentasDivision' => $totalCuentasDivision,
-            'totalPagar' => $totalPagar
+            'totalPagar' => $totalPagar,
+            'productos_cargados' => $productos->count(),
         ]);
+
+        // AVISO si no hay detalles pero hay órdenes
+        if ($ordenes->isNotEmpty() && $productos->isEmpty()) {
+            Log::warning('ALERTA: Órdenes sin detalles', [
+                'mesa_id' => $mesa->id,
+                'mesa_numero' => $mesa->numero,
+                'ordenes_count' => $ordenes->count(),
+                'detalles_count' => $productos->count(),
+            ]);
+        }
 
         // Si no hay órdenes activas, significa que todo ya fue pagado
         if ($ordenes->isEmpty()) {
@@ -761,6 +824,54 @@ class CajaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al abrir la mesa: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function destroy($id): JsonResponse
+    {
+        try {
+            $mesa = Mesa::findOrFail($id);
+
+            // Validar que sea admin
+            if (!auth()->user()->tienePermiso('mesas.eliminar')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No tienes permisos para eliminar mesas.',
+                ], 403);
+            }
+
+            // Validar que la mesa esté disponible
+            if ($mesa->estado !== 'disponible') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Solo se pueden eliminar mesas en estado LIBRE.',
+                ], 422);
+            }
+
+            // Soft delete (no borra registros, solo marca como eliminado)
+            $mesa->delete();
+
+            Log::info('Mesa eliminada (soft delete)', [
+                'mesa_id' => $id,
+                'mesa_numero' => $mesa->numero,
+                'usuario_id' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mesa eliminada correctamente. Historial de órdenes preservado.',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar mesa', [
+                'mesa_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar la mesa: ' . $e->getMessage(),
             ], 500);
         }
     }

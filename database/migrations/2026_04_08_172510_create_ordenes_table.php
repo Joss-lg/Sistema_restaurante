@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ordenes', function (Blueprint $table) {
             $table->id();
             $table->string('numero_orden')->unique();
-            $table->foreignId('mesa_id')->constrained('mesas');
+            $table->foreignId('mesa_id')->nullable()->constrained('mesas')->onDelete('set null');
             $table->foreignId('mesero_id')->constrained('users');
             $table->foreignId('capitan_id')->nullable()->constrained('users');
             

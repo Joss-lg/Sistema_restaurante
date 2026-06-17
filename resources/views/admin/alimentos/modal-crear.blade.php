@@ -39,11 +39,23 @@
                             </datalist>
                         </div>
 
-                        {{-- MODIFICADORES RÁPIDOS --}}
+                        {{-- Descripción del Platillo --}}
                         <div class="col-span-2">
-                            <label class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Modificadores Rápidos</label>
-                            <input type="text" id="modificadores_input" name="modificadores_input" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] placeholder:text-[var(--text-muted)] focus:ring-2 focus:ring-blue-500 transition" placeholder="Ej: Término medio, Bien cocido, Sin sal">
-                            <p class="text-[9px] text-[#3B82F6] font-bold mt-2 ml-1 tracking-wide uppercase"><i class="fas fa-info-circle mr-1"></i> Sepáralos con una coma (,). Aparecerán como botones en la comanda.</p>
+                            <label class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Descripción</label>
+                            <textarea id="descripcion" name="descripcion" rows="3" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] placeholder:text-[var(--text-muted)] focus:ring-2 focus:ring-blue-500 transition resize-none" placeholder="Describe qué lleva este platillo..."></textarea>
+                        </div>
+
+                        {{-- Ingredientes del Platillo --}}
+                        <div class="col-span-2">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <label class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Ingredientes del Platillo</label>
+                                    <p class="text-[9px] text-[#3B82F6] font-bold mt-2 ml-1 tracking-wide uppercase"><i class="fas fa-info-circle mr-1"></i> Selecciona los ingredientes y la cantidad que consume cada platillo.</p>
+                                </div>
+                                <button type="button" onclick="agregarIngrediente()" class="inline-flex items-center gap-2 self-start bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-2xl font-black transition shadow-sm"><i class="fas fa-plus"></i> Agregar ingrediente</button>
+                            </div>
+
+                            <div id="ingredientes-container" class="space-y-4 mt-4"></div>
                         </div>
 
                     </div>

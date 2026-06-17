@@ -9,6 +9,7 @@ use App\Models\Categoria;
 use App\Models\Producto;
 use App\Models\Orden;
 use App\Models\DetalleOrden;
+use App\Models\MovimientoInventario;
 use Illuminate\Support\Facades\DB;
 
 class ComandaController extends Controller
@@ -118,6 +119,8 @@ class ComandaController extends Controller
             $totalNeto = round($subtotal, 2);
             $totalConIva = round($subtotal * 1.16, 2);
 
+            DB::beginTransaction();
+
             $orden = \App\Models\Orden::create([
                 'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
                 'mesa_id' => $mesa->id,
@@ -144,7 +147,32 @@ class ComandaController extends Controller
                     $detalleData['gramaje'] = isset($platillo['gramaje']) ? floatval($platillo['gramaje']) : null;
                 }
 
-                \App\Models\DetalleOrden::create($detalleData);
+                $detalle = \App\Models\DetalleOrden::create($detalleData);
+
+                $producto = Producto::with('insumos')->find($platillo['id']);
+                if ($producto) {
+                    foreach ($producto->insumos as $insumo) {
+                        $cantidadUsada = floatval($insumo->pivot->cantidad_usada) * intval($platillo['cantidad']);
+                        if ($cantidadUsada <= 0) {
+                            continue;
+                        }
+
+                        if ($insumo->stock_actual < $cantidadUsada) {
+                            throw new \Exception("Stock insuficiente para el ingrediente {$insumo->nombre} en el platillo {$producto->nombre}.");
+                        }
+
+                        $insumo->stock_actual -= $cantidadUsada;
+                        $insumo->save();
+
+                        MovimientoInventario::create([
+                            'insumo_id' => $insumo->id,
+                            'user_id' => auth()->id(),
+                            'cantidad' => $cantidadUsada,
+                            'tipo' => 'salida',
+                            'motivo' => "Venta de platillo {$producto->nombre} (Orden {$orden->numero_orden})",
+                        ]);
+                    }
+                }
             }
 
             $mesa->estado = 'ocupada';

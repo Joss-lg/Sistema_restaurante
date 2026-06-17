@@ -55,33 +55,39 @@
 
 {{-- COMPONENTES MODALES --}}
 @include('admin.alimentos.modal-crear')
+@include('admin.alimentos.modal-editar')
 @include('admin.alimentos.modal-eliminar')
 
 <script>
-    // Estado global
+    // =========================================================================
+    // ESTADO GLOBAL Y CONFIGURACIÓN
+    // =========================================================================
     let estadoGlobal = {
         editandoId: null,
         productos: {},
-        productosMap: {}, // Mapa plano para búsqueda rápida
+        productosMap: {}, 
         categorias: {}
     };
 
-    // Inicializar
+    // Carga segura de datos PHP desde Laravel
+    const categoriasDisponibles = {!! Illuminate\Support\Js::from($categorias->map(function($c) { return ['id' => $c->id, 'nombre' => $c->nombre]; })) !!};
+    const insumosDisponibles = {!! Illuminate\Support\Js::from($insumosDisponibles->map(function($i) { return ['id' => $i->id, 'nombre' => $i->nombre, 'unidad_medida' => $i->unidad_medida, 'stock_actual' => $i->stock_actual]; })) !!};
+
+    // Inicialización de la vista
     document.addEventListener('DOMContentLoaded', function() {
         cargarProductos();
         cargarEstadisticas();
-        
-        // Recargar estadísticas cada 10 segundos
         setInterval(cargarEstadisticas, 10000);
     });
 
-    // Cargar productos desde API
+    // =========================================================================
+    // CARGA DE DATOS DESDE LA API
+    // =========================================================================
     function cargarProductos() {
         fetch('/admin/alimentos/api/productos')
             .then(response => response.json())
             .then(data => {
                 estadoGlobal.productos = data;
-                // Llenar el mapa plano para búsqueda rápida
                 estadoGlobal.productosMap = {};
                 Object.keys(data).forEach(categoria => {
                     data[categoria].forEach(producto => {
@@ -93,7 +99,6 @@
             .catch(error => console.error('Error cargando productos:', error));
     }
 
-    // Cargar estadísticas
     function cargarEstadisticas() {
         fetch('/admin/alimentos/api/estadisticas')
             .then(response => response.json())
@@ -105,7 +110,9 @@
             .catch(error => console.error('Error cargando estadísticas:', error));
     }
 
-    // Renderizar productos agrupados por categoría
+    // =========================================================================
+    // RENDERIZADO DE LA INTERFAZ (CARDS)
+    // =========================================================================
     function renderizarProductos() {
         const container = document.getElementById('categorias-container');
         container.innerHTML = '';
@@ -117,7 +124,6 @@
 
         Object.keys(estadoGlobal.productos).forEach(categoriaNombre => {
             const productos = estadoGlobal.productos[categoriaNombre];
-            
             const seccion = document.createElement('div');
             seccion.className = 'mb-12';
             
@@ -140,18 +146,15 @@
             
             const grid = container.querySelector(`#grid-${categoriaNombre.replace(/\s+/g, '-')}`);
             productos.forEach(producto => {
-                const card = crearCardProducto(producto);
-                grid.appendChild(card);
+                grid.appendChild(crearCardProducto(producto));
             });
         });
     }
 
-    // Crear card de producto
     function crearCardProducto(producto) {
         const card = document.createElement('div');
         card.className = 'glass-card rounded-3xl p-5 border border-[var(--border-color)] hover:border-[var(--text-muted)] transition-all group';
         
-        // Ver si tiene modificadores para mostrarlos en la tarjeta (opcional, se ve pro)
         let etiquetasMods = '';
         if(producto.modificadores && producto.modificadores.length > 0) {
             etiquetasMods = `<p class="text-[10px] text-[var(--text-muted)] mt-1 truncate"><i class="fas fa-list-ul mr-1"></i> ${producto.modificadores.map(m => m.nombre).join(', ')}</p>`;
@@ -161,6 +164,7 @@
             <div class="flex justify-between items-start mb-3">
                 <div class="overflow-hidden pr-2">
                     <h3 class="text-lg font-black text-[var(--text-color)] tracking-tight group-hover:text-blue-400 transition truncate">${producto.nombre}</h3>
+                    ${producto.descripcion ? `<p class="text-sm text-[var(--text-muted)] mt-2 line-clamp-2">${producto.descripcion}</p>` : ''}
                     ${etiquetasMods}
                     <div class="flex gap-2 mt-2">
                         <span class="bg-black/50 ${producto.esta_disponible ? 'text-green-400 border-green-900/50' : 'text-red-400 border-red-900/50'} text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter border">${producto.esta_disponible ? 'Disponible' : 'No disponible'}</span>
@@ -189,7 +193,6 @@
         return card;
     }
 
-    // Obtener icono por categoría
     function obtenerIconoCategoria(nombre) {
         const nomNormalizado = nombre.toLowerCase();
         if(nomNormalizado.includes('pizza')) return 'fas fa-pizza-slice';
@@ -202,21 +205,25 @@
         if(nomNormalizado.includes('sopa')) return 'fas fa-bowl-food';
         if(nomNormalizado.includes('abarrote')) return 'fas fa-box-open';
         
-        return 'fas fa-concierge-bell'; // Icono por defecto
+        return 'fas fa-concierge-bell';
     }
 
-    // Abrir modal para agregar o editar
-    function openModalAlimento(resetForm = true) {
-        if (resetForm) {
-            estadoGlobal.editandoId = null;
-            document.getElementById('formulario-alimento').reset();
-            document.getElementById('categoria_id').value = '';
-            document.getElementById('modal-title').textContent = 'Nuevo Platillo';
-            document.getElementById('modal-subtitle').textContent = 'Configuración estética del menú';
-        }
+    // =========================================================================
+    // CONTROL DEL MODAL CREAR
+    // =========================================================================
+    function openModalAlimento() { 
+        estadoGlobal.editandoId = null;
+        const form = document.getElementById('formulario-crear-alimento');
+        if(form) form.reset();
         
-        const modal = document.getElementById('modal-nuevo-alimento');
-        const panel = document.getElementById('modal-panel');
+        document.getElementById('categoria_id').value = '';
+        document.getElementById('descripcion').value = '';
+        
+        limpiarIngredientesContainer('crear');
+        agregarIngrediente('crear');
+
+        const modal = document.getElementById('modal-crear-alimento');
+        const panel = document.getElementById('modal-crear-panel');
         modal.classList.remove('hidden');
         setTimeout(() => {
             modal.classList.add('opacity-100');
@@ -224,77 +231,17 @@
         }, 10);
     }
 
-    const categoriasDisponibles = @json($categorias->map(fn($categoria) => ['id' => $categoria->id, 'nombre' => $categoria->nombre]));
-
-    function obtenerCategoriaIdPorNombre(nombre) {
-        if (!nombre) return null;
-        const categoria = categoriasDisponibles.find(cat => cat.nombre.toLowerCase() === nombre.toLowerCase());
-        return categoria ? categoria.id : null;
-    }
-
-    // Cerrar modal
-    function closeModalAlimento() {
-        const modal = document.getElementById('modal-nuevo-alimento');
-        const panel = document.getElementById('modal-panel');
+    function closeModalCrear() {
+        const modal = document.getElementById('modal-crear-alimento');
+        const panel = document.getElementById('modal-crear-panel');
         modal.classList.remove('opacity-100');
         panel.classList.remove('opacity-100', 'translate-y-0');
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
 
-    // Guardar producto (crear o actualizar)
-    function guardarAlimento(event) {
-        event.preventDefault();
-        
-        const form = document.getElementById('formulario-alimento');
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-        data.categoria_id = obtenerCategoriaIdPorNombre(data.categoria_nombre);
-        document.getElementById('categoria_id').value = data.categoria_id ?? '';
-
-        const url = estadoGlobal.editandoId 
-            ? `/admin/alimentos/api/${estadoGlobal.editandoId}`
-            : '/admin/alimentos/api/store';
-        
-        const metodo = estadoGlobal.editandoId ? 'PUT' : 'POST';
-
-        // Cambiar el texto del botón a "Guardando..."
-        const btnGuardar = document.getElementById('btn-guardar');
-        const textoOriginal = btnGuardar.textContent;
-        btnGuardar.textContent = 'GUARDANDO...';
-        btnGuardar.disabled = true;
-
-        fetch(url, {
-            method: metodo,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Error en la solicitud');
-            return response.json();
-        })
-        .then(resultado => {
-            closeModalAlimento();
-            cargarProductos();
-            cargarEstadisticas();
-            mostrarNotificacion(resultado.message, 'success');
-            
-            // Recargar para que la nueva categoría aparezca en el datalist
-            setTimeout(() => window.location.reload(), 1000);
-        })
-        .catch(error => {
-            mostrarNotificacion('Error al guardar el platillo', 'error');
-            console.error(error);
-        })
-        .finally(() => {
-            btnGuardar.textContent = textoOriginal;
-            btnGuardar.disabled = false;
-        });
-    }
-
-    // Editar producto
+    // =========================================================================
+    // CONTROL DEL MODAL EDITAR
+    // =========================================================================
     function editarProducto(id) {
         const producto = encontrarProductoPorId(id);
         if (!producto) {
@@ -303,30 +250,248 @@
         }
 
         estadoGlobal.editandoId = id;
-        document.getElementById('nombre').value = producto.nombre || '';
-        document.getElementById('precio').value = producto.precio || '';
+        document.getElementById('edit-nombre').value = producto.nombre || '';
+        document.getElementById('edit-precio').value = producto.precio || '';
+        document.getElementById('edit-descripcion').value = producto.descripcion || '';
         
-        // Asignamos el nombre de la categoría en lugar del ID
-        document.getElementById('categoria_nombre').value = producto.categoria ? producto.categoria.nombre : '';        document.getElementById('categoria_id').value = producto.categoria ? producto.categoria.id : '';        
-        // Llenar el campo de modificadores (Convierte el array a una cadena separada por comas)
+        document.getElementById('edit-categoria_nombre').value = producto.categoria ? producto.categoria.nombre : '';
+        document.getElementById('edit-categoria_id').value = producto.categoria ? producto.categoria.id : '';
+
         let modsString = '';
         if (producto.modificadores && producto.modificadores.length > 0) {
             modsString = producto.modificadores.map(m => m.nombre).join(', ');
         }
-        document.getElementById('modificadores_input').value = modsString;
-        
-        document.getElementById('modal-title').textContent = 'Editar Platillo';
-        document.getElementById('modal-subtitle').textContent = 'Actualiza la información del platillo';
-        
-        openModalAlimento(false);
+        document.getElementById('edit-modificadores_input').value = modsString;
+
+        llenarIngredientesEdicion(producto);
+
+        const modal = document.getElementById('modal-editar-alimento');
+        const panel = document.getElementById('modal-editar-panel');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.add('opacity-100');
+            panel.classList.add('opacity-100', 'translate-y-0');
+        }, 10);
     }
 
-    // Encontrar producto por ID
+    function closeModalEditar() {
+        const modal = document.getElementById('modal-editar-alimento');
+        const panel = document.getElementById('modal-editar-panel');
+        modal.classList.remove('opacity-100');
+        panel.classList.remove('opacity-100', 'translate-y-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
     function encontrarProductoPorId(id) {
         return estadoGlobal.productosMap[id] || null;
     }
 
-    // Eliminar producto
+    function obtenerCategoriaIdPorNombre(nombre) {
+        if (!nombre) return null;
+        const categoria = categoriasDisponibles.find(cat => cat.nombre.toLowerCase() === nombre.toLowerCase());
+        return categoria ? categoria.id : null;
+    }
+
+    // =========================================================================
+    // GESTIÓN DINÁMICA DE INGREDIENTES (RECETAS)
+    // =========================================================================
+    function limpiarIngredientesContainer(tipo) {
+        document.getElementById(`ingredientes-container-${tipo}`).innerHTML = '';
+    }
+
+    function crearFilaIngrediente(ingrediente = {}) {
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-12 gap-3 items-end ingrediente-row';
+
+        const insumoValue = ingrediente.insumo_id || '';
+        const cantidadValue = ingrediente.cantidad || '';
+        const unidadValue = ingrediente.unidad_medida || '';
+        const stockActual = ingrediente.stock_actual ?? '';
+
+        const options = insumosDisponibles.map(insumo => {
+            const selected = insumo.id == insumoValue ? 'selected' : '';
+            return `<option value="${insumo.id}" data-unidad="${insumo.unidad_medida}" data-stock="${insumo.stock_actual}" ${selected}>${insumo.nombre}</option>`;
+        }).join('');
+
+        row.innerHTML = `
+            <div class="col-span-7">
+                <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Ingrediente</label>
+                <select name="insumos[]" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 transition" onchange="sincronizarInsumo(this)" required>
+                    <option value="">Seleccionar...</option>
+                    ${options}
+                </select>
+            </div>
+            <div class="col-span-3">
+                <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Cantidad</label>
+                <input type="number" name="cantidades[]" step="0.001" min="0.001" value="${cantidadValue}" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 transition" placeholder="0.000" required>
+            </div>
+            <div class="col-span-1">
+                <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Uni</label>
+                <input type="text" value="${unidadValue}" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)]" disabled>
+            </div>
+            <div class="col-span-1 flex flex-col items-end gap-2">
+                <button type="button" class="w-10 h-10 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition shadow-sm" onclick="eliminarIngredienteRow(this)">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <span class="text-[10px] text-[var(--text-muted)] mt-1">${stockActual ? `Stock ${stockActual}` : ''}</span>
+            </div>
+        `;
+
+        const select = row.querySelector('select[name="insumos[]"]');
+        if (insumoValue) {
+            select.value = insumoValue;
+            sincronizarInsumo(select);
+        }
+
+        return row;
+    }
+
+    function agregarIngrediente(tipo = 'crear', ingrediente = {}) {
+        const container = document.getElementById(`ingredientes-container-${tipo}`);
+        if(container) {
+            container.appendChild(crearFilaIngrediente(ingrediente));
+        }
+    }
+
+    function eliminarIngredienteRow(button) {
+        const row = button.closest('.ingrediente-row');
+        if (row) row.remove();
+    }
+
+    function sincronizarInsumo(select) {
+        const selectedOption = select.querySelector('option:checked');
+        const row = select.closest('.ingrediente-row');
+        if (!row) return;
+
+        const unidadInput = row.querySelector('input[disabled]');
+        const stockLabel = row.querySelector('span');
+
+        if (selectedOption && selectedOption.value !== "") {
+            unidadInput.value = selectedOption.dataset.unidad || '';
+            stockLabel.textContent = selectedOption.dataset.stock ? `Stock ${selectedOption.dataset.stock}` : '';
+        } else {
+            unidadInput.value = '';
+            stockLabel.textContent = '';
+        }
+    }
+
+    function llenarIngredientesEdicion(producto) {
+        limpiarIngredientesContainer('editar');
+        if (producto.insumos && producto.insumos.length > 0) {
+            producto.insumos.forEach(insumo => {
+                agregarIngrediente('editar', {
+                    insumo_id: insumo.id,
+                    cantidad: insumo.pivot?.cantidad_usada || '',
+                    unidad_medida: insumo.unidad_medida || '',
+                    stock_actual: insumo.stock_actual || ''
+                });
+            });
+        } else {
+            agregarIngrediente('editar');
+        }
+    }
+
+    // =========================================================================
+    // PROCESAMIENTO Y ENVÍO DE FORMULARIOS (STORE / UPDATE SEPARADOS)
+    // =========================================================================
+    function guardarAlimento(event) {
+        event.preventDefault();
+        
+        const btnGuardar = document.getElementById('btn-guardar');
+        if (!btnGuardar || btnGuardar.disabled) return;
+
+        const textoOriginal = btnGuardar.textContent;
+        btnGuardar.textContent = 'GUARDANDO...';
+        btnGuardar.disabled = true;
+        
+        const form = document.getElementById('formulario-crear-alimento');
+        const formData = new FormData(form);
+        const data = {};
+
+        formData.forEach((value, key) => {
+            if (key.endsWith('[]')) {
+                const name = key.slice(0, -2);
+                if (!data[name]) data[name] = [];
+                data[name].push(value);
+            } else {
+                data[key] = value;
+            }
+        });
+
+        const txtCategoria = document.getElementById('categoria_nombre').value;
+        data.categoria_nombre = txtCategoria;
+        data.categoria_id = obtenerCategoriaIdPorNombre(txtCategoria);
+
+        ejecutarPeticion('/admin/alimentos/api/store', data, btnGuardar, textoOriginal, closeModalCrear);
+    }
+
+    function actualizarAlimento(event) {
+        event.preventDefault();
+
+        const btnActualizar = document.getElementById('btn-actualizar');
+        if (!btnActualizar || btnActualizar.disabled) return;
+
+        const textoOriginal = btnActualizar.textContent;
+        btnActualizar.textContent = 'ACTUALIZANDO...';
+        btnActualizar.disabled = true;
+
+        const form = document.getElementById('formulario-editar-alimento');
+        const formData = new FormData(form);
+        const data = {};
+
+        formData.forEach((value, key) => {
+            if (key.endsWith('[]')) {
+                const name = key.slice(0, -2);
+                if (!data[name]) data[name] = [];
+                data[name].push(value);
+            } else {
+                data[key] = value;
+            }
+        });
+
+        const txtCategoria = document.getElementById('edit-categoria_nombre').value;
+        data.categoria_nombre = txtCategoria;
+        data.categoria_id = obtenerCategoriaIdPorNombre(txtCategoria);
+        data._method = 'PUT'; // Laravel requiere spoofing de método para simular PUT vía JSON
+
+        ejecutarPeticion(`/admin/alimentos/api/${estadoGlobal.editandoId}`, data, btnActualizar, textoOriginal, closeModalEditar);
+    }
+
+    // Procesador Ajax Universal para evitar redundancia
+    function ejecutarPeticion(url, data, boton, textoBoton, cerrarModalFn) {
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { 
+                    throw new Error(err.message || 'Error en la validación del servidor'); 
+                });
+            }
+            return response.json();
+        })
+        .then(resultado => {
+            cerrarModalFn();
+            cargarProductos();
+            cargarEstadisticas();
+            mostrarNotificacion(resultado.message || 'Operación realizada con éxito', 'success');
+        })
+        .catch(error => {
+            mostrarNotificacion(error.message || 'Error en el servidor', 'error');
+            console.error('Error detallado:', error);
+        })
+        .finally(() => {
+            boton.textContent = textoBoton;
+            boton.disabled = false;
+        });
+    }
+
     function eliminarProducto(id) {
         const producto = encontrarProductoPorId(id);
         if (!producto) {
@@ -336,7 +501,6 @@
         abrirModalEliminar(id, producto.nombre);
     }
 
-    // Toggle disponibilidad
     function toggleDisponibilidad(id) {
         fetch(`/admin/alimentos/api/${id}/toggle-disponibilidad`, {
             method: 'PATCH',
@@ -345,17 +509,17 @@
             }
         })
         .then(response => response.json())
-        .then(resultado => {
+        .then(() => {
             cargarProductos();
             cargarEstadisticas();
         })
         .catch(error => console.error(error));
     }
 
-    // Mostrar notificación
+    // Notificaciones flotantes rápidas
     function mostrarNotificacion(mensaje, tipo) {
         const notificacion = document.createElement('div');
-        notificacion.className = `fixed top-4 right-4 px-6 py-3 rounded-lg font-bold text-white z-[200] ${
+        notificacion.className = `fixed top-4 right-4 px-6 py-3 rounded-lg font-bold text-white z-[200] shadow-xl transition-all duration-300 ${
             tipo === 'success' ? 'bg-green-600' : 'bg-red-600'
         }`;
         notificacion.textContent = mensaje;

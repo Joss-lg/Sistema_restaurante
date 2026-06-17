@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('categoria_id')->constrained('categorias');
             $table->string('nombre');
+            $table->text('descripcion')->nullable(); // <-- ¡FALTABA ESTA LÍNEA!
             $table->decimal('precio', 10, 2);
-            $table->integer('tiempo_preparacion')->comment('en minutos');
+            $table->integer('tiempo_preparacion')->default(15)->comment('en minutos'); // <-- Tip: Agrégale un default aquí también por seguridad
             $table->boolean('esta_disponible')->default(true);
             $table->softDeletes();
             $table->timestamps();
