@@ -88,7 +88,7 @@
                         </div>
                         
                         {{-- AJUSTADO: Se cambia .gestionar por .editar porque .gestionar no existe en tu seeder --}}
-                        @if(auth()->user()->tienePermiso('promociones.gestionar'))
+                        @if(auth()->user()->tienePermiso('promociones.reporte'))
                             <div class="relative inline-flex items-center cursor-pointer">
                                 <input id="togglePromo{{ $promo->id }}" type="checkbox" class="sr-only peer" {{ $promo->esta_activa ? 'checked' : '' }} onchange="togglePromo({{ $promo->id }})">
                                 <div class="w-11 h-6 rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all duration-300 shadow-inner relative">

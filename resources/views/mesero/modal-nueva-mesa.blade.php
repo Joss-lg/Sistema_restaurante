@@ -23,6 +23,14 @@
             {{-- COLUMNA IZQUIERDA: Inputs y Controles --}}
             <div class="w-full lg:w-[40%] p-6 lg:p-8 flex flex-col gap-5 border-b lg:border-b-0 lg:border-r border-[var(--border-color)] bg-[var(--bg-panel)]">
                 
+                {{-- SECCIÓN: Mesas Disponibles (Reabiertos) --}}
+                <div id="seccionMesasDisponibles" class="hidden">
+                    <p class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-3 pl-1">Mesas Reabiertos</p>
+                    <div id="gridMesasDisponibles" class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-5">
+                        {{-- Generado por JavaScript --}}
+                    </div>
+                </div>
+
                 <div class="flex flex-col gap-4">
                     {{-- Caja Mesa --}}
                     <div id="cajaMesa" onclick="setFoco('mesa')" class="relative flex flex-col items-center justify-center bg-[var(--bg-base)] border-2 border-[#3B82F6] rounded-2xl p-4 cursor-pointer transition-all shadow-[0_0_20px_rgba(59,130,246,0.15)] group">
@@ -174,6 +182,9 @@
         errorMesa.classList.add('hidden');
         setFoco('mesa');
         validarBoton();
+
+        // Cargar las mesas disponibles (reabiertos)
+        cargarMesasDisponibles();
     }
 
     function cerrarModalMesa() {
@@ -283,6 +294,58 @@
             console.error(error);
             btnConfirmar.innerHTML = '<span>Confirmar y Abrir</span> <i class="fas fa-arrow-right"></i>';
             btnConfirmar.disabled = false;
+        }
+    }
+
+    // Cargar mesas disponibles (reabiertos) desde el API
+    async function cargarMesasDisponibles() {
+        try {
+            const res = await fetch('/mesero/mesas/abiertas', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await res.json();
+            
+            if (data.success && data.mesas_libres && data.mesas_libres.length > 0) {
+                const seccion = document.getElementById('seccionMesasDisponibles');
+                const grid = document.getElementById('gridMesasDisponibles');
+                
+                grid.innerHTML = '';
+                
+                // Crear botón para cada mesa disponible
+                data.mesas_libres.forEach(mesa => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'relative flex flex-col items-center justify-center p-3 rounded-xl bg-blue-500/10 border border-blue-400/30 hover:bg-blue-500/20 hover:border-blue-400/60 active:scale-95 transition-all outline-none shadow-sm group';
+                    
+                    btn.innerHTML = `
+                        <span class="text-2xl sm:text-3xl font-black text-blue-400 group-hover:text-blue-300 transition-colors">${mesa.numero}</span>
+                        <span class="text-[10px] font-bold text-blue-400/60 uppercase mt-1 tracking-wider">Disponible</span>
+                    `;
+                    
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        // Llenar el input con el número de mesa
+                        inputMesa.value = mesa.numero;
+                        inputPersonas.value = mesa.capacidad || '';
+                        setFoco('personas');
+                        validarBoton();
+                    };
+                    
+                    grid.appendChild(btn);
+                });
+                
+                // Mostrar la sección
+                seccion.classList.remove('hidden');
+            } else {
+                // Ocultar la sección si no hay mesas disponibles
+                document.getElementById('seccionMesasDisponibles').classList.add('hidden');
+            }
+        } catch (error) {
+            console.error('Error cargando mesas disponibles:', error);
+            document.getElementById('seccionMesasDisponibles').classList.add('hidden');
         }
     }
 </script>

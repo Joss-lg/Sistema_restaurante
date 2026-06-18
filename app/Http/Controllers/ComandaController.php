@@ -38,7 +38,13 @@ class ComandaController extends Controller
         }
 
         $categorias = Categoria::all();
-        $productos = Producto::with(['categoria', 'modificadores'])->get();
+        
+        // **ARREGLO DEFINITIVO**: Obtener TODOS los productos (sin filtros)
+        // El control de disponibilidad es solo visual en el módulo de inventario
+        $productos = Producto::with(['categoria', 'modificadores'])
+            ->orderBy('nombre', 'asc')
+            ->get();
+        
         $mesasAbiertas = collect();
         if ($esCapitan) {
             $mesasAbiertas = Mesa::where('estado', 'ocupada')
@@ -180,9 +186,13 @@ class ComandaController extends Controller
                 $mesa->mesero_id = auth()->id();
             }
             if (Schema::hasColumn('mesas', 'total_consumo')) {
-                $mesa->total_consumo = $totalConIva;
+                // **ARREGLO**: SUMAR el nuevo consumo al total existente (no reemplazar)
+                $mesa->total_consumo = ($mesa->total_consumo ?? 0) + $totalConIva;
             }
             $mesa->save();
+
+            // **ARREGLO CRÍTICO**: Confirmar la transacción
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -190,12 +200,14 @@ class ComandaController extends Controller
                 'orden_id' => $orden->id,
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
             return response()->json([
                 'success' => false,
                 'message' => 'Validación fallida: ' . collect($e->errors())->flatten()->first(),
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
+            DB::rollback();
             return response()->json([
                 'success' => false,
                 'message' => 'No se pudo enviar la orden. ' . $e->getMessage(),
@@ -242,9 +254,24 @@ class ComandaController extends Controller
             $mesasForUser = Mesa::orderBy('numero', 'asc')->get();
         } else {
             if (Schema::hasColumn('mesas', 'mesero_id')) {
-                $mesasForUser = Mesa::where('mesero_id', auth()->id())->orderBy('numero', 'asc')->get();
+                // Obtener:
+                // 1. Mesas asignadas al mesero (ocupadas o disponibles)
+                // 2. TAMBIÉN mesas disponibles sin importar quién las pagó (para que el mesero pueda reutilizarlas)
+                $mesasForUser = Mesa::where(function ($query) {
+                    // Mesas asignadas al mesero actual
+                    $query->where('mesero_id', auth()->id());
+                })
+                ->orWhere(function ($query) {
+                    // O mesas disponibles para que otros meseros las puedan reutilizar
+                    $query->where('estado', 'disponible');
+                })
+                ->orderBy('numero', 'asc')
+                ->get();
             } else {
-                $mesasForUser = Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get();
+                // Si no existe mesero_id, mostrar solo mesas ocupadas
+                $mesasForUser = Mesa::where('estado', 'ocupada')
+                    ->orderBy('numero', 'asc')
+                    ->get();
             }
         }
 
@@ -261,10 +288,20 @@ class ComandaController extends Controller
             ];
         })->values();
 
+        $mesasLibresArr = $mesasLibres->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'numero' => $m->numero,
+                'estado' => $m->estado,
+                'capacidad' => $m->capacidad ?? null,
+                'total_consumo' => $m->total_consumo ?? 0,  // Debe ser 0 después de liberarse
+            ];
+        })->values();
+
         return response()->json([
             'success' => true,
             'mesas_abiertas' => $mesasAbiertasArr,
-            'mesas_libres' => $mesasLibres->values(),
+            'mesas_libres' => $mesasLibresArr,
             'conteo_abiertas' => $mesasAbiertasArr->count(),
             'conteo_total' => $mesasForUser->count()
         ]);
@@ -291,6 +328,11 @@ class ComandaController extends Controller
         $mesa = $mesa ?? new Mesa(['numero' => $request->numero]);
         $mesa->capacidad = $request->capacidad;
         $mesa->estado = 'ocupada';
+        
+        // **ARREGLO**: Limpiar el total_consumo cuando se abre una nueva mesa
+        if (Schema::hasColumn('mesas', 'total_consumo')) {
+            $mesa->total_consumo = 0;
+        }
         
         $usuario = auth()->user();
         if (!$usuario->relationLoaded('rol')) {

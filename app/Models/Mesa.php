@@ -21,6 +21,7 @@ class Mesa extends Model
         'posicion_x', 
         'posicion_y',
         'mesero_id',
+        'total_consumo',  // ✅ Agregado para permitir asignación
     ];
 
     // Relación con Mesero
@@ -44,8 +45,16 @@ class Mesa extends Model
     }
 
     // Accesador para calcular el total dinámicamente con IVA incluido a partir de los detalles reales
+    // PERO: Si hay un valor almacenado en la BD, usarlo primero (es más rápido que recalcular)
     public function getTotalConsumoAttribute()
     {
+        // ✅ Si existe un valor en BD (no es null o 0), usarlo directamente
+        $totalEnBD = $this->attributes['total_consumo'] ?? null;
+        if ($totalEnBD !== null && $totalEnBD > 0) {
+            return floatval($totalEnBD);
+        }
+
+        // Si no hay valor en BD, calcular dinámicamente desde órdenes activas
         $totalDetalles = $this->ordenesActivas()
             ->join('detalles_orden', 'ordenes.id', '=', 'detalles_orden.orden_id')
             ->selectRaw('SUM(detalles_orden.cantidad * detalles_orden.precio_unitario) as total_detalle')

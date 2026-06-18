@@ -4,173 +4,271 @@
 @section('title', 'Categorías | Ollintem Pro')
 
 @section('content')
-<div class="p-8 lg:p-10 xl:p-12 max-w-[1800px] mx-auto w-full space-y-8 flex-1 flex flex-col">
 
-    <div class="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_20%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_25%),rgba(7,10,19,0.96)] shadow-[0_45px_120px_-50px_rgba(0,0,0,0.75)]">
-        <div class="pointer-events-none absolute -top-16 left-1/2 h-44 w-44 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-3xl"></div>
-        <div class="pointer-events-none absolute -bottom-20 right-12 h-56 w-56 rounded-full bg-emerald-500/15 blur-3xl"></div>
-        <div class="relative p-8 lg:p-10 xl:p-12 space-y-8">
-            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+<style>
+    /* ==========================================================
+       VARIABLES DE ALTA GAMA (Apple / Vercel Tier)
+       ========================================================== */
+    .view-container {
+        --glass-bg: rgba(24, 24, 27, 0.65); /* Zinc 900 translúcido */
+        --glass-border-top: rgba(255, 255, 255, 0.08);
+        --glass-border-bot: rgba(0, 0, 0, 0.4);
+        --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        --glow-primary: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+        --glow-secondary: radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+        --text-hero: #ffffff;
+        --text-body: #a1a1aa; /* Zinc 400 */
+        --card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        --search-bg: rgba(0, 0, 0, 0.3);
+        --search-border: rgba(255, 255, 255, 0.05);
+        --search-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    body.modo-crema .view-container {
+        --glass-bg: rgba(255, 255, 255, 0.7); /* Blanco translúcido */
+        --glass-border-top: rgba(255, 255, 255, 1);
+        --glass-border-bot: rgba(0, 0, 0, 0.04);
+        --glass-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+        --glow-primary: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
+        --glow-secondary: radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.04) 0%, transparent 60%);
+        --text-hero: #0f172a; /* Slate 900 */
+        --text-body: #64748b; /* Slate 500 */
+        --card-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 1);
+        --search-bg: rgba(248, 250, 252, 0.8);
+        --search-border: rgba(0, 0, 0, 0.06);
+        --search-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Contenedor de cristal perfecto (Glassmorphism + Bezel) */
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-style: solid;
+        border-width: 1px;
+        border-image-source: linear-gradient(to bottom, var(--glass-border-top), var(--glass-border-bot));
+        border-image-slice: 1;
+        box-shadow: var(--glass-shadow), var(--card-inner-shadow);
+        border-radius: inherit; /* Tailwind toma el control del radius */
+    }
+
+    /* Para que el border-image no rompa el border-radius de Tailwind, usamos un truco de pseudo-elemento */
+    .glass-panel {
+        position: relative;
+        background: var(--glass-bg);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        box-shadow: var(--glass-shadow);
+    }
+    .glass-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(to bottom, var(--glass-border-top), var(--glass-border-bot));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+
+    /* Botón Premium (Zafiro) */
+    .btn-sapphire {
+        background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 
+                    inset 0 -2px 4px rgba(0, 0, 0, 0.2), 
+                    0 8px 20px -6px rgba(37, 99, 235, 0.4);
+        border: 1px solid #1d4ed8;
+    }
+    .btn-sapphire:hover {
+        background: linear-gradient(180deg, #4f46e5 0%, #3b82f6 100%);
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 
+                    inset 0 -2px 4px rgba(0, 0, 0, 0.2), 
+                    0 12px 25px -6px rgba(37, 99, 235, 0.5);
+    }
+    
+    /* Input Search Hundido */
+    .search-inset {
+        background: var(--search-bg);
+        border: 1px solid var(--search-border);
+        box-shadow: var(--search-shadow);
+    }
+</style>
+
+<div class="view-container p-8 lg:p-10 xl:p-12 max-w-[1800px] mx-auto w-full space-y-8 flex-1 flex flex-col relative z-0">
+
+    {{-- ======================================================== --}}
+    {{-- HERO BANNER (MESH GRADIENT + GLASSMORPHISM) --}}
+    {{-- ======================================================== --}}
+    <div class="glass-panel rounded-[32px] overflow-hidden transition-all duration-500">
+        
+        {{-- Luces Atmosféricas (Mesh Gradient) --}}
+        <div class="absolute inset-0 z-0" style="background: var(--glow-primary);"></div>
+        <div class="absolute inset-0 z-0" style="background: var(--glow-secondary);"></div>
+        
+        <div class="relative z-10 p-8 lg:p-12 xl:p-14 space-y-10">
+            
+            <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
+                
+                {{-- Textos --}}
                 <div class="max-w-2xl">
-                    <p class="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.35em] text-cyan-300 shadow-[0_10px_40px_-25px_rgba(56,189,248,0.65)]">
-                        <i class="fas fa-layer-group text-[10px]"></i> Categorías Premium
+                    <div class="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 backdrop-blur-sm mb-6 shadow-inner">
+                        <i class="fas fa-layer-group text-[10px] text-blue-500"></i>
+                        <span class="text-[9px] font-black uppercase tracking-[0.3em] text-blue-500/90">Categorías Premium</span>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-[var(--text-hero)] leading-[1.1] transition-colors duration-300">
+                        Gestión de Categorías
+                    </h1>
+                    <p class="mt-5 max-w-2xl text-[15px] font-medium leading-relaxed text-[var(--text-body)] transition-colors duration-300">
+                        Diseña y organiza el menú de tu restaurante con un tablero visual arquitectónico. Rápido, preciso y con toda la información clave al primer vistazo.
                     </p>
-                    <h1 class="mt-6 text-4xl md:text-5xl font-black tracking-tight text-white">Gestión de Categorías</h1>
-                    <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300/90">Diseña y organiza el menú con un tablero visual moderno, rápido y con toda la información que necesitas al primer vistazo.</p>
                 </div>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 w-full sm:w-auto">
-                    <div class="relative w-full sm:w-72">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                            <i class="fas fa-search text-sm"></i>
+                
+                {{-- Controles (Buscar y Crear) --}}
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full xl:w-auto shrink-0">
+                    
+                    {{-- Buscador Premium Hundido --}}
+                    <div class="relative w-full sm:w-[280px]">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[var(--text-body)] opacity-60">
+                            <i class="fas fa-search text-[13px]"></i>
                         </div>
                         <input type="text" id="buscadorCategorias" placeholder="Buscar categoría..."
-                            class="w-full h-12 rounded-2xl border border-white/10 bg-slate-950/80 pl-12 pr-4 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition-all" />
+                            class="w-full h-12 rounded-[16px] search-inset pl-10 pr-4 text-[13px] font-semibold text-[var(--text-hero)] placeholder:text-[var(--text-body)] placeholder:opacity-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all" />
                     </div>
+                    
+                    {{-- Botón Zafiro Ultra Premium --}}
                     <button onclick="openModalCrear()"
-                        class="inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 px-6 py-3 text-sm font-black uppercase tracking-[0.15em] text-slate-950 shadow-[0_20px_50px_-30px_rgba(56,189,248,0.8)] transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[0_25px_60px_-35px_rgba(56,189,248,0.9)]">
-                        <i class="fas fa-plus"></i> Nueva categoría
+                        class="btn-sapphire inline-flex items-center justify-center gap-3 rounded-[16px] px-8 py-0 h-12 text-[11px] font-black uppercase tracking-[0.15em] text-white transition-all duration-300 transform active:scale-95 outline-none">
+                        <i class="fas fa-plus"></i> Crear Categoría
                     </button>
                 </div>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-3">
-                <div class="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-6 shadow-[0_20px_70px_-50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                    <span class="text-xs uppercase tracking-[0.32em] text-slate-400">Categorías</span>
-                    <p class="mt-4 text-4xl font-black text-white">{{ count($categorias) }}</p>
-                    <p class="mt-2 text-sm text-slate-400">Total de bloques en el menú.</p>
+            {{-- Tarjetas de Métricas Arquitectónicas --}}
+            <div class="grid gap-5 sm:grid-cols-3 pt-4">
+                <div class="glass-panel rounded-[24px] p-6 transition-all hover:-translate-y-1 hover:shadow-2xl group">
+                    <span class="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-body)] opacity-60 group-hover:text-blue-500 group-hover:opacity-100 transition-colors">Total Categorías</span>
+                    <p class="mt-4 text-[42px] leading-none font-black text-[var(--text-hero)] tracking-tighter">{{ count($categorias) }}</p>
+                    <p class="mt-2 text-[11px] font-medium text-[var(--text-body)] opacity-70">Bloques registrados en el menú.</p>
                 </div>
-                <div class="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-6 shadow-[0_20px_70px_-50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                    <span class="text-xs uppercase tracking-[0.32em] text-slate-400">Platillos</span>
-                    <p class="mt-4 text-4xl font-black text-white">{{ $categorias->sum('productos_count') }}</p>
-                    <p class="mt-2 text-sm text-slate-400">Platos asignados por categoría.</p>
+                <div class="glass-panel rounded-[24px] p-6 transition-all hover:-translate-y-1 hover:shadow-2xl group">
+                    <span class="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-body)] opacity-60 group-hover:text-emerald-500 group-hover:opacity-100 transition-colors">Platillos Activos</span>
+                    <p class="mt-4 text-[42px] leading-none font-black text-[var(--text-hero)] tracking-tighter">{{ $categorias->sum('productos_count') }}</p>
+                    <p class="mt-2 text-[11px] font-medium text-[var(--text-body)] opacity-70">Asignados a través del sistema.</p>
                 </div>
-                <div class="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-6 shadow-[0_20px_70px_-50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                    <span class="text-xs uppercase tracking-[0.32em] text-slate-400">Orden</span>
-                    <p class="mt-4 text-4xl font-black text-white">{{ $categorias->max('orden_visualizacion') ?? 0 }}</p>
-                    <p class="mt-2 text-sm text-slate-400">Mayor prioridad visible.</p>
+                <div class="glass-panel rounded-[24px] p-6 transition-all hover:-translate-y-1 hover:shadow-2xl group">
+                    <span class="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-body)] opacity-60 group-hover:text-purple-500 group-hover:opacity-100 transition-colors">Jerarquía</span>
+                    <p class="mt-4 text-[42px] leading-none font-black text-[var(--text-hero)] tracking-tighter">{{ $categorias->max('orden_visualizacion') ?? 0 }}</p>
+                    <p class="mt-2 text-[11px] font-medium text-[var(--text-body)] opacity-70">Orden de visualización máximo.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Alertas --}}
-    @if(session('success'))
-    <div class="fixed right-6 top-6 z-50 max-w-lg w-[min(95vw,420px)] rounded-3xl border border-emerald-300/20 bg-slate-950/95 px-5 py-4 shadow-[0_30px_80px_-35px_rgba(0,0,0,0.55)] backdrop-blur-xl text-white text-sm font-semibold flex items-start gap-3">
-        <div class="grid h-11 w-11 place-items-center rounded-3xl bg-emerald-500/10 text-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.18)]">
-            <i class="fas fa-check"></i>
-        </div>
-        <div>
-            <strong class="block text-sm">Éxito</strong>
-            <p class="mt-1 text-[0.95rem] text-slate-300">{{ session('success') }}</p>
-        </div>
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="fixed right-6 top-6 z-50 max-w-lg w-[min(95vw,420px)] rounded-3xl border border-rose-300/20 bg-slate-950/95 px-5 py-4 shadow-[0_30px_80px_-35px_rgba(0,0,0,0.55)] backdrop-blur-xl text-white text-sm font-semibold flex items-start gap-3">
-        <div class="grid h-11 w-11 place-items-center rounded-3xl bg-rose-500/10 text-rose-300 shadow-[0_0_25px_rgba(244,63,94,0.18)]">
-            <i class="fas fa-exclamation-circle"></i>
-        </div>
-        <div>
-            <strong class="block text-sm">Error</strong>
-            <p class="mt-1 text-[0.95rem] text-slate-300">{{ session('error') }}</p>
-        </div>
-    </div>
-    @endif
-
-    <div class="rounded-[2rem] border border-white/10 bg-slate-950/90 shadow-[0_45px_120px_-50px_rgba(0,0,0,0.8)] overflow-hidden">
-        <div class="flex flex-col gap-6 p-6 lg:p-8 border-b border-white/10 lg:flex-row lg:items-center lg:justify-between">
+    {{-- ======================================================== --}}
+    {{-- TABLA DE CONTENIDO (CRISTAL) --}}
+    {{-- ======================================================== --}}
+    <div class="glass-panel rounded-[32px] overflow-hidden transition-colors duration-500 mt-6">
+        
+        <div class="flex flex-col gap-4 p-8 border-b border-[var(--glass-border-bot)] sm:flex-row sm:items-center sm:justify-between relative z-10">
             <div>
-                <p class="text-sm uppercase tracking-[0.35em] text-cyan-300/80">Listado de Categorías</p>
-                <h2 class="mt-3 text-2xl font-black text-white">Catálogo premium</h2>
-                <p class="mt-2 text-sm text-slate-400">Gestiona tus categorías con un estilo limpio y funcional.</p>
+                <h2 class="text-xl font-black text-[var(--text-hero)] tracking-tight">Catálogo General</h2>
+                <p class="mt-1 text-[13px] font-medium text-[var(--text-body)] opacity-80">Inventario y organización de tus categorías.</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                <div class="rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-slate-300">
-                    <span class="block text-[0.8rem] uppercase tracking-[0.3em] text-slate-500">Registradas</span>
-                    <span class="mt-1 block text-xl font-black text-white">{{ count($categorias) }}</span>
-                </div>
-                <button onclick="openModalCrear()"
-                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-[0.15em] text-slate-950 shadow-[0_20px_50px_-25px_rgba(56,189,248,0.8)] transition duration-200 hover:-translate-y-0.5">
-                    <i class="fas fa-plus"></i> Nueva categoría
-                </button>
+            
+            <div class="flex items-center gap-4 bg-[var(--search-bg)] border border-[var(--search-border)] rounded-[14px] px-5 py-2.5 shadow-[var(--search-shadow)]">
+                <span class="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-body)] opacity-70">Total Registradas</span>
+                <div class="w-[1px] h-4 bg-[var(--text-body)] opacity-20"></div>
+                <span class="text-lg font-black text-[var(--text-hero)]">{{ count($categorias) }}</span>
             </div>
         </div>
 
-        <div class="overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full border-separate border-spacing-0 text-left">
-                    <thead class="bg-white/5 text-[0.72rem] uppercase tracking-[0.35em] text-slate-400">
-                        <tr>
-                            <th class="px-6 py-4">Categoría</th>
-                            <th class="px-6 py-4">Slug</th>
-                            <th class="px-6 py-4">Orden</th>
-                            <th class="px-6 py-4">Platillos</th>
-                            <th class="px-6 py-4 text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaCategorias" class="divide-y divide-white/5 bg-slate-950/70">
-                        @forelse($categorias as $categoria)
-                        <tr class="fila-categoria group transition duration-300 hover:bg-slate-900/90">
-                            <td class="px-6 py-5 nombre-celda">
-                                <div class="flex items-center gap-4">
-                                    <div class="h-11 w-11 rounded-3xl border border-white/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
-                                        style="background-color: {{ $categoria->color ?? '#3B82F6' }}"></div>
-                                    <div>
-                                        <p class="text-sm font-bold text-white">{{ $categoria->nombre }}</p>
-                                        <p class="mt-1 text-xs text-slate-500">Orden {{ $categoria->orden_visualizacion ?? 0 }}</p>
-                                    </div>
+        <div class="overflow-x-auto relative z-10">
+            <table class="min-w-full border-collapse text-left">
+                <thead class="bg-[var(--glass-bg)] border-b border-[var(--glass-border-bot)] backdrop-blur-md">
+                    <tr>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-body)] opacity-60">Categoría</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-body)] opacity-60">Identificador</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-body)] opacity-60 text-center">Prioridad</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-body)] opacity-60">Contenido</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-body)] opacity-60 text-right">Ajustes</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaCategorias" class="divide-y divide-[var(--glass-border-bot)] bg-transparent">
+                    @forelse($categorias as $categoria)
+                    <tr class="fila-categoria group transition-all duration-300 hover:bg-[var(--glass-border-top)]">
+                        
+                        <td class="px-8 py-5 nombre-celda">
+                            <div class="flex items-center gap-4">
+                                <div class="h-12 w-12 rounded-[14px] border border-[var(--glass-border-bot)] shadow-inner flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 bg-[var(--search-bg)] relative overflow-hidden">
+                                     {{-- Resplandor de color de la categoría --}}
+                                     <div class="absolute inset-0 opacity-20" style="background-color: {{ $categoria->color ?? '#3B82F6' }}"></div>
+                                     <span class="text-xl font-black relative z-10" style="color: {{ $categoria->color ?? '#3B82F6' }}">{{ substr($categoria->nombre, 0, 1) }}</span>
                                 </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <span class="inline-flex items-center rounded-full bg-white/5 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300 ring-1 ring-white/10">
-                                    {{ $categoria->slug }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-5 text-sm font-semibold text-slate-300">{{ $categoria->orden_visualizacion ?? 0 }}</td>
-                            <td class="px-6 py-5">
-                                <span class="inline-flex items-center rounded-full bg-cyan-500/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 ring-1 ring-cyan-400/10">
-                                    {{ $categoria->productos_count ?? $categoria->productos()->count() }} platillos
-                                </span>
-                            </td>
-                            <td class="px-6 py-5 text-right">
-                                <div class="inline-flex items-center justify-end gap-2">
-                                    <button type="button" title="Editar"
-                                        onclick="abrirModalEspecifico('modalEditar-{{ $categoria->id }}')"
-                                        class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-cyan-300 transition hover:bg-cyan-500/12 hover:text-cyan-100">
-                                        <i class="fas fa-cog text-sm"></i>
-                                    </button>
-                                    <button type="button" title="Eliminar"
-                                        onclick="confirmarEliminacion('{{ $categoria->id }}', '{{ $categoria->nombre }}')"
-                                        class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-rose-400 transition hover:bg-rose-500/12 hover:text-rose-200">
-                                        <i class="far fa-trash-alt text-sm"></i>
-                                    </button>
+                                <div class="flex flex-col">
+                                    <span class="text-[15px] font-bold text-[var(--text-hero)] tracking-tight">{{ $categoria->nombre }}</span>
                                 </div>
-                            </td>
-                        </tr>
-                        @include('admin.categorias.modal-editar', ['categoria' => $categoria])
-                        @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-16 text-center">
-                                <div class="mx-auto flex max-w-md flex-col items-center gap-4 text-slate-400">
-                                    <div class="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/5 text-slate-400">
-                                        <i class="fas fa-tags text-2xl"></i>
-                                    </div>
-                                    <p class="text-sm font-semibold">No hay categorías registradas aún.</p>
-                                    <button onclick="openModalCrear()" class="rounded-2xl bg-slate-900/80 px-5 py-3 text-sm font-black uppercase tracking-[0.15em] text-white shadow-[0_20px_50px_-30px_rgba(0,0,0,0.6)] hover:bg-slate-800/90">Crear la primera categoría</button>
+                            </div>
+                        </td>
+
+                        <td class="px-8 py-5">
+                            <span class="inline-flex items-center rounded-lg bg-[var(--search-bg)] border border-[var(--search-border)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-body)] shadow-inner">
+                                {{ $categoria->slug }}
+                            </span>
+                        </td>
+
+                        <td class="px-8 py-5 text-center">
+                            <span class="text-[14px] font-black text-[var(--text-hero)]">{{ $categoria->orden_visualizacion ?? 0 }}</span>
+                        </td>
+
+                        <td class="px-8 py-5">
+                            <span class="inline-flex items-center rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 text-[11px] font-black text-blue-500 shadow-sm">
+                                {{ $categoria->productos_count ?? $categoria->productos()->count() }} Platillos
+                            </span>
+                        </td>
+
+                        <td class="px-8 py-5 text-right">
+                            <div class="inline-flex items-center justify-end gap-2">
+                                <button type="button" title="Editar"
+                                    onclick="abrirModalEspecifico('modalEditar-{{ $categoria->id }}')"
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-[var(--search-border)] bg-[var(--search-bg)] text-[var(--text-body)] transition-all hover:bg-blue-500 hover:text-white hover:border-transparent hover:shadow-[0_4px_15px_rgba(59,130,246,0.4)] outline-none active:scale-95 shadow-inner">
+                                    <i class="fas fa-pen text-[11px]"></i>
+                                </button>
+                                <button type="button" title="Eliminar"
+                                    onclick="confirmarEliminacion('{{ $categoria->id }}', '{{ $categoria->nombre }}')"
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-[var(--search-border)] bg-[var(--search-bg)] text-[var(--text-body)] transition-all hover:bg-red-500 hover:text-white hover:border-transparent hover:shadow-[0_4px_15px_rgba(239,68,68,0.4)] outline-none active:scale-95 shadow-inner">
+                                    <i class="fas fa-trash-alt text-[11px]"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @include('admin.categorias.modal-editar', ['categoria' => $categoria])
+                    
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-24 text-center">
+                            <div class="mx-auto flex max-w-md flex-col items-center gap-4">
+                                <div class="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--search-bg)] border border-[var(--search-border)] text-[var(--text-body)] shadow-inner opacity-60">
+                                    <i class="fas fa-folder-open text-3xl"></i>
                                 </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                <p class="text-base font-black text-[var(--text-hero)] tracking-tight">Tu catálogo está vacío.</p>
+                                <p class="text-[13px] font-medium text-[var(--text-body)] mt-[-10px] opacity-70">Crea tu primera categoría para organizar tu menú.</p>
+                                <button onclick="openModalCrear()" class="mt-4 rounded-[14px] bg-[var(--text-hero)] text-[var(--bg-base)] px-8 py-3.5 text-[11px] font-black uppercase tracking-widest hover:opacity-80 transition-opacity outline-none shadow-xl">
+                                    Comenzar ahora
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 {{-- Scripts --}}
 <script>
-    // Buscador en tiempo real
     document.getElementById('buscadorCategorias')?.addEventListener('input', function () {
         const term = this.value.toLowerCase().trim();
         document.querySelectorAll('.fila-categoria').forEach(fila => {
@@ -179,62 +277,34 @@
         });
     });
 
-    // Abrir/cerrar modales específicos (editar)
+    // Modales
     function abrirModalEspecifico(modalId) {
         const modal = document.getElementById(modalId);
         if (!modal) return;
         const container = modal.querySelector('div[id^="modalContainer-"]');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-            if (container) {
-                container.classList.remove('scale-95', 'opacity-0');
-                container.classList.add('scale-100', 'opacity-100');
-            }
-        }, 10);
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        setTimeout(() => { if (container) { container.classList.remove('scale-95', 'opacity-0'); container.classList.add('scale-100', 'opacity-100'); } }, 10);
     }
-
     function cerrarModalEspecifico(modalId) {
         const modal = document.getElementById(modalId);
         if (!modal) return;
         const container = modal.querySelector('div[id^="modalContainer-"]');
-        if (container) {
-            container.classList.remove('scale-100', 'opacity-100');
-            container.classList.add('scale-95', 'opacity-0');
-        }
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }, 200);
+        if (container) { container.classList.remove('scale-100', 'opacity-100'); container.classList.add('scale-95', 'opacity-0'); }
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
     }
-
-    // Modal Crear
     function openModalCrear() {
         const modal = document.getElementById('modalCrear');
         const container = document.getElementById('createContainer');
         if (!modal || !container) return;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-            container.classList.remove('scale-95', 'opacity-0');
-            container.classList.add('scale-100', 'opacity-100');
-        }, 10);
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        setTimeout(() => { container.classList.remove('scale-95', 'opacity-0'); container.classList.add('scale-100', 'opacity-100'); }, 10);
     }
-
     function closeCreateModal() {
         const modal = document.getElementById('modalCrear');
         const container = document.getElementById('createContainer');
-        if (container) {
-            container.classList.remove('scale-100', 'opacity-100');
-            container.classList.add('scale-95', 'opacity-0');
-        }
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }, 200);
+        if (container) { container.classList.remove('scale-100', 'opacity-100'); container.classList.add('scale-95', 'opacity-0'); }
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
     }
-
-    // Modal Eliminar
     function confirmarEliminacion(id, nombre) {
         const modal = document.getElementById('modalEliminar');
         const container = document.getElementById('deleteContainer');
@@ -243,29 +313,17 @@
         if (!modal || !container) return;
         if (display) display.innerText = nombre;
         if (form) form.action = `/admin/categorias/${id}`;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-            container.classList.remove('scale-95', 'opacity-0');
-            container.classList.add('scale-100', 'opacity-100');
-        }, 10);
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        setTimeout(() => { container.classList.remove('scale-95', 'opacity-0'); container.classList.add('scale-100', 'opacity-100'); }, 10);
     }
-
     function closeDeleteModal() {
         const modal = document.getElementById('modalEliminar');
         const container = document.getElementById('deleteContainer');
-        if (container) {
-            container.classList.remove('scale-100', 'opacity-100');
-            container.classList.add('scale-95', 'opacity-0');
-        }
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }, 200);
+        if (container) { container.classList.remove('scale-100', 'opacity-100'); container.classList.add('scale-95', 'opacity-0'); }
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
     }
 </script>
 
-{{-- Modales --}}
 @include('admin.categorias.modal-crear')
 @include('admin.categorias.modal-eliminar')
 

@@ -71,41 +71,33 @@ class CajaController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        // Detectar si hay cuentas divididas (buscando en TODAS las órdenes, incluyendo pagadas)
-        $ordenesDivididas = $todasLasOrdenes->filter(function ($ordenItem) {
+        // PRIMERO: Obtener TODAS las órdenes activas (sin filtrar por cuenta_dividida)
+        $ordenes = $todasLasOrdenes->filter(function ($ordenItem) {
+            return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
+        });
+
+        // SEGUNDO: Detectar si hay cuentas divididas EN LAS ÓRDENES ACTIVAS
+        $ordenesDivididas = $ordenes->filter(function ($ordenItem) {
             return isset($ordenItem->cuenta_dividida) && $ordenItem->cuenta_dividida;
         });
-        $tienesCuentasDivididas = $ordenesDivididas->isNotEmpty();
+        $cuentasDivididas = $ordenesDivididas->isNotEmpty();
 
         Log::info('DEBUG cobrar() - Análisis de mesa', [
             'mesa_id' => $mesa->id,
             'mesa_numero' => $mesa->numero,
-            'tienesCuentasDivididas' => $tienesCuentasDivididas,
+            'cuentasDivididas' => $cuentasDivididas,
             'total_ordenes' => $todasLasOrdenes->count(),
-            'ordenes_divididas' => $ordenesDivididas->count(),
+            'ordenes_activas' => $ordenes->count(),
+            'ordenes_divididas_activas' => $ordenesDivididas->count(),
             'estados_ordenes' => $todasLasOrdenes->pluck('estado')->toArray(),
         ]);
 
-        // Si hay cuentas divididas, solo mostrar las ACTIVAS (no pagadas)
-        if ($tienesCuentasDivididas) {
-            $ordenes = $ordenesDivididas->filter(function ($ordenItem) {
-                return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
-            });
-        } else {
-            $ordenes = $todasLasOrdenes->filter(function ($ordenItem) {
-                return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
-            });
-        }
-
-        $cuentasDivididas = $tienesCuentasDivididas;
-        
-        // Obtener la primera orden dividida ACTIVA si existe
         $ordenDividida = $ordenes->first();
         
-        // Obtener el total de cuentas a dividir (buscar en TODAS las ordenes divididas para encontrar el máximo)
+        // Obtener el total de cuentas a dividir
         $totalCuentasDivision = null;
         if ($cuentasDivididas) {
-            $maxNumeroCuenta = $ordenesDivididas->max(function ($orden) {
+            $maxNumeroCuenta = $ordenes->max(function ($orden) {
                 return intval($orden->numero_cuenta_division ?? 0);
             });
             
@@ -116,11 +108,12 @@ class CajaController extends Controller
             Log::info('DEBUG cobrar() - Cuentas Divididas', [
                 'mesa_id' => $mesa->id,
                 'totalCuentasDivision_FINAL' => $totalCuentasDivision,
-                'ordenes_activas_divididas' => $ordenes->count(),
+                'ordenes_activas' => $ordenes->count(),
                 'max_numero_cuenta' => $maxNumeroCuenta,
             ]);
         }
 
+        // Inicializar variables
         $productos = collect();
         $meseroNombre = $mesa->mesero?->nombre ?? 'Sin mesero asignado';
         $subtotal = 0;
@@ -131,69 +124,18 @@ class CajaController extends Controller
         $ordenLabel = 'Orden #N/A';
         $ordenId = null;
         $cuentasDividadasInfo = [];
-
-        // Si hay cuentas divididas, solo mostrar las ACTIVAS (no pagadas)
-        if ($tienesCuentasDivididas) {
-            $ordenes = $ordenesDivididas->filter(function ($ordenItem) {
-                return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
-            });
-        } else {
-            $ordenes = $todasLasOrdenes->filter(function ($ordenItem) {
-                return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
-            });
-        }
-
-        $cuentasDivididas = $tienesCuentasDivididas;
-        
-        // Obtener la primera orden dividida ACTIVA si existe
-        $ordenDividida = $ordenes->first();
-        
-        // Obtener el total de cuentas a dividir (buscar en TODAS las ordenes divididas para encontrar el máximo)
-        $totalCuentasDivision = null;
-        if ($cuentasDivididas) {
-            $maxNumeroCuenta = $ordenesDivididas->max(function ($orden) {
-                return intval($orden->numero_cuenta_division ?? 0);
-            });
-            
-            $totalCuentasDivision = $ordenDividida?->total_cuentas_division ?? 
-                                    $maxNumeroCuenta ??
-                                    $ordenesDivididas->count();
-            
-            Log::info('DEBUG cobrar() - Cuentas Divididas', [
-                'mesa_id' => $mesa->id,
-                'totalCuentasDivision_FINAL' => $totalCuentasDivision,
-                'ordenes_activas_divididas' => $ordenes->count(),
-                'max_numero_cuenta' => $maxNumeroCuenta,
-            ]);
-        }
-
-        $productos = collect();
-        $meseroNombre = $mesa->mesero?->nombre ?? 'Sin mesero asignado';
-        $subtotal = 0;
-        $iva = 0;
-        $propina = 0;
-        $totalPagar = 0;
-        $orden = null;
-        $ordenLabel = 'Orden #N/A';
-        $ordenId = null;
-        $cuentasDividadasInfo = [];
+        $productos = collect();  // Inicializar como colección vacía
 
         if ($ordenes->isNotEmpty()) {
             if ($cuentasDivididas) {
                 // Establece el label para cuentas divididas
                 $ordenLabel = 'Dividida en ' . $totalCuentasDivision . ' personas';
                 
-                // Si hay cuentas divididas, necesitamos sumar TODOS los productos
+                // Si hay cuentas divididas, necesitamos sumar SOLO los productos ACTIVOS
                 // y dividir el total entre el número de personas
                 
-                // Obtener TODAS las órdenes (divididas + normales) de la mesa
-                $todasLasOrdenesDelMesa = DB::table('ordenes')
-                    ->where('mesa_id', $mesa->id)
-                    ->whereNull('deleted_at')
-                    ->get();
-                
-                // Obtener todos los detalles de TODAS las órdenes
-                $ordenIds = $todasLasOrdenesDelMesa->pluck('id')->toArray();
+                // Obtener detalles SOLO de las órdenes ACTIVAS (no pagadas)
+                $ordenIds = $ordenes->pluck('id')->toArray();
                 $todosLosDetalles = DB::table('detalles_orden')
                     ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
                     ->select(
@@ -205,6 +147,9 @@ class CajaController extends Controller
                     )
                     ->whereIn('detalles_orden.orden_id', $ordenIds)
                     ->get();
+                
+                // Asignar a $productos también para que la validación funcione
+                $productos = $todosLosDetalles;
 
                 // Calcular el total completo
                 $subtotalTotal = $todosLosDetalles->sum(function ($item) {
@@ -219,10 +164,10 @@ class CajaController extends Controller
 
                 // Crear una cuenta por cada persona con el total dividido
                 for ($i = 1; $i <= $totalCuentasDivision; $i++) {
-                    // Buscar la orden ACTIVA para esta persona
-                    $ordenParaEstaPersona = $ordenes->firstWhere('numero_cuenta_division', $i);
+                    // Buscar la orden ACTIVA para esta persona, pero si no existe, usar la primera
+                    $ordenParaEstaPersona = $ordenes->firstWhere('numero_cuenta_division', $i) ?? $ordenes->first();
                     
-                    // Solo agregar a cuentasDividadasInfo si está activa
+                    // SIEMPRE agregar la cuenta (no depender de numero_cuenta_division)
                     if ($ordenParaEstaPersona) {
                         $cuentasDividadasInfo[] = [
                             'numero_cuenta' => $i,
@@ -255,13 +200,8 @@ class CajaController extends Controller
                     ? 'Orden #' . $orden->numero_orden
                     : $ordenes->count() . ' órdenes activas';
 
-                // Obtener TODOS los productos de TODAS las órdenes (no solo activas)
-                $todasLasOrdenesDelMesa = DB::table('ordenes')
-                    ->where('mesa_id', $mesa->id)
-                    ->whereNull('deleted_at')
-                    ->get();
-                
-                $ordenIds = $todasLasOrdenesDelMesa->pluck('id')->toArray();
+                // Obtener detalles SOLO de las órdenes ACTIVAS (no pagadas)
+                $ordenIds = $ordenes->pluck('id')->toArray();
 
                 $productos = DB::table('detalles_orden')
                     ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
@@ -296,39 +236,38 @@ class CajaController extends Controller
             'productos_cargados' => $productos->count(),
         ]);
 
-        // AVISO si no hay detalles pero hay órdenes
-        if ($ordenes->isNotEmpty() && $productos->isEmpty()) {
-            Log::warning('ALERTA: Órdenes sin detalles', [
-                'mesa_id' => $mesa->id,
-                'mesa_numero' => $mesa->numero,
-                'ordenes_count' => $ordenes->count(),
-                'detalles_count' => $productos->count(),
-            ]);
-        }
-
         // Si no hay órdenes activas, significa que todo ya fue pagado
         if ($ordenes->isEmpty()) {
-            // Verificar si la mesa sigue en estado "ocupada" y liberarla si es necesario
+            Log::warning('Mesa sin órdenes activas', [
+                'mesa_id' => $mesa->id,
+                'mesa_numero' => $mesa->numero,
+                'total_ordenes_todas' => $todasLasOrdenes->count(),
+                'detalles_ordenes' => $todasLasOrdenes->pluck('estado')->toArray(),
+            ]);
+            
+            // Liberar la mesa si está ocupada
             if ($mesa->estado === 'ocupada') {
                 DB::table('mesas')->where('id', $mesa->id)->update([
                     'estado' => 'disponible',
                     'updated_at' => Carbon::now(),
                 ]);
                 
-                if (Schema::hasColumn('mesas', 'mesero_id')) {
-                    DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
-                }
+                // Nota: NO borramos mesero_id para que el mesero siga viendo la mesa cuando se reabre
                 if (Schema::hasColumn('mesas', 'total_consumo')) {
                     DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
                 }
-                
-                Log::info('Mesa liberada en cobrar() - todas las órdenes pagadas', [
-                    'mesa_id' => $mesa->id,
-                    'mesa_numero' => $mesa->numero,
-                ]);
             }
             
-            return redirect()->route('admin.caja.index')->with('success', 'Mesa ' . $mesa->numero . ' ya ha sido completamente pagada y liberada.');
+            // **CAMBIO IMPORTANTE**: En lugar de redirigir, mostrar error con más información
+            if ($todasLasOrdenes->isEmpty()) {
+                // No hay órdenes en absoluto
+                return redirect()->route('admin.caja.index')
+                    ->with('error', 'Mesa #' . $mesa->numero . ' no tiene órdenes. El mesero debe enviar los pedidos primero desde la comanda.');
+            } else {
+                // Hay órdenes pero todas están pagadas
+                return redirect()->route('admin.caja.index')
+                    ->with('success', 'Mesa #' . $mesa->numero . ' ya ha sido completamente pagada y liberada.');
+            }
         }
 
         return view('admin.caja.cobrar', [
@@ -395,30 +334,30 @@ class CajaController extends Controller
             ->whereNull('deleted_at')
             ->get();
 
-        if ($ordenesActivas->isEmpty()) {
-            Log::warning('No hay órdenes activas para cobrar', [
-                'mesa_id' => $validated['mesa_id'],
-                'orden_id' => $validated['orden_id'] ?? null,
-                'todas_ordenes' => DB::table('ordenes')
-                    ->where('mesa_id', $validated['mesa_id'])
-                    ->whereNull('deleted_at')
-                    ->select('id', 'estado', 'numero_orden')
-                    ->get()
-                    ->toArray(),
-            ]);
+        // Obtener TODAS las órdenes para verificar el estado general
+        $todasLasOrdenes = DB::table('ordenes')
+            ->where('mesa_id', $validated['mesa_id'])
+            ->whereNull('deleted_at')
+            ->get();
+
+        Log::info('DEBUG pagar() - Estado de órdenes', [
+            'mesa_id' => $validated['mesa_id'],
+            'ordenes_activas' => $ordenesActivas->count(),
+            'todas_ordenes' => $todasLasOrdenes->count(),
+            'orden_id_solicitada' => $validated['orden_id'] ?? null,
+            'estados_todas' => $todasLasOrdenes->pluck('estado')->toArray(),
+        ]);
+
+        // Si no hay órdenes activas Y no se especificó una orden_id
+        if ($ordenesActivas->isEmpty() && empty($validated['orden_id'])) {
+            // Verificar si ALL órdenes están pagadas (significa final del pago)
+            $ordenesPagadas = $todasLasOrdenes->filter(function($o) { return $o->estado === 'pagada'; })->count();
             
-            // Si no hay órdenes activas pero existen órdenes (no pagadas o pagadas), 
-            // significa que ya todo fue pagado
-            $todasLasOrdenes = DB::table('ordenes')
-                ->where('mesa_id', $validated['mesa_id'])
-                ->whereNull('deleted_at')
-                ->count();
-            
-            if ($todasLasOrdenes > 0) {
-                // Hay órdenes pero todas están pagadas, liberar la mesa
+            if ($todasLasOrdenes->count() > 0 && $ordenesPagadas === $todasLasOrdenes->count()) {
+                // Todas están pagadas, liberar la mesa
                 Log::info('Todas las órdenes ya están pagadas, liberando mesa', [
                     'mesa_id' => $validated['mesa_id'],
-                    'total_ordenes' => $todasLasOrdenes,
+                    'total_ordenes' => $todasLasOrdenes->count(),
                 ]);
                 
                 DB::table('mesas')->where('id', $validated['mesa_id'])->update([
@@ -426,9 +365,6 @@ class CajaController extends Controller
                     'updated_at' => Carbon::now(),
                 ]);
                 
-                if (Schema::hasColumn('mesas', 'mesero_id')) {
-                    DB::table('mesas')->where('id', $validated['mesa_id'])->update(['mesero_id' => null]);
-                }
                 if (Schema::hasColumn('mesas', 'total_consumo')) {
                     DB::table('mesas')->where('id', $validated['mesa_id'])->update(['total_consumo' => 0]);
                 }
@@ -439,12 +375,13 @@ class CajaController extends Controller
                     'mesa_liberada' => true,
                     'estado_mesa_final' => 'disponible',
                 ]);
+            } else {
+                // No hay órdenes para cobrar
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No hay órdenes activas para esta mesa.',
+                ], 422);
             }
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'No hay órdenes activas para esta mesa.',
-            ], 422);
         }
 
         // Si se proporcionó orden_id, calcular totales sólo para esa orden
@@ -494,10 +431,11 @@ class CajaController extends Controller
                 // Verificar si esta orden es parte de cuentas divididas
                 $esOrdenDividida = $orden->cuenta_dividida ?? false;
                 
-                // Actualizar SOLO la orden específica como pagada
+                // Actualizar SOLO la orden específica como pagada (sin importar su estado actual)
+                // Esto permite reprocesar pagos de cuentas divididas
                 $updated = DB::table('ordenes')
                     ->where('id', $orden->id)
-                    ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                    ->whereNull('deleted_at')
                     ->update([
                         'estado' => 'pagada',
                         'metodo_pago' => $validated['metodo_pago'],
@@ -521,7 +459,6 @@ class CajaController extends Controller
                         ->where('mesa_id', $mesa->id)
                         ->where('cuenta_dividida', true)
                         ->where('id', '!=', $orden->id)
-                        ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
                         ->whereNull('deleted_at')
                         ->update([
                             'estado' => 'pagada',
@@ -586,10 +523,7 @@ class CajaController extends Controller
                     'updated_at' => Carbon::now(),
                 ]);
                 
-                // Si existen estas columnas, también actualizar
-                if (Schema::hasColumn('mesas', 'mesero_id')) {
-                    DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
-                }
+                // Nota: NO borramos mesero_id para que el mesero siga viendo la mesa cuando se reabre
                 if (Schema::hasColumn('mesas', 'total_consumo')) {
                     DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
                 }

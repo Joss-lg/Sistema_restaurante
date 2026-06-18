@@ -5,7 +5,6 @@
 @section('content')
 <div class="p-8 lg:p-10 xl:p-12 max-w-[1800px] mx-auto w-full space-y-8 flex-1 flex flex-col">
 
-    <!-- ENCABEZADO Y ACCIONES -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-2">
         <div>
             <h1 class="text-3xl font-black text-[var(--text-color)] tracking-tight">Flujo de Caja</h1>
@@ -13,27 +12,34 @@
         </div>
         
         <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-            <a href="{{ route('admin.finanzas.exportar') }}" 
-                class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-600/20 outline-none flex items-center justify-center gap-2">
-                <i class="fas fa-download"></i> Exportar CSV
-            </a>
+            {{-- 🌟 PERMISO GESTIONAR: Exportar Excel/CSV --}}
+            @if(auth()->user()->tienePermiso('finanzas.reporte'))
+                <a href="{{ route('admin.finanzas.exportar') }}" 
+                    class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-600/20 outline-none flex items-center justify-center gap-2">
+                    <i class="fas fa-download"></i> Exportar CSV
+                </a>
+            @endif
 
-            <button onclick="openModalCrearGasto()" 
-                class="w-full md:w-auto bg-rose-600 hover:bg-rose-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-rose-600/20 outline-none flex items-center justify-center gap-2">
-                <i class="fas fa-money-bill-wave"></i> Nuevo Gasto
-            </button>
+            {{-- 🌟 PERMISO CREAR: Pagar un Gasto --}}
+            @if(auth()->user()->tienePermiso('finanzas.agregar'))
+                <button onclick="openModalCrearGasto()" 
+                    class="w-full md:w-auto bg-rose-600 hover:bg-rose-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-rose-600/20 outline-none flex items-center justify-center gap-2">
+                    <i class="fas fa-money-bill-wave"></i> Nuevo Gasto
+                </button>
+            @endif
 
-            <button onclick="openModalCrearNomina()" 
-                class="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-purple-600/20 outline-none flex items-center justify-center gap-2">
-                <i class="fas fa-users"></i> Pagar Nómina
-            </button>
+            {{-- 🌟 PERMISO EDITAR: Pagar Nómina --}}
+            @if(auth()->user()->tienePermiso('finanzas.editar'))
+                <button onclick="openModalCrearNomina()" 
+                    class="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-purple-600/20 outline-none flex items-center justify-center gap-2">
+                    <i class="fas fa-users"></i> Pagar Nómina
+                </button>
+            @endif
         </div>
     </div>
 
-    <!-- TARJETAS DE MÉTRICAS -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         
-        <!-- TARJETA: INGRESOS -->
         <div class="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20 rounded-[1.5rem] p-6 backdrop-blur-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
@@ -46,7 +52,6 @@
             <p class="text-[10px] text-[var(--text-muted)] mt-2">Ventas registradas</p>
         </div>
 
-        <!-- TARJETA: EGRESOS -->
         <div class="bg-gradient-to-br from-rose-500/10 to-rose-500/5 border border-rose-500/20 rounded-[1.5rem] p-6 backdrop-blur-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-500">
@@ -59,7 +64,6 @@
             <p class="text-[10px] text-[var(--text-muted)] mt-2">Gastos registrados</p>
         </div>
 
-        <!-- TARJETA: BALANCE NETO -->
         <div class="bg-gradient-to-br from-[#3B82F6]/10 to-[#3B82F6]/5 border border-[#3B82F6]/20 rounded-[1.5rem] p-6 backdrop-blur-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 rounded-xl bg-[#3B82F6]/20 flex items-center justify-center text-[#3B82F6]">
@@ -74,7 +78,6 @@
             <p class="text-[10px] text-[var(--text-muted)] mt-2">{{ $balanceNeto >= 0 ? '✅ Superávit' : '⚠️ Déficit' }}</p>
         </div>
 
-        <!-- TARJETA: NÓMINA PENDIENTE -->
         <div class="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20 rounded-[1.5rem] p-6 backdrop-blur-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-500">
@@ -88,7 +91,6 @@
         </div>
     </div>
 
-    <!-- PESTAÑAS DE FILTRO -->
     <div class="flex items-center gap-3 border-b border-black/5 py-4">
         <a href="{{ route('admin.finanzas.index', ['tab' => 'todos']) }}" 
             class="px-6 py-2 text-sm font-bold {{ $tab === 'todos' ? 'text-[#3B82F6] border-b-2 border-[#3B82F6]' : 'text-[var(--text-muted)]' }} transition-all">
@@ -104,7 +106,6 @@
         </a>
     </div>
 
-    <!-- TABLA DEL FLUJO DE CAJA -->
     <div class="bg-[var(--card-color)] rounded-[1.5rem] shadow-sm p-6 lg:p-8 w-full">
         
         <div class="mb-6 flex items-center gap-3">
@@ -177,16 +178,13 @@
             </table>
         </div>
 
-        <!-- PAGINACIÓN -->
         <div class="mt-6 flex justify-center">
             {{ $flujosCaja->links() }}
         </div>
     </div>
 
-    <!-- GRID DE ESTADÍSTICAS ADICIONALES -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <!-- CATEGORÍAS DE INGRESOS -->
         <div class="bg-[var(--card-color)] rounded-[1.5rem] shadow-sm p-6 lg:p-8">
             <div class="mb-6 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -210,7 +208,6 @@
             </div>
         </div>
 
-        <!-- CATEGORÍAS DE EGRESOS -->
         <div class="bg-[var(--card-color)] rounded-[1.5rem] shadow-sm p-6 lg:p-8">
             <div class="mb-6 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
@@ -308,6 +305,13 @@
     });
 </script>
 
-@include('admin.finanzas.modal-crear-gasto')
-@include('admin.finanzas.modal-crear-nomina')
+{{-- 🌟 INCLUSIÓN CONDICIONAL DE MODALES SEGÚN EL PERMISO --}}
+@if(auth()->user()->tienePermiso('finanzas.crear'))
+    @include('admin.finanzas.modal-crear-gasto')
+@endif
+
+@if(auth()->user()->tienePermiso('finanzas.editar'))
+    @include('admin.finanzas.modal-crear-nomina')
+@endif
+
 @endsection

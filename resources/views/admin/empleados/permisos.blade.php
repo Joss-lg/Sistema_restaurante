@@ -59,6 +59,7 @@
                                         if ($item['slug'] == 'inventario' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'empleados' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'finanzas' && $accion == 'gestionar') $accionReal = 'reporte';
+                                        if ($item['slug'] == 'promociones' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'roles' && $accion == 'gestionar') $accionReal = null; // Roles no tiene gestionar
 
                                         // Si la acción es null (no mapeada), no mostramos la columna

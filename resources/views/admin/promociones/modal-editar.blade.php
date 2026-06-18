@@ -133,13 +133,18 @@
      */
     function editPromo(id) {
         const form = document.getElementById('formEditarPromocion');
-        // Seteamos la url dinámica de Laravel para el Update: /admin/promociones/{id}
         form.action = `/admin/promociones/${id}`;
 
-        // Realizamos el fetch al endpoint del controlador (edit) que retorna la respuesta en JSON
         fetch(`/admin/promociones/${id}/edit`)
             .then(response => {
-                if (!response.ok) throw new Error('Error al recuperar los datos.');
+                // 🔍 SI EL SERVIDOR RESPONDE CON ERROR (404, 500, etc.)
+                if (!response.ok) {
+                    response.text().then(textoError => {
+                        console.error("--- ERROR REAL DEL SERVIDOR ---");
+                        console.log(textoError); // Esto imprimirá el error real de Laravel en tu consola
+                    });
+                    throw new Error('Error de servidor detectado.');
+                }
                 return response.json();
             })
             .then(data => {
@@ -154,10 +159,8 @@
                 // Controlar el Switch de estado de iOS
                 document.getElementById('edit_esta_activa').checked = parseInt(data.promocion.esta_activa) === 1;
 
-                // Limpiar todos los checkboxes de días antes de marcar los de la promoción
+                // Limpiar y marcar días
                 document.querySelectorAll('.edit-dia-checkbox').forEach(cb => cb.checked = false);
-                
-                // Marcar días correspondientes
                 if (data.promocion.dias_semana && Array.isArray(data.promocion.dias_semana)) {
                     data.promocion.dias_semana.forEach(dia => {
                         const checkboxDia = document.getElementById(`edit_dia_${dia}`);
@@ -165,10 +168,8 @@
                     });
                 }
 
-                // Limpiar todos los checkboxes de productos vinculados
+                // Limpiar y marcar productos
                 document.querySelectorAll('.edit-prod-checkbox').forEach(cb => cb.checked = false);
-
-                // Marcar los productos asociados a la promoción actual
                 if (data.productos_vinculados && Array.isArray(data.productos_vinculados)) {
                     data.productos_vinculados.forEach(prodId => {
                         const checkboxProd = document.getElementById(`edit_prod_${prodId}`);
@@ -176,12 +177,11 @@
                     });
                 }
 
-                // Desplegar el modal usando la función global de tu index
                 openModal('modalEditar');
             })
             .catch(error => {
                 console.error(error);
-                alert('No se pudo cargar la información de la promoción seleccionada.');
+                alert('No se pudo cargar la información. Revisa la consola de desarrollador (F12).');
             });
     }
 </script>
