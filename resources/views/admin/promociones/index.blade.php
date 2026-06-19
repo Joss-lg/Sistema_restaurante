@@ -14,12 +14,6 @@
             <h1 class="text-4xl font-black text-[var(--text-color)] tracking-tighter drop-shadow-sm">Promociones y Descuentos</h1>
             <p class="text-sm font-medium text-[var(--text-muted)] tracking-wide">Controla las ofertas activas, paquetes especiales y descuentos para tus clientes.</p>
         </div>
-        
-        <div class="flex flex-wrap gap-4 w-full xl:w-auto">
-            <button class="group relative flex items-center gap-2 rounded-2xl bg-[var(--card-color)] border border-[var(--border-color)] px-6 py-3.5 text-xs font-black uppercase tracking-widest text-[var(--text-color)] transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-500 shadow-sm">
-                <i class="fas fa-history transition-transform group-hover:-rotate-45"></i>
-                Historial
-            </button>
 
             {{-- CORREGIDO: .agregar coincide con tu seeder --}}
             @if(auth()->user()->tienePermiso('promociones.agregar'))
@@ -89,12 +83,12 @@
                         
                         {{-- AJUSTADO: Se cambia .gestionar por .editar porque .gestionar no existe en tu seeder --}}
                         @if(auth()->user()->tienePermiso('promociones.reporte'))
-                            <div class="relative inline-flex items-center cursor-pointer">
+                            <label class="relative inline-flex items-center cursor-pointer">
                                 <input id="togglePromo{{ $promo->id }}" type="checkbox" class="sr-only peer" {{ $promo->esta_activa ? 'checked' : '' }} onchange="togglePromo({{ $promo->id }})">
                                 <div class="w-11 h-6 rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all duration-300 shadow-inner relative">
                                     <span class="absolute left-1 top-[2px] h-5 w-5 rounded-full bg-[var(--text-muted)] transition-all duration-300 peer-checked:left-[1.25rem] peer-checked:bg-white"></span>
                                 </div>
-                            </div>
+                            </label>
                         @endif
                     </div>
 
@@ -172,7 +166,38 @@
     }
 
     function togglePromo(id) {
-        console.log("Toggle promo: " + id);
+        const checkbox = document.getElementById(`togglePromo${id}`);
+        
+        const formData = new FormData();
+        formData.append('_method', 'PUT'); 
+        formData.append('esta_activa', checkbox.checked ? '1' : '0');
+
+        fetch(`/admin/promociones/${id}`, {
+            method: 'POST', 
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en el servidor');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Estado actualizado con éxito');
+            
+            // 🌟 RECARGA AUTOMÁTICA DE LA PÁGINA
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error(error);
+            // Si falla, revertimos el switch visualmente antes de la alerta
+            checkbox.checked = !checkbox.checked;
+            alert('No se pudo cambiar el estado de la promoción.');
+        });
     }
 </script>
 @endsection

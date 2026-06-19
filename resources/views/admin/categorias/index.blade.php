@@ -138,10 +138,12 @@
                     </div>
                     
                     {{-- Botón Zafiro Ultra Premium --}}
-                    <button onclick="openModalCrear()"
-                        class="btn-sapphire inline-flex items-center justify-center gap-3 rounded-[16px] px-8 py-0 h-12 text-[11px] font-black uppercase tracking-[0.15em] text-white transition-all duration-300 transform active:scale-95 outline-none">
-                        <i class="fas fa-plus"></i> Crear Categoría
-                    </button>
+                    @if(auth()->user()->tienePermiso('categorias.agregar'))   
+                        <button onclick="openModalCrear()"
+                            class="btn-sapphire inline-flex items-center justify-center gap-3 rounded-[16px] px-8 py-0 h-12 text-[11px] font-black uppercase tracking-[0.15em] text-white transition-all duration-300 transform active:scale-95 outline-none">
+                            <i class="fas fa-plus"></i> Crear Categoría
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -230,16 +232,20 @@
 
                         <td class="px-8 py-5 text-right">
                             <div class="inline-flex items-center justify-end gap-2">
-                                <button type="button" title="Editar"
-                                    onclick="abrirModalEspecifico('modalEditar-{{ $categoria->id }}')"
-                                    class="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-[var(--search-border)] bg-[var(--search-bg)] text-[var(--text-body)] transition-all hover:bg-blue-500 hover:text-white hover:border-transparent hover:shadow-[0_4px_15px_rgba(59,130,246,0.4)] outline-none active:scale-95 shadow-inner">
-                                    <i class="fas fa-pen text-[11px]"></i>
-                                </button>
-                                <button type="button" title="Eliminar"
-                                    onclick="confirmarEliminacion('{{ $categoria->id }}', '{{ $categoria->nombre }}')"
-                                    class="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-[var(--search-border)] bg-[var(--search-bg)] text-[var(--text-body)] transition-all hover:bg-red-500 hover:text-white hover:border-transparent hover:shadow-[0_4px_15px_rgba(239,68,68,0.4)] outline-none active:scale-95 shadow-inner">
-                                    <i class="fas fa-trash-alt text-[11px]"></i>
-                                </button>
+                                @if(auth()->user()->tienePermiso('categorias.editar'))
+                                    <button type="button" title="Editar"
+                                        onclick="abrirModalEspecifico('modalEditar-{{ $categoria->id }}')"
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-[var(--search-border)] bg-[var(--search-bg)] text-[var(--text-body)] transition-all hover:bg-blue-500 hover:text-white hover:border-transparent hover:shadow-[0_4px_15px_rgba(59,130,246,0.4)] outline-none active:scale-95 shadow-inner">
+                                        <i class="fas fa-pen text-[11px]"></i>
+                                    </button>
+                                @endif
+                                @if(auth()->user()->tienePermiso('categorias.eliminar'))
+                                    <button type="button" title="Eliminar"
+                                        onclick="confirmarEliminacion('{{ $categoria->id }}', '{{ $categoria->nombre }}')"
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-[var(--search-border)] bg-[var(--search-bg)] text-[var(--text-body)] transition-all hover:bg-red-500 hover:text-white hover:border-transparent hover:shadow-[0_4px_15px_rgba(239,68,68,0.4)] outline-none active:scale-95 shadow-inner">
+                                        <i class="fas fa-trash-alt text-[11px]"></i>
+                                    </button>
+                                @endif
                             </div>
                         </td>
                     </tr>

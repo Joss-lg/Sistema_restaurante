@@ -37,28 +37,47 @@ class PromocionController extends Controller
     {
         return response()->json([
             'promocion' => $promocion,
-            // Obtenemos solo los IDs de los productos ya vinculados a esta promo
-            'productos_vinculados' => $promocion->productos()->pluck('id')->toArray()
+            //  Por esto:
+            'productos_vinculados' => $promocion->productos()->pluck('productos.id')->toArray()
         ]);
     }
 
     // 4. Actualizar la promoción existente
-    public function update(Request $request, Promocion $promocion)
+   public function update(Request $request, Promocion $promocion)
     {
-        // Tu lógica de validación aquí...
+        // 1. Tus validaciones normales aquí...
+        // $request->validate([ ... ]);
 
-        // Si el switch iOS no viene en el request, significa que lo apagaron (falso)
-        $data = $request->all();
-        $data['esta_activa'] = $request->has('esta_activa') ? 1 : 0;
+        $datos = $request->all();
 
-        $promocion->update($data);
+        /**
+         * 🌟 CONTROL INTELIGENTE DEL BOOLEANO:
+         * - Si viene del formulario tradicional y está apagado: $request->has('esta_activa') será FALSE -> guarda false.
+         * - Si viene del switch AJAX y está apagado: llegará '0', por lo que validamos que no sea '0' -> guarda false.
+         * - Si está encendido (en ambos casos): será TRUE y diferente de '0' -> guarda true.
+         */
+        $datos['esta_activa'] = $request->has('esta_activa') && $request->esta_activa != '0';
 
-        // Actualizar la tabla pivote de productos
-        $promocion->productos()->sync($request->input('productos', []));
+        // 2. Actualizar el modelo
+        $promocion->update($datos);
 
-        return redirect()->back()->with('success', 'Promoción actualizada con éxito.');
+        // 3. Sincronizar productos si la petición viene del formulario modal completo
+        if ($request->has('productos')) {
+            $promocion->productos()->sync($request->productos);
+        }
+
+        // 4. RESPUESTA DINÁMICA: Si es AJAX, responde con JSON; si es formulario normal, redirecciona.
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Estado de la promoción actualizado correctamente.',
+                'esta_activa' => $promocion->esta_activa
+            ]);
+        }
+
+        return redirect()->route('admin.promociones.index')
+            ->with('success', 'Promoción actualizada con éxito.');
     }
-
     // 5. Eliminar el registro
     public function destroy(Promocion $promocion)
     {

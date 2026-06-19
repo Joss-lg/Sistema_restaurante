@@ -309,45 +309,84 @@ class ComandaController extends Controller
 
     public function storeMesa(Request $request)
     {
-        $request->validate([
-            'numero' => 'required|string|max:20',
-            'capacidad' => 'required|integer|min:1',
-            'cuenta_dividida' => 'boolean',
-            'total_cuentas_division' => 'nullable|integer|min:2|max:10',
-        ]);
+        try {
+            \Log::info('storeMesa: Iniciando creación de mesa', [
+                'numero' => $request->numero,
+                'capacidad' => $request->capacidad,
+                'cuenta_dividida' => $request->boolean('cuenta_dividida'),
+                'total_cuentas_division' => $request->input('total_cuentas_division'),
+            ]);
 
-        $mesa = Mesa::where('numero', $request->numero)->first();
+            $request->validate([
+                'numero' => 'required|string|max:20',
+                'capacidad' => 'required|integer|min:1',
+                'cuenta_dividida' => 'boolean',
+                'total_cuentas_division' => 'nullable|integer|min:2|max:10',
+            ]);
 
-        if ($mesa && $mesa->estado === 'ocupada') {
-            return response()->json([
-                'success' => false,
-                'message' => 'La mesa ya está ocupada. Elige otra mesa o cierra la orden antes de abrir una nueva.'
-            ], 409);
-        }
+            $mesa = Mesa::withTrashed()->where('numero', $request->numero)->first();
 
-        $mesa = $mesa ?? new Mesa(['numero' => $request->numero]);
-        $mesa->capacidad = $request->capacidad;
-        $mesa->estado = 'ocupada';
-        
-        // **ARREGLO**: Limpiar el total_consumo cuando se abre una nueva mesa
-        if (Schema::hasColumn('mesas', 'total_consumo')) {
-            $mesa->total_consumo = 0;
-        }
-        
-        $usuario = auth()->user();
-        if (!$usuario->relationLoaded('rol')) {
-            $usuario->load('rol');
-        }
-        
-        if (strtolower(trim($usuario->rol?->slug ?? '')) === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
-            $mesa->mesero_id = auth()->id();
-        }
-        $mesa->save();
+            if ($mesa && $mesa->estado === 'ocupada' && !$mesa->trashed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La mesa ya está ocupada. Elige otra mesa o cierra la orden antes de abrir una nueva.'
+                ], 409);
+            }
 
-        if ($request->boolean('cuenta_dividida') && $request->filled('total_cuentas_division')) {
-            $totalCuentas = $request->integer('total_cuentas_division');
+            // Si la mesa existe pero está eliminada (soft delete), la restauramos
+            if ($mesa && $mesa->trashed()) {
+                $mesa->restore();
+            }
+
+            // Si no existe la mesa, crearla
+            $mesa = $mesa ?? new Mesa(['numero' => $request->numero]);
+            $mesa->capacidad = $request->capacidad;
+            $mesa->estado = 'ocupada';
             
-            for ($i = 1; $i <= $totalCuentas; $i++) {
+            // **ARREGLO**: Limpiar el total_consumo cuando se abre una nueva mesa
+            if (Schema::hasColumn('mesas', 'total_consumo')) {
+                $mesa->total_consumo = 0;
+            }
+            
+            $usuario = auth()->user();
+            if (!$usuario->relationLoaded('rol')) {
+                $usuario->load('rol');
+            }
+            
+            if (strtolower(trim($usuario->rol?->slug ?? '')) === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
+                $mesa->mesero_id = auth()->id();
+            }
+            $mesa->save();
+            
+            \Log::info('storeMesa: Mesa guardada exitosamente', ['mesa_id' => $mesa->id]);
+
+            // Verificar que la mesa tiene un ID válido
+            if (!$mesa->id || $mesa->id <= 0) {
+                throw new \Exception('Mesa no tiene un ID válido después de guardar. ID: ' . ($mesa->id ?? 'null'));
+            }
+
+            if ($request->boolean('cuenta_dividida') && $request->filled('total_cuentas_division')) {
+                \Log::info('storeMesa: Creando órdenes divididas', ['total_cuentas' => $request->integer('total_cuentas_division')]);
+                $totalCuentas = $request->integer('total_cuentas_division');
+                
+                for ($i = 1; $i <= $totalCuentas; $i++) {
+                    \App\Models\Orden::create([
+                        'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                        'mesa_id' => $mesa->id,
+                        'mesero_id' => auth()->id(),
+                        'estado' => 'pendiente',
+                        'total' => 0,
+                        'propina' => 0,
+                        'abierta_el' => now(),
+                        'cuenta_dividida' => true,
+                        'numero_cuenta_division' => $i,
+                        'total_cuentas_division' => $totalCuentas,
+                    ]);
+                }
+                \Log::info('storeMesa: Órdenes divididas creadas');
+            } else {
+                \Log::info('storeMesa: Creando orden no dividida');
+                // Crear una sola orden cuando la cuenta NO es dividida
                 \App\Models\Orden::create([
                     'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
                     'mesa_id' => $mesa->id,
@@ -356,17 +395,37 @@ class ComandaController extends Controller
                     'total' => 0,
                     'propina' => 0,
                     'abierta_el' => now(),
-                    'cuenta_dividida' => true,
-                    'numero_cuenta_division' => $i,
-                    'total_cuentas_division' => $totalCuentas,
+                    'cuenta_dividida' => false,
+                    'numero_cuenta_division' => 1,
+                    'total_cuentas_division' => 1,
                 ]);
+                \Log::info('storeMesa: Orden no dividida creada');
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Mesa abierta correctamente',
-            'mesa' => $mesa
-        ]);
+            \Log::info('storeMesa: Devolviendo respuesta exitosa', ['mesa_id' => $mesa->id]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Mesa abierta correctamente',
+                'mesa' => $mesa
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('storeMesa: Error de validación', ['errors' => $e->errors()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('storeMesa: Error general', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear la orden: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

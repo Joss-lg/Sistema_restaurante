@@ -15,13 +15,16 @@
             <p class="text-[var(--text-muted)] mt-1">Gestiona los platillos del restaurante</p>
         </div>
 
-        <div class="relative group">
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-150"></div>
-            <button onclick="openModalAlimento()" class="relative flex items-center gap-2.5 bg-[#3B82F6] hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold transition duration-150 shadow-lg shadow-blue-900/20">
-                <i class="fas fa-plus text-sm"></i>
-                <span>Agregar Platillo</span>
-            </button>
-        </div>
+        {{-- 🌟 PERMISO: alimentos.agregar --}}
+        @if(auth()->user()->tienePermiso('alimentos.agregar'))
+            <div class="relative group">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-150"></div>
+                <button onclick="openModalAlimento()" class="relative flex items-center gap-2.5 bg-[#3B82F6] hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold transition duration-150 shadow-lg shadow-blue-900/20">
+                    <i class="fas fa-plus text-sm"></i>
+                    <span>Agregar Platillo</span>
+                </button>
+            </div>
+        @endif
     </div>
 
     {{-- CARDS DE ESTADÍSTICAS --}}
@@ -47,7 +50,10 @@
 
     {{-- LISTADO DE PLATILLOS --}}
     <div class="glass-card rounded-[2rem] p-6 shadow-xl border border-[var(--border-color)] min-h-[420px]">
-        <div id="categorias-container">
+        {{-- 🌟 INYECCIÓN DE PERMISOS EN ATRIBUTOS DATA para usarlos en JS --}}
+        <div id="categorias-container"
+             data-permiso-editar="{{ auth()->user()->tienePermiso('alimentos.editar') ? 'true' : 'false' }}"
+             data-permiso-eliminar="{{ auth()->user()->tienePermiso('alimentos.eliminar') ? 'true' : 'false' }}">
             {{-- Se llena dinámicamente con JavaScript --}}
         </div>
     </div>

@@ -18,7 +18,9 @@ class CajaController extends Controller
 {
     public function index()
     {
-        // Traemos TODAS las mesas con sus órdenes activas cargadas para optimizar
+        // IMPORTANTE: Obtener SIEMPRE datos frescos de BD sin caché
+        // No usamos cache para asegurar que vemos el estado actual de las mesas
+        
         $mesas = Mesa::orderBy('numero', 'asc')
             ->with(['ordenesActivas' => function ($query) {
                 $query->with(['detalles.producto']);
@@ -27,26 +29,47 @@ class CajaController extends Controller
 
         // Verificar y corregir estados inconsistentes
         $mesas->each(function ($mesa) {
-            // Si la mesa está marcada como ocupada pero no tiene órdenes activas, cambiar a disponible
-            if ($mesa->estado === 'ocupada' && $mesa->ordenesActivas->isEmpty()) {
-                $mesa->update([
+            // Obtener órdenes ACTIVAS reales desde BD (sin usar relación cacheada)
+            $ordenesActivasReales = DB::table('ordenes')
+                ->where('mesa_id', $mesa->id)
+                ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                ->whereNull('deleted_at')
+                ->count();
+
+            // Si la mesa está marcada como ocupada pero NO tiene órdenes activas, libérarla
+            if ($mesa->estado === 'ocupada' && $ordenesActivasReales === 0) {
+                DB::table('mesas')->where('id', $mesa->id)->update([
                     'estado' => 'disponible',
+                    'updated_at' => Carbon::now(),
                 ]);
                 
                 if (Schema::hasColumn('mesas', 'mesero_id')) {
-                    $mesa->update(['mesero_id' => null]);
+                    DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
                 }
                 if (Schema::hasColumn('mesas', 'total_consumo')) {
-                    $mesa->update(['total_consumo' => 0]);
+                    DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
                 }
                 
-                Log::info('Estado de mesa corregido en caja.index', [
+                Log::info('Estado de mesa corregido y liberada en caja.index', [
                     'mesa_id' => $mesa->id,
                     'mesa_numero' => $mesa->numero,
                     'nuevo_estado' => 'disponible',
+                    'ordenes_activas_restantes' => $ordenesActivasReales,
                 ]);
+                
+                // Actualizar la mesa en memoria para que refleje el cambio
+                $mesa->estado = 'disponible';
+                $mesa->mesero_id = null;
+                $mesa->total_consumo = 0;
             }
         });
+
+        // Re-obtener las mesas desde BD para asegurar que tenemos datos frescos
+        $mesas = Mesa::orderBy('numero', 'asc')
+            ->with(['ordenesActivas' => function ($query) {
+                $query->with(['detalles.producto']);
+            }])
+            ->get();
 
         // Calculamos las estadísticas reales
         $mesasActivas = $mesas->where('estado', 'ocupada')->count();
@@ -431,8 +454,7 @@ class CajaController extends Controller
                 // Verificar si esta orden es parte de cuentas divididas
                 $esOrdenDividida = $orden->cuenta_dividida ?? false;
                 
-                // Actualizar SOLO la orden específica como pagada (sin importar su estado actual)
-                // Esto permite reprocesar pagos de cuentas divididas
+                // Actualizar SOLO la orden específica como pagada
                 $updated = DB::table('ordenes')
                     ->where('id', $orden->id)
                     ->whereNull('deleted_at')
@@ -452,8 +474,7 @@ class CajaController extends Controller
                     'es_orden_dividida' => $esOrdenDividida,
                 ]);
                 
-                // Si es una orden dividida, también marcar TODAS las otras órdenes divididas como pagadas
-                // para evitar que la mesa quede "atrapada" con órdenes fantasma
+                // Si es una orden dividida, MARCAR TODAS las órdenes divididas como pagadas
                 if ($esOrdenDividida) {
                     $actualizadasDivididas = DB::table('ordenes')
                         ->where('mesa_id', $mesa->id)
@@ -467,9 +488,9 @@ class CajaController extends Controller
                             'cerrada_el' => Carbon::now(),
                         ]);
                     
-                    Log::info('Órdenes divididas adicionales marcadas como pagadas', [
+                    Log::info('✅ CUENTAS DIVIDIDAS PAGADAS - Órdenes fantasma actualizadas', [
                         'mesa_id' => $mesa->id,
-                        'orden_pagada_id' => $orden->id,
+                        'orden_principal_id' => $orden->id,
                         'ordenes_fantasma_actualizadas' => $actualizadasDivididas,
                     ]);
                 }
@@ -493,7 +514,9 @@ class CajaController extends Controller
                 ]);
             }
 
-            // Verificar si quedan órdenes activas (pendiente, en proceso, servida)
+            // ===============================================
+            // VERIFICACIÓN CRÍTICA: ¿HAY ÓRDENES ACTIVAS RESTANTES?
+            // ===============================================
             $ordenesActivas = DB::table('ordenes')
                 ->where('mesa_id', $mesa->id)
                 ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
@@ -507,47 +530,57 @@ class CajaController extends Controller
                 ->select('id', 'estado', 'numero_orden', 'cuenta_dividida')
                 ->get();
 
-            Log::info('Verificación de órdenes activas después del pago', [
+            $estadosPorTipo = [
+                'pagada' => $todasLasOrdenesMesa->where('estado', 'pagada')->count(),
+                'pendiente' => $todasLasOrdenesMesa->where('estado', 'pendiente')->count(),
+                'en proceso' => $todasLasOrdenesMesa->where('estado', 'en proceso')->count(),
+                'servida' => $todasLasOrdenesMesa->where('estado', 'servida')->count(),
+            ];
+
+            Log::info('Verificación de órdenes después del pago', [
                 'mesa_id' => $mesa->id,
                 'mesa_numero' => $mesa->numero,
                 'ordenes_activas_restantes' => $ordenesActivas,
-                'estado_mesa_actual' => $mesa->estado,
+                'total_ordenes' => $todasLasOrdenesMesa->count(),
+                'estado_por_tipo' => $estadosPorTipo,
                 'todas_ordenes_mesa' => $todasLasOrdenesMesa->toArray(),
             ]);
 
-            // Si NO quedan órdenes activas, liberar la mesa
+            // ===============================================
+            // SI NO HAY ÓRDENES ACTIVAS → LIBERAR LA MESA
+            // ===============================================
             if ($ordenesActivas === 0) {
-                // Usar actualización directa en BD para asegurar que se persista
+                // ACTUALIZAR: estado = disponible, mesero_id = null, total_consumo = 0
                 DB::table('mesas')->where('id', $mesa->id)->update([
                     'estado' => 'disponible',
                     'updated_at' => Carbon::now(),
                 ]);
                 
-                // Nota: NO borramos mesero_id para que el mesero siga viendo la mesa cuando se reabre
+                if (Schema::hasColumn('mesas', 'mesero_id')) {
+                    DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
+                }
                 if (Schema::hasColumn('mesas', 'total_consumo')) {
                     DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
                 }
                 
-                // Recargar la mesa desde BD para confirmar
+                // Recargar la mesa desde BD para confirmar que está liberada
                 $mesaRecargada = Mesa::find($mesa->id);
                 
-                Log::info('Mesa liberada correctamente', [
+                Log::info('✅ MESA LIBERADA COMPLETAMENTE', [
                     'mesa_id' => $mesa->id,
                     'mesa_numero' => $mesa->numero,
                     'estado_nuevo' => 'disponible',
-                    'estado_bd_despues' => $mesaRecargada?->estado,
+                    'estado_bd_after' => $mesaRecargada?->estado,
                     'mesero_id_bd' => $mesaRecargada?->mesero_id,
+                    'total_consumo_bd' => $mesaRecargada?->total_consumo,
+                    'total_ordenes_pagadas' => $estadosPorTipo['pagada'],
                 ]);
             } else {
                 Log::info('Mesa permanece ocupada - aún hay órdenes activas', [
                     'mesa_id' => $mesa->id,
                     'mesa_numero' => $mesa->numero,
                     'ordenes_activas_restantes' => $ordenesActivas,
-                    'todas_ordenes' => DB::table('ordenes')
-                        ->where('mesa_id', $mesa->id)
-                        ->whereNull('deleted_at')
-                        ->pluck('estado', 'id')
-                        ->toArray(),
+                    'estado_por_tipo' => $estadosPorTipo,
                 ]);
             }
 
@@ -573,12 +606,21 @@ class CajaController extends Controller
             }
         });
 
-        // Recargar mesa y verificar estado final
+        // ===============================================
+        // RESPUESTA FINAL: Confirmar estado de la mesa
+        // ===============================================
         $mesaFinal = Mesa::find($mesa->id);
+
+        Log::info('Respuesta final del método pagar()', [
+            'mesa_id' => $mesa->id,
+            'mesa_liberada' => $mesaFinal->estado === 'disponible',
+            'estado_final_bd' => $mesaFinal->estado,
+            'mesero_id_final' => $mesaFinal->mesero_id,
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Pago registrado correctamente.',
+            'message' => 'Pago registrado correctamente. Mesa ' . ($mesaFinal->estado === 'disponible' ? '✅ LIBERADA.' : 'aún tiene órdenes.'),
             'cambio' => number_format($cambio, 2),
             'comprobante_url' => $comprobanteUrl,
             'referencia' => $validated['referencia'] ?? null,
