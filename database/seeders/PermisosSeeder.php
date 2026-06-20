@@ -26,8 +26,7 @@ class PermisosSeeder extends Seeder
                 ['slug' => $rolData['slug']],
                 $rolData
             );
-        }
-
+        
         // 2. DEFINIMOS TODOS LOS PERMISOS DEL RESTAURANTE
         $modulos = [
             'dashboard'   => ['ver'],
