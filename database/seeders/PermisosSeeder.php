@@ -18,10 +18,10 @@ class PermisosSeeder extends Seeder
             ['slug' => 'capitan', 'nombre' => 'Capitán', 'descripcion' => 'Gerente en turno', 'puede_acceder_pos' => true],
             ['slug' => 'mesero', 'nombre' => 'Mesero', 'descripcion' => 'Atiende mesas y crea órdenes', 'puede_acceder_pos' => false],
             ['slug' => 'cocinero', 'nombre' => 'Cocinero', 'descripcion' => 'Cocina y gestiona pedidos', 'puede_acceder_pos' => false],
-            ['slug' => 'cajero', 'nombre' => 'cajero', 'descripcion' => 'Opera caja y cierres', 'puede_acceder_pos' => true],
+            ['slug' => 'cajero', 'nombre' => 'Cajero', 'descripcion' => 'Opera caja y cierres', 'puede_acceder_pos' => true],
         ];
 
-        foreach ($roles as $rolData) {
+        foreach ($roles as $rolData) 
             Rol::updateOrCreate(
                 ['slug' => $rolData['slug']],
                 $rolData
