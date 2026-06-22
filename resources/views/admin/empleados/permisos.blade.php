@@ -51,14 +51,16 @@
 
                                 @foreach(['ver', 'agregar', 'editar', 'eliminar', 'gestionar'] as $accion)
                                     @php
-                                        // Ajuste lógico: En la caja no hay "agregar" ni "gestionar", hay "abrir" y "cerrar"
                                         $accionReal = $accion;
                                         if ($item['slug'] == 'caja' && $accion == 'agregar') $accionReal = 'abrir';
                                         if ($item['slug'] == 'caja' && $accion == 'editar') $accionReal = 'cerrar';
                                         if ($item['slug'] == 'caja' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'inventario' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'empleados' && $accion == 'gestionar') $accionReal = 'reporte';
-                                        if ($item['slug'] == 'alimentos' && $accion == 'gestionar') $accionReal = 'reporte';
+                                        
+                                        // 🌟 CORRECCIÓN: Eliminamos la línea de 'alimentos'.
+                                        // Al no alterar 'productos', cuando $accion sea 'gestionar', se quedará como 'productos.gestionar'.
+                                        
                                         if ($item['slug'] == 'finanzas' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'promociones' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'roles' && $accion == 'gestionar') $accionReal = null;
@@ -67,7 +69,6 @@
                                         $slugBusqueda = $item['slug'] . '.' . $accionReal;
                                         $permisoObj = $permisosBase->where('slug', $slugBusqueda)->first();
                                     @endphp
-
                                     <td class="py-8 px-4">
                                         @if($permisoObj)
                                             <label class="relative flex items-center justify-center cursor-pointer group/check">

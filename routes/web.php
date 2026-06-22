@@ -74,6 +74,9 @@ Route::middleware(['auth'])->group(function () {
 
         // ---> NUEVA RUTA PARA GUARDAR LA MESA <---
         Route::post('/mesa/store', [ComandaController::class, 'storeMesa'])->name('mesa.store');
+        
+        // ---> NUEVA RUTA PARA REABRIR MESA <---
+        Route::post('/mesa/reabrir', [ComandaController::class, 'reabrir'])->name('mesa.reabrir');
 
     });
     
@@ -132,6 +135,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
         Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
         Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
+        Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
         Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');
         Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
     });

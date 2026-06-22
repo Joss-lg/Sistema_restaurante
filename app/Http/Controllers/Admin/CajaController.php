@@ -21,6 +21,7 @@ class CajaController extends Controller
         // IMPORTANTE: Obtener SIEMPRE datos frescos de BD sin caché
         // No usamos cache para asegurar que vemos el estado actual de las mesas
         
+        // Mostrar TODAS las mesas (sin filtro de mesero_id)
         $mesas = Mesa::orderBy('numero', 'asc')
             ->with(['ordenesActivas' => function ($query) {
                 $query->with(['detalles.producto']);
@@ -43,14 +44,11 @@ class CajaController extends Controller
                     'updated_at' => Carbon::now(),
                 ]);
                 
-                if (Schema::hasColumn('mesas', 'mesero_id')) {
-                    DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
-                }
                 if (Schema::hasColumn('mesas', 'total_consumo')) {
                     DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
                 }
                 
-                Log::info('Estado de mesa corregido y liberada en caja.index', [
+                Log::info('Estado de mesa corregido en caja.index', [
                     'mesa_id' => $mesa->id,
                     'mesa_numero' => $mesa->numero,
                     'nuevo_estado' => 'disponible',
@@ -59,7 +57,6 @@ class CajaController extends Controller
                 
                 // Actualizar la mesa en memoria para que refleje el cambio
                 $mesa->estado = 'disponible';
-                $mesa->mesero_id = null;
                 $mesa->total_consumo = 0;
             }
         });
@@ -474,26 +471,8 @@ class CajaController extends Controller
                     'es_orden_dividida' => $esOrdenDividida,
                 ]);
                 
-                // Si es una orden dividida, MARCAR TODAS las órdenes divididas como pagadas
-                if ($esOrdenDividida) {
-                    $actualizadasDivididas = DB::table('ordenes')
-                        ->where('mesa_id', $mesa->id)
-                        ->where('cuenta_dividida', true)
-                        ->where('id', '!=', $orden->id)
-                        ->whereNull('deleted_at')
-                        ->update([
-                            'estado' => 'pagada',
-                            'metodo_pago' => $validated['metodo_pago'],
-                            'propina' => 0,  // Las órdenes divididas "fantasma" no llevan propina
-                            'cerrada_el' => Carbon::now(),
-                        ]);
-                    
-                    Log::info('✅ CUENTAS DIVIDIDAS PAGADAS - Órdenes fantasma actualizadas', [
-                        'mesa_id' => $mesa->id,
-                        'orden_principal_id' => $orden->id,
-                        'ordenes_fantasma_actualizadas' => $actualizadasDivididas,
-                    ]);
-                }
+                // ✅ ELIMINADO: No marcar automáticamente todas las órdenes como pagadas
+                // Solo se marca la orden actual. Las demás órdenes se marcarán cuando se paguen.
             } else {
                 // Marcar TODAS las órdenes activas como pagadas (cuando no se especifica orden_id)
                 $updated = DB::table('ordenes')
@@ -848,6 +827,52 @@ class CajaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al eliminar la mesa: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Liberar una mesa después del cobro
+     */
+    public function liberarMesa(Request $request)
+    {
+        $validated = $request->validate([
+            'mesa_id' => 'required|integer|exists:mesas,id',
+        ]);
+
+        try {
+            $mesa = Mesa::findOrFail($validated['mesa_id']);
+
+            DB::transaction(function () use ($mesa) {
+                // Actualizar mesa a disponible PERO MANTENER EL MESERO ASIGNADO
+                $mesa->update([
+                    'estado' => 'disponible',
+                    // NO limpiar mesero_id - la mesa sigue siendo del mesero
+                    'updated_at' => Carbon::now(),
+                ]);
+
+                Log::info('Mesa liberada manualmente', [
+                    'mesa_id' => $mesa->id,
+                    'mesa_numero' => $mesa->numero,
+                    'mesero_asignado' => $mesa->mesero_id,
+                    'usuario_id' => auth()->id(),
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mesa liberada correctamente.',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al liberar mesa', [
+                'mesa_id' => $validated['mesa_id'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al liberar la mesa: ' . $e->getMessage(),
             ], 500);
         }
     }

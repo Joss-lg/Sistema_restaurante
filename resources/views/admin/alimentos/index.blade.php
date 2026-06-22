@@ -15,8 +15,8 @@
             <p class="text-[var(--text-muted)] mt-1">Gestiona los platillos del restaurante</p>
         </div>
 
-        {{-- 🌟 PERMISO: alimentos.agregar --}}
-        @if(auth()->user()->tienePermiso('alimentos.agregar'))
+        {{-- 🌟 PERMISO: productos.agregar --}}
+        @if(auth()->user()->tienePermiso('productos.agregar'))
             <div class="relative group">
                 <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-150"></div>
                 <button onclick="openModalAlimento()" class="relative flex items-center gap-2.5 bg-[#3B82F6] hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold transition duration-150 shadow-lg shadow-blue-900/20">
@@ -52,8 +52,9 @@
     <div class="glass-card rounded-[2rem] p-6 shadow-xl border border-[var(--border-color)] min-h-[420px]">
         {{-- 🌟 INYECCIÓN DE PERMISOS EN ATRIBUTOS DATA para usarlos en JS --}}
         <div id="categorias-container"
-             data-permiso-editar="{{ auth()->user()->tienePermiso('alimentos.editar') ? 'true' : 'false' }}"
-             data-permiso-eliminar="{{ auth()->user()->tienePermiso('alimentos.eliminar') ? 'true' : 'false' }}">
+             data-permiso-editar="{{ auth()->user()->tienePermiso('productos.editar') ? 'true' : 'false' }}"
+             data-permiso-eliminar="{{ auth()->user()->tienePermiso('productos.eliminar') ? 'true' : 'false' }}"
+             data-permiso-gestionar="{{ auth()->user()->tienePermiso('productos.gestionar') ? 'true' : 'false' }}">
             {{-- Se llena dinámicamente con JavaScript --}}
         </div>
     </div>
@@ -74,6 +75,12 @@
         productosMap: {}, 
         categorias: {}
     };
+
+    // Leer permisos desde los atributos data del contenedor
+    const container = document.getElementById('categorias-container');
+    const tienePermisoEditar = container.dataset.permisoEditar === 'true';
+    const tienePermisoEliminar = container.dataset.permisoEliminar === 'true';
+    const tienePermisoGestionar = container.dataset.permisoGestionar === 'true';
 
     // Carga segura de datos PHP desde Laravel
     const categoriasDisponibles = {!! Illuminate\Support\Js::from($categorias->map(function($c) { return ['id' => $c->id, 'nombre' => $c->nombre]; })) !!};
@@ -166,6 +173,31 @@
             etiquetasMods = `<p class="text-[10px] text-[var(--text-muted)] mt-1 truncate"><i class="fas fa-list-ul mr-1"></i> ${producto.modificadores.map(m => m.nombre).join(', ')}</p>`;
         }
 
+        // Construir botones solo si el usuario tiene permisos
+        let botonesHTML = '';
+        if (tienePermisoEditar) {
+            botonesHTML += `<button class="w-10 h-10 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] hover:border-blue-500/50 hover:text-blue-400 transition flex items-center justify-center shadow-sm" onclick="editarProducto(${producto.id})" title="Editar">
+                <i class="fas fa-edit text-sm"></i>
+            </button>`;
+        }
+        if (tienePermisoEliminar) {
+            botonesHTML += `<button class="w-10 h-10 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition flex items-center justify-center shadow-sm" onclick="eliminarProducto(${producto.id})" title="Eliminar">
+                <i class="fas fa-trash-alt text-sm"></i>
+            </button>`;
+        }
+
+        // Toggle solo si tiene permiso de gestionar
+        let toggleHTML = '';
+        if (tienePermisoGestionar) {
+            toggleHTML = `<button class="w-10 h-5 rounded-full transition ${producto.esta_disponible ? 'bg-blue-600' : 'bg-gray-600'}" onclick="toggleDisponibilidad(${producto.id})" title="Cambiar disponibilidad">
+                <div class="w-3 h-3 bg-white rounded-full transition ${producto.esta_disponible ? 'ml-auto mr-1' : 'ml-1'} mt-1"></div>
+            </button>`;
+        } else {
+            toggleHTML = `<div class="w-10 h-5 rounded-full transition ${producto.esta_disponible ? 'bg-blue-600' : 'bg-gray-600'} opacity-50 cursor-not-allowed">
+                <div class="w-3 h-3 bg-white rounded-full transition ${producto.esta_disponible ? 'ml-auto mr-1' : 'ml-1'} mt-1"></div>
+            </div>`;
+        }
+
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
                 <div class="overflow-hidden pr-2">
@@ -177,22 +209,15 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <button class="w-10 h-10 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] hover:border-blue-500/50 hover:text-blue-400 transition flex items-center justify-center shadow-sm" onclick="editarProducto(${producto.id})">
-                        <i class="fas fa-edit text-sm"></i>
-                    </button>
-                    <button class="w-10 h-10 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition flex items-center justify-center shadow-sm" onclick="eliminarProducto(${producto.id})">
-                        <i class="fas fa-trash-alt text-sm"></i>
-                    </button>
+                    ${botonesHTML}
                 </div>
             </div>
-
+            
             <div class="flex justify-between items-center pt-3 border-t border-[var(--border-color)] mt-3">
                 <span class="text-xl font-black text-[var(--text-color)]">$${parseFloat(producto.precio).toFixed(2)}<span class="text-xs text-[var(--text-muted)] font-medium ml-1 uppercase">MXN</span></span>
                 <div class="flex items-center gap-2">
                     <span class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">${producto.esta_disponible ? 'Activo' : 'Inactivo'}</span>
-                    <button class="w-10 h-5 rounded-full transition ${producto.esta_disponible ? 'bg-blue-600' : 'bg-gray-600'}" onclick="toggleDisponibilidad(${producto.id})">
-                        <div class="w-3 h-3 bg-white rounded-full transition ${producto.esta_disponible ? 'ml-auto mr-1' : 'ml-1'} mt-1"></div>
-                    </button>
+                    ${toggleHTML}
                 </div>
             </div>
         `;

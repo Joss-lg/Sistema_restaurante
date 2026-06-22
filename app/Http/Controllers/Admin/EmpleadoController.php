@@ -19,8 +19,9 @@ class EmpleadoController extends Controller
         // Cargamos los empleados con sus permisos y roles para evitar consultas extra (Eager Loading)
         $empleados = User::with(['permisos', 'rol'])->get(); 
         $permisos = Permiso::all();
-        $roles = Rol::whereIn('slug', ['capitan', 'admin', 'mesero', 'cocinero', 'cajero'])
-            ->orderByRaw("FIELD(slug, 'capitan', 'admin', 'mesero', 'cocinero', 'cajero')")
+        // Solo traer roles que pueden acceder al sistema (pueden_acceder_pos = true)
+        $roles = Rol::where('puede_acceder_pos', true)
+            ->orderBy('nombre')
             ->get();
 
         return view('admin.empleados.index', compact('empleados', 'permisos', 'roles'));

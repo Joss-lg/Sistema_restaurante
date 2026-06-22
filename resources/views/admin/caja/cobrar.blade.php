@@ -299,6 +299,31 @@
     </div>
 </div>
 
+{{-- Modal de Confirmación Liberar Mesa --}}
+<div id="modal-confirmar-liberar" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="bg-gradient-to-br from-[#141417] to-[#0a0a0c] border border-amber-500/20 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div class="flex justify-center mb-6">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/30">
+                <i class="fas fa-door-open text-3xl text-amber-400"></i>
+            </div>
+        </div>
+        
+        <h2 class="text-2xl font-black text-center text-white mb-2">¿Liberar Mesa?</h2>
+        <p class="text-center text-gray-400 text-sm mb-6">
+            ¿Deseas liberar esta mesa? Los datos de la orden se guardarán en el historial.
+        </p>
+        
+        <div class="flex gap-3">
+            <button type="button" id="btn-cancelar-liberar" class="flex-1 py-3 px-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all">
+                Cancelar
+            </button>
+            <button type="button" id="btn-confirmar-liberar" class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-black font-black rounded-2xl transition-all shadow-lg shadow-amber-500/20">
+                <i class="fas fa-check mr-2"></i> Liberar
+            </button>
+        </div>
+    </div>
+</div>
+
 {{-- Modal de Método de Pago --}}
 <div id="modal-metodo" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
     <div class="bg-[#141417] border border-white/10 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200">
@@ -347,9 +372,14 @@
             </div>
         </div>
         
-        <button type="button" id="btn-cerrar-modal-exito" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-black rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
-            Continuar
-        </button>
+        <div class="flex gap-3">
+            <button type="button" id="btn-cerrar-modal-exito" class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-black rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
+                Continuar
+            </button>
+            <button type="button" id="btn-liberar-mesa-modal" class="flex-1 py-3 px-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-black font-black rounded-2xl transition-all shadow-lg shadow-orange-500/20 hidden">
+                <i class="fas fa-door-open mr-2"></i> Liberar Mesa
+            </button>
+        </div>
     </div>
 </div>
 
@@ -699,18 +729,13 @@
                                 siguientePersona.click();
                             }, 1500);
                         } else {
-                            // Si no hay más personas, redirigir automáticamente después de 2 segundos
-                            setTimeout(() => {
-                                window.location.href = '{{ route("admin.caja.index") }}';
-                            }, 2000);
+                            // Si no hay más personas, mostrar botón "Liberar Mesa"
+                            mostrarBotonLiberarMesa();
                         }
                     } else {
-                        // MESA NORMAL: Redirigir automáticamente después de 1.5 segundos
+                        // MESA NORMAL: Mostrar botón "Liberar Mesa"
                         showSuccessModal(1, totalPagar, '$0.00');
-                        
-                        setTimeout(() => {
-                            window.location.href = '{{ route("admin.caja.index") }}';
-                        }, 1500);
+                        mostrarBotonLiberarMesa();
                     }
                 } else {
                     console.error('Error en respuesta:', data.message);
@@ -769,6 +794,107 @@
                         modalExito.classList.add('hidden');
                     }
                 };
+            }
+        }
+        
+        // ========== MOSTRAR BOTÓN LIBERAR MESA ==========
+        function mostrarBotonLiberarMesa() {
+            const btnContinuar = document.getElementById('btn-cerrar-modal-exito');
+            const btnLiberar = document.getElementById('btn-liberar-mesa-modal');
+            
+            if (btnContinuar) {
+                btnContinuar.classList.add('hidden');
+            }
+            if (btnLiberar) {
+                btnLiberar.classList.remove('hidden');
+                // Remover eventos anteriores y agregar nuevo
+                btnLiberar.replaceWith(btnLiberar.cloneNode(true));
+                const btnLiberarNuevo = document.getElementById('btn-liberar-mesa-modal');
+                if (btnLiberarNuevo) {
+                    btnLiberarNuevo.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        liberarMesa();
+                    });
+                }
+            }
+        }
+        
+        // ========== LIBERAR MESA ==========
+        function liberarMesa() {
+            const mesaId = document.getElementById('mesa-id').value;
+            const modalExito = document.getElementById('modal-exito');
+            const modalConfirmar = document.getElementById('modal-confirmar-liberar');
+            const btnConfirmar = document.getElementById('btn-confirmar-liberar');
+            const btnCancelar = document.getElementById('btn-cancelar-liberar');
+            
+            // Cerrar modal de éxito
+            if (modalExito) {
+                modalExito.classList.add('hidden');
+            }
+            
+            // Mostrar modal de confirmación
+            if (modalConfirmar) {
+                modalConfirmar.classList.remove('hidden');
+            }
+            
+            // Botón cancelar - Remover eventos anteriores
+            if (btnCancelar) {
+                btnCancelar.replaceWith(btnCancelar.cloneNode(true));
+                const btnCancelarNuevo = document.getElementById('btn-cancelar-liberar');
+                if (btnCancelarNuevo) {
+                    btnCancelarNuevo.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const modal = document.getElementById('modal-confirmar-liberar');
+                        if (modal) {
+                            modal.classList.add('hidden');
+                        }
+                        // Volver a mostrar modal de éxito
+                        if (modalExito) {
+                            modalExito.classList.remove('hidden');
+                        }
+                    });
+                }
+            }
+            
+            // Botón confirmar - Remover eventos anteriores
+            if (btnConfirmar) {
+                btnConfirmar.replaceWith(btnConfirmar.cloneNode(true));
+                const btnConfirmarNuevo = document.getElementById('btn-confirmar-liberar');
+                if (btnConfirmarNuevo) {
+                    btnConfirmarNuevo.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        fetch('{{ route("admin.caja.api.liberar-mesa") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ mesa_id: mesaId })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error en la respuesta del servidor');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                showNotification('Mesa liberada correctamente', 'success');
+                                setTimeout(() => {
+                                    window.location.href = '{{ route("admin.caja.index") }}';
+                                }, 1000);
+                            } else {
+                                showNotification(data.message || 'Error liberando mesa', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showNotification('Error de conexión al liberar mesa', 'error');
+                        });
+                    });
+                }
             }
         }
         

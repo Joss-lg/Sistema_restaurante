@@ -34,8 +34,8 @@
         <div class="bg-[var(--bg-color)] rounded-[24px] p-8 xl:w-1/3 flex flex-col justify-center relative border border-[var(--border-color)]">
             <div class="flex items-center gap-3 mb-2">
                 <span class="relative flex h-4 w-4">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-4 w-4 bg-blue-500"></span>
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-4 w-4 bg-blue-500"></span>
                 </span>
                 <h2 class="text-xs font-black uppercase tracking-[0.4em] text-[var(--text-muted)]">Fuego Abierto</h2>
             </div>
@@ -77,13 +77,13 @@
     @if($ordenes->isEmpty())
         <div class="glass-card rounded-[32px] p-20 text-center border border-[var(--border-color)] shadow-2xl flex flex-col items-center justify-center mt-8">
             <div class="relative mb-6">
-                <div class="absolute inset-0 bg-blue-500/20 blur-[40px] rounded-full"></div>
+                <div class="absolute inset-0 bg-emerald-500/20 blur-[40px] rounded-full"></div>
                 <div class="w-24 h-24 bg-gradient-to-br from-[var(--card-color)] to-[var(--input-bg)] rounded-3xl flex items-center justify-center text-[var(--text-muted)] border border-[var(--border-color)] shadow-inner relative z-10">
-                    <i class="fas fa-check-double text-4xl text-blue-500"></i>
+                    <i class="fas fa-check-double text-4xl text-emerald-500"></i>
                 </div>
             </div>
-            <h2 class="text-3xl font-black text-[var(--text-color)] tracking-tight">Cocina Despejada</h2>
-            <p class="mt-3 text-base text-[var(--text-muted)] font-medium max-w-md">No hay tickets pendientes. Buen trabajo equipo. Esperando órdenes del salón.</p>
+            <h2 class="text-3xl font-black text-[var(--text-color)] tracking-tight">¡Cocina Despejada!</h2>
+            <p class="mt-3 text-base text-[var(--text-muted)] font-medium max-w-md">No hay tickets con productos pendientes. Los meseros aún no han agregado productos a sus órdenes.</p>
         </div>
     @else
         <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 mt-8 items-start">
@@ -104,25 +104,25 @@
                     <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b {{ $kds['bgGlow'] }} to-transparent pointer-events-none"></div>
 
                     {{-- HEADER DEL TICKET (Estilo Recibo Térmico) --}}
-                    <div class="p-5 pb-4">
-                        <div class="flex justify-between items-start mb-3 relative z-10">
-                            <div>
-                                <h3 class="text-3xl font-black text-[var(--text-color)] tracking-tighter">Mesa {{ $orden->mesa->numero ?? '?' }}</h3>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="font-mono text-[11px] font-bold text-[var(--text-muted)] bg-[var(--input-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">#{{ str_pad($orden->numero_orden, 5, '0', STR_PAD_LEFT) }}</span>
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]"><i class="fas fa-user-tag text-[9px] mr-1"></i>{{ $orden->mesero->nombre ?? 'N/A' }}</span>
+                    <div class="p-5 pb-4 relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h3 class="text-4xl font-black text-[var(--text-color)] tracking-tighter">Mesa {{ $orden->mesa->numero ?? '?' }}</h3>
+                                    <span class="inline-block px-3 py-1 rounded-full {{ $kds['badgeBg'] }} border text-[10px] font-black uppercase tracking-widest {{ $kds['textColor'] }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ str_replace('text-', 'bg-', $kds['textColor']) }} {{ $orden->estado === 'pendiente' ? 'animate-pulse inline-block mr-1.5' : 'inline-block mr-1.5' }}"></span>
+                                        {{ $orden->estado }}
+                                    </span>
                                 </div>
-                            </div>
-                            
-                            {{-- Cronómetro KDS --}}
-                            <div class="flex flex-col items-end">
-                                <span class="inline-flex items-center gap-1.5 rounded-full {{ $kds['badgeBg'] }} border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.2em] {{ $kds['textColor'] }}">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ str_replace('text-', 'bg-', $kds['textColor']) }} {{ $orden->estado === 'pendiente' ? 'animate-pulse' : '' }}"></span>
-                                    {{ $orden->estado }}
-                                </span>
-                                <span class="text-[11px] font-black mt-2 {{ $orden->estado === 'pendiente' ? 'text-red-400 animate-pulse' : 'text-[var(--text-muted)]' }}">
-                                    <i class="fas fa-stopwatch"></i> {{ $orden->abierta_el ? $orden->abierta_el->diffForHumans() : '0m' }}
-                                </span>
+                                <div class="flex flex-wrap items-center gap-3 mt-2 text-[12px]">
+                                    <span class="font-mono font-bold text-[var(--text-color)] bg-[var(--input-bg)] px-2.5 py-1 rounded-md border border-[var(--border-color)]">Pedido #{{ str_pad($orden->numero_orden, 5, '0', STR_PAD_LEFT) }}</span>
+                                    <span class="text-[var(--text-muted)]">
+                                        <i class="fas fa-user-tag text-[10px] mr-1.5"></i>{{ $orden->mesero->nombre ?? 'N/A' }}
+                                    </span>
+                                    <span class="text-[var(--text-muted)]">
+                                        <i class="fas fa-clock text-[10px] mr-1.5"></i>{{ $orden->abierta_el ? $orden->abierta_el->diffForHumans() : '0m' }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -165,15 +165,25 @@
                     </div>
 
                     {{-- FOOTER / ACCIÓN KDS --}}
-                    <div class="p-4 bg-[var(--bg-color)] border-t border-[var(--border-color)]">
-                        <form action="{{ route('admin.cocina.orden.estado', $orden->id) }}" method="POST">
+                    <div class="p-4 bg-[var(--bg-color)] border-t border-[var(--border-color)] relative z-20">
+                        <form action="{{ route('admin.cocina.orden.estado', $orden->id) }}" method="POST" class="w-full">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="estado" value="{{ $orden->estado === 'pendiente' ? 'en proceso' : 'servida' }}">
                             
-                            <button type="submit" class="w-full flex items-center justify-center gap-3 rounded-xl py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all {{ $kds['btn'] }}" {{ $orden->estado === 'servida' ? 'disabled' : '' }}>
-                                <i class="fas {{ $kds['icon'] }} text-sm"></i> {{ $kds['btnText'] }}
-                            </button>
+                            @if($orden->estado === 'pendiente')
+                                <button type="submit" class="w-full flex items-center justify-center gap-3 rounded-lg py-3 px-4 text-[12px] font-black uppercase tracking-[0.2em] text-white bg-orange-500 hover:bg-orange-400 shadow-lg hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] active:scale-95 transition-all duration-200">
+                                    <i class="fas fa-fire text-base"></i> INICIAR PREPARACIÓN
+                                </button>
+                            @elseif($orden->estado === 'en proceso')
+                                <button type="submit" class="w-full flex items-center justify-center gap-3 rounded-lg py-3 px-4 text-[12px] font-black uppercase tracking-[0.2em] text-white bg-emerald-500 hover:bg-emerald-400 shadow-lg hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] active:scale-95 transition-all duration-200">
+                                    <i class="fas fa-check-circle text-base"></i> MARCAR COMO LISTA
+                                </button>
+                            @else
+                                <button type="button" disabled class="w-full flex items-center justify-center gap-3 rounded-lg py-3 px-4 text-[12px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] bg-[var(--input-bg)] cursor-not-allowed opacity-50">
+                                    <i class="fas fa-check-double text-base"></i> ENTREGADA
+                                </button>
+                            @endif
                         </form>
                     </div>
 

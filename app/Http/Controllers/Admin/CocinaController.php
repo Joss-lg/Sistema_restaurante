@@ -10,12 +10,17 @@ class CocinaController extends Controller
 {
     public function index()
     {
+        // SOLO mostrar órdenes que tengan productos (tienen detalles)
+        // Esto excluye las órdenes vacías creadas al reabrir una mesa
         $ordenes = Orden::with(['mesa', 'mesero', 'detalles.producto'])
             ->whereIn('estado', ['pendiente', 'en proceso'])
+            ->whereHas('detalles') // Solo órdenes que tienen detalles (productos)
             ->orderBy('abierta_el', 'asc')
             ->get();
 
-        $estadoCounts = Orden::whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+        // Contar órdenes incluyendo SOLO las que tienen productos
+        $estadoCounts = Orden::whereHas('detalles')
+            ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
             ->selectRaw('estado, count(*) as total')
             ->groupBy('estado')
             ->pluck('total', 'estado');

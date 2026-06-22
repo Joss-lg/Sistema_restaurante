@@ -36,11 +36,12 @@
         </div>
 
         {{-- CONTENEDOR DE TARJETAS (Bento Grid Limpio) --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-hidden">
             
-            {{-- TARJETA PRINCIPAL: ABRIR MESA --}}
-            <div class="lg:col-span-2">
-                <button onclick="abrirModalMesa()" class="w-full h-full min-h-[220px] rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-8 flex flex-col justify-center items-center text-center transition-all duration-300 hover:border-[#3B82F6]/40 hover:bg-[var(--input-bg)] outline-none group">
+            {{-- TARJETA PRINCIPAL: ABRIR MESA + MESAS DISPONIBLES --}}
+            <div class="lg:col-span-2 flex flex-col gap-6 min-h-0">
+                {{-- Botón Abrir Nueva Mesa --}}
+                <button onclick="abrirModalMesa()" class="w-full rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-8 flex flex-col justify-center items-center text-center transition-all duration-300 hover:border-[#3B82F6]/40 hover:bg-[var(--input-bg)] outline-none group">
                     
                     <div class="w-14 h-14 rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center mb-5 group-hover:bg-[#3B82F6] group-hover:border-[#3B82F6] transition-colors duration-300">
                         <i class="fas fa-plus text-lg text-[var(--text-main)] group-hover:text-white transition-colors duration-300"></i>
@@ -49,6 +50,26 @@
                     <h2 class="text-xl font-bold text-[var(--text-main)] tracking-tight mb-1">Abrir Nueva Mesa</h2>
                     <p class="text-xs text-[var(--text-muted)]">Asignar comensales y comenzar el servicio</p>
                 </button>
+
+                {{-- Mesas Disponibles (Liberadas) --}}
+                <div class="flex-1 rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 flex flex-col min-h-0">
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--border-color)]">
+                        <div class="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                            <i class="fas fa-history text-amber-500 text-[11px]"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Mesas Disponibles</h3>
+                            <p class="text-[10px] text-[var(--text-muted)]/60">Para reabrir</p>
+                        </div>
+                    </div>
+                    
+                    {{-- Contenedor de mesas disponibles (scroll) --}}
+                    <div id="mesasDisponiblesContainer" class="flex-1 overflow-y-auto flex flex-col gap-3 min-h-0 hide-scroll">
+                        <div class="flex items-center justify-center h-24 text-[var(--text-muted)] text-[12px]">
+                            <i class="fas fa-loader-o animate-spin mr-2"></i> Cargando...
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- MÉTRICAS LATERALES --}}
