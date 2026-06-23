@@ -234,22 +234,17 @@
             <input id="metodo-pago" type="hidden" value="Efectivo">
             <div class="flex-1 space-y-6 overflow-y-auto">
 
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div>
-                        <p class="text-gray-400 uppercase tracking-[0.35em] text-[10px] font-black mb-2">Método de pago</p>
-                        <span id="metodo-pago-label" class="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-white font-black uppercase tracking-[0.25em]">
-                            <i class="fas fa-money-bill-wave"></i> Efectivo
-                        </span>
-                    </div>
-                    <div class="flex gap-2 flex-wrap">
-                        <button id="btn-abrir-modal-promos" type="button" class="bg-purple-500 hover:bg-purple-400 text-white font-black py-3 px-4 rounded-2xl uppercase text-xs tracking-[0.28em] transition-all shadow-lg shadow-purple-500/20">
-                            <i class="fas fa-tag mr-2"></i>Promociones
+                <div class="flex items-center justify-center">
+                    <div class="text-center">
+                        <p class="text-gray-400 uppercase tracking-[0.35em] text-[10px] font-black mb-3">Método de pago</p>
+                        <button id="btn-abrir-modal-metodo" type="button" class="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 px-6 py-3 text-blue-300 font-black uppercase tracking-[0.25em] border border-blue-500/50 hover:from-blue-500/30 hover:to-cyan-500/30 hover:border-blue-400 transition-all shadow-lg shadow-blue-500/20">
+                            <i class="fas fa-money-bill-wave text-lg"></i> <span id="metodo-pago-label" class="text-base">Efectivo</span>
                         </button>
                     </div>
                 </div>
 
                 {{-- Sección de Promociones --}}
-                <div class="bg-[#141417] border border-purple-500/30 p-6 rounded-[2rem] shadow-lg">
+                <div class="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 p-6 rounded-[2rem] shadow-lg">
                     <div class="flex items-center justify-between mb-4">
                         <div>
                             <p class="text-gray-400 uppercase tracking-[0.35em] text-[10px] font-black mb-2">Promociones Disponibles</p>
@@ -258,7 +253,7 @@
                             </span>
                         </div>
                         <button id="btn-agregar-promo" type="button" class="bg-purple-500 hover:bg-purple-400 text-white font-black py-3 px-4 rounded-2xl uppercase text-xs tracking-[0.28em] transition-all shadow-lg shadow-purple-500/20">
-                            <i class="fas fa-gift mr-2"></i> Agregar
+                            <i class="fas fa-gift mr-2"></i> Aplicar
                         </button>
                     </div>
                     <div id="promo-aplicada" class="hidden rounded-2xl bg-purple-500/10 border border-purple-500/30 p-4">
@@ -471,7 +466,6 @@
         
         let promocionActual = null;
         let descuentoActual = 0;
-        let subtotalSinDescuento = 0;
 
         // Total original de toda la mesa (para cuentas divididas)
         let totalMesaCompleta = parseFloat('{{ number_format($totalPagar, 2, ".", "") }}');
@@ -974,6 +968,57 @@
             console.log(`[${type.toUpperCase()}] ${message}`);
         }
 
+        // ========== SELECTOR DE MÉTODO DE PAGO ==========
+        const btnCerrarModal = document.getElementById('btn-cerrar-modal-metodo');
+        const modalMetodo = document.getElementById('modal-metodo');
+        const metodoButtons = document.querySelectorAll('.metodo-btn');
+        
+        if (btnAbrirModal) {
+            btnAbrirModal.addEventListener('click', function(e) {
+                e.preventDefault();
+                modalMetodo.classList.remove('hidden');
+            });
+        }
+        
+        if (btnCerrarModal) {
+            btnCerrarModal.addEventListener('click', function(e) {
+                e.preventDefault();
+                modalMetodo.classList.add('hidden');
+            });
+        }
+        
+        metodoButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const metodo = this.getAttribute('data-metodo');
+                
+                metodoPagoInput.value = metodo;
+                metodoPagoLabel.textContent = metodo;
+                
+                // Mostrar/ocultar secciones según método
+                // El teclado SIEMPRE debe estar visible, sin importar el método
+                cashSection.classList.remove('hidden');
+                
+                // La sección de datos adicionales se muestra solo para métodos no-efectivo
+                if (metodo === 'Efectivo') {
+                    nonCashSection.classList.add('hidden');
+                } else {
+                    nonCashSection.classList.remove('hidden');
+                }
+                
+                modalMetodo.classList.add('hidden');
+            });
+        });
+
+        // Cerrar modal al hacer clic fuera
+        modalMetodo.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
         // ========== FUNCIONES DE PROMOCIONES ==========
         function cargarPromociones() {
             fetch('/admin/caja/api/promociones-activas')
@@ -1061,64 +1106,7 @@
             recalcularTotal();
         }
 
-        // ========== SELECTOR DE MÉTODO DE PAGO ==========
-        const btnCerrarModal = document.getElementById('btn-cerrar-modal-metodo');
-        const modalMetodo = document.getElementById('modal-metodo');
-        const metodoButtons = document.querySelectorAll('.metodo-btn');
-        
-        if (btnAbrirModal) {
-            btnAbrirModal.addEventListener('click', function(e) {
-                e.preventDefault();
-                modalMetodo.classList.remove('hidden');
-            });
-        }
-        
-        if (btnCerrarModal) {
-            btnCerrarModal.addEventListener('click', function(e) {
-                e.preventDefault();
-                modalMetodo.classList.add('hidden');
-            });
-        }
-        
-        metodoButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const metodo = this.getAttribute('data-metodo');
-                
-                metodoPagoInput.value = metodo;
-                metodoPagoLabel.textContent = metodo;
-                
-                // Mostrar/ocultar secciones según método
-                if (metodo === 'Efectivo') {
-                    cashSection.classList.remove('hidden');
-                    nonCashSection.classList.add('hidden');
-                } else {
-                    cashSection.classList.add('hidden');
-                    nonCashSection.classList.remove('hidden');
-                }
-                
-                modalMetodo.classList.add('hidden');
-            });
-        });
-
-        // Cerrar modal al hacer clic fuera
-        modalMetodo.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.add('hidden');
-            }
-        });
-
         // ========== EVENT LISTENERS DE PROMOCIONES ==========
-        if (btnAbrirModalPromos) {
-            btnAbrirModalPromos.addEventListener('click', function(e) {
-                e.preventDefault();
-                cargarPromociones();
-                modalPromociones.classList.remove('hidden');
-            });
-        }
-
         if (btnAgregarPromo) {
             btnAgregarPromo.addEventListener('click', function(e) {
                 e.preventDefault();
