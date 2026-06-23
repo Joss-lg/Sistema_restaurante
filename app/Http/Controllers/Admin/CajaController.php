@@ -314,7 +314,7 @@ class CajaController extends Controller
                 'mesa_id' => 'required|integer|exists:mesas,id',
                 'orden_id' => 'nullable|integer|exists:ordenes,id',
                 'efectivo' => 'required|numeric|min:0',
-                'metodo_pago' => 'required|string|in:Efectivo,Transferencia,Tarjeta',
+                'metodo_pago' => 'required|string|in:Efectivo,Transferencia,Tarjeta,Tarjeta Débito',
                 'referencia' => 'nullable|string|max:191',
                 'iva' => 'nullable|numeric|min:0',
                 'propina' => 'nullable|numeric|min:0',
@@ -613,6 +613,33 @@ class CajaController extends Controller
     {
         $prefijo = $metodo === 'Transferencia' ? 'TRF' : 'TAR';
         return sprintf('%s-%s-%s', $prefijo, now()->format('YmdHis'), rand(100, 999));
+    }
+
+    /**
+     * Obtener promociones activas para mostrar en caja
+     */
+    public function getPromocionesActivas(): JsonResponse
+    {
+        try {
+            $promociones = DB::table('promociones')
+                ->where('esta_activa', true)
+                ->select('id', 'nombre', 'descripcion', 'tipo_promocion', 'valor_descuento')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'promociones' => $promociones,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener promociones activas', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar promociones',
+            ], 500);
+        }
     }
 
     public function getEstadisticas(): JsonResponse

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\CajaController;
 use App\Http\Controllers\Admin\CocinaController;
 use App\Http\Controllers\Admin\MesaController;
+use App\Http\Controllers\Admin\PlanoEspacialController;
 use App\Http\Controllers\ComandaController;
 use App\Http\Controllers\Admin\PromocionController;
 use App\Http\Controllers\Admin\RolController;
@@ -133,6 +134,7 @@ Route::middleware(['auth'])->group(function () {
         // Rutas de API y Store
         Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
         Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
+        Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
         Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
         Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
         Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
@@ -155,6 +157,22 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/api/{id}/estado', [MesaController::class, 'cambiarEstado'])->name('api.estado');
         Route::put('/api/{id}', [MesaController::class, 'update'])->name('api.update');
         Route::delete('/api/{id}', [MesaController::class, 'destroy'])->name('api.destroy');
+    });
+
+    // ==========================================
+    // MÓDULO DE PLANO ESPACIAL
+    // ==========================================
+    Route::prefix('admin/plano-espacial')->name('admin.plano-espacial.')->group(function () {
+        Route::get('/', [PlanoEspacialController::class, 'index'])->name('index');
+        Route::get('/api/mesas', [PlanoEspacialController::class, 'getMesas'])->name('api.mesas');
+        Route::get('/api/mesas/{id}', [PlanoEspacialController::class, 'getMesa'])->name('api.mesa');
+        Route::post('/api/guardar', [PlanoEspacialController::class, 'guardarPlano'])->name('api.guardar');
+        Route::post('/api/crear', [PlanoEspacialController::class, 'crearMesa'])->name('api.crear');
+        Route::post('/api/store', [PlanoEspacialController::class, 'store'])->name('api.store');
+        Route::delete('/api/eliminar/{id}', [PlanoEspacialController::class, 'eliminarDelPlano'])->name('api.eliminar');
+        
+        // Test directo - eliminar después
+        Route::get('/test-crear/{numero}/{capacidad}', [PlanoEspacialController::class, 'testCrearMesa'])->name('test.crear');
     });
 
     Route::prefix('admin/cocina')->name('admin.cocina.')->group(function () {

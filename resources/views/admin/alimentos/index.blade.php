@@ -6,55 +6,64 @@
 @section('header-subtitle', 'Administra el menú y las recetas de los platillos')
 
 @section('content')
-<div class="p-6 lg:p-8 xl:p-10 max-w-[1400px] mx-auto w-full space-y-6 flex-1 flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+<div class="p-6 lg:p-8 xl:p-10 max-w-[1400px] mx-auto w-full space-y-8 flex-1 flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
-    {{-- CABECERA Y BOTÓN --}}
+    {{-- CABECERA Y BOTÓN (Diseño Limpio Apple/Stripe) --}}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-            <h1 class="text-3xl font-black text-[var(--text-color)] tracking-tight">Menú de Alimentos</h1>
-            <p class="text-[var(--text-muted)] mt-1">Gestiona los platillos del restaurante</p>
+            <h1 class="text-3xl font-black tracking-tight text-[var(--text-color)]">Menú de Alimentos</h1>
+            <p class="text-sm font-medium text-[var(--text-muted)] mt-1">Gestiona los platillos del restaurante</p>
         </div>
 
         {{-- 🌟 PERMISO: productos.agregar --}}
         @if(auth()->user()->tienePermiso('productos.agregar'))
-            <div class="relative group">
-                <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-150"></div>
-                <button onclick="openModalAlimento()" class="relative flex items-center gap-2.5 bg-[#3B82F6] hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold transition duration-150 shadow-lg shadow-blue-900/20">
-                    <i class="fas fa-plus text-sm"></i>
-                    <span>Agregar Platillo</span>
-                </button>
-            </div>
+            <button onclick="openModalAlimento()" class="flex items-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
+                <i class="fas fa-plus text-[12px]"></i>
+                <span>Agregar Platillo</span>
+            </button>
         @endif
     </div>
 
     {{-- CARDS DE ESTADÍSTICAS --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="glass-card rounded-[1.75rem] p-6 shadow-xl border border-[var(--border-color)] flex flex-col justify-between min-h-[140px] relative overflow-hidden group">
-            <div class="absolute right-5 top-5 text-blue-900/20 text-4xl group-hover:scale-110 transition-transform"><i class="fas fa-utensils"></i></div>
-            <span class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest">Total Platillos</span>
-            <span class="text-5xl font-black text-blue-500 tracking-tighter" id="stat-total">0</span>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Total Platillos</span>
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                    <i class="fas fa-utensils text-sm"></i>
+                </div>
+            </div>
+            <span class="text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-total">0</span>
         </div>
 
-        <div class="glass-card rounded-[1.75rem] p-6 shadow-xl border border-[var(--border-color)] flex flex-col justify-between min-h-[140px] relative overflow-hidden group">
-            <div class="absolute right-5 top-5 text-green-900/20 text-4xl group-hover:scale-110 transition-transform"><i class="fas fa-check-circle"></i></div>
-            <span class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest">Disponibles</span>
-            <span class="text-5xl font-black text-green-500 tracking-tighter" id="stat-disponibles">0</span>
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Disponibles</span>
+                <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
+                    <i class="fas fa-check text-sm"></i>
+                </div>
+            </div>
+            <span class="text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-disponibles">0</span>
         </div>
 
-        <div class="glass-card rounded-[1.75rem] p-6 shadow-xl border border-[var(--border-color)] flex flex-col justify-between min-h-[140px] relative overflow-hidden group">
-            <div class="absolute right-5 top-5 text-purple-900/20 text-4xl group-hover:scale-110 transition-transform"><i class="fas fa-tags"></i></div>
-            <span class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest">Categorías</span>
-            <span class="text-5xl font-black text-purple-500 tracking-tighter" id="stat-categorias">0</span>
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Categorías</span>
+                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+                    <i class="fas fa-tags text-sm"></i>
+                </div>
+            </div>
+            <span class="text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-categorias">0</span>
         </div>
     </div>
 
     {{-- LISTADO DE PLATILLOS --}}
-    <div class="glass-card rounded-[2rem] p-6 shadow-xl border border-[var(--border-color)] min-h-[420px]">
-        {{-- 🌟 INYECCIÓN DE PERMISOS EN ATRIBUTOS DATA para usarlos en JS --}}
-        <div id="categorias-container"
+    <div class="bg-[var(--bg-panel)] rounded-[24px] p-2 md:p-6 shadow-sm border border-[var(--border-color)] min-h-[420px]">
+        {{-- 🌟 INYECCIÓN DE PERMISOS CORREGIDA --}}
+        <div id="categorias-container" class="space-y-6"
              data-permiso-editar="{{ auth()->user()->tienePermiso('productos.editar') ? 'true' : 'false' }}"
              data-permiso-eliminar="{{ auth()->user()->tienePermiso('productos.eliminar') ? 'true' : 'false' }}"
-             data-permiso-gestionar="{{ auth()->user()->tienePermiso('productos.gestionar') ? 'true' : 'false' }}">
+             data-permiso-gestionar="{{ auth()->user()->tienePermiso('productos.reporte') ? 'true' : 'false' }}">
             {{-- Se llena dinámicamente con JavaScript --}}
         </div>
     </div>
@@ -76,26 +85,20 @@
         categorias: {}
     };
 
-    // Leer permisos desde los atributos data del contenedor
     const container = document.getElementById('categorias-container');
     const tienePermisoEditar = container.dataset.permisoEditar === 'true';
     const tienePermisoEliminar = container.dataset.permisoEliminar === 'true';
     const tienePermisoGestionar = container.dataset.permisoGestionar === 'true';
 
-    // Carga segura de datos PHP desde Laravel
     const categoriasDisponibles = {!! Illuminate\Support\Js::from($categorias->map(function($c) { return ['id' => $c->id, 'nombre' => $c->nombre]; })) !!};
     const insumosDisponibles = {!! Illuminate\Support\Js::from($insumosDisponibles->map(function($i) { return ['id' => $i->id, 'nombre' => $i->nombre, 'unidad_medida' => $i->unidad_medida, 'stock_actual' => $i->stock_actual]; })) !!};
 
-    // Inicialización de la vista
     document.addEventListener('DOMContentLoaded', function() {
         cargarProductos();
         cargarEstadisticas();
         setInterval(cargarEstadisticas, 10000);
     });
 
-    // =========================================================================
-    // CARGA DE DATOS DESDE LA API
-    // =========================================================================
     function cargarProductos() {
         fetch('/admin/alimentos/api/productos')
             .then(response => response.json())
@@ -124,35 +127,35 @@
     }
 
     // =========================================================================
-    // RENDERIZADO DE LA INTERFAZ (CARDS)
+    // RENDERIZADO DE LA INTERFAZ
     // =========================================================================
     function renderizarProductos() {
         const container = document.getElementById('categorias-container');
         container.innerHTML = '';
 
         if (Object.keys(estadoGlobal.productos).length === 0) {
-            container.innerHTML = '<p class="text-center text-[var(--text-muted)] py-12 font-bold">No hay platillos registrados aún.</p>';
+            container.innerHTML = '<p class="text-center text-[var(--text-muted)] py-12 font-bold text-sm">No hay platillos registrados aún.</p>';
             return;
         }
 
         Object.keys(estadoGlobal.productos).forEach(categoriaNombre => {
             const productos = estadoGlobal.productos[categoriaNombre];
             const seccion = document.createElement('div');
-            seccion.className = 'mb-12';
+            seccion.className = 'mb-8 bg-[var(--bg-color)] rounded-[20px] p-4 border border-[var(--border-color)]';
             
             const icono = obtenerIconoCategoria(categoriaNombre);
             
             seccion.innerHTML = `
-                <div class="flex items-center gap-4 mb-6 border-b border-gray-800 pb-4">
-                    <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-[#3B82F6] text-2xl border border-[#3B82F6]/20">
-                        <i class="${icono}"></i>
+                <div class="flex items-center gap-4 mb-5 border-b border-[var(--border-color)] pb-4 px-2">
+                    <div class="w-10 h-10 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl flex items-center justify-center text-[var(--text-color)] shadow-sm">
+                        <i class="${icono} text-sm"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold text-[var(--text-color)]">${categoriaNombre}</h2>
-                        <p class="text-xs text-[var(--text-muted)] font-bold uppercase tracking-widest">${productos.length} PLATILLO${productos.length !== 1 ? 'S' : ''} REGISTRADO${productos.length !== 1 ? 'S' : ''}</p>
+                        <h2 class="text-lg font-black text-[var(--text-color)] tracking-tight uppercase">${categoriaNombre}</h2>
+                        <p class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">${productos.length} Platillo${productos.length !== 1 ? 's' : ''}</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6" id="grid-${categoriaNombre.replace(/\s+/g, '-')}"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="grid-${categoriaNombre.replace(/\s+/g, '-')}"></div>
             `;
             
             container.appendChild(seccion);
@@ -166,59 +169,55 @@
 
     function crearCardProducto(producto) {
         const card = document.createElement('div');
-        card.className = 'glass-card rounded-3xl p-5 border border-[var(--border-color)] hover:border-[var(--text-muted)] transition-all group';
+        card.className = 'bg-[var(--bg-panel)] rounded-[16px] p-5 border border-[var(--border-color)] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group flex flex-col relative';
         
         let etiquetasMods = '';
         if(producto.modificadores && producto.modificadores.length > 0) {
-            etiquetasMods = `<p class="text-[10px] text-[var(--text-muted)] mt-1 truncate"><i class="fas fa-list-ul mr-1"></i> ${producto.modificadores.map(m => m.nombre).join(', ')}</p>`;
+            etiquetasMods = `<p class="text-[10px] text-[var(--text-muted)] mt-1.5 truncate"><i class="fas fa-list-ul mr-1 opacity-70"></i> ${producto.modificadores.map(m => m.nombre).join(', ')}</p>`;
         }
 
-        // Construir botones solo si el usuario tiene permisos
         let botonesHTML = '';
         if (tienePermisoEditar) {
-            botonesHTML += `<button class="w-10 h-10 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-muted)] hover:border-blue-500/50 hover:text-blue-400 transition flex items-center justify-center shadow-sm" onclick="editarProducto(${producto.id})" title="Editar">
-                <i class="fas fa-edit text-sm"></i>
+            botonesHTML += `<button class="w-8 h-8 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-color)] flex items-center justify-center transition" onclick="editarProducto(${producto.id})" title="Editar">
+                <i class="fas fa-pen text-[11px]"></i>
             </button>`;
         }
         if (tienePermisoEliminar) {
-            botonesHTML += `<button class="w-10 h-10 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition flex items-center justify-center shadow-sm" onclick="eliminarProducto(${producto.id})" title="Eliminar">
-                <i class="fas fa-trash-alt text-sm"></i>
+            botonesHTML += `<button class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition" onclick="eliminarProducto(${producto.id})" title="Eliminar">
+                <i class="fas fa-trash text-[11px]"></i>
             </button>`;
         }
 
-        // Toggle solo si tiene permiso de gestionar
+        // Toggle Switch estilo iOS (Evaluará correctamente gracias al cambio del data-attribute)
         let toggleHTML = '';
         if (tienePermisoGestionar) {
-            toggleHTML = `<button class="w-10 h-5 rounded-full transition ${producto.esta_disponible ? 'bg-blue-600' : 'bg-gray-600'}" onclick="toggleDisponibilidad(${producto.id})" title="Cambiar disponibilidad">
-                <div class="w-3 h-3 bg-white rounded-full transition ${producto.esta_disponible ? 'ml-auto mr-1' : 'ml-1'} mt-1"></div>
+            toggleHTML = `<button class="w-9 h-5 rounded-full transition-colors duration-300 relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'}" onclick="toggleDisponibilidad(${producto.id})" title="Cambiar disponibilidad">
+                <div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 transition-transform duration-300 ${producto.esta_disponible ? 'translate-x-4.5' : 'translate-x-0.5'}"></div>
             </button>`;
         } else {
-            toggleHTML = `<div class="w-10 h-5 rounded-full transition ${producto.esta_disponible ? 'bg-blue-600' : 'bg-gray-600'} opacity-50 cursor-not-allowed">
-                <div class="w-3 h-3 bg-white rounded-full transition ${producto.esta_disponible ? 'ml-auto mr-1' : 'ml-1'} mt-1"></div>
+            toggleHTML = `<div class="w-9 h-5 rounded-full relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'} opacity-50 cursor-not-allowed" title="No tienes permisos para gestionar la disponibilidad">
+                <div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 ${producto.esta_disponible ? 'translate-x-4.5' : 'translate-x-0.5'}"></div>
             </div>`;
         }
 
         card.innerHTML = `
-            <div class="flex justify-between items-start mb-3">
-                <div class="overflow-hidden pr-2">
-                    <h3 class="text-lg font-black text-[var(--text-color)] tracking-tight group-hover:text-blue-400 transition truncate">${producto.nombre}</h3>
-                    ${producto.descripcion ? `<p class="text-sm text-[var(--text-muted)] mt-2 line-clamp-2">${producto.descripcion}</p>` : ''}
+            <div class="flex justify-between items-start mb-4">
+                <div class="overflow-hidden pr-3">
+                    <h3 class="text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
+                    <p class="text-[12px] text-[var(--text-muted)] mt-1 line-clamp-1">${producto.descripcion ? producto.descripcion : 'Sin descripción'}</p>
                     ${etiquetasMods}
-                    <div class="flex gap-2 mt-2">
-                        <span class="bg-black/50 ${producto.esta_disponible ? 'text-green-400 border-green-900/50' : 'text-red-400 border-red-900/50'} text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter border">${producto.esta_disponible ? 'Disponible' : 'No disponible'}</span>
-                    </div>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     ${botonesHTML}
                 </div>
             </div>
             
-            <div class="flex justify-between items-center pt-3 border-t border-[var(--border-color)] mt-3">
-                <span class="text-xl font-black text-[var(--text-color)]">$${parseFloat(producto.precio).toFixed(2)}<span class="text-xs text-[var(--text-muted)] font-medium ml-1 uppercase">MXN</span></span>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">${producto.esta_disponible ? 'Activo' : 'Inactivo'}</span>
+            <div class="flex justify-between items-center mt-auto pt-4 border-t border-[var(--border-color)]">
+                <div class="flex items-center gap-3">
                     ${toggleHTML}
+                    <span class="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">${producto.esta_disponible ? 'Disponible' : 'Agotado'}</span>
                 </div>
+                <span class="text-[16px] font-black text-[var(--text-color)] tracking-tight">$${parseFloat(producto.precio).toFixed(2)}</span>
             </div>
         `;
         return card;
@@ -235,12 +234,11 @@
         if(nomNormalizado.includes('marisco') || nomNormalizado.includes('pescado')) return 'fas fa-fish';
         if(nomNormalizado.includes('sopa')) return 'fas fa-bowl-food';
         if(nomNormalizado.includes('abarrote')) return 'fas fa-box-open';
-        
         return 'fas fa-concierge-bell';
     }
 
     // =========================================================================
-    // CONTROL DEL MODAL CREAR
+    // MODALES Y PETICIONES
     // =========================================================================
     function openModalAlimento() { 
         estadoGlobal.editandoId = null;
@@ -270,9 +268,6 @@
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
 
-    // =========================================================================
-    // CONTROL DEL MODAL EDITAR
-    // =========================================================================
     function editarProducto(id) {
         const producto = encontrarProductoPorId(id);
         if (!producto) {
@@ -323,9 +318,6 @@
         return categoria ? categoria.id : null;
     }
 
-    // =========================================================================
-    // GESTIÓN DINÁMICA DE INGREDIENTES (RECETAS)
-    // =========================================================================
     function limpiarIngredientesContainer(tipo) {
         document.getElementById(`ingredientes-container-${tipo}`).innerHTML = '';
     }
@@ -422,9 +414,6 @@
         }
     }
 
-    // =========================================================================
-    // PROCESAMIENTO Y ENVÍO DE FORMULARIOS (STORE / UPDATE SEPARADOS)
-    // =========================================================================
     function guardarAlimento(event) {
         event.preventDefault();
         
@@ -483,12 +472,11 @@
         const txtCategoria = document.getElementById('edit-categoria_nombre').value;
         data.categoria_nombre = txtCategoria;
         data.categoria_id = obtenerCategoriaIdPorNombre(txtCategoria);
-        data._method = 'PUT'; // Laravel requiere spoofing de método para simular PUT vía JSON
+        data._method = 'PUT'; 
 
         ejecutarPeticion(`/admin/alimentos/api/${estadoGlobal.editandoId}`, data, btnActualizar, textoOriginal, closeModalEditar);
     }
 
-    // Procesador Ajax Universal para evitar redundancia
     function ejecutarPeticion(url, data, boton, textoBoton, cerrarModalFn) {
         fetch(url, {
             method: 'POST',
@@ -547,7 +535,6 @@
         .catch(error => console.error(error));
     }
 
-    // Notificaciones flotantes rápidas
     function mostrarNotificacion(mensaje, tipo) {
         const notificacion = document.createElement('div');
         notificacion.className = `fixed top-4 right-4 px-6 py-3 rounded-lg font-bold text-white z-[200] shadow-xl transition-all duration-300 ${

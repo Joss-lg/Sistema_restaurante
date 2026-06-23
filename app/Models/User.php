@@ -99,6 +99,9 @@ class User extends Authenticatable
      */
     public function tienePermiso($permisoRequerido)
     {
+        $permisoRequerido = strtolower($permisoRequerido);
+        
+        // 1. Obtener el Rol (usando lazy loading optimizado como ya lo tenías)
         $rol = $this->relationLoaded('rol')
             ? $this->getRelation('rol')
             : $this->rol()->first();
@@ -106,37 +109,35 @@ class User extends Authenticatable
         if ($rol instanceof Rol) {
             $rolSlug = strtolower(trim((string) $rol->slug));
 
+            // El Administrador supremo siempre tiene acceso a todo
             if (in_array($rolSlug, ['admin', 'administrador'], true)) {
                 return true;
             }
+        }
 
+        // 2. REGLA DE ANULACIÓN: Si el usuario tiene personalizaciones directas,
+        // sus permisos directos MANDAN sobre el rol.
+        if ($this->permisos()->exists()) {
+            return $this->permisos()->where('slug', $permisoRequerido)->exists();
+        }
+
+        // 3. FALLBACK: Si el usuario no tiene permisos personalizados, hereda del Rol
+        if ($rol instanceof Rol) {
             if ($rol->relationLoaded('permisos')) {
-                if ($rol->permisos->contains('slug', strtolower($permisoRequerido))) {
+                if ($rol->permisos->contains('slug', $permisoRequerido)) {
                     return true;
                 }
             } else {
                 if (DB::table('permiso_rol')
                     ->join('permisos', 'permiso_rol.permiso_id', '=', 'permisos.id')
                     ->where('permiso_rol.rol_id', $rol->id)
-                    ->where('permisos.slug', strtolower($permisoRequerido))
+                    ->where('permisos.slug', $permisoRequerido)
                     ->exists()) {
                     return true;
                 }
             }
         }
 
-        return $this->permisos()->where('slug', strtolower($permisoRequerido))->exists();
-    }
-
-    /**
-     * Útil para filtrar empleados de nómina que no deben entrar al POS
-     */
-    public function puedeAccederAlSistema(): bool
-    {
-        $rol = $this->relationLoaded('rol')
-            ? $this->getRelation('rol')
-            : $this->rol()->first();
-
-        return $rol instanceof Rol && (bool) $rol->puede_acceder_pos;
+        return false;
     }
 }

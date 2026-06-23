@@ -58,8 +58,7 @@
                                         if ($item['slug'] == 'inventario' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'empleados' && $accion == 'gestionar') $accionReal = 'reporte';
                                         
-                                        // 🌟 CORRECCIÓN: Eliminamos la línea de 'alimentos'.
-                                        // Al no alterar 'productos', cuando $accion sea 'gestionar', se quedará como 'productos.gestionar'.
+                                        if ($item['slug'] == 'productos' && $accion == 'gestionar') $accionReal = 'reporte';
                                         
                                         if ($item['slug'] == 'finanzas' && $accion == 'gestionar') $accionReal = 'reporte';
                                         if ($item['slug'] == 'promociones' && $accion == 'gestionar') $accionReal = 'reporte';

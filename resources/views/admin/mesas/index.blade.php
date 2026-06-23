@@ -12,72 +12,53 @@
     <div id="toastContainer" class="toast-wrapper" aria-live="polite" aria-atomic="true"></div>
     
     <style>
-        /* Variables del Plano Interactivo Premium (Optimizado para Laptop) */
+        /* Variables del Plano Interactivo Premium */
         :root {
             --mapa-bg: #050507; 
             --mapa-dot: rgba(255, 255, 255, 0.04);
             --grid-size: 30px; 
             --glass-border: rgba(255, 255, 255, 0.08);
             --glass-highlight: rgba(255, 255, 255, 0.15);
+            --card-color: #0E0E12;
         }
         body.modo-crema {
             --mapa-bg: #f8fafc; 
             --mapa-dot: rgba(0, 0, 0, 0.06);
             --glass-border: rgba(0, 0, 0, 0.05);
             --glass-highlight: rgba(255, 255, 255, 0.8);
+            --card-color: #ffffff;
         }
 
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Scrollbar elegante para el mapa infinito */
         .mapa-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
         .mapa-scroll::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 8px; }
         .mapa-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 8px; border: 2px solid var(--bg-color); }
         .mapa-scroll::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
 
-        /* Posicionamiento forzado de los Toasts */
         .toast-wrapper { position: fixed !important; top: 1.5rem !important; right: 1.5rem !important; z-index: 99999 !important; display: flex; flex-direction: column; gap: 0.75rem; pointer-events: none; align-items: flex-end; }
         .toast-panel { pointer-events: auto; background: rgba(11, 15, 25, 0.92); color: #F8FAFC; border: 1px solid rgba(148, 163, 184, 0.15); border-left-width: 4px; border-radius: 1.25rem; backdrop-filter: blur(20px); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); padding: 1rem 1.25rem; opacity: 0; transform: translateX(20px); transition: opacity 0.35s ease, transform 0.35s ease; font-size: 0.95rem; display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; align-items: center; min-width: 280px; max-width: 360px; }
         .toast-panel.show { opacity: 1; transform: translateX(0); }
         .toast-panel.success { border-color: rgba(16, 185, 129, 0.25); }
         .toast-panel.error { border-color: rgba(239, 68, 68, 0.25); }
-        .toast-panel.info { border-color: rgba(59, 130, 246, 0.25); }
-        .toast-panel.warning { border-color: rgba(245, 158, 11, 0.25); }
         .toast-panel .toast-icon { width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: 1rem; background: rgba(255, 255, 255, 0.08); color: inherit; }
         .toast-panel.success .toast-icon { background: rgba(16, 185, 129, 0.18); color: #4ade80; }
         .toast-panel.error .toast-icon { background: rgba(239, 68, 68, 0.18); color: #f87171; }
-        .toast-panel.info .toast-icon { background: rgba(59, 130, 246, 0.18); color: #60a5fa; }
-        .toast-panel.warning .toast-icon { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
         .toast-panel strong { display: block; color: inherit; font-weight: 700; letter-spacing: 0.01em; }
         .toast-panel span { display: block; margin-top: 0.1rem; color: rgba(248, 250, 252, 0.8); font-size: 0.88rem; line-height: 1.5; }
-        body.modo-crema .toast-panel { background: rgba(255, 255, 255, 0.96); color: #1f2937; border-color: #e5e7eb; box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08); }
-        body.modo-crema .toast-panel.success .toast-icon { background: #dcfce7; color: #166534; }
-        body.modo-crema .toast-panel.error .toast-icon { background: #fee2e2; color: #991b1b; }
-        body.modo-crema .toast-panel.info .toast-icon { background: #dbeafe; color: #1d4ed8; }
-        body.modo-crema .toast-panel.warning .toast-icon { background: #ffedd5; color: #c2410c; }
-        body.modo-crema .toast-panel span { color: #4b5563; }
 
-        /* Animación de entrada para las mesas en cascada */
         @keyframes slideUpFade {
             0% { opacity: 0; transform: translateY(15px) scale(0.98); }
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
-
-        .mesa-animada { opacity: 0; animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-        /* Tooltip Financiero Flotante */
+        .mesa-animada { animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .tooltip-card { opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95); transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .mesa-ui:hover .tooltip-card { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
         
-        /* Estructura Base Glassmorphism */
         .mesa-ui { box-shadow: inset 0 1px 1px var(--glass-highlight), 0 4px 15px rgba(0, 0, 0, 0.2); transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; touch-action: none; user-select: none; -webkit-user-drag: none; }
         .mesa-ui:hover { transform: translateY(-3px) scale(1.02); z-index: 40; }
-
-        /* Iluminación en Fusión */
         .mesa-fusion-selected { box-shadow: 0 0 0 3px #a855f7, 0 10px 25px rgba(168,85,247,0.4), inset 0 1px 1px var(--glass-highlight) !important; border-color: #a855f7 !important; transform: scale(1.03) translateY(-3px); z-index: 50; }
-        
-        /* Olas de Radar (Estados Críticos) */
         .radar-ping { position: absolute; inset: -3px; border-radius: 50%; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.6; }
     </style>
 
@@ -105,11 +86,7 @@
 
     {{-- VISTA: MAPA DE MESAS (Lienzo Arquitectónico) --}}
     <div id="mapa-mesas-wrapper" class="flex-1 flex flex-col min-h-0">
-        
-        {{-- Controles Avanzados del Mapa --}}
         <div class="mb-3 flex flex-wrap items-center justify-between gap-3 flex-shrink-0 bg-[var(--card-color)]/90 backdrop-blur-xl p-2 sm:p-3 rounded-2xl border border-[var(--border-color)] shadow-sm z-20">
-            
-            {{-- Filtro de Zonas --}}
             <div class="flex gap-1 overflow-x-auto hide-scroll bg-[var(--bg-color)] p-1 rounded-xl border border-[var(--border-color)]">
                 <button onclick="cambiarZona('Todas')" class="zona-btn px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-[#3B82F6] text-white transition-all whitespace-nowrap">Todas</button>
                 <button onclick="cambiarZona('Salón')" class="zona-btn px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all whitespace-nowrap">Salón</button>
@@ -117,37 +94,26 @@
                 <button onclick="cambiarZona('VIP')" class="zona-btn px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all whitespace-nowrap">VIP</button>
             </div>
 
-            {{-- Botones de Herramientas del Mapa --}}
             <div class="flex gap-2 items-center">
                 <button id="btnModoFusion" onclick="toggleModoFusion()" class="px-3 py-1.5 rounded-lg bg-transparent border border-purple-500/30 text-purple-500 text-[10px] font-black uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all outline-none flex items-center gap-1.5">
                     <i class="fas fa-link"></i> <span id="txtBotonFusion" class="hidden sm:inline">Unir</span>
                 </button>
-
                 <button id="botonModoEdicion" onclick="toggleModoEdicion()" class="px-3 py-1.5 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-color)] text-[10px] font-black uppercase tracking-widest hover:border-[#3B82F6] hover:text-[#3B82F6] transition-all outline-none flex items-center gap-1.5">
                     <i class="fas fa-crosshairs"></i> <span id="txtBotonEdicion" class="hidden sm:inline">Editar</span>
                 </button>
-                
                 <button id="botonAgregarMesaMapa" onclick="abrirModalNuevaMesa()" class="hidden px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all outline-none flex items-center gap-1.5">
                     <i class="fas fa-plus"></i> <span class="hidden sm:inline">Mesa</span>
                 </button>
             </div>
         </div>
 
-        {{-- Contenedor del Lienzo Infinito con Scrollbar --}}
         <div class="flex-1 relative w-full border border-[var(--border-color)] rounded-[1.5rem] overflow-hidden shadow-xl transition-all duration-300 bg-[var(--mapa-bg)] group">
-            
             <div id="scroll-area" class="w-full h-full overflow-auto mapa-scroll relative z-0">
-                
-                {{-- Lienzo Gigante de 2000px por 2000px vinculado al Snap-to-Grid --}}
                 <div id="contenedor-lienzo" class="relative min-w-[2000px] min-h-[2000px] transition-all duration-300" style="background-image: radial-gradient(var(--mapa-dot) 1px, transparent 1px); background-size: var(--grid-size) var(--grid-size);">
-                    <div id="mapa-mesas" class="absolute inset-0 w-full h-full">
-                        {{-- Render dinámico vía JS --}}
-                    </div>
+                    <div id="mapa-mesas" class="absolute inset-0 w-full h-full"></div>
                 </div>
-
             </div>
             
-            {{-- Leyenda Flotante HUD --}}
             <div class="absolute bottom-4 right-4 bg-[var(--card-color)]/90 backdrop-blur-xl border border-[var(--glass-border)] rounded-xl p-3 flex flex-col gap-2 pointer-events-none shadow-lg z-20 transition-all duration-300 group-hover:bg-[var(--card-color)]/95">
                 <div class="flex items-center gap-2 text-[9px] font-bold text-[var(--text-color)]"><div class="w-2 h-2 rounded-full bg-[#3B82F6]"></div> Normal (&lt; 45m)</div>
                 <div class="flex items-center gap-2 text-[9px] font-bold text-[var(--text-color)]"><div class="w-2 h-2 rounded-full bg-amber-500"></div> Precaución (+45m)</div>
@@ -158,16 +124,10 @@
 
     {{-- VISTA: GRID DE MESAS (Lista Normal) --}}
     <div id="vista-lista-wrapper" class="hidden flex-1 overflow-y-auto hide-scroll pb-6">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3" id="mesas-container">
-            {{-- Render dinámico vía JS --}}
-        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3" id="mesas-container"></div>
     </div>
 
-    {{-- ========================================== --}}
-    {{-- MODALES DEL SISTEMA (INTACTOS Y COMPLETOS) --}}
-    {{-- ========================================== --}}
-
-    {{-- Modal: Crear Nueva Mesa (CORREGIDO VALUES A MAYÚSCULA) --}}
+    {{-- Modal: Crear Nueva Mesa --}}
     <div id="modalNuevaMesa" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 bg-black/60 backdrop-blur-sm transition-all duration-300 p-4">
         <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[2rem] shadow-2xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300" id="cardNueva">
             <div class="flex items-center justify-between mb-5 border-b border-[var(--border-color)] pb-4">
@@ -180,11 +140,11 @@
             <div class="grid gap-4">
                 <label class="block">
                     <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Nombre / Número</span>
-                    <input id="nuevaMesaNumero" type="text" class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-emerald-500 transition-colors" placeholder="Ej. 14A">
+                    <input id="nuevaMesaNumero" type="text" class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-emerald-500 transition-colors">
                 </label>
                 <label class="block">
                     <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Capacidad (Personas)</span>
-                    <input id="nuevaMesaCapacidad" type="number" min="1" class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-emerald-500 transition-colors" placeholder="Ej. 4">
+                    <input id="nuevaMesaCapacidad" type="number" min="1" class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-emerald-500 transition-colors">
                 </label>
                 <label class="block">
                     <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Estado Inicial</span>
@@ -202,7 +162,7 @@
         </div>
     </div>
 
-    {{-- Modal: Editar Mesa (CORREGIDO VALUES A MAYÚSCULA) --}}
+    {{-- Modal: Editar Mesa --}}
     <div id="modalEditarMesa" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 bg-black/60 backdrop-blur-sm transition-all duration-300 p-4">
         <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[2rem] shadow-2xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300" id="cardEditar">
             <div class="flex items-center justify-between mb-5 border-b border-[var(--border-color)] pb-4">
@@ -273,71 +233,43 @@
         primeraCarga: true 
     };
 
-    let dragState = {
-        activo: false,
-        elemento: null,
-        mesaId: null,
-        originX: 0,
-        originY: 0,
-        startX: 0,
-        startY: 0,
-        contenedor: null
-    };
+    let dragState = { activo: false, elemento: null, mesaId: null, originX: 0, originY: 0, startX: 0, startY: 0, contenedor: null };
 
     document.addEventListener('DOMContentLoaded', function() {
         cargarMesas();
-        setInterval(() => {
-            if (!estadoGlobal.modoEdicion && !estadoGlobal.modoFusion) cargarMesas();
-        }, 5000);
+        setInterval(() => { if (!estadoGlobal.modoEdicion && !estadoGlobal.modoFusion) cargarMesas(); }, 5000);
         document.addEventListener('click', cerrarMenuMesa);
     });
 
-    // ----------------------------------------------------
-    // CONTROLADORES DE LOS TOASTS
-    // ----------------------------------------------------
     function mostrarToast(message, type = 'info') {
         const container = document.getElementById('toastContainer');
         if (!container) return;
         const toast = document.createElement('div');
         toast.className = `toast-panel ${type}`;
         let iconHtml = type === 'success' ? '<i class="fas fa-check"></i>' : type === 'error' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-info"></i>';
-        
-        toast.innerHTML = `<div class="toast-icon">${iconHtml}</div><div><strong>${type === 'success' ? 'Éxito' : type === 'error' ? 'Aviso' : 'Notificación'}</strong><span>${message}</span></div>`;
+        toast.innerHTML = `<div class="toast-icon">${iconHtml}</div><div><strong>Notificación</strong><span>${message}</span></div>`;
         container.appendChild(toast);
         requestAnimationFrame(() => toast.classList.add('show'));
         setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3800);
     }
     function mostrarError(mensaje) { mostrarToast(mensaje, 'error'); }
     function mostrarExito(mensaje) { mostrarToast(mensaje, 'success'); }
-    function obtenerMensajeError(respuesta) {
-        if (!respuesta) return null;
-        if (typeof respuesta === 'string') return respuesta;
-        if (respuesta.message) return respuesta.message;
-        if (respuesta.errors) {
-            return Object.values(respuesta.errors).flat().join(' | ');
-        }
-        return JSON.stringify(respuesta);
-    }
 
-    // ----------------------------------------------------
-    // CARGA DE DATOS DESDE LA API
-    // ----------------------------------------------------
     function cargarMesas() {
         fetch('/admin/mesas/api/mesas')
-            .then(res => res.json())
+            .then(res => {
+                if(!res.ok) throw new Error('Error en API');
+                return res.json();
+            })
             .then(data => {
                 estadoGlobal.mesas = data.map(m => ({
                     ...m,
                     zona: m.zona || ['Salón', 'Terraza', 'VIP'][m.id % 3],
-                    minutos_activa: m.minutos_activa || (m.estado === 'Ocupada' || m.estado === 'ocupada' ? Math.floor(Math.random() * 120) : 0),
-                    mesero_nombre: m.mesero_nombre || 'Mesero Asignado',
-                    total_cuenta: m.total_cuenta || 0,
                     posicion_x: m.posicion_x,
                     posicion_y: m.posicion_y,
-                    fusionada: m.fusionada || false,
                 }));
                 renderizarPantalla();
-            }).catch(e => console.error(e));
+            }).catch(e => console.error('Error red:', e));
     }
 
     function renderizarPantalla() {
@@ -370,9 +302,6 @@
         renderizarMapaMesas();
     }
 
-    // ----------------------------------------------------
-    // LÓGICA DE DIBUJO DEL MAPA INFINITO 
-    // ----------------------------------------------------
     const tw = {
         emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-400/30 hover:border-emerald-400', text: 'text-emerald-400', dot: 'bg-emerald-400', glow: 'shadow-[0_0_15px_rgba(52,211,153,0.1)]' },
         blue: { bg: 'bg-blue-500/10', border: 'border-blue-400/30 hover:border-blue-400', text: 'text-blue-400', dot: 'bg-blue-400', glow: 'shadow-[0_0_15px_rgba(96,165,250,0.1)]' },
@@ -384,47 +313,25 @@
     function renderizarMapaMesas() {
         const mapa = document.getElementById('mapa-mesas');
         const mesasEdit = dragState.activo ? [dragState.mesaId] : [];
-        
         const mesasFiltradas = estadoGlobal.zonaActual === 'Todas' ? estadoGlobal.mesas : estadoGlobal.mesas.filter(m => m.zona === estadoGlobal.zonaActual);
         
+        // CORRECCIÓN MAGISTRAL: Borramos todo el mapa antes de dibujar para que las mesas nuevas NO se oculten
+        mapa.innerHTML = '';
+
         if (mesasFiltradas.length === 0) {
             mapa.innerHTML = `<div class="empty-state absolute inset-0 flex flex-col items-center justify-center opacity-60"><i class="fas fa-chair text-3xl mb-2 text-[var(--text-muted)]"></i><p class="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Zona vacía</p></div>`;
             return;
         }
 
-        const emptyState = mapa.querySelector('.empty-state');
-        if (emptyState) emptyState.remove();
-
-        const currentIds = mesasFiltradas.map(m => m.id.toString());
-        Array.from(mapa.children).forEach(child => {
-            if (child.dataset.mesaId && !currentIds.includes(child.dataset.mesaId)) {
-                child.remove();
-            }
-        });
-
         mesasFiltradas.forEach((m, index) => { 
             if(mesasEdit.includes(m.id)) return; 
-            
             const newCard = crearMesaGlass(m, index);
-            const existingCard = mapa.querySelector(`[data-mesa-id="${m.id}"]`);
-            
-            if (existingCard) {
-                existingCard.className = newCard.className;
-                existingCard.innerHTML = newCard.innerHTML;
-                existingCard.style.left = newCard.style.left;
-                existingCard.style.top = newCard.style.top;
-                existingCard.onclick = newCard.onclick;
-                existingCard.onpointerdown = newCard.onpointerdown;
-            } else {
-                mapa.appendChild(newCard);
-            }
+            mapa.appendChild(newCard);
         });
     }
 
     function crearMesaGlass(mesa, index) {
         const card = document.createElement('div');
-        
-        // Convertimos a minúsculas para evaluar correctamente sin importar cómo llegue de BD
         const estadoStr = (mesa.estado || 'Libre').toLowerCase();
         const isOcupada = estadoStr === 'ocupada';
         const isReservada = estadoStr === 'reservada';
@@ -440,12 +347,13 @@
         }
         
         const s = tw[sTheme], esRect = (parseInt(mesa.capacidad)||0) >= 5;
-        
         const wClass = esRect ? 'w-40' : 'w-28', hClass = 'h-28';
-        const posX = mesa.posicion_x !== null ? mesa.posicion_x : ((index % 8) * 180 + 30);
-        const posY = mesa.posicion_y !== null ? mesa.posicion_y : (Math.floor(index / 8) * 140 + 30);
-        const cursor = estadoGlobal.modoEdicion ? 'cursor-grab' : 'cursor-pointer';
 
+        // CORRECCIÓN: Parseo estricto para evitar que la mesa se mande a la coordenada NaNpx
+        const posX = (mesa.posicion_x != null && mesa.posicion_x !== "") ? parseInt(mesa.posicion_x) : ((index % 8) * 180 + 30);
+        const posY = (mesa.posicion_y != null && mesa.posicion_y !== "") ? parseInt(mesa.posicion_y) : (Math.floor(index / 8) * 140 + 30);
+        
+        const cursor = estadoGlobal.modoEdicion ? 'cursor-grab' : 'cursor-pointer';
         const clsAnimacion = estadoGlobal.primeraCarga ? 'mesa-animada' : '';
 
         card.className = `mesa-ui ${clsAnimacion} absolute ${wClass} ${hClass} rounded-[1.25rem] flex flex-col justify-between p-3 border border-[var(--glass-border)] bg-[var(--card-color)]/90 backdrop-blur-md ${s.bg} hover:${s.border} ${s.glow} ${cursor}`;
@@ -485,67 +393,35 @@
         return card;
     }
 
-    // ----------------------------------------------------
-    // ARRASTRE MAGNÉTICO (SNAP TO GRID)
-    // ----------------------------------------------------
-    function iniciarArrastre(e, el, mesa) {
-        if (estadoGlobal.modoFusion || e.button !== 0) return;
-        e.preventDefault();
-        e.stopPropagation();
-        dragState.activo = true; dragState.elemento = el; dragState.mesaId = mesa.id;
-        dragState.originX = parseInt(el.style.left||0, 10); dragState.originY = parseInt(el.style.top||0, 10);
-        dragState.startX = e.clientX; dragState.startY = e.clientY; dragState.contenedor = document.getElementById('contenedor-lienzo');
-        el.setPointerCapture(e.pointerId);
-        el.classList.remove('mesa-animada');
-        el.classList.replace('cursor-grab', 'cursor-grabbing');
-        el.classList.add('scale-105', 'z-50', 'opacity-90');
-        el.addEventListener('pointermove', manejarArrastre);
-        el.addEventListener('pointerup', detenerArrastre);
-        el.addEventListener('pointercancel', detenerArrastre);
-    }
-    
-    function manejarArrastre(e) {
-        if (!dragState.activo) return;
-        let nX = dragState.originX + (e.clientX - dragState.startX), nY = dragState.originY + (e.clientY - dragState.startY);
-        const GS = 30; // GRID COMPACTO
-        nX = Math.round(nX/GS)*GS; nY = Math.round(nY/GS)*GS;
-        nX = Math.max(0, Math.min(nX, dragState.contenedor.offsetWidth - dragState.elemento.offsetWidth));
-        nY = Math.max(0, Math.min(nY, dragState.contenedor.offsetHeight - dragState.elemento.offsetHeight));
-        dragState.elemento.style.left = `${nX}px`; dragState.elemento.style.top = `${nY}px`;
-    }
-    
-    function detenerArrastre(e) {
-        if (!dragState.activo) return;
-        dragState.elemento.releasePointerCapture(e.pointerId); dragState.elemento.classList.replace('cursor-grabbing', 'cursor-grab'); dragState.elemento.classList.remove('scale-105', 'z-50', 'opacity-90');
-        guardarPos(dragState.mesaId, parseInt(dragState.elemento.style.left,10), parseInt(dragState.elemento.style.top,10));
-        dragState.activo = false; dragState.elemento.removeEventListener('pointermove', manejarArrastre); dragState.elemento.removeEventListener('pointerup', detenerArrastre);
+    function renderizarVistaLista() {
+        const c = document.getElementById('mesas-container');
+        c.innerHTML = '';
+        const mFiltradas = estadoGlobal.filtroActual === 'todos' ? estadoGlobal.mesas : estadoGlobal.mesas.filter(m => {
+            const estadoStr = (m.estado || '').toLowerCase();
+            return (estadoStr==='reservada'?'reservada':estadoStr==='ocupada'?'ocupada':'libre') === estadoGlobal.filtroActual;
+        });
+
+        mFiltradas.forEach((m, i) => {
+            const estadoStr = (m.estado || 'Libre').toLowerCase();
+            const est = estadoStr==='reservada'?'reservada':estadoStr==='ocupada'?'ocupada':'libre';
+            const color = est==='ocupada'?'rose':est==='reservada'?'amber':'emerald';
+            
+            const div = document.createElement('div');
+            div.className = `group relative bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl p-4 cursor-pointer shadow-sm hover:border-[#3B82F6]/50 ${estadoGlobal.primeraCarga ? 'mesa-animada' : ''}`;
+            if (estadoGlobal.primeraCarga) div.style.animationDelay = `${i * 0.02}s`; 
+            div.dataset.mesaId = m.id;
+            div.onclick = e => { e.stopPropagation(); mostrarMenu(m.id, div); };
+            div.innerHTML = `
+                <div class="flex justify-between mb-3"><div><span class="text-[8px] font-black uppercase text-[var(--text-muted)] block">Mesa</span><span class="text-xl font-black">${m.numero}</span></div><div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-${color}-500/10"><div class="w-1.5 h-1.5 rounded-full bg-${color}-500"></div><span class="text-[7px] font-black uppercase text-${color}-500">${est}</span></div></div>
+                ${m.fusionada ? `<div class="mb-2 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.1em] text-purple-500 bg-purple-500/10 inline-block">Unida</div>` : ''}
+                <div class="pt-3 border-t border-[var(--border-color)] flex items-center gap-1.5 text-[var(--text-muted)]"><i class="fas fa-users text-[9px]"></i><span class="text-[10px] font-bold">Capacidad: ${m.capacidad}</span></div>
+                <div class="absolute right-3 top-10 hidden w-32 rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)] p-1.5 shadow-xl z-20" data-menu="mesa"><button onclick="event.stopPropagation(); irACobrar(${m.id})" class="w-full mb-1 rounded bg-emerald-500/10 px-2 py-1 text-[8px] font-bold uppercase text-emerald-500 hover:bg-emerald-500 hover:text-white text-left">Cobrar</button><button onclick="event.stopPropagation(); abrirModalEditarMesa(${m.id})" class="w-full mb-1 rounded bg-[#3B82F6]/10 px-2 py-1 text-[8px] font-bold uppercase text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white text-left">Editar</button><button onclick="event.stopPropagation(); eliminarMesa(${m.id})" class="w-full rounded bg-rose-500/10 px-2 py-1 text-[8px] font-bold uppercase text-rose-500 hover:bg-rose-500 hover:text-white text-left">Eliminar</button></div>`;
+            c.appendChild(div);
+        });
     }
 
-    async function guardarPos(id, x, y) {
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        try {
-            const res = await fetch(`/admin/mesas/api/${id}/posicion`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }, body: JSON.stringify({ posicion_x: x, posicion_y: y }) });
-            if (res.ok) {
-                const idx = estadoGlobal.mesas.findIndex(m => m.id === id);
-                if (idx !== -1) { estadoGlobal.mesas[idx].posicion_x = x; estadoGlobal.mesas[idx].posicion_y = y; }
-            } else {
-                const errorData = await res.json().catch(() => null);
-                mostrarError(obtenerMensajeError(errorData) || 'Aviso: No se pudo guardar la posición de la mesa.');
-            }
-        } catch (e) {
-            console.error(e);
-            mostrarError('Error de red al guardar la posición de la mesa.');
-        }
-    }
-
-    async function guardarCoordenadasFinales() {
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const coords = estadoGlobal.mesas.map(m => ({ id: m.id, x: m.posicion_x, y: m.posicion_y }));
-        try {
-            const res = await fetch('/admin/mesas/api/posiciones', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }, body: JSON.stringify({ coordenadas: coords }) });
-            if(res.ok) mostrarExito('Distribución guardada exitosamente.');
-        } catch(e) {}
-    }
+    function filtrarMesas(f) { estadoGlobal.filtroActual = f; estadoGlobal.primeraCarga = true; document.querySelectorAll('.filtro-btn').forEach(b => b.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all bg-transparent text-[var(--text-muted)] hover:text-[var(--text-color)] filtro-btn"); document.querySelector(`[data-filtro="${f}"]`).className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all bg-blue-600 text-white shadow-sm filtro-btn"; renderizarVistaLista(); setTimeout(()=>estadoGlobal.primeraCarga=false, 500); }
+    function irACobrar(id) { window.location.href = `/admin/caja/cobrar/${id}`; }
 
     // ----------------------------------------------------
     // MENÚS Y CONTROLES DE INTERFAZ
@@ -571,172 +447,116 @@
     function toggleModoFusion() {
         if(estadoGlobal.modoEdicion) toggleModoEdicion();
         const btn = document.getElementById('btnModoFusion'), txt = document.getElementById('txtBotonFusion');
-
-        if (estadoGlobal.modoFusion && estadoGlobal.mesasParaFusionar.length > 1) {
-            fusionarMesas(estadoGlobal.mesasParaFusionar);
-        } else if (estadoGlobal.modoFusion && estadoGlobal.mesasParaFusionar.length === 1) {
-            mostrarError('Selecciona al menos dos mesas para unir.');
-        }
-
+        if (estadoGlobal.modoFusion && estadoGlobal.mesasParaFusionar.length > 1) { fusionarMesas(estadoGlobal.mesasParaFusionar); } 
+        else if (estadoGlobal.modoFusion && estadoGlobal.mesasParaFusionar.length === 1) { mostrarError('Selecciona al menos dos mesas para unir.'); }
         estadoGlobal.modoFusion = !estadoGlobal.modoFusion;
-
         if (estadoGlobal.modoFusion) {
             btn.className = "px-3 py-1.5 rounded-lg bg-purple-600 text-white text-[10px] font-black uppercase tracking-widest shadow-[0_4px_15px_rgba(168,85,247,0.4)] flex items-center gap-1.5 outline-none";
-            txt.innerText = 'Unir 2+';
-            estadoGlobal.mesasParaFusionar = [];
+            txt.innerText = 'Unir 2+'; estadoGlobal.mesasParaFusionar = [];
         } else {
             btn.className = "px-3 py-1.5 rounded-lg bg-transparent border border-purple-500/30 text-purple-500 text-[10px] font-black uppercase tracking-widest hover:bg-purple-500 hover:text-white flex items-center gap-1.5 outline-none";
-            txt.innerText = 'Unir';
-            estadoGlobal.mesasParaFusionar = [];
+            txt.innerText = 'Unir'; estadoGlobal.mesasParaFusionar = [];
         }
         renderizarMapaMesas();
     }
+    
     async function fusionarMesas(ids) {
-        if (!ids || ids.length < 2) {
-            mostrarError('Selecciona al menos dos mesas para unir.');
-            return;
-        }
+        if (!ids || ids.length < 2) return;
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         try {
-            const response = await fetch('/admin/mesas/api/fusionar', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-                body: JSON.stringify({ mesas: ids })
-            });
+            const response = await fetch('/admin/mesas/api/fusionar', { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }, body: JSON.stringify({ mesas: ids }) });
             const data = await response.json();
-            if (response.ok && data.success) {
-                mostrarExito('Mesas unidas correctamente.');
-                estadoGlobal.modoFusion = false;
-                estadoGlobal.mesasParaFusionar = [];
-                cargarMesas();
-            } else {
-                mostrarError(obtenerMensajeError(data) || 'No se pudo unir las mesas.');
-            }
-        } catch (error) {
-            mostrarError('Error de red al unir mesas.');
-        }
+            if (response.ok && data.success) { mostrarExito('Mesas unidas correctamente.'); estadoGlobal.modoFusion = false; estadoGlobal.mesasParaFusionar = []; cargarMesas(); } 
+            else { mostrarError(data.message || 'No se pudo unir las mesas.'); }
+        } catch (error) { mostrarError('Error de red al unir mesas.'); }
     }
+    
     function selFusion(id, c) { const i = estadoGlobal.mesasParaFusionar.indexOf(id); if(i > -1) { estadoGlobal.mesasParaFusionar.splice(i,1); c.classList.remove('mesa-fusion-selected'); } else { estadoGlobal.mesasParaFusionar.push(id); c.classList.add('mesa-fusion-selected'); } }
 
     // ----------------------------------------------------
-    // VISTA LISTA Y FILTROS
+    // ARRASTRE MAGNÉTICO (SNAP TO GRID)
     // ----------------------------------------------------
-    function renderizarVistaLista() {
-        const c = document.getElementById('mesas-container');
-        
-        const mFiltradas = estadoGlobal.filtroActual === 'todos' ? estadoGlobal.mesas : estadoGlobal.mesas.filter(m => {
-            const estadoStr = (m.estado || '').toLowerCase();
-            return (estadoStr==='reservada'?'reservada':estadoStr==='ocupada'?'ocupada':'libre') === estadoGlobal.filtroActual;
-        });
-        
-        const currentIds = mFiltradas.map(m => m.id.toString());
-        Array.from(c.children).forEach(child => {
-            if (child.dataset.mesaId && !currentIds.includes(child.dataset.mesaId)) child.remove();
-        });
-
-        mFiltradas.forEach((m, i) => {
-            const estadoStr = (m.estado || 'Libre').toLowerCase();
-            const est = estadoStr==='reservada'?'reservada':estadoStr==='ocupada'?'ocupada':'libre';
-            const color = est==='ocupada'?'rose':est==='reservada'?'amber':'emerald';
-            
-            const contentHTML = `
-                <div class="flex justify-between mb-3"><div><span class="text-[8px] font-black uppercase text-[var(--text-muted)] block">Mesa</span><span class="text-xl font-black">${m.numero}</span></div><div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-${color}-500/10"><div class="w-1.5 h-1.5 rounded-full bg-${color}-500"></div><span class="text-[7px] font-black uppercase text-${color}-500">${est}</span></div></div>
-                ${m.fusionada ? `<div class="mb-2 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.1em] text-purple-500 bg-purple-500/10 inline-block">Unida</div>` : ''}
-                <div class="pt-3 border-t border-[var(--border-color)] flex items-center gap-1.5 text-[var(--text-muted)]"><i class="fas fa-users text-[9px]"></i><span class="text-[10px] font-bold">Capacidad: ${m.capacidad}</span></div>
-                <div class="absolute right-3 top-10 hidden w-32 rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)] p-1.5 shadow-xl z-20" data-menu="mesa"><button onclick="event.stopPropagation(); irACobrar(${m.id})" class="w-full mb-1 rounded bg-emerald-500/10 px-2 py-1 text-[8px] font-bold uppercase text-emerald-500 hover:bg-emerald-500 hover:text-white text-left">Cobrar</button><button onclick="event.stopPropagation(); abrirModalEditarMesa(${m.id})" class="w-full mb-1 rounded bg-[#3B82F6]/10 px-2 py-1 text-[8px] font-bold uppercase text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white text-left">Editar</button><button onclick="event.stopPropagation(); eliminarMesa(${m.id})" class="w-full rounded bg-rose-500/10 px-2 py-1 text-[8px] font-bold uppercase text-rose-500 hover:bg-rose-500 hover:text-white text-left">Eliminar</button></div>`;
-
-            let div = c.querySelector(`[data-mesa-id="${m.id}"]`);
-            if (div) {
-                if (div.innerHTML !== contentHTML) div.innerHTML = contentHTML;
-            } else {
-                div = document.createElement('div');
-                div.className = `group relative bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl p-4 cursor-pointer shadow-sm hover:border-[#3B82F6]/50 ${estadoGlobal.primeraCarga ? 'mesa-animada' : ''}`;
-                if (estadoGlobal.primeraCarga) div.style.animationDelay = `${i * 0.02}s`; 
-                div.dataset.mesaId = m.id;
-                div.onclick = e => { e.stopPropagation(); mostrarMenu(m.id, div); };
-                div.innerHTML = contentHTML;
-                c.appendChild(div);
-            }
-        });
+    function iniciarArrastre(e, el, mesa) {
+        if (estadoGlobal.modoFusion || e.button !== 0) return;
+        e.preventDefault(); e.stopPropagation();
+        dragState.activo = true; dragState.elemento = el; dragState.mesaId = mesa.id;
+        dragState.originX = parseInt(el.style.left||0, 10); dragState.originY = parseInt(el.style.top||0, 10);
+        dragState.startX = e.clientX; dragState.startY = e.clientY; dragState.contenedor = document.getElementById('contenedor-lienzo');
+        el.setPointerCapture(e.pointerId);
+        el.classList.remove('mesa-animada'); el.classList.replace('cursor-grab', 'cursor-grabbing'); el.classList.add('scale-105', 'z-50', 'opacity-90');
+        el.addEventListener('pointermove', manejarArrastre); el.addEventListener('pointerup', detenerArrastre); el.addEventListener('pointercancel', detenerArrastre);
+    }
+    
+    function manejarArrastre(e) {
+        if (!dragState.activo) return;
+        let nX = dragState.originX + (e.clientX - dragState.startX), nY = dragState.originY + (e.clientY - dragState.startY);
+        const GS = 30; nX = Math.round(nX/GS)*GS; nY = Math.round(nY/GS)*GS;
+        nX = Math.max(0, Math.min(nX, dragState.contenedor.offsetWidth - dragState.elemento.offsetWidth));
+        nY = Math.max(0, Math.min(nY, dragState.contenedor.offsetHeight - dragState.elemento.offsetHeight));
+        dragState.elemento.style.left = `${nX}px`; dragState.elemento.style.top = `${nY}px`;
+    }
+    
+    function detenerArrastre(e) {
+        if (!dragState.activo) return;
+        dragState.elemento.releasePointerCapture(e.pointerId); dragState.elemento.classList.replace('cursor-grabbing', 'cursor-grab'); dragState.elemento.classList.remove('scale-105', 'z-50', 'opacity-90');
+        guardarPos(dragState.mesaId, parseInt(dragState.elemento.style.left,10), parseInt(dragState.elemento.style.top,10));
+        dragState.activo = false; dragState.elemento.removeEventListener('pointermove', manejarArrastre); dragState.elemento.removeEventListener('pointerup', detenerArrastre);
     }
 
-    function filtrarMesas(f) { estadoGlobal.filtroActual = f; estadoGlobal.primeraCarga = true; document.querySelectorAll('.filtro-btn').forEach(b => b.className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all bg-transparent text-[var(--text-muted)] hover:text-[var(--text-color)] filtro-btn"); document.querySelector(`[data-filtro="${f}"]`).className = "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all bg-blue-600 text-white shadow-sm filtro-btn"; renderizarVistaLista(); setTimeout(()=>estadoGlobal.primeraCarga=false, 500); }
-    function irACobrar(id) { window.location.href = `/admin/caja/cobrar/${id}`; }
+    async function guardarPos(id, x, y) {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        try {
+            const res = await fetch(`/admin/mesas/api/${id}/posicion`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }, body: JSON.stringify({ posicion_x: x, posicion_y: y }) });
+            if (res.ok) { const idx = estadoGlobal.mesas.findIndex(m => m.id === id); if (idx !== -1) { estadoGlobal.mesas[idx].posicion_x = x; estadoGlobal.mesas[idx].posicion_y = y; } } 
+            else { mostrarError('Aviso: No se guardó la posición.'); }
+        } catch (e) {}
+    }
+
+    async function guardarCoordenadasFinales() {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const coords = estadoGlobal.mesas.map(m => ({ id: m.id, x: m.posicion_x, y: m.posicion_y }));
+        try {
+            const res = await fetch('/admin/mesas/api/posiciones', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }, body: JSON.stringify({ coordenadas: coords }) });
+            if(res.ok) mostrarExito('Distribución guardada exitosamente.');
+        } catch(e) {}
+    }
 
     // ----------------------------------------------------
-    // OPERACIONES CRUD CON LA API (COMPLETAS)
+    // OPERACIONES CRUD
     // ----------------------------------------------------
     function abrirModalEditarMesa(id) {
         const mesa = estadoGlobal.mesas.find(m => m.id === id);
         if (!mesa) return;
-        
         const estadoNormalizado = (mesa.estado || 'disponible').toLowerCase();
-        const estadoValor = estadoNormalizado === 'libre' ? 'disponible' : estadoNormalizado;
-
-        document.getElementById('editarMesaId').value = mesa.id;
-        document.getElementById('editarMesaNumero').value = mesa.numero;
-        document.getElementById('editarMesaCapacidad').value = mesa.capacidad;
-        document.getElementById('editarMesaEstado').value = estadoValor;
-        
-        const modal = document.getElementById('modalEditarMesa');
-        const card = document.getElementById('cardEditar');
-        modal.classList.remove('hidden');
-        setTimeout(() => { modal.classList.remove('opacity-0'); card.classList.remove('scale-95'); }, 10);
-        cerrarMenuMesa();
+        document.getElementById('editarMesaId').value = mesa.id; document.getElementById('editarMesaNumero').value = mesa.numero; document.getElementById('editarMesaCapacidad').value = mesa.capacidad; document.getElementById('editarMesaEstado').value = estadoNormalizado === 'libre' ? 'disponible' : estadoNormalizado;
+        const modal = document.getElementById('modalEditarMesa'), card = document.getElementById('cardEditar');
+        modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); card.classList.remove('scale-95'); }, 10); cerrarMenuMesa();
     }
 
     function cerrarModalEditarMesa() {
-        const modal = document.getElementById('modalEditarMesa');
-        const card = document.getElementById('cardEditar');
-        modal.classList.add('opacity-0');
-        card.classList.add('scale-95');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        const modal = document.getElementById('modalEditarMesa'), card = document.getElementById('cardEditar');
+        modal.classList.add('opacity-0'); card.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
     }
 
     async function guardarMesaEditada() {
-        const id = document.getElementById('editarMesaId').value;
-        const numero = document.getElementById('editarMesaNumero').value.trim();
-        const capacidad = parseInt(document.getElementById('editarMesaCapacidad').value, 10);
-        const estado = document.getElementById('editarMesaEstado').value;
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
+        const id = document.getElementById('editarMesaId').value, numero = document.getElementById('editarMesaNumero').value.trim(), capacidad = parseInt(document.getElementById('editarMesaCapacidad').value, 10), estado = document.getElementById('editarMesaEstado').value, token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         if (!numero || !capacidad) return mostrarError('Completa el número y la capacidad.');
-
         try {
-            const response = await fetch(`/admin/mesas/api/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-                body: JSON.stringify({ numero, capacidad, estado })
-            });
-            const data = await response.json();
-            if (response.ok && data.success) {
-                cerrarModalEditarMesa();
-                estadoGlobal.vista = 'mapa';
-                estadoGlobal.zonaActual = 'Todas';
-                estadoGlobal.filtroActual = 'todos';
-                cargarMesas();
-                mostrarExito('Mesa actualizada correctamente.');
-            } else {
-                mostrarError(obtenerMensajeError(data) || 'Error al actualizar.');
-            }
-        } catch (error) { mostrarError('Error de conexión con la base de datos.'); }
+            const res = await fetch(`/admin/mesas/api/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }, body: JSON.stringify({ numero, capacidad, estado }) });
+            const data = await res.json();
+            if (res.ok && data.success) { cerrarModalEditarMesa(); cargarMesas(); mostrarExito('Mesa actualizada correctamente.'); } else { mostrarError(data.message || 'Error al actualizar.'); }
+        } catch (e) { mostrarError('Error de conexión con la base de datos.'); }
     }
 
     function abrirModalNuevaMesa() {
-        document.getElementById('nuevaMesaNumero').value = '';
-        document.getElementById('nuevaMesaCapacidad').value = '';
-        const modal = document.getElementById('modalNuevaMesa');
-        const card = document.getElementById('cardNueva');
-        modal.classList.remove('hidden');
-        setTimeout(() => { modal.classList.remove('opacity-0'); card.classList.remove('scale-95'); }, 10);
+        document.getElementById('nuevaMesaNumero').value = ''; document.getElementById('nuevaMesaCapacidad').value = '';
+        const modal = document.getElementById('modalNuevaMesa'), card = document.getElementById('cardNueva');
+        modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); card.classList.remove('scale-95'); }, 10);
     }
 
     function cerrarModalNuevaMesa() {
-        const modal = document.getElementById('modalNuevaMesa');
-        const card = document.getElementById('cardNueva');
-        modal.classList.add('opacity-0');
-        card.classList.add('scale-95');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        const modal = document.getElementById('modalNuevaMesa'), card = document.getElementById('cardNueva');
+        modal.classList.add('opacity-0'); card.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
     }
 
     async function crearNuevaMesa() {
@@ -755,71 +575,62 @@
             });
             const data = await response.json();
             if (response.ok && data.success) {
+                // ✅ INYECCIÓN DIRECTA EN EL MAPA (sin recargar todo)
+                const nuevaMesa = data.data;
+                
+                // 1. Agregar la mesa a estadoGlobal
+                estadoGlobal.mesas.push(nuevaMesa);
+                
+                // 2. Cambiar a "Todas" para ver la mesa inmediatamente (sin importar zona)
+                if (estadoGlobal.zonaActual !== 'Todas') {
+                    cambiarZona('Todas');
+                }
+                
+                // 3. Re-renderizar el mapa para que aparezca
+                renderizarMapaMesas();
+                
+                // 4. Cerrar el modal
                 cerrarModalNuevaMesa();
-                estadoGlobal.vista = 'mapa';
-                estadoGlobal.zonaActual = 'Todas';
-                estadoGlobal.filtroActual = 'todos';
-                cargarMesas();
-                mostrarExito('Mesa creada exitosamente.');
+                
+                // 5. Notificación con efecto especial
+                mostrarExito('✨ Mesa creada e inyectada en el mapa. ¡Lista para arrastrar!');
+                
+                // 6. Pequeño refresco en 3 segundos para sincronizar con servidor
+                setTimeout(() => {
+                    cargarMesas();
+                }, 3000);
+                
             } else {
-                mostrarError(obtenerMensajeError(data) || 'Error al crear la mesa.');
+                mostrarError(data.message || 'Error al crear la mesa.');
             }
-        } catch (error) { mostrarError('Error al procesar la mesa en el servidor.'); }
+        } catch (error) { 
+            console.error('Error:', error);
+            mostrarError('Error al procesar la mesa en el servidor.'); 
+        }
     }
 
     function eliminarMesa(id) {
         const mesa = estadoGlobal.mesas.find(m => m.id === id);
         if (!mesa) return;
-        document.getElementById('eliminarMesaId').value = mesa.id;
-        document.getElementById('eliminarMesaNumero').textContent = mesa.numero;
-        const modal = document.getElementById('modalEliminarMesa');
-        const card = document.getElementById('cardEliminar');
-        modal.classList.remove('hidden');
-        setTimeout(() => { modal.classList.remove('opacity-0'); card.classList.remove('scale-95'); }, 10);
-        cerrarMenuMesa();
+        document.getElementById('eliminarMesaId').value = mesa.id; document.getElementById('eliminarMesaNumero').textContent = mesa.numero;
+        const modal = document.getElementById('modalEliminarMesa'), card = document.getElementById('cardEliminar');
+        modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); card.classList.remove('scale-95'); }, 10); cerrarMenuMesa();
     }
 
     function cerrarModalEliminarMesa() {
-        const modal = document.getElementById('modalEliminarMesa');
-        const card = document.getElementById('cardEliminar');
-        modal.classList.add('opacity-0');
-        card.classList.add('scale-95');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        const modal = document.getElementById('modalEliminarMesa'), card = document.getElementById('cardEliminar');
+        modal.classList.add('opacity-0'); card.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
     }
 
     async function confirmarEliminarMesa() {
-        const id = document.getElementById('eliminarMesaId').value;
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const btnEliminar = event.target;
-        btnEliminar.disabled = true;
-        btnEliminar.textContent = 'Eliminando...';
-
+        const id = document.getElementById('eliminarMesaId').value, token = document.querySelector('meta[name="csrf-token"]').getAttribute('content'), btnEliminar = event.target;
+        btnEliminar.disabled = true; btnEliminar.textContent = 'Eliminando...';
         try {
-            const response = await fetch(`/admin/mesas/api/${id}`, {
-                method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }
-            });
-            
+            const response = await fetch(`/admin/mesas/api/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' } });
             const data = await response.json();
-            
-            if (data.success) {
-                // Éxito: cerrar modal y recargar
-                cerrarModalEliminarMesa();
-                await new Promise(resolve => setTimeout(resolve, 300)); // Esperar a que se cierre el modal
-                cargarMesas();
-                mostrarExito('Mesa ' + (document.getElementById('eliminarMesaNumero').textContent || '') + ' eliminada correctamente.');
-            } else {
-                // Error: mostrar mensaje pero no cerrar modal
-                mostrarError(data.message || 'No se pudo eliminar la mesa.');
-                btnEliminar.disabled = false;
-                btnEliminar.textContent = 'Eliminar';
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarError('Error al eliminar la mesa: ' + error.message);
-            btnEliminar.disabled = false;
-            btnEliminar.textContent = 'Eliminar';
-        }
+            if (data.success) { cerrarModalEliminarMesa(); await new Promise(resolve => setTimeout(resolve, 300)); cargarMesas(); mostrarExito('Mesa eliminada correctamente.'); } 
+            else { mostrarError(data.message || 'No se pudo eliminar la mesa.'); btnEliminar.disabled = false; btnEliminar.textContent = 'Eliminar'; }
+        } catch (error) { mostrarError('Error al eliminar.'); btnEliminar.disabled = false; btnEliminar.textContent = 'Eliminar'; }
     }
 </script>
 @endsection

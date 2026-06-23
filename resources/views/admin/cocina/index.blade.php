@@ -7,23 +7,6 @@
 
 @section('content')
 <div class="p-6 lg:p-8 w-full max-w-[1800px] mx-auto relative z-10">
-    <div class="flex gap-6">
-        {{-- COLUMNA IZQUIERDA: MIS MESAS ACTIVAS (KDS) --}}
-        <aside class="hidden lg:block w-[320px] flex-shrink-0">
-            <div class="p-4 rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] shadow-lg">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="text-[11px] font-black uppercase text-[var(--text-muted)]">Mis Mesas Activas</h4>
-                    <div id="kdsBadge" class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-black">0</div>
-                </div>
-
-                <div id="kdsMesasList" class="space-y-3 max-h-[72vh] overflow-y-auto hide-scroll">
-                    {{-- Cards se cargarán por JS --}}
-                    <div class="text-[12px] text-[var(--text-muted)]">Cargando mesas...</div>
-                </div>
-            </div>
-        </aside>
-
-        <main class="flex-1">
 
     {{-- PANEL DE ESTADÍSTICAS KDS (Estilo Terminal / HUD) --}}
     <div class="glass-card rounded-[32px] p-2 flex flex-col xl:flex-row gap-2 shadow-2xl border border-[var(--border-color)] relative overflow-hidden">

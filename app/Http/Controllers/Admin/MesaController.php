@@ -431,11 +431,59 @@ class MesaController extends Controller
         $validated = $request->validate([
             'numero' => 'required|string|max:20|unique:mesas,numero',
             'capacidad' => 'required|integer|min:1',
+            'estado' => 'nullable|string|in:disponible,ocupada,reservada',
         ]);
 
-        $mesa = Mesa::create($validated + ['estado' => 'disponible']);
+        try {
+            $mesa = Mesa::create([
+                'numero' => $validated['numero'],
+                'capacidad' => $validated['capacidad'],
+                'estado' => $validated['estado'] ?? 'disponible',
+                'posicion_x' => 50, // Posición inicial visible
+                'posicion_y' => 50,
+                'zona' => 'Salón', // Zona por defecto
+            ]);
+        } catch (\Exception $e) {
+            // Si falla por columnas faltantes, intentar sin esos campos
+            $mesa = Mesa::create([
+                'numero' => $validated['numero'],
+                'capacidad' => $validated['capacidad'],
+                'estado' => $validated['estado'] ?? 'disponible',
+            ]);
+            
+            // Actualizar con posición y zona usando raw SQL
+            try {
+                DB::statement("ALTER TABLE mesas ADD COLUMN IF NOT EXISTS posicion_x INT DEFAULT 50");
+                DB::statement("ALTER TABLE mesas ADD COLUMN IF NOT EXISTS posicion_y INT DEFAULT 50");
+                DB::statement("ALTER TABLE mesas ADD COLUMN IF NOT EXISTS zona VARCHAR(50) DEFAULT 'Salón'");
+                
+                $mesa->update([
+                    'posicion_x' => 50,
+                    'posicion_y' => 50,
+                    'zona' => 'Salón',
+                ]);
+            } catch (\Exception $e2) {
+                // Continuar aunque falle
+            }
+        }
 
-        return response()->json(['success' => true, 'message' => 'Mesa creada', 'mesa' => $mesa], 201);
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesa creada',
+            'data' => [
+                'id' => $mesa->id,
+                'numero' => $mesa->numero,
+                'capacidad' => $mesa->capacidad,
+                'estado' => $mesa->estado,
+                'posicion_x' => $mesa->posicion_x ?? 50,
+                'posicion_y' => $mesa->posicion_y ?? 50,
+                'zona' => $mesa->zona ?? 'Salón',
+                'minutos_activa' => 0,
+                'mesero_nombre' => 'Sin asignar',
+                'total_cuenta' => 0,
+            ],
+            'mesa' => $mesa
+        ], 201);
     }
 
     public function update(Request $request, $id)

@@ -241,9 +241,36 @@
                             <i class="fas fa-money-bill-wave"></i> Efectivo
                         </span>
                     </div>
-                    <button id="btn-abrir-modal-metodo" type="button" class="bg-blue-500 hover:bg-blue-400 text-white font-black py-3 px-4 rounded-2xl uppercase text-xs tracking-[0.28em] transition-all shadow-lg shadow-blue-500/20">
-                        Seleccionar método
-                    </button>
+                    <div class="flex gap-2 flex-wrap">
+                        <button id="btn-abrir-modal-promos" type="button" class="bg-purple-500 hover:bg-purple-400 text-white font-black py-3 px-4 rounded-2xl uppercase text-xs tracking-[0.28em] transition-all shadow-lg shadow-purple-500/20">
+                            <i class="fas fa-tag mr-2"></i>Promociones
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Sección de Promociones --}}
+                <div class="bg-[#141417] border border-purple-500/30 p-6 rounded-[2rem] shadow-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-gray-400 uppercase tracking-[0.35em] text-[10px] font-black mb-2">Promociones Disponibles</p>
+                            <span id="promo-label" class="inline-flex items-center gap-2 rounded-full bg-purple-500/10 px-4 py-2 text-purple-400 font-black uppercase tracking-[0.2em] text-xs">
+                                <i class="fas fa-tag"></i> Sin promoción
+                            </span>
+                        </div>
+                        <button id="btn-agregar-promo" type="button" class="bg-purple-500 hover:bg-purple-400 text-white font-black py-3 px-4 rounded-2xl uppercase text-xs tracking-[0.28em] transition-all shadow-lg shadow-purple-500/20">
+                            <i class="fas fa-gift mr-2"></i> Agregar
+                        </button>
+                    </div>
+                    <div id="promo-aplicada" class="hidden rounded-2xl bg-purple-500/10 border border-purple-500/30 p-4">
+                        <p class="text-purple-300 text-sm font-bold mb-2">Descuento aplicado:</p>
+                        <div class="flex items-center justify-between">
+                            <span id="promo-nombre" class="text-white font-black text-base"></span>
+                            <span id="promo-descuento" class="text-purple-400 font-black text-lg"></span>
+                        </div>
+                        <button id="btn-limpiar-promo" type="button" class="w-full mt-3 py-2 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl border border-red-500/30 transition-all text-xs">
+                            <i class="fas fa-times mr-2"></i>Quitar
+                        </button>
+                    </div>
                 </div>
 
                 <div class="bg-[#141417] border border-white/10 p-10 rounded-[2.5rem] text-center shadow-2xl overflow-hidden">
@@ -339,11 +366,34 @@
             <button type="button" class="metodo-btn w-full text-left p-4 rounded-2xl border-2 border-white/10 hover:border-violet-400/50 hover:bg-violet-500/5 transition-all font-bold text-white" data-metodo="Tarjeta">
                 <i class="fas fa-credit-card text-violet-400 mr-3"></i> Tarjeta de Crédito
             </button>
+            <button type="button" class="metodo-btn w-full text-left p-4 rounded-2xl border-2 border-white/10 hover:border-orange-400/50 hover:bg-orange-500/5 transition-all font-bold text-white" data-metodo="Tarjeta Débito">
+                <i class="fas fa-credit-card text-orange-400 mr-3"></i> Tarjeta de Débito
+            </button>
         </div>
         
         <button type="button" id="btn-cerrar-modal-metodo" class="w-full py-3 px-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all">
             Cancelar
         </button>
+    </div>
+</div>
+
+{{-- Modal de Promociones --}}
+<div id="modal-promociones" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-[#141417] border border-white/10 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-black text-white mb-6">Seleccionar Promoción</h2>
+        
+        <div class="space-y-3 mb-6" id="promos-list">
+            {{-- Las promociones se cargarán aquí vía JavaScript --}}
+            <div class="text-center py-6">
+                <p class="text-gray-400 text-sm">Cargando promociones...</p>
+            </div>
+        </div>
+        
+        <div class="space-y-3">
+            <button type="button" id="btn-cerrar-modal-promos" class="w-full py-3 px-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all">
+                Cerrar
+            </button>
+        </div>
     </div>
 </div>
 
@@ -407,6 +457,21 @@
         const propinaDisplay = document.getElementById('total-propina-display');
         const botonesPropinaPercentaje = document.querySelectorAll('.btn-propina-pct');
         const propinCustomInput = document.getElementById('propina-custom-input');
+
+        // ========== VARIABLES PARA PROMOCIONES ==========
+        const btnAgregarPromo = document.getElementById('btn-agregar-promo');
+        const btnCerrarModalPromos = document.getElementById('btn-cerrar-modal-promos');
+        const btnLimpiarPromo = document.getElementById('btn-limpiar-promo');
+        const modalPromociones = document.getElementById('modal-promociones');
+        const promosList = document.getElementById('promos-list');
+        const promoLabel = document.getElementById('promo-label');
+        const promoAplicada = document.getElementById('promo-aplicada');
+        const promoNombreDisplay = document.getElementById('promo-nombre');
+        const promoDescuentoDisplay = document.getElementById('promo-descuento');
+        
+        let promocionActual = null;
+        let descuentoActual = 0;
+        let subtotalSinDescuento = 0;
 
         // Total original de toda la mesa (para cuentas divididas)
         let totalMesaCompleta = parseFloat('{{ number_format($totalPagar, 2, ".", "") }}');
@@ -543,7 +608,10 @@
             const subtotal = subtotalActual || 0;
             const iva = parseFloat(ivaInput?.value) || ivaActual || 0;
             const propina = parseFloat(propinaInput?.value) || propinaActual || 0;
-            const nuevoTotal = subtotal + iva + propina;
+            
+            // Incluir descuento de promoción
+            const descuento = descuentoActual || 0;
+            const nuevoTotal = subtotal + iva + propina - descuento;
             
             totalPagar = Math.round(nuevoTotal * 100) / 100;
             
@@ -673,7 +741,9 @@
                 metodo_pago: metodoPagoInput.value || 'Efectivo',
                 referencia: document.getElementById('referencia')?.value || null,
                 iva: ivaActual,
-                propina: parseFloat(propinaInput?.value) || 0
+                propina: parseFloat(propinaInput?.value) || 0,
+                promocion_id: promocionActual?.id || null,
+                descuento: descuentoActual || 0
             };
 
             fetch('{{ route("admin.caja.api.pagar") }}', {
@@ -904,6 +974,93 @@
             console.log(`[${type.toUpperCase()}] ${message}`);
         }
 
+        // ========== FUNCIONES DE PROMOCIONES ==========
+        function cargarPromociones() {
+            fetch('/admin/caja/api/promociones-activas')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.promociones && data.promociones.length > 0) {
+                        promosList.innerHTML = '';
+                        data.promociones.forEach(promo => {
+                            const descuentoMostrado = promo.tipo_promocion === 'porcentaje' 
+                                ? `${promo.valor_descuento}%` 
+                                : `$${promo.valor_descuento}`;
+                            
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'promo-btn w-full text-left p-4 rounded-2xl border-2 border-white/10 hover:border-purple-400/50 hover:bg-purple-500/5 transition-all font-bold text-white';
+                            btn.innerHTML = `
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-gift text-purple-400 text-lg"></i>
+                                        <div>
+                                            <p class="text-white font-black">${promo.nombre}</p>
+                                            <p class="text-xs text-gray-400">${promo.descripcion || 'Promoción especial'}</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-purple-400 font-black text-lg">${descuentoMostrado}</span>
+                                </div>
+                            `;
+                            btn.dataset.promoid = promo.id;
+                            btn.dataset.tipo = promo.tipo_promocion;
+                            btn.dataset.valor = promo.valor_descuento;
+                            btn.dataset.nombre = promo.nombre;
+                            btn.addEventListener('click', () => aplicarPromocion(promo.id, promo.nombre, promo.tipo_promocion, promo.valor_descuento));
+                            promosList.appendChild(btn);
+                        });
+                    } else {
+                        promosList.innerHTML = '<div class="text-center py-6"><p class="text-gray-400 text-sm">No hay promociones activas disponibles.</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando promociones:', error);
+                    promosList.innerHTML = '<div class="text-center py-6"><p class="text-red-400 text-sm">Error al cargar promociones</p></div>';
+                });
+        }
+
+        function aplicarPromocion(promoId, promoNombre, tipoPromocion, valorDescuento) {
+            promocionActual = {
+                id: promoId,
+                nombre: promoNombre,
+                tipo: tipoPromocion,
+                valor: valorDescuento
+            };
+
+            // Calcular el descuento
+            if (tipoPromocion === 'porcentaje') {
+                descuentoActual = Math.round(subtotalActual * (valorDescuento / 100) * 100) / 100;
+            } else {
+                descuentoActual = Math.round(parseFloat(valorDescuento) * 100) / 100;
+            }
+
+            // Actualizar la UI
+            promoLabel.classList.add('hidden');
+            promoAplicada.classList.remove('hidden');
+            promoNombreDisplay.textContent = promoNombre;
+            
+            if (tipoPromocion === 'porcentaje') {
+                promoDescuentoDisplay.textContent = `-${valorDescuento}%`;
+            } else {
+                promoDescuentoDisplay.textContent = `-$${parseFloat(valorDescuento).toFixed(2)}`;
+            }
+
+            // Recalcular el total
+            recalcularTotal();
+
+            // Cerrar modal
+            modalPromociones.classList.add('hidden');
+
+            showNotification(`Promoción "${promoNombre}" aplicada correctamente`, 'success');
+        }
+
+        function limpiarPromocion() {
+            promocionActual = null;
+            descuentoActual = 0;
+            promoLabel.classList.remove('hidden');
+            promoAplicada.classList.add('hidden');
+            recalcularTotal();
+        }
+
         // ========== SELECTOR DE MÉTODO DE PAGO ==========
         const btnCerrarModal = document.getElementById('btn-cerrar-modal-metodo');
         const modalMetodo = document.getElementById('modal-metodo');
@@ -953,8 +1110,50 @@
             }
         });
 
+        // ========== EVENT LISTENERS DE PROMOCIONES ==========
+        if (btnAbrirModalPromos) {
+            btnAbrirModalPromos.addEventListener('click', function(e) {
+                e.preventDefault();
+                cargarPromociones();
+                modalPromociones.classList.remove('hidden');
+            });
+        }
+
+        if (btnAgregarPromo) {
+            btnAgregarPromo.addEventListener('click', function(e) {
+                e.preventDefault();
+                cargarPromociones();
+                modalPromociones.classList.remove('hidden');
+            });
+        }
+
+        if (btnCerrarModalPromos) {
+            btnCerrarModalPromos.addEventListener('click', function(e) {
+                e.preventDefault();
+                modalPromociones.classList.add('hidden');
+            });
+        }
+
+        if (btnLimpiarPromo) {
+            btnLimpiarPromo.addEventListener('click', function(e) {
+                e.preventDefault();
+                limpiarPromocion();
+                btnLimpiarPromo.classList.add('hidden');
+            });
+        }
+
+        // Cerrar modal de promociones al hacer clic fuera
+        modalPromociones.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
         // Inicializar vista
         actualizarVista();
+
+        // ========== CARGAR PROMOCIONES AL INICIALIZAR ==========
+        cargarPromociones();
     });
 </script>
 @endsection

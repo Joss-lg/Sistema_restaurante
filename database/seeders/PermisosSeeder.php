@@ -32,7 +32,7 @@ class PermisosSeeder extends Seeder
             'dashboard'   => ['ver'],
             'inventario'  => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],
             'empleados'   => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],
-            'productos'   => ['ver', 'agregar', 'editar', 'eliminar'], 
+            'productos'   => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'], 
             'categorias'  => ['ver', 'agregar', 'editar', 'eliminar'],
             'mesas'       => ['ver', 'agregar', 'editar', 'eliminar'],
             'promociones' => ['ver', 'agregar', 'editar', 'eliminar', 'reporte'],

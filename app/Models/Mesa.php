@@ -18,8 +18,12 @@ class Mesa extends Model
         'capacidad', 
         'estado', 
         'seccion', 
+        'zona',
+        'forma',
         'posicion_x', 
         'posicion_y',
+        'ancho',
+        'alto',
         'mesero_id',
         'total_consumo',  // ✅ Agregado para permitir asignación
     ];
@@ -79,5 +83,28 @@ class Mesa extends Model
     public function getNumeroProductosPendientesAttribute()
     {
         return $this->getProductosAttribute()->where('estado', '!=', 'entregado')->count();
+    }
+
+    // Método para obtener el estado visual de la mesa (para colores)
+    public function getEstadoVisualAttribute()
+    {
+        if ($this->estado === 'disponible') {
+            return 'blue'; // Azul - Normal
+        }
+
+        $ordenActiva = $this->ordenesActivas()->latest()->first();
+        if (!$ordenActiva) {
+            return 'blue';
+        }
+
+        $tiempoDesdeCreacion = now()->diffInMinutes($ordenActiva->created_at);
+        
+        if ($tiempoDesdeCreacion < 30) {
+            return 'blue'; // Azul - Normal (menos de 30 min)
+        } elseif ($tiempoDesdeCreacion < 60) {
+            return 'yellow'; // Amarillo - Precaución (30-60 min)
+        } else {
+            return 'red'; // Rojo - Crítico (más de 60 min)
+        }
     }
 }
