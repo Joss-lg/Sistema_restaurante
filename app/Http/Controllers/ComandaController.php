@@ -251,23 +251,11 @@ class ComandaController extends Controller
         $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
 
         if ($rolSlug === 'capitan') {
-            $mesasForUser = Mesa::withTrashed()->orderBy('numero', 'asc')->get();
+            // Capitán ve TODAS las mesas
+            $mesasForUser = Mesa::orderBy('numero', 'asc')->get();
         } else {
-            if (Schema::hasColumn('mesas', 'mesero_id')) {
-                // Obtener SOLO las mesas asignadas al mesero actual
-                // (ocupadas + liberadas), incluyendo soft-deleted (eliminadas de caja)
-                // para que puedan reabrirlas
-                $mesasForUser = Mesa::withTrashed()
-                    ->where('mesero_id', auth()->id())
-                    ->whereIn('estado', ['ocupada', 'disponible'])
-                    ->orderBy('numero', 'asc')
-                    ->get();
-            } else {
-                // Si no existe mesero_id, mostrar solo mesas ocupadas
-                $mesasForUser = Mesa::where('estado', 'ocupada')
-                    ->orderBy('numero', 'asc')
-                    ->get();
-            }
+            // Mesero ve TODAS las mesas también (sin restricción de mesero_id)
+            $mesasForUser = Mesa::orderBy('numero', 'asc')->get();
         }
 
         $mesasAbiertas = $mesasForUser->where('estado', 'ocupada')->values();
@@ -434,27 +422,20 @@ class ComandaController extends Controller
         ]);
 
         try {
-            $mesa = Mesa::findOrFail($validated['mesa_id']);
-            $usuario = auth()->user();
-
-            // Validar permisos
-            if (Schema::hasColumn('mesas', 'mesero_id')) {
-                if ($mesa->mesero_id !== $usuario->id && strtolower(trim($usuario->rol?->slug ?? '')) !== 'capitan') {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'No tienes permiso para reabrir esta mesa.',
-                    ], 403);
-                }
-            }
-
-            // Validar que la mesa esté disponible
-            if ($mesa->estado !== 'disponible') {
+            $mesa = Mesa::find($validated['mesa_id']);
+            
+            // Validar que la mesa existe
+            if (!$mesa) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Esta mesa no está disponible para reabrir.',
-                ], 422);
+                    'message' => 'La mesa no existe en el sistema.',
+                ], 404);
             }
 
+            $usuario = auth()->user();
+
+            // Permitir reabrir CUALQUIER mesa (sin restricciones de permiso)
+            
             DB::transaction(function () use ($mesa, $usuario) {
                 // Cambiar estado a ocupada
                 $mesa->update([

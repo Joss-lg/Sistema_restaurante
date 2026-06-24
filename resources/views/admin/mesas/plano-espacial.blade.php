@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
-    <!-- ENCABEZADO -->
     <div class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-slate-700 shadow-lg">
         <div class="max-w-full px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -11,7 +10,6 @@
                     <p class="text-slate-400 mt-1">Gestiona el layout y posición de mesas interactivamente</p>
                 </div>
 
-                <!-- CONTROLES PRINCIPALES -->
                 <div class="flex flex-wrap gap-2">
                     <button id="btnEditar" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -36,7 +34,6 @@
                 </div>
             </div>
 
-            <!-- FILTROS Y CONTROLES SECUNDARIOS -->
             <div class="mt-4 flex flex-wrap gap-3 items-center">
                 <div class="flex items-center gap-2">
                     <label class="text-sm font-semibold text-slate-300">Zona:</label>
@@ -52,7 +49,6 @@
                     <span id="totalMesas" class="text-sm font-semibold text-slate-300 bg-slate-800 px-3 py-2 rounded-lg">Mesas: 0</span>
                 </div>
 
-                <!-- MODO EDICIÓN -->
                 <div id="modosEdicion" class="hidden flex gap-2 ml-auto">
                     <button id="btnAgregarMesa" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition flex items-center gap-1">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -65,18 +61,14 @@
         </div>
     </div>
 
-    <!-- CONTENEDOR PRINCIPAL -->
     <div class="p-4 sm:p-6 lg:p-8">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- LIENZO PRINCIPAL -->
             <div class="lg:col-span-3">
                 <div class="bg-slate-800 border-2 border-slate-700 rounded-lg overflow-hidden shadow-2xl">
                     <div id="planoContenedor" class="relative w-full bg-gradient-to-br from-slate-700 to-slate-800 overflow-auto" style="height: 600px; cursor: default;">
-                        <!-- Las mesas se renderizarán aquí dinámicamente -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- INDICADORES VISUALES -->
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
@@ -93,7 +85,6 @@
                 </div>
             </div>
 
-            <!-- PANEL LATERAL - PROPIEDADES -->
             <div class="lg:col-span-1">
                 <div class="bg-slate-800 border border-slate-700 rounded-lg p-4 shadow-lg sticky top-20">
                     <h3 class="text-lg font-bold text-white mb-4">Propiedades</h3>
@@ -159,7 +150,6 @@
         </div>
     </div>
 
-    <!-- MODAL PARA CREAR MESA -->
     <div id="modalCrearMesa" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
         <div class="bg-slate-800 rounded-lg shadow-2xl max-w-md w-full border border-slate-700">
             <div class="px-6 py-4 border-b border-slate-700 flex justify-between items-center">
@@ -191,7 +181,7 @@
                     </select>
                 </div>
 
-                <p class="text-xs text-slate-400 mt-3">La mesa aparecerá en el plano lista para ser repositionada.</p>
+                <p class="text-xs text-slate-400 mt-3">La mesa aparecerá en el plano lista para ser posicionada.</p>
             </div>
 
             <div class="px-6 py-4 border-t border-slate-700 flex gap-2 justify-end">
@@ -205,8 +195,7 @@
         </div>
     </div>
 
-    <!-- NOTIFICACIONES -->
-    <div id="notificacion" class="fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white text-sm font-semibold hidden z-50 transition-all"></div>
+    <div id="notificacion" class="fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white text-sm font-semibold hidden z-50 transition-all shadow-xl"></div>
 </div>
 
 @endsection
@@ -274,13 +263,13 @@
         const contenedor = document.getElementById('planoContenedor');
         contenedor.innerHTML = '';
 
-        estado.mesasActuales.forEach(mesa => {
-            const elemento = crearElementoMesa(mesa);
+        estado.mesasActuales.forEach((mesa, index) => {
+            const elemento = crearElementoMesa(mesa, index);
             contenedor.appendChild(elemento);
         });
     }
 
-    function crearElementoMesa(mesa) {
+    function crearElementoMesa(mesa, index) {
         const div = document.createElement('div');
         div.className = 'mesa-elemento absolute cursor-move transition-all';
         div.dataset.id = mesa.id;
@@ -291,14 +280,24 @@
             'blue': 'bg-blue-500 hover:bg-blue-600',
             'yellow': 'bg-yellow-500 hover:bg-yellow-600',
             'red': 'bg-red-500 hover:bg-red-600',
+            'disponible': 'bg-blue-500 hover:bg-blue-600',
+            'ocupada': 'bg-red-500 hover:bg-red-600',
+            'reservada': 'bg-yellow-500 hover:bg-yellow-600'
         };
 
-        const colorClase = coloresEstado[mesa.estadoVisual] || coloresEstado.blue;
+        const estadoNormalizado = (mesa.estado || mesa.estadoVisual || 'disponible').toLowerCase();
+        const colorClase = coloresEstado[estadoNormalizado] || coloresEstado.blue;
 
-        div.style.left = mesa.posicion_x + 'px';
-        div.style.top = mesa.posicion_y + 'px';
-        div.style.width = mesa.ancho + 'px';
-        div.style.height = mesa.alto + 'px';
+        // 👇 CORRECCIÓN CLAVE: Coordenadas por defecto para que las mesas nuevas no desaparezcan
+        const posX = mesa.posicion_x != null ? mesa.posicion_x : ((index % 8) * 120 + 50);
+        const posY = mesa.posicion_y != null ? mesa.posicion_y : (Math.floor(index / 8) * 120 + 50);
+        const ancho = mesa.ancho || 80;
+        const alto = mesa.alto || 80;
+
+        div.style.left = posX + 'px';
+        div.style.top = posY + 'px';
+        div.style.width = ancho + 'px';
+        div.style.height = alto + 'px';
 
         const borderRadius = mesa.forma === 'redonda' ? '50%' : '8px';
         div.style.borderRadius = borderRadius;
@@ -307,12 +306,11 @@
             <div class="w-full h-full ${colorClase} flex items-center justify-center rounded-inherit border-2 border-slate-900 shadow-lg">
                 <div class="text-center text-white font-bold text-sm">
                     <div class="text-lg">${mesa.numero}</div>
-                    <div class="text-xs opacity-75">${mesa.capacidad} pax</div>
+                    <div class="text-[10px] opacity-90">${mesa.capacidad} pax</div>
                 </div>
             </div>
         `;
 
-        // Event listeners para mesas
         div.addEventListener('mousedown', (e) => iniciarArrastre(e, mesa));
         div.addEventListener('click', (e) => {
             if (!estado.arrastrando && estado.modoEdicion) {
@@ -322,15 +320,6 @@
         });
 
         return div;
-    }
-
-    function habilitarInteraccionMesa(elemento, mesa) {
-        // Re-registrar eventos si es necesario (ya están registrados en crearElementoMesa)
-        elemento.addEventListener('mousedown', (e) => {
-            if (estado.modoEdicion) {
-                iniciarArrastre(e, mesa);
-            }
-        });
     }
 
     // ========== DRAG & DROP ==========
@@ -355,8 +344,8 @@
         let y = e.clientY - rect.top - estado.offsetY;
 
         // Limitar dentro del contenedor
-        x = Math.max(0, Math.min(x, rect.width - estado.arrastrando.ancho));
-        y = Math.max(0, Math.min(y, rect.height - estado.arrastrando.alto));
+        x = Math.max(0, Math.min(x, rect.width - (estado.arrastrando.ancho || 80)));
+        y = Math.max(0, Math.min(y, rect.height - (estado.arrastrando.alto || 80)));
 
         estado.arrastrando.posicion_x = Math.round(x);
         estado.arrastrando.posicion_y = Math.round(y);
@@ -381,12 +370,10 @@
 
     // ========== SELECCIONAR MESA ==========
     function seleccionarMesa(mesa) {
-        // Remover selección anterior
         document.querySelectorAll('.mesa-elemento').forEach(el => {
             el.classList.remove('ring-4', 'ring-white');
         });
 
-        // Seleccionar nueva
         estado.mesaSeleccionada = mesa;
         const elemento = document.querySelector(`[data-id="${mesa.id}"]`);
         if (elemento) {
@@ -405,8 +392,8 @@
         document.getElementById('propCapacidad').value = mesa.capacidad;
         document.getElementById('propZona').value = mesa.zona || 'salon';
         document.getElementById('propForma').value = mesa.forma || 'redonda';
-        document.getElementById('propAncho').value = mesa.ancho || 60;
-        document.getElementById('propAlto').value = mesa.alto || 60;
+        document.getElementById('propAncho').value = mesa.ancho || 80;
+        document.getElementById('propAlto').value = mesa.alto || 80;
 
         if (!estado.modoEdicion) {
             document.getElementById('propCapacidad').disabled = true;
@@ -445,7 +432,10 @@
         document.getElementById('btnGuardar').classList.remove('hidden');
         document.getElementById('btnCancelar').classList.remove('hidden');
         document.getElementById('modosEdicion').classList.remove('hidden');
-        document.getElementById('planoContenedor').style.cursor = 'grab';
+        
+        // Hacemos el contenedor interactivo visualmente
+        const contenedor = document.getElementById('planoContenedor');
+        contenedor.classList.add('ring-2', 'ring-purple-500/50');
 
         if (estado.mesaSeleccionada) {
             mostrarPropiedades(estado.mesaSeleccionada);
@@ -458,9 +448,10 @@
         document.getElementById('btnGuardar').classList.add('hidden');
         document.getElementById('btnCancelar').classList.add('hidden');
         document.getElementById('modosEdicion').classList.add('hidden');
-        document.getElementById('planoContenedor').style.cursor = 'default';
+        
+        const contenedor = document.getElementById('planoContenedor');
+        contenedor.classList.remove('ring-2', 'ring-purple-500/50');
 
-        // Restaurar mesas originales
         estado.mesasActuales = JSON.parse(JSON.stringify(estado.mesasOriginales));
         renderizarMesas();
         limpiarSeleccion();
@@ -468,6 +459,10 @@
 
     // ========== GUARDAR PLANO ==========
     async function guardarPlano() {
+        const btnGuardar = document.getElementById('btnGuardar');
+        btnGuardar.innerHTML = 'Guardando...';
+        btnGuardar.disabled = true;
+
         try {
             const response = await fetch(config.apiGuardar, {
                 method: 'POST',
@@ -483,78 +478,70 @@
             const data = await response.json();
 
             if (data.success) {
-                mostrarNotificacion('¡Plano guardado correctamente!', 'success');
-                
-                // Recargar mesas desde el servidor para asegurar sincronización
-                await cargarMesas();
+                mostrarNotificacion('¡Plano y posiciones guardados correctamente!', 'success');
+                await cargarMesas(); // Recargar para sincronizar bien
                 desactivarModoEdicion();
             } else {
                 mostrarNotificacion(data.message || 'Error al guardar', 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
-            mostrarNotificacion('Error al guardar el plano', 'error');
+            mostrarNotificacion('Error de red al guardar el plano', 'error');
+        } finally {
+            btnGuardar.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M7.707 9.293a1 1 0 010 1.414L4.414 14h11.172a1 1 0 110 2H4.414l3.293 3.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z"></path></svg> Guardar`;
+            btnGuardar.disabled = false;
         }
     }
 
     // ========== ACCIONES ==========
     async function eliminarMesaDelPlano() {
         if (!estado.mesaSeleccionada) return;
-
-        if (!confirm('¿Estás seguro de que deseas eliminar esta mesa del plano?')) return;
+        if (!confirm('¿Estás seguro de que deseas eliminar esta mesa permanentemente?')) return;
 
         try {
             const url = config.apiEliminar.replace('ID', estado.mesaSeleccionada.id);
             const response = await fetch(url, {
                 method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // Recargar mesas desde el servidor para asegurar sincronización
                 await cargarMesas();
                 limpiarSeleccion();
-                mostrarNotificacion('Mesa eliminada del plano', 'success');
+                mostrarNotificacion('Mesa eliminada correctamente', 'success');
             } else {
                 mostrarNotificacion('Error al eliminar', 'error');
             }
         } catch (error) {
-            mostrarNotificacion('Error al eliminar', 'error');
+            mostrarNotificacion('Error de conexión', 'error');
         }
     }
 
     async function crearNuevaMesa() {
         const numero = document.getElementById('newNumero').value.trim();
         const capacidad = parseInt(document.getElementById('newCapacidad').value);
-        const estado = document.getElementById('newEstado').value || 'disponible';
+        const estadoInicial = document.getElementById('newEstado').value || 'disponible';
 
-        if (!numero) {
-            mostrarNotificacion('Por favor ingresa un número de mesa', 'error');
-            return;
-        }
+        if (!numero) return mostrarNotificacion('Por favor ingresa un número de mesa', 'error');
+        if (isNaN(capacidad) || capacidad < 1) return mostrarNotificacion('Capacidad debe ser un número válido', 'error');
 
-        if (isNaN(capacidad) || capacidad < 1) {
-            mostrarNotificacion('Capacidad debe ser un número válido', 'error');
-            return;
-        }
+        const btnConfirmar = document.getElementById('btnConfirmarNueva');
+        btnConfirmar.textContent = 'Creando...';
+        btnConfirmar.disabled = true;
 
         try {
             const datosEnvio = {
-                numero,
-                capacidad,
-                estado,
+                numero: numero,
+                capacidad: capacidad,
+                estado: estadoInicial,
                 zona: 'salon',
                 forma: 'redonda',
-                posicion_x: 20,
-                posicion_y: 20,
+                posicion_x: 50,  // Coordenada por defecto
+                posicion_y: 50,  // Coordenada por defecto
+                ancho: 80,
+                alto: 80
             };
-
-            console.log('📤 Enviando datos:', datosEnvio);
-            console.log('📍 URL:', config.apiStore);
 
             const response = await fetch(config.apiStore, {
                 method: 'POST',
@@ -565,26 +552,29 @@
                 body: JSON.stringify(datosEnvio),
             });
 
-            console.log('📥 Respuesta status:', response.status);
             const data = await response.json();
-            console.log('📥 Respuesta:', data);
 
             if (data.success) {
-                mostrarNotificacion('✓ Mesa creada exitosamente', 'success');
                 cerrarModalCrear();
                 
-                // Recargar desde el servidor
-                console.log('🔄 Recargando mesas...');
+                // 👇 ESTA ES LA MAGIA: Forzamos la descarga y el renderizado INMEDIATO
                 await cargarMesas();
-                console.log('✅ Mesas recargadas. Total:', estado.mesasActuales.length);
+                
+                // Si la persona no está en modo edición, la invitamos a entrar para moverla
+                if (!estado.modoEdicion) {
+                    activarModoEdicion();
+                }
+                
+                mostrarNotificacion('✨ Mesa creada y añadida al mapa. ¡Puedes moverla!', 'success');
             } else {
                 const errorMsg = data.errors?.numero?.[0] || data.message || 'Error desconocido';
-                console.error('❌ Error del servidor:', data);
                 mostrarNotificacion(errorMsg, 'error');
             }
         } catch (error) {
-            console.error('❌ Error en la solicitud:', error);
-            mostrarNotificacion('Error: ' + error.message, 'error');
+            mostrarNotificacion('Error en el servidor', 'error');
+        } finally {
+            btnConfirmar.textContent = 'Crear Mesa';
+            btnConfirmar.disabled = false;
         }
     }
 
@@ -604,34 +594,25 @@
     // ========== MODALES ==========
     function abrirModalCrear() {
         document.getElementById('modalCrearMesa').classList.remove('hidden');
+        document.getElementById('newNumero').value = '';
     }
 
     function cerrarModalCrear() {
         document.getElementById('modalCrearMesa').classList.add('hidden');
-        document.getElementById('newNumero').value = '';
-        document.getElementById('newCapacidad').value = '4';
-        document.getElementById('newZona').value = 'salon';
-        document.getElementById('newForma').value = 'redonda';
     }
 
     function mostrarNotificacion(mensaje, tipo = 'info') {
         const notif = document.getElementById('notificacion');
         notif.textContent = mensaje;
-        notif.className = `fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white text-sm font-semibold z-50 transition-all ${
-            tipo === 'success' ? 'bg-green-600' :
-            tipo === 'error' ? 'bg-red-600' :
-            'bg-blue-600'
+        notif.className = `fixed bottom-4 right-4 px-6 py-4 rounded-lg text-white text-sm font-semibold z-50 transition-all shadow-2xl flex items-center gap-3 ${
+            tipo === 'success' ? 'bg-green-600' : tipo === 'error' ? 'bg-red-600' : 'bg-blue-600'
         }`;
         notif.classList.remove('hidden');
-
-        setTimeout(() => {
-            notif.classList.add('hidden');
-        }, 3000);
+        setTimeout(() => { notif.classList.add('hidden'); }, 3500);
     }
 
     // ========== EVENT LISTENERS ==========
     function setupEventListeners() {
-        // Botones principales
         document.getElementById('btnEditar').addEventListener('click', activarModoEdicion);
         document.getElementById('btnGuardar').addEventListener('click', guardarPlano);
         document.getElementById('btnCancelar').addEventListener('click', desactivarModoEdicion);
@@ -639,64 +620,26 @@
         document.getElementById('btnEliminar').addEventListener('click', eliminarMesaDelPlano);
         document.getElementById('btnActualizar').addEventListener('click', actualizarPropiedades);
 
-        // Modal - Crear nueva mesa
         document.getElementById('btnConfirmarNueva').addEventListener('click', crearNuevaMesa);
         
-        // Modal - Cerrar con botón X
         document.querySelectorAll('.btnCerrarModal').forEach(btn => {
             btn.addEventListener('click', cerrarModalCrear);
         });
 
-        // Modal - Cerrar con tecla Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const modal = document.getElementById('modalCrearMesa');
-                if (!modal.classList.contains('hidden')) {
-                    cerrarModalCrear();
-                }
-            }
-        });
-
-        // Modal - Enviar con Enter en los inputs
-        ['newNumero', 'newCapacidad', 'newEstado'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input) {
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        crearNuevaMesa();
-                    }
-                });
-            }
-        });
-
-        // Modal - Cerrar al hacer click fuera
-        document.getElementById('modalCrearMesa').addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) {
-                cerrarModalCrear();
-            }
-        });
-
-        // Filtro zona
         document.getElementById('filtroZona').addEventListener('change', (e) => {
             cargarMesas(e.target.value);
         });
 
-        // Propiedades en tiempo real
         ['propCapacidad', 'propZona', 'propForma', 'propAncho', 'propAlto'].forEach(id => {
             const elem = document.getElementById(id);
-            if (elem) {
-                elem.addEventListener('change', actualizarPropiedades);
-            }
+            if (elem) elem.addEventListener('change', actualizarPropiedades);
         });
 
-        // Click en lienzo para deseleccionar
         document.getElementById('planoContenedor').addEventListener('click', (e) => {
             if (e.target === e.currentTarget && estado.modoEdicion) {
                 limpiarSeleccion();
             }
         });
-
-        console.log('✓ Event listeners configurados correctamente');
     }
 </script>
 @endsection

@@ -511,19 +511,33 @@
                         montoActual = '0';
                     }
                 } else if (valor === '.') {
+                    // Validar que no haya más de un punto decimal y que haya máximo 2 decimales después
                     if (!montoActual.includes('.')) {
                         montoActual += '.';
                     }
                 } else if (valor === '00') {
                     if (montoActual !== '0') {
-                        montoActual += '00';
+                        // Validar que no exceda 2 decimales
+                        const partes = montoActual.split('.');
+                        if (partes.length === 1 || (partes[1] && partes[1].length < 2)) {
+                            montoActual += '00';
+                        }
                     }
                 } else {
-                    if (montoActual === '0') {
-                        montoActual = valor;
-                    } else {
+                    // Validar que no exceda 2 decimales
+                    const partes = montoActual.split('.');
+                    if (partes.length === 1) {
+                        // No hay punto decimal aún
+                        if (montoActual === '0') {
+                            montoActual = valor;
+                        } else {
+                            montoActual += valor;
+                        }
+                    } else if (partes[1].length < 2) {
+                        // Hay punto decimal y menos de 2 dígitos después
                         montoActual += valor;
                     }
+                    // Si ya hay 2 dígitos después del punto, no agregar más
                 }
                 actualizarVista();
             });
@@ -580,6 +594,21 @@
                         ivaActual = parseFloat(cuentaInfo.iva) || 0;
                         propinaActual = parseFloat(cuentaInfo.propina) || 0;
                         
+                        // 🔴 IMPORTANTE: Resetear promoción al cambiar de cuenta
+                        // Cada persona debe tener sus propias promociones
+                        descuentoActual = 0;
+                        promocionActual = null;
+                        
+                        // Actualizar displays de promoción
+                        if (promoLabel) {
+                            promoLabel.classList.remove('hidden');
+                        }
+                        if (promoAplicada) {
+                            promoAplicada.classList.add('hidden');
+                        }
+                        
+                        console.log(`✅ Cambio de cuenta a Persona ${numeroCuenta}. Promoción resetada.`);
+                        
                         // Actualizar displays
                         const totalSubtotalDisplay = document.getElementById('total-subtotal');
                         if (totalSubtotalDisplay) {
@@ -588,6 +617,11 @@
                         
                         if (ivaInput) {
                             ivaInput.value = ivaActual.toFixed(2);
+                        }
+                        
+                        // Resetear propina también
+                        if (propinaInput) {
+                            propinaInput.value = propinaActual.toFixed(2);
                         }
                         
                         recalcularTotal();
@@ -609,6 +643,15 @@
             
             totalPagar = Math.round(nuevoTotal * 100) / 100;
             
+            console.log('📊 Recalculando total:', {
+                subtotal,
+                iva,
+                propina,
+                descuento,
+                nuevoTotal: nuevoTotal.toFixed(2),
+                totalPagarFinal: totalPagar.toFixed(2)
+            });
+            
             const totalDerechaElement = document.getElementById('total-pagar-derecha');
             if (totalDerechaElement) {
                 totalDerechaElement.textContent = '$' + totalPagar.toFixed(2);
@@ -616,6 +659,7 @@
             
             if (totalPagarDisplay) {
                 totalPagarDisplay.textContent = '$' + totalPagar.toFixed(2);
+                console.log('✅ totalPagarDisplay actualizado a:', '$' + totalPagar.toFixed(2));
             }
             
             if (propinaDisplay) {
@@ -650,6 +694,8 @@
                     propinCustomInput.classList.add('hidden');
                     if (propinaInput) {
                         propinaInput.value = nuevaPropina.toFixed(2);
+                        // Disparar evento change para que se recalcule el total
+                        propinaInput.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
                 
@@ -661,21 +707,27 @@
         if (ivaInput) {
             ivaInput.addEventListener('change', function() {
                 ivaActual = parseFloat(this.value) || 0;
+                console.log('IVA modificado:', ivaActual);
                 recalcularTotal();
             });
             ivaInput.addEventListener('input', function() {
                 ivaActual = parseFloat(this.value) || 0;
+                console.log('IVA input:', ivaActual);
                 recalcularTotal();
             });
         }
 
         if (propinaInput) {
             propinaInput.addEventListener('change', function() {
+                console.log('Propina change - nuevo valor:', this.value);
                 recalcularTotal();
             });
             propinaInput.addEventListener('input', function() {
+                console.log('Propina input - nuevo valor:', this.value);
                 recalcularTotal();
             });
+        } else {
+            console.warn('⚠️ propinaInput no encontrado en el DOM');
         }
 
         // ========== ACTUALIZAR VISTA ==========
@@ -684,6 +736,13 @@
             display.textContent = formatter.format(numero);
             const cambio = numero - totalPagar;
             displayCambio.textContent = formatter.format(Math.max(cambio, 0));
+            
+            console.log('💵 Vista actualizada:', {
+                montoIngresado: numero,
+                totalAPagar: totalPagar,
+                cambio: Math.max(cambio, 0),
+                puedePagar: numero >= totalPagar
+            });
         }
 
         // ========== BOTÓN TICKET ==========
@@ -696,28 +755,44 @@
 
         // ========== BOTÓN FINALIZAR PAGO ==========
         if (btnFinalizar) {
+            console.log('✅ btnFinalizar encontrado, agregando evento click');
             btnFinalizar.addEventListener('click', function(e) {
                 e.preventDefault();
+                console.log('🔵 CLICK EN FINALIZAR PAGO DETECTADO');
                 
                 const montoIngresado = parseFloat(montoActual) || 0;
                 
+                console.log('📊 Validación inicial:', {
+                    montoIngresado,
+                    totalPagar,
+                    metodo: metodoPagoInput.value,
+                    mesaId
+                });
+                
                 if (montoIngresado === 0) {
+                    console.warn('⚠️ Monto ingresado es 0');
                     showNotification('Por favor ingresa un monto válido', 'error');
                     return;
                 }
                 
                 if (montoIngresado < totalPagar) {
+                    console.warn('⚠️ Monto insuficiente:', { montoIngresado, totalPagar });
                     showNotification(`Monto insuficiente. Se requieren $${totalPagar.toFixed(2)}`, 'warning');
                     return;
                 }
                 
+                console.log('✅ Validaciones pasadas, procesando pago...');
                 // Procesar pago exitoso
                 procesarPagoExitoso(cuentaActual, totalPagar, montoIngresado);
             });
+        } else {
+            console.error('❌ btnFinalizar NO encontrado en el DOM');
         }
         
         // ========== PROCESAR PAGO EXITOSO ==========
         function procesarPagoExitoso(numeroCuenta, montoPersona, montoIngresado) {
+            console.log('🟢 INICIANDO procesarPagoExitoso');
+            
             // Obtener el orden_id correcto para esta persona (en cuenta dividida)
             let ordenIdActual = ordenId;
             if (Array.isArray(totalDividadasInfo) && totalDividadasInfo.length > 0) {
@@ -727,18 +802,76 @@
                 }
             }
             
-            // Enviar el pago al servidor
+            console.log('📋 Orden ID:', { ordenIdActual, numeroCuenta });
+            
+            // Validar que tenemos todos los datos requeridos
+            if (!mesaId) {
+                console.error('❌ mesaId no definido');
+                showNotification('Error: ID de mesa no encontrado', 'error');
+                return;
+            }
+            
+            if (!metodoPagoInput.value) {
+                console.error('❌ metodoPagoInput.value no definido');
+                showNotification('Error: Método de pago no seleccionado', 'error');
+                return;
+            }
+
+            // Capturar propina actualizada (desde el input oculto)
+            let propinaFinal = 0;
+            if (propinaInput && propinaInput.value) {
+                propinaFinal = parseFloat(propinaInput.value) || 0;
+                console.log('💰 Propina capturada del input:', propinaFinal);
+            } else {
+                console.warn('⚠️ propinaInput no disponible o sin valor');
+            }
+            
+            // Capturar IVA actualizado
+            let ivaFinal = ivaActual || 0;
+            if (ivaInput && ivaInput.value) {
+                ivaFinal = parseFloat(ivaInput.value) || 0;
+                console.log('🧮 IVA capturado del input:', ivaFinal);
+            }
+            
+            console.log('Debug - Totales en envío:', {
+                montoPersona,
+                propinaFinal,
+                ivaFinal,
+                subtotalActual,
+                descuentoActual,
+                totalPagarGlobal: totalPagar
+            });
+            
+            // Preparar datos del pago
             const pagoData = {
-                mesa_id: mesaId,
-                orden_id: ordenIdActual || null,
-                efectivo: montoIngresado,
-                metodo_pago: metodoPagoInput.value || 'Efectivo',
-                referencia: document.getElementById('referencia')?.value || null,
-                iva: ivaActual,
-                propina: parseFloat(propinaInput?.value) || 0,
+                mesa_id: parseInt(mesaId),
+                orden_id: ordenIdActual ? parseInt(ordenIdActual) : null,
+                efectivo: parseFloat(montoIngresado) || 0,
+                metodo_pago: String(metodoPagoInput.value).trim(),
+                referencia: (document.getElementById('referencia')?.value || '').trim() || null,
+                iva: ivaFinal,
+                propina: propinaFinal,
                 promocion_id: promocionActual?.id || null,
-                descuento: descuentoActual || 0
+                descuento: parseFloat(descuentoActual) || 0
             };
+            
+            console.log('📤 Datos de pago a enviar:', pagoData);
+            
+            // Validación: el efectivo debe ser >= al total a pagar
+            // montoPersona ya incluye subtotal + iva + propina - descuento
+            if (pagoData.metodo_pago === 'Efectivo') {
+                if (pagoData.efectivo < montoPersona) {
+                    console.error('❌ Validación de pago fallida:', {
+                        ingresado: pagoData.efectivo,
+                        requerido: montoPersona,
+                        diferencia: montoPersona - pagoData.efectivo
+                    });
+                    showNotification(`Error: Monto insuficiente. Se requieren $${montoPersona.toFixed(2)}, ingresaste $${pagoData.efectivo.toFixed(2)}`, 'error');
+                    return;
+                }
+            }
+            
+            console.log('✅ Todas las validaciones pasadas, enviando fetch...');
 
             fetch('{{ route("admin.caja.api.pagar") }}', {
                 method: 'POST',
@@ -750,17 +883,44 @@
                 body: JSON.stringify(pagoData)
             })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor');
+                console.log('📨 Respuesta recibida del servidor:', {
+                    status: response.status,
+                    ok: response.ok,
+                    contentType: response.headers.get('content-type')
+                });
+                return response.json().then(data => ({
+                    ok: response.ok,
+                    status: response.status,
+                    data: data
+                }));
+            })
+            .then(({ok, status, data}) => {
+                console.log('📦 Datos parseados:', { ok, status, data });
+                
+                if (!ok) {
+                    // Manejar errores de validación (422) y otros errores
+                    if (status === 422 && data.message) {
+                        console.error('❌ Error 422 - Validación:', data.message);
+                        throw new Error(data.message);
+                    } else if (data.message) {
+                        console.error('❌ Error del servidor:', data.message);
+                        throw new Error(data.message);
+                    } else {
+                        console.error('❌ Error HTTP:', status);
+                        throw new Error('Error en la respuesta del servidor: ' + status);
+                    }
                 }
-                return response.json();
+                return data;
             })
             .then(data => {
+                console.log('✅ Pago procesado correctamente:', data);
+                
                 if (data.success) {
                     // Verificar si es mesa dividida (hay botones de cuentas)
                     const esMesaDividida = document.querySelectorAll('.btn-cuenta').length > 0;
                     
                     if (esMesaDividida) {
+                        console.log('📊 Mesa dividida detectada');
                         // MESA DIVIDIDA: Procesar por personas
                         // Marcar persona como pagada
                         const btnCuentaPagada = document.querySelector(`.btn-cuenta[data-cuenta="${numeroCuenta}"]`);
@@ -802,13 +962,17 @@
                         mostrarBotonLiberarMesa();
                     }
                 } else {
-                    console.error('Error en respuesta:', data.message);
+                    console.error('❌ Error en respuesta:', data.message);
                     showNotification(data.message || 'Error procesando pago', 'error');
                 }
             })
             .catch(error => {
-                console.error('Error en AJAX:', error);
-                showNotification('Error de conexión al procesar pago', 'error');
+                console.error('❌ ERROR CAPTURADO EN CATCH:', {
+                    mensaje: error.message,
+                    stack: error.stack,
+                    error: error
+                });
+                showNotification(error.message || 'Error de conexión al procesar pago', 'error');
             });
         }
         
@@ -964,8 +1128,13 @@
         
         // ========== NOTIFICATION SIMPLE ==========
         function showNotification(message, type = 'error') {
-            // Simple fallback - puede mejorarse con un toast system
+            // Log to console for debugging
             console.log(`[${type.toUpperCase()}] ${message}`);
+            
+            // Try to show alert if toast system not available
+            if (!window.toastContainer) {
+                console.error(message); // Para debug
+            }
         }
 
         // ========== SELECTOR DE MÉTODO DE PAGO ==========
@@ -1064,6 +1233,14 @@
         }
 
         function aplicarPromocion(promoId, promoNombre, tipoPromocion, valorDescuento) {
+            console.log('🎁 Aplicando promoción:', {
+                promoId,
+                promoNombre,
+                tipoPromocion,
+                valorDescuento,
+                subtotalActual
+            });
+            
             promocionActual = {
                 id: promoId,
                 nombre: promoNombre,
@@ -1074,8 +1251,10 @@
             // Calcular el descuento
             if (tipoPromocion === 'porcentaje') {
                 descuentoActual = Math.round(subtotalActual * (valorDescuento / 100) * 100) / 100;
+                console.log(`💰 Descuento calculado (porcentaje): ${valorDescuento}% de $${subtotalActual} = $${descuentoActual}`);
             } else {
                 descuentoActual = Math.round(parseFloat(valorDescuento) * 100) / 100;
+                console.log(`💰 Descuento calculado (fijo): $${descuentoActual}`);
             }
 
             // Actualizar la UI
@@ -1090,7 +1269,10 @@
             }
 
             // Recalcular el total
+            console.log('🔄 Recalculando total con descuento aplicado');
             recalcularTotal();
+            
+            console.log('✅ Promoción aplicada. Nuevo total:', totalPagar);
 
             // Cerrar modal
             modalPromociones.classList.add('hidden');

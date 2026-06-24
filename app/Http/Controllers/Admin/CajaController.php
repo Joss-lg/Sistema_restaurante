@@ -318,6 +318,8 @@ class CajaController extends Controller
                 'referencia' => 'nullable|string|max:191',
                 'iva' => 'nullable|numeric|min:0',
                 'propina' => 'nullable|numeric|min:0',
+                'descuento' => 'nullable|numeric|min:0',
+                'promocion_id' => 'nullable|integer',
         ]);
 
         if (in_array($validated['metodo_pago'], ['Transferencia', 'Tarjeta']) && empty($validated['referencia'])) {
@@ -413,7 +415,18 @@ class CajaController extends Controller
             // Usar los valores proporcionados o calcular los defaults
             $ivaTotal = !is_null($validated['iva']) ? floatval($validated['iva']) : round(floatval($detalleTotal) * 0.16, 2);
             $propinaTotal = !is_null($validated['propina']) ? floatval($validated['propina']) : floatval($orden->propina);
-            $total = round(floatval($detalleTotal) + $ivaTotal + $propinaTotal, 2);
+            
+            // 🔴 IMPORTANTE: Incluir el descuento de la promoción
+            $descuento = floatval($validated['descuento'] ?? 0);
+            $total = round(floatval($detalleTotal) + $ivaTotal + $propinaTotal - $descuento, 2);
+            
+            Log::info('Cálculo de total con promoción (orden específica)', [
+                'detalleTotal' => $detalleTotal,
+                'iva' => $ivaTotal,
+                'propina' => $propinaTotal,
+                'descuento' => $descuento,
+                'total_final' => $total,
+            ]);
         } else {
             $ordenIds = $ordenesActivas->pluck('id')->all();
             $detalleTotal = DB::table('detalles_orden')
@@ -423,7 +436,18 @@ class CajaController extends Controller
             // Usar los valores proporcionados o calcular los defaults
             $ivaTotal = !is_null($validated['iva']) ? floatval($validated['iva']) : round(floatval($detalleTotal) * 0.16, 2);
             $propinaTotal = !is_null($validated['propina']) ? floatval($validated['propina']) : floatval($ordenesActivas->sum('propina'));
-            $total = round(floatval($detalleTotal) + $ivaTotal + $propinaTotal, 2);
+            
+            // 🔴 IMPORTANTE: Incluir el descuento de la promoción
+            $descuento = floatval($validated['descuento'] ?? 0);
+            $total = round(floatval($detalleTotal) + $ivaTotal + $propinaTotal - $descuento, 2);
+            
+            Log::info('Cálculo de total con promoción (mesa completa)', [
+                'detalleTotal' => $detalleTotal,
+                'iva' => $ivaTotal,
+                'propina' => $propinaTotal,
+                'descuento' => $descuento,
+                'total_final' => $total,
+            ]);
         }
 
         $efectivo = floatval($validated['efectivo']);
