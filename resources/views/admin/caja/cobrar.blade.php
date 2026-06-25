@@ -54,8 +54,8 @@
                             data-orden="{{ $cuenta['orden_id'] ?? '' }}"
                             data-total="{{ number_format($cuenta['total'] ?? 0, 2, '.', '') }}"
                             data-estado="sin-pagar"
-                            data-pagado="false"
-                            style="background-color: #141417; border: 2px solid #3B82F6; color: white;">
+                            data-pagado="{{ $cuenta['estado_orden'] === 'pagada' ? 'true' : 'false' }}"
+                            style="background-color: {{ $cuenta['estado_orden'] === 'pagada' ? '#064e3b' : '#141417' }}; border: 2px solid {{ $cuenta['estado_orden'] === 'pagada' ? '#10b981' : '#3B82F6' }}; color: {{ $cuenta['estado_orden'] === 'pagada' ? '#d1fae5' : 'white' }}; opacity: {{ $cuenta['estado_orden'] === 'pagada' ? '0.7' : '1' }}; cursor: {{ $cuenta['estado_orden'] === 'pagada' ? 'not-allowed' : 'pointer' }};">
                             <span class="texto-cuenta text-[11px]">Persona {{ $cuenta['numero_cuenta'] ?? $loop->iteration }} - ${{ number_format($cuenta['total'] ?? 0, 2) }}</span>
                             <i class="fas fa-check hidden opacity-0 transition-all text-xs"></i>
                         </button>
@@ -184,7 +184,7 @@
                     </div>
                     
                     <input type="hidden" id="cuenta-actual" value="1">
-                    <input type="hidden" id="totales-divididas" value='{{ json_encode($cuentasDividadasInfo ?? [], JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK) }}'>
+                    <input type="hidden" id="totales-divididas" data-json='{{ json_encode($cuentasDividadasInfo ?? [], JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK) }}'>
                 @else
                     <div class="flex justify-between text-xs font-bold text-gray-500 uppercase items-center">
                         <span>Subtotal</span>
@@ -428,6 +428,32 @@
     </div>
 </div>
 
+{{-- Modal de Error / Alerta --}}
+<div id="modal-error" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="bg-gradient-to-br from-[#1a1a1e] to-[#0f0f12] rounded-3xl border border-red-500/20 shadow-2xl shadow-red-500/10 p-8 max-w-sm mx-4 animate-in fade-in zoom-in-95 duration-300">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 mx-auto mb-6">
+            <i class="fas fa-exclamation-triangle text-red-500 text-lg"></i>
+        </div>
+        <h2 class="text-2xl font-black text-center text-white mb-2">Monto Insuficiente</h2>
+        <p class="text-center text-gray-400 text-sm mb-6">
+            <span id="modal-error-mensaje">Se requieren $290.00, pero ingresaste $200.00</span>
+        </p>
+        <div class="bg-red-500/5 border border-red-500/20 rounded-xl p-4 mb-6">
+            <div class="flex justify-between mb-2">
+                <span class="text-gray-500 text-xs font-bold uppercase">Monto requerido:</span>
+                <span class="text-red-400 font-black text-sm" id="modal-error-requerido">$290.00</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-xs font-bold uppercase">Monto ingresado:</span>
+                <span class="text-yellow-400 font-black text-sm" id="modal-error-ingresado">$200.00</span>
+            </div>
+        </div>
+        <button type="button" id="btn-cerrar-modal-error" class="w-full py-3 px-4 bg-red-500/20 hover:bg-red-500/30 text-red-300 font-black rounded-2xl border border-red-500/30 transition-all">
+            <i class="fas fa-check mr-2"></i> Entendido
+        </button>
+    </div>
+</div>
+
 {{-- Script de lógica del teclado --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -467,6 +493,13 @@
         let promocionActual = null;
         let descuentoActual = 0;
 
+        // ========== FORMATTER DEBE ESTAR ANTES DE TODO ==========
+        const formatter = new Intl.NumberFormat('es-MX', {
+            style: 'currency',
+            currency: 'MXN',
+            minimumFractionDigits: 2
+        });
+
         // Total original de toda la mesa (para cuentas divididas)
         let totalMesaCompleta = parseFloat('{{ number_format($totalPagar, 2, ".", "") }}');
         let totalPagar = parseFloat('{{ number_format($totalPagar, 2, ".", "") }}');
@@ -475,28 +508,60 @@
         let ivaActual = parseFloat('{{ number_format($iva ?? 0, 2, ".", "") }}');
         let propinaActual = 0;
         let cuentaActual = 1;
-        let totalDividadasInfo = {};
+        let totalDividadasInfo = [];
 
-        if (totalDividasData && totalDividasData.value) {
+        if (totalDividasData && totalDividasData.getAttribute('data-json')) {
             try {
-                totalDividadasInfo = JSON.parse(totalDividasData.value);
+                const jsonStr = totalDividasData.getAttribute('data-json');
+                const datosParsed = JSON.parse(jsonStr);
+                
+                // ⚠️ El JSON tiene estructura {count, data}
+                const arregloCuentas = datosParsed.data || datosParsed;
+                
+                // ✅ ASIGNAR EL ARRAY A totalDividadasInfo
+                totalDividadasInfo = Array.isArray(arregloCuentas) ? arregloCuentas : [];
+                
+                console.log('✅ totalDividadasInfo parseado:', {
+                    esArray: Array.isArray(totalDividadasInfo),
+                    cantidad: totalDividadasInfo.length,
+                    datos: totalDividadasInfo
+                });
+                
                 if (Array.isArray(totalDividadasInfo) && totalDividadasInfo.length > 0) {
-                    totalPagar = parseFloat(totalDividadasInfo[0].total);
-                    subtotalActual = parseFloat(totalDividadasInfo[0].subtotal);
-                    ivaActual = parseFloat(totalDividadasInfo[0].iva);
-                    propinaActual = parseFloat(totalDividadasInfo[0].propina) || 0;
-                    cuentaActual = 1;
+                    // ✅ IMPORTANTE: Buscar la PRIMERA persona que NO está pagada
+                    let primeraPersonaSinPagar = arregloCuentas[0];
+                    for (let cuenta of arregloCuentas) {
+                        console.log(`🔍 Revisando Persona ${cuenta.numero_cuenta}: estado=${cuenta.estado_orden}`);
+                        if (cuenta.estado_orden !== 'pagada') {
+                            primeraPersonaSinPagar = cuenta;
+                            cuentaActual = cuenta.numero_cuenta;
+                            console.log(`✅ Primera persona sin pagar: Persona ${cuentaActual}`);
+                            break;
+                        }
+                    }
+                    
+                    totalPagar = parseFloat(primeraPersonaSinPagar.total);
+                    subtotalActual = parseFloat(primeraPersonaSinPagar.subtotal);
+                    ivaActual = parseFloat(primeraPersonaSinPagar.iva);
+                    propinaActual = parseFloat(primeraPersonaSinPagar.propina) || 0;
+                    console.log(`📊 Totales asignados para Persona ${cuentaActual}:`, {
+                        total: totalPagar,
+                        subtotal: subtotalActual,
+                        iva: ivaActual,
+                        propina: propinaActual
+                    });
+                    
+                    // ✅ CRÍTICO: Actualizar el elemento #total-pagar en el DOM
+                    if (totalPagarDisplay) {
+                        totalPagarDisplay.textContent = formatter.format(totalPagar);
+                        console.log(`✅ DOM actualizado: #total-pagar = ${formatter.format(totalPagar)}`);
+                    }
                 }
             } catch (e) {
-                console.error('Error parsing totalDividadas:', e);
+                console.error('❌ Error parsing totalDividadas:', e);
+                console.error('Contenido del atributo:', totalDividasData.getAttribute('data-json'));
             }
         }
-
-        const formatter = new Intl.NumberFormat('es-MX', {
-            style: 'currency',
-            currency: 'MXN',
-            minimumFractionDigits: 2
-        });
 
         // ========== TECLADO NUMÉRICO ==========
         botonesTeclado.forEach(boton => {
@@ -594,6 +659,21 @@
                         ivaActual = parseFloat(cuentaInfo.iva) || 0;
                         propinaActual = parseFloat(cuentaInfo.propina) || 0;
                         
+                        // ✅ ACTUALIZAR EL DOM CON EL NUEVO TOTAL
+                        if (totalPagarDisplay) {
+                            totalPagarDisplay.textContent = formatter.format(totalPagar);
+                            console.log(`✅ #total-pagar actualizado para Persona ${numeroCuenta}: ${formatter.format(totalPagar)}`);
+                        }
+                        
+                        // ✅ CRÍTICO: Actualizar el orden_id cuando cambia de persona
+                        if (cuentaInfo.orden_id) {
+                            const ordenIdInput = document.getElementById('orden-id');
+                            if (ordenIdInput) {
+                                ordenIdInput.value = cuentaInfo.orden_id;
+                                console.log(`✅ orden_id actualizado para Persona ${numeroCuenta}: ${cuentaInfo.orden_id}`);
+                            }
+                        }
+                        
                         // 🔴 IMPORTANTE: Resetear promoción al cambiar de cuenta
                         // Cada persona debe tener sus propias promociones
                         descuentoActual = 0;
@@ -607,7 +687,11 @@
                             promoAplicada.classList.add('hidden');
                         }
                         
-                        console.log(`✅ Cambio de cuenta a Persona ${numeroCuenta}. Promoción resetada.`);
+                        console.log(`✅ Cambio de cuenta a Persona ${numeroCuenta}. Promoción resetada.`, {
+                            orden_id: cuentaInfo.orden_id,
+                            total: cuentaInfo.total,
+                            subtotal: cuentaInfo.subtotal
+                        });
                         
                         // Actualizar displays
                         const totalSubtotalDisplay = document.getElementById('total-subtotal');
@@ -626,10 +710,23 @@
                         
                         recalcularTotal();
                         actualizarVista();
+                    } else {
+                        console.error(`❌ No se encontró cuentaInfo para Persona ${numeroCuenta} en totalDividadasInfo`, totalDividadasInfo);
                     }
                 }
             });
         });
+
+        // ========== SELECCIONAR LA PRIMERA PERSONA SIN PAGAR AL CARGAR ==========
+        if (botonessCuenta && botonessCuenta.length > 0) {
+            const btnPersonaSinPagar = document.querySelector(`.btn-cuenta[data-cuenta="${cuentaActual}"]`);
+            if (btnPersonaSinPagar) {
+                console.log(`🔴 Haciendo click automático en Persona ${cuentaActual}`);
+                setTimeout(() => {
+                    btnPersonaSinPagar.click();
+                }, 100);
+            }
+        }
 
         // ========== FUNCIÓN PARA RECALCULAR TOTAL ==========
         function recalcularTotal() {
@@ -753,67 +850,96 @@
             });
         }
 
-        // ========== BOTÓN FINALIZAR PAGO ==========
+        // ========== BOTÓN FINALIZAR PAGO - VERSIÓN SIMPLIFICADA ==========
         if (btnFinalizar) {
-            console.log('✅ btnFinalizar encontrado, agregando evento click');
-            btnFinalizar.addEventListener('click', function(e) {
+            console.log('✅ btnFinalizar encontrado');
+            
+            btnFinalizar.onclick = function(e) {
+                console.log('🔴 CLICK DETECTADO EN BOTÓN FINALIZAR');
                 e.preventDefault();
-                console.log('🔵 CLICK EN FINALIZAR PAGO DETECTADO');
+                e.stopPropagation();
+                
+                if (btnFinalizar.disabled) {
+                    console.log('⚠️ Botón ya deshabilitado');
+                    return;
+                }
+                
+                btnFinalizar.disabled = true;
+                btnFinalizar.textContent = 'Procesando...';
                 
                 const montoIngresado = parseFloat(montoActual) || 0;
-                
-                console.log('📊 Validación inicial:', {
-                    montoIngresado,
-                    totalPagar,
-                    metodo: metodoPagoInput.value,
-                    mesaId
-                });
+                console.log('💵 Monto a procesar:', montoIngresado);
+                console.log('💳 Total a pagar:', totalPagar);
                 
                 if (montoIngresado === 0) {
-                    console.warn('⚠️ Monto ingresado es 0');
-                    showNotification('Por favor ingresa un monto válido', 'error');
+                    mostrarModalError('Por favor ingresa un monto válido', totalPagar, 0);
+                    btnFinalizar.disabled = false;
+                    btnFinalizar.textContent = 'Finalizar Pago';
                     return;
                 }
                 
                 if (montoIngresado < totalPagar) {
-                    console.warn('⚠️ Monto insuficiente:', { montoIngresado, totalPagar });
-                    showNotification(`Monto insuficiente. Se requieren $${totalPagar.toFixed(2)}`, 'warning');
+                    mostrarModalError(`Se requieren $${totalPagar.toFixed(2)}`, totalPagar, montoIngresado);
+                    btnFinalizar.disabled = false;
+                    btnFinalizar.textContent = 'Finalizar Pago';
                     return;
                 }
                 
-                console.log('✅ Validaciones pasadas, procesando pago...');
-                // Procesar pago exitoso
-                procesarPagoExitoso(cuentaActual, totalPagar, montoIngresado);
-            });
+                console.log('✅ Todas las validaciones OK, enviando pago...');
+                procesarPagoExitoso(cuentaActual, totalPagar, montoIngresado, btnFinalizar, 'Finalizar Pago');
+            };
         } else {
-            console.error('❌ btnFinalizar NO encontrado en el DOM');
+            console.error('❌ btnFinalizar NO ENCONTRADO');
         }
         
         // ========== PROCESAR PAGO EXITOSO ==========
-        function procesarPagoExitoso(numeroCuenta, montoPersona, montoIngresado) {
+        function procesarPagoExitoso(numeroCuenta, montoPersona, montoIngresado, btnFinalizar = null, textoOriginal = 'Finalizar') {
             console.log('🟢 INICIANDO procesarPagoExitoso');
             
-            // Obtener el orden_id correcto para esta persona (en cuenta dividida)
-            let ordenIdActual = ordenId;
-            if (Array.isArray(totalDividadasInfo) && totalDividadasInfo.length > 0) {
+            // ✅ CRÍTICO: Leer el orden_id del input (ya actualizado cuando cambió de persona)
+            const ordenIdInput = document.getElementById('orden-id');
+            let ordenIdActual = ordenIdInput && ordenIdInput.value ? parseInt(ordenIdInput.value) : null;
+            
+            console.log('📋 Estado de orden_id:', {
+                valor_input: ordenIdInput?.value,
+                ordenIdActual,
+                numeroCuenta,
+                tiene_totalDividadasInfo: Array.isArray(totalDividadasInfo) && totalDividadasInfo.length > 0
+            });
+            
+            // Si el input no tiene valor, intentar obtener del array
+            if (!ordenIdActual && Array.isArray(totalDividadasInfo) && totalDividadasInfo.length > 0) {
                 const cuentaInfo = totalDividadasInfo.find(c => c.numero_cuenta === numeroCuenta);
                 if (cuentaInfo && cuentaInfo.orden_id) {
                     ordenIdActual = cuentaInfo.orden_id;
+                    console.log(`✅ orden_id obtenido del array para Persona ${numeroCuenta}: ${ordenIdActual}`);
                 }
             }
             
-            console.log('📋 Orden ID:', { ordenIdActual, numeroCuenta });
+            console.log('✅ orden_id final a usar:', ordenIdActual);
             
             // Validar que tenemos todos los datos requeridos
             if (!mesaId) {
                 console.error('❌ mesaId no definido');
                 showNotification('Error: ID de mesa no encontrado', 'error');
+                if (btnFinalizar) {
+                    btnFinalizar.disabled = false;
+                    btnFinalizar.style.opacity = '1';
+                    btnFinalizar.style.cursor = 'pointer';
+                    btnFinalizar.textContent = textoOriginal;
+                }
                 return;
             }
             
             if (!metodoPagoInput.value) {
                 console.error('❌ metodoPagoInput.value no definido');
                 showNotification('Error: Método de pago no seleccionado', 'error');
+                if (btnFinalizar) {
+                    btnFinalizar.disabled = false;
+                    btnFinalizar.style.opacity = '1';
+                    btnFinalizar.style.cursor = 'pointer';
+                    btnFinalizar.textContent = textoOriginal;
+                }
                 return;
             }
 
@@ -867,6 +993,13 @@
                         diferencia: montoPersona - pagoData.efectivo
                     });
                     showNotification(`Error: Monto insuficiente. Se requieren $${montoPersona.toFixed(2)}, ingresaste $${pagoData.efectivo.toFixed(2)}`, 'error');
+                    // Re-habilitar botón en caso de error
+                    if (btnFinalizar) {
+                        btnFinalizar.disabled = false;
+                        btnFinalizar.style.opacity = '1';
+                        btnFinalizar.style.cursor = 'pointer';
+                        btnFinalizar.textContent = textoOriginal;
+                    }
                     return;
                 }
             }
@@ -916,6 +1049,11 @@
                 console.log('✅ Pago procesado correctamente:', data);
                 
                 if (data.success) {
+                    console.log('✅ Pago exitoso - Verificando estado de mesa:', {
+                        mesa_liberada: data.mesa_liberada,
+                        estado_mesa_final: data.estado_mesa_final
+                    });
+                    
                     // Verificar si es mesa dividida (hay botones de cuentas)
                     const esMesaDividida = document.querySelectorAll('.btn-cuenta').length > 0;
                     
@@ -953,17 +1091,55 @@
                                 siguientePersona.click();
                             }, 1500);
                         } else {
-                            // Si no hay más personas, mostrar botón "Liberar Mesa"
-                            mostrarBotonLiberarMesa();
+                            // Si no hay más personas
+                            console.log('🏁 Todas las personas pagadas. Mesa liberada desde backend:', data.mesa_liberada);
+                            showSuccessModal(numeroCuenta, montoPersona, totalPagarDisplay?.textContent || '$0.00');
+                            
+                            if (data.mesa_liberada) {
+                                // La mesa ya fue liberada en el backend, redirigir directamente
+                                setTimeout(() => {
+                                    console.log('🔄 Redireccionando a panel de caja (mesa ya liberada)...');
+                                    // Usar location.reload(true) para forzar refresh completo desde servidor
+                                    location.reload(true);
+                                }, 1500);
+                            } else {
+                                // Si no fue liberada, intentar liberar
+                                setTimeout(() => {
+                                    console.log('⚠️ Mesa no fue liberada en backend, liberando manualmente...');
+                                    liberarMesaAutomaticamente();
+                                }, 2000);
+                            }
                         }
                     } else {
-                        // MESA NORMAL: Mostrar botón "Liberar Mesa"
+                        // MESA NORMAL: Verificar si ya fue liberada en el backend
+                        console.log('🍽️ Mesa normal - Verificando liberación...');
                         showSuccessModal(1, totalPagar, '$0.00');
-                        mostrarBotonLiberarMesa();
+                        
+                        if (data.mesa_liberada) {
+                            // La mesa ya fue liberada en el backend, redirigir directamente
+                            setTimeout(() => {
+                                console.log('🔄 Redireccionando a panel de caja (mesa ya liberada)...');
+                                // Usar location.reload(true) para forzar refresh completo desde servidor
+                                location.reload(true);
+                            }, 1500);
+                        } else {
+                            // Si no fue liberada, intentar liberar
+                            setTimeout(() => {
+                                console.log('⚠️ Mesa no fue liberada en backend, liberando manualmente...');
+                                liberarMesaAutomaticamente();
+                            }, 2000);
+                        }
                     }
                 } else {
                     console.error('❌ Error en respuesta:', data.message);
                     showNotification(data.message || 'Error procesando pago', 'error');
+                    // Re-habilitar botón en caso de error
+                    if (btnFinalizar) {
+                        btnFinalizar.disabled = false;
+                        btnFinalizar.style.opacity = '1';
+                        btnFinalizar.style.cursor = 'pointer';
+                        btnFinalizar.textContent = textoOriginal;
+                    }
                 }
             })
             .catch(error => {
@@ -973,6 +1149,13 @@
                     error: error
                 });
                 showNotification(error.message || 'Error de conexión al procesar pago', 'error');
+                // Re-habilitar botón en caso de error
+                if (btnFinalizar) {
+                    btnFinalizar.disabled = false;
+                    btnFinalizar.style.opacity = '1';
+                    btnFinalizar.style.cursor = 'pointer';
+                    btnFinalizar.textContent = textoOriginal;
+                }
             });
         }
         
@@ -1009,14 +1192,23 @@
                 modalExito.classList.remove('hidden');
             }
             
+            // ✅ IMPORTANTE: Resetear el botón Finalizar Pago
+            const btnFinalizar = document.getElementById('btn-finalizar');
+            if (btnFinalizar) {
+                btnFinalizar.disabled = false;
+                btnFinalizar.style.opacity = '1';
+                btnFinalizar.style.cursor = 'pointer';
+                btnFinalizar.textContent = 'Finalizar Pago';
+            }
+            
             if (btnCerrarExito) {
                 btnCerrarExito.onclick = function() {
                     // Verificar si todas las personas están pagadas
                     const personasRestantes = encontrarSiguientePersonaSinPagar();
                     
                     if (!personasRestantes) {
-                        // Todas pagadas, redirigir a caja
-                        window.location.href = '{{ route("admin.caja.index") }}';
+                        // Todas pagadas, redirigir a caja con refresh completo desde servidor
+                        location.reload(true);
                     } else {
                         // Aún hay personas, solo cerrar el modal
                         modalExito.classList.add('hidden');
@@ -1045,6 +1237,59 @@
                     });
                 }
             }
+        }
+        
+        // ========== LIBERAR MESA AUTOMÁTICAMENTE (sin modales) ==========
+        function liberarMesaAutomaticamente() {
+            const mesaId = document.getElementById('mesa-id').value;
+            const modalExito = document.getElementById('modal-exito');
+            
+            console.log('🟢 INICIANDO liberarMesaAutomaticamente');
+            
+            // Cerrar modal de éxito
+            if (modalExito) {
+                modalExito.classList.add('hidden');
+            }
+            
+            fetch('{{ route("admin.caja.api.liberar-mesa") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ mesa_id: mesaId })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('✅ Mesa liberada correctamente:', data);
+                if (data.success) {
+                    console.log('🔄 Redireccionando a panel de caja...');
+                    setTimeout(() => {
+                        location.reload(true);
+                    }, 500);
+                } else {
+                    console.error('❌ Error al liberar mesa:', data.message);
+                    showNotification(data.message || 'Error liberando mesa automáticamente', 'error');
+                    // Si hay error, mostrar el modal nuevamente
+                    if (modalExito) {
+                        modalExito.classList.remove('hidden');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ ERROR en liberarMesaAutomaticamente:', error);
+                showNotification('Error de conexión al liberar mesa', 'error');
+                // Si hay error, mostrar el modal nuevamente
+                if (modalExito) {
+                    modalExito.classList.remove('hidden');
+                }
+            });
         }
         
         // ========== LIBERAR MESA ==========
@@ -1111,7 +1356,7 @@
                             if (data.success) {
                                 showNotification('Mesa liberada correctamente', 'success');
                                 setTimeout(() => {
-                                    window.location.href = '{{ route("admin.caja.index") }}';
+                                    location.reload(true);
                                 }, 1000);
                             } else {
                                 showNotification(data.message || 'Error liberando mesa', 'error');
@@ -1318,6 +1563,38 @@
                 this.classList.add('hidden');
             }
         });
+
+        // ========== FUNCIÓN PARA MOSTRAR MODAL DE ERROR ==========
+        function mostrarModalError(mensaje, requerido, ingresado) {
+            const modalError = document.getElementById('modal-error');
+            const mensajeError = document.getElementById('modal-error-mensaje');
+            const requeridoSpan = document.getElementById('modal-error-requerido');
+            const ingresadoSpan = document.getElementById('modal-error-ingresado');
+            
+            mensajeError.textContent = mensaje;
+            requeridoSpan.textContent = '$' + requerido.toFixed(2);
+            ingresadoSpan.textContent = '$' + ingresado.toFixed(2);
+            
+            modalError.classList.remove('hidden');
+        }
+
+        // Cerrar modal de error
+        const btnCerrarModalError = document.getElementById('btn-cerrar-modal-error');
+        if (btnCerrarModalError) {
+            btnCerrarModalError.addEventListener('click', () => {
+                document.getElementById('modal-error').classList.add('hidden');
+            });
+        }
+        
+        // Cerrar modal de error al hacer clic fuera
+        const modalError = document.getElementById('modal-error');
+        if (modalError) {
+            modalError.addEventListener('click', (e) => {
+                if (e.target === modalError) {
+                    modalError.classList.add('hidden');
+                }
+            });
+        }
 
         // Inicializar vista
         actualizarVista();

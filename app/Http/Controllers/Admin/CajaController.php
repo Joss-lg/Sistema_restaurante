@@ -96,8 +96,9 @@ class CajaController extends Controller
             return in_array($ordenItem->estado, ['pendiente', 'en proceso', 'servida']);
         });
 
-        // SEGUNDO: Detectar si hay cuentas divididas EN LAS ÓRDENES ACTIVAS
-        $ordenesDivididas = $ordenes->filter(function ($ordenItem) {
+        // SEGUNDO: ✅ ARREGLO - Buscar órdenes divididas en TODAS las órdenes, NO solo activas
+        // Esto permite detectar cuentas divididas incluso cuando algunas órdenes ya están pagadas
+        $ordenesDivididas = $todasLasOrdenes->filter(function ($ordenItem) {
             return isset($ordenItem->cuenta_dividida) && $ordenItem->cuenta_dividida;
         });
         $cuentasDivididas = $ordenesDivididas->isNotEmpty();
@@ -113,6 +114,17 @@ class CajaController extends Controller
         ]);
 
         $ordenDividida = $ordenes->first();
+        
+        // ✅ IMPORTANTE: Obtener TODAS las órdenes divididas ANTES de usarlas
+        // Se necesita para poder determinar cuáles aún faltan por cobrar
+        $todasLasOrdenesDivididas = collect();
+        if ($cuentasDivididas) {
+            $todasLasOrdenesDivididas = DB::table('ordenes')
+                ->where('mesa_id', $mesa->id)
+                ->where('cuenta_dividida', true)
+                ->whereNull('deleted_at')
+                ->get();
+        }
         
         // Obtener el total de cuentas a dividir
         $totalCuentasDivision = null;
@@ -130,6 +142,7 @@ class CajaController extends Controller
                 'totalCuentasDivision_FINAL' => $totalCuentasDivision,
                 'ordenes_activas' => $ordenes->count(),
                 'max_numero_cuenta' => $maxNumeroCuenta,
+                'todas_ordenes_divididas' => $todasLasOrdenesDivididas->count(),
             ]);
         }
 
@@ -151,53 +164,86 @@ class CajaController extends Controller
                 // Establece el label para cuentas divididas
                 $ordenLabel = 'Dividida en ' . $totalCuentasDivision . ' personas';
                 
-                // Si hay cuentas divididas, necesitamos sumar SOLO los productos ACTIVOS
-                // y dividir el total entre el número de personas
+                // ✅ CRÍTICO: Para cuentas divididas, necesitamos el total COMPLETO de la mesa
+                // incluyendo órdenes ya pagadas, para poder dividir correctamente
                 
-                // Obtener detalles SOLO de las órdenes ACTIVAS (no pagadas)
-                $ordenIds = $ordenes->pluck('id')->toArray();
-                $todosLosDetalles = DB::table('detalles_orden')
-                    ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
-                    ->select(
-                        'detalles_orden.id',
-                        'productos.nombre as nombre',
-                        'detalles_orden.cantidad',
-                        'detalles_orden.precio_unitario',
-                        'detalles_orden.notas'
-                    )
-                    ->whereIn('detalles_orden.orden_id', $ordenIds)
-                    ->get();
+                // ✅ ARREGLO: Obtener detalles solo de la PRIMERA orden dividida
+                // Las demás órdenes NO tienen detalles, pero su total se calcula dividiendo
+                $primerOrdenDividida = DB::table('ordenes')
+                    ->where('mesa_id', $mesa->id)
+                    ->where('cuenta_dividida', true)
+                    ->orderBy('numero_cuenta_division', 'asc')
+                    ->first();
                 
-                // Asignar a $productos también para que la validación funcione
-                $productos = $todosLosDetalles;
+                $detallesPorPersona = collect();
+                if ($primerOrdenDividida) {
+                    // Obtener detalles SOLO de la primera orden
+                    $detallesPorPersona = DB::table('detalles_orden')
+                        ->join('productos', 'detalles_orden.producto_id', '=', 'productos.id')
+                        ->select(
+                            'detalles_orden.id',
+                            'productos.nombre as nombre',
+                            'detalles_orden.cantidad',
+                            'detalles_orden.precio_unitario',
+                            'detalles_orden.notas'
+                        )
+                        ->where('detalles_orden.orden_id', $primerOrdenDividida->id)
+                        ->get();
+                }
+                
+                // Asignar a $productos para que la validación funcione
+                $productos = $detallesPorPersona;
 
-                // Calcular el total completo
-                $subtotalTotal = $todosLosDetalles->sum(function ($item) {
+                // Calcular el total completo (dividido entre personas después)
+                $subtotalTotal = $detallesPorPersona->sum(function ($item) {
                     return floatval($item->cantidad) * floatval($item->precio_unitario);
                 });
                 $subtotalTotal = round($subtotalTotal, 2);
+                
+                // ✅ IMPORTANTE: El IVA se calcula sobre el subtotal COMPLETO de la mesa
                 $ivaTotal = round($subtotalTotal * 0.16, 2);
                 
                 // Obtener la propina de cualquier orden dividida (deberían ser todas iguales)
                 $propinaTotal = floatval($ordenDividida->propina ?? 0);
-                $totalOrdenCompleta = round($subtotalTotal + $ivaTotal + $propinaTotal, 2);
+                
+                // El total de la mesa COMPLETA (incluyendo ya pagado)
+                $totalMesaCompleta = round($subtotalTotal + $ivaTotal + $propinaTotal, 2);
+
+                Log::info('Cálculo de totales para cuentas divididas', [
+                    'mesa_id' => $mesa->id,
+                    'subtotalTotal' => $subtotalTotal,
+                    'ivaTotal' => $ivaTotal,
+                    'propinaTotal' => $propinaTotal,
+                    'totalMesaCompleta' => $totalMesaCompleta,
+                    'totalCuentasDivision' => $totalCuentasDivision,
+                    'precio_por_persona' => round($totalMesaCompleta / $totalCuentasDivision, 2),
+                ]);
 
                 // Crear una cuenta por cada persona con el total dividido
                 for ($i = 1; $i <= $totalCuentasDivision; $i++) {
-                    // Buscar la orden ACTIVA para esta persona, pero si no existe, usar la primera
-                    $ordenParaEstaPersona = $ordenes->firstWhere('numero_cuenta_division', $i) ?? $ordenes->first();
+                    // ✅ CRÍTICO: Buscar la orden CORRECTA para esta persona en TODAS las órdenes divididas
+                    // No solo en las activas, porque la persona 1 podría ya estar pagada
+                    $ordenParaEstaPersona = $todasLasOrdenesDivididas->firstWhere('numero_cuenta_division', $i);
                     
-                    // SIEMPRE agregar la cuenta (no depender de numero_cuenta_division)
+                    Log::info('Búsqueda de orden para persona', [
+                        'persona' => $i,
+                        'orden_encontrada' => $ordenParaEstaPersona?->id ?? null,
+                        'orden_estado' => $ordenParaEstaPersona?->estado ?? null,
+                        'numero_cuenta_division' => $ordenParaEstaPersona?->numero_cuenta_division ?? null,
+                    ]);
+                    
+                    // SIEMPRE agregar la cuenta si encontramos la orden
                     if ($ordenParaEstaPersona) {
                         $cuentasDividadasInfo[] = [
                             'numero_cuenta' => $i,
                             'orden_id' => $ordenParaEstaPersona->id,
                             'numero_orden' => $ordenParaEstaPersona->numero_orden ?? 'Persona ' . $i,
-                            'productos' => $todosLosDetalles,
+                            'productos' => collect($detallesPorPersona),
                             'subtotal' => round($subtotalTotal / $totalCuentasDivision, 2),
                             'iva' => round($ivaTotal / $totalCuentasDivision, 2),
                             'propina' => round($propinaTotal / $totalCuentasDivision, 2),
-                            'total' => round($totalOrdenCompleta / $totalCuentasDivision, 2)
+                            'total' => round($totalMesaCompleta / $totalCuentasDivision, 2),
+                            'estado_orden' => $ordenParaEstaPersona->estado,
                         ];
                     }
                 }
@@ -205,13 +251,33 @@ class CajaController extends Controller
                 $subtotal = $subtotalTotal;
                 $iva = $ivaTotal;
                 $propina = $propinaTotal;
+                // ✅ IMPORTANTE: El totalPagar debe ser para UNA persona, no toda la mesa
+                $totalPagar = round($totalMesaCompleta / $totalCuentasDivision, 2);
+                
+                Log::info('✅ ASIGNACIÓN DE totalPagar PARA CUENTAS DIVIDIDAS', [
+                    'totalMesaCompleta' => $totalMesaCompleta,
+                    'totalCuentasDivision' => $totalCuentasDivision,
+                    'totalPagar_ASIGNADO' => $totalPagar,
+                ]);
 
-                $totalPagar = round($subtotal + $iva + $propina, 2);
-
-                // Ordenar las cuentas divididas por su número
+        // Ordenar las cuentas divididas por su número
                 usort($cuentasDividadasInfo, function($a, $b) {
                     return intval($a['numero_cuenta'] ?? 0) <=> intval($b['numero_cuenta'] ?? 0);
                 });
+                
+                // ✅ IMPORTANTE: Asignar ordenId a la PRIMERA persona que NO está pagada
+                $ordenId = null;
+                foreach ($cuentasDividadasInfo as $cuenta) {
+                    if ($cuenta['estado_orden'] !== 'pagada') {
+                        $ordenId = $cuenta['orden_id'];
+                        Log::info('Asignando ordenId a la primera persona sin pagar', [
+                            'numero_cuenta' => $cuenta['numero_cuenta'],
+                            'orden_id' => $ordenId,
+                            'estado_orden' => $cuenta['estado_orden'],
+                        ]);
+                        break;
+                    }
+                }
             } else {
                 // Comportamiento original para cuentas no divididas
                 $orden = $ordenes->first();
@@ -337,6 +403,22 @@ class CajaController extends Controller
                 ], 422);
             }
             
+            // ✅ VALIDACIÓN CRÍTICA: Verificar si la orden ya está pagada
+            if ($orden->estado === 'pagada') {
+                Log::warning('Intento de cobro duplicado - orden ya pagada', [
+                    'orden_id' => $orden->id,
+                    'mesa_id' => $mesa->id,
+                    'numero_orden' => $orden->numero_orden,
+                    'estado_orden' => $orden->estado,
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta orden ya fue pagada. No se puede procesar nuevamente.',
+                    'mesa_liberada' => false,
+                ], 422);
+            }
+            
             Log::info('Pago de orden específica (mesa dividida)', [
                 'orden_id' => $orden->id,
                 'mesa_id' => $mesa->id,
@@ -384,7 +466,7 @@ class CajaController extends Controller
                 
                 DB::table('mesas')->where('id', $validated['mesa_id'])->update([
                     'estado' => 'disponible',
-                    'updated_at' => Carbon::now(),
+                    'updated_at' => now(),
                 ]);
                 
                 if (Schema::hasColumn('mesas', 'total_consumo')) {
@@ -412,9 +494,34 @@ class CajaController extends Controller
                 ->where('orden_id', $orden->id)
                 ->sum(DB::raw('cantidad * precio_unitario'));
 
+            // ✅ NUEVO: Si la orden es parte de una cuenta dividida, dividir el total
+            $esCuentaDividida = $orden->cuenta_dividida ?? false;
+            $totalCuentasDivision = $orden->total_cuentas_division ?? 1;
+            
+            if ($esCuentaDividida && $totalCuentasDivision > 1) {
+                Log::info('Orden dividida detectada - dividiendo total', [
+                    'orden_id' => $orden->id,
+                    'detalleTotal_antes' => $detalleTotal,
+                    'total_cuentas_division' => $totalCuentasDivision,
+                ]);
+                $detalleTotal = round($detalleTotal / $totalCuentasDivision, 2);
+                
+                Log::info('Orden dividida - total dividido', [
+                    'orden_id' => $orden->id,
+                    'detalleTotal_despues' => $detalleTotal,
+                ]);
+            }
+
             // Usar los valores proporcionados o calcular los defaults
             $ivaTotal = !is_null($validated['iva']) ? floatval($validated['iva']) : round(floatval($detalleTotal) * 0.16, 2);
-            $propinaTotal = !is_null($validated['propina']) ? floatval($validated['propina']) : floatval($orden->propina);
+            
+            // ✅ NUEVO: Dividir propina también si es cuenta dividida
+            $propinaDeLaOrden = floatval($orden->propina ?? 0);
+            if ($esCuentaDividida && $totalCuentasDivision > 1) {
+                $propinaDeLaOrden = round($propinaDeLaOrden / $totalCuentasDivision, 2);
+            }
+            
+            $propinaTotal = !is_null($validated['propina']) ? floatval($validated['propina']) : $propinaDeLaOrden;
             
             // 🔴 IMPORTANTE: Incluir el descuento de la promoción
             $descuento = floatval($validated['descuento'] ?? 0);
@@ -426,6 +533,8 @@ class CajaController extends Controller
                 'propina' => $propinaTotal,
                 'descuento' => $descuento,
                 'total_final' => $total,
+                'es_cuenta_dividida' => $esCuentaDividida,
+                'total_cuentas' => $totalCuentasDivision,
             ]);
         } else {
             $ordenIds = $ordenesActivas->pluck('id')->all();
@@ -470,155 +579,214 @@ class CajaController extends Controller
 
         $comprobanteUrl = null;
 
-        DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio, $orden, $ivaTotal, $propinaTotal) {
-            if (! empty($orden)) {
-                // Verificar si esta orden es parte de cuentas divididas
-                $esOrdenDividida = $orden->cuenta_dividida ?? false;
-                
-                // Actualizar SOLO la orden específica como pagada
-                $updated = DB::table('ordenes')
-                    ->where('id', $orden->id)
-                    ->whereNull('deleted_at')
-                    ->update([
-                        'estado' => 'pagada',
-                        'metodo_pago' => $validated['metodo_pago'],
+        try {
+            DB::transaction(function () use ($mesa, $validated, $total, $efectivo, $cambio, $orden, $ivaTotal, $propinaTotal) {
+                if (! empty($orden)) {
+                    // Verificar si esta orden es parte de cuentas divididas
+                    $esOrdenDividida = $orden->cuenta_dividida ?? false;
+                    
+                    // ✅ VERIFICACIÓN DOBLE: Confirmar que la orden NO está ya pagada antes de actualizar
+                    $ordenEstadoActual = DB::table('ordenes')->where('id', $orden->id)->value('estado');
+                    if ($ordenEstadoActual === 'pagada') {
+                        throw new \Exception('Esta orden ya fue pagada. No se puede procesar duplicadamente.');
+                    }
+                    
+                    // Actualizar SOLO la orden específica como pagada
+                    $updated = DB::table('ordenes')
+                        ->where('id', $orden->id)
+                        ->where('estado', '!=', 'pagada')  // ✅ No actualizar si ya está pagada
+                        ->whereNull('deleted_at')
+                        ->update([
+                            'estado' => 'pagada',
+                            'metodo_pago' => $validated['metodo_pago'],
+                            'propina' => $propinaTotal,
+                            'cerrada_el' => now(),
+                        ]);
+                    
+                    Log::info('Orden marcada como pagada', [
+                        'orden_id' => $orden->id,
+                        'mesa_id' => $mesa->id,
+                        'updated_rows' => $updated,
                         'propina' => $propinaTotal,
-                        'cerrada_el' => Carbon::now(),
+                        'metodo_pago' => $validated['metodo_pago'],
+                        'es_orden_dividida' => $esOrdenDividida,
                     ]);
-                
-                Log::info('Orden marcada como pagada', [
-                    'orden_id' => $orden->id,
-                    'mesa_id' => $mesa->id,
-                    'updated_rows' => $updated,
-                    'propina' => $propinaTotal,
-                    'metodo_pago' => $validated['metodo_pago'],
-                    'es_orden_dividida' => $esOrdenDividida,
-                ]);
-                
-                // ✅ ELIMINADO: No marcar automáticamente todas las órdenes como pagadas
-                // Solo se marca la orden actual. Las demás órdenes se marcarán cuando se paguen.
-            } else {
-                // Marcar TODAS las órdenes activas como pagadas (cuando no se especifica orden_id)
-                $updated = DB::table('ordenes')
+                    
+                    // ✅ Si updated_rows es 0, significa que la orden ya estaba pagada
+                    if ($updated === 0) {
+                        Log::warning('Orden ya estaba pagada - intento de cobro duplicado', [
+                            'orden_id' => $orden->id,
+                            'mesa_id' => $mesa->id,
+                        ]);
+                        throw new \Exception('Esta orden ya fue pagada. No se puede procesar nuevamente.');
+                    }
+                    
+                    // ✅ ELIMINADO: No marcar automáticamente todas las órdenes como pagadas
+                    // Solo se marca la orden actual. Las demás órdenes se marcarán cuando se paguen.
+                } else {
+                    // Marcar TODAS las órdenes activas como pagadas (cuando no se especifica orden_id)
+                    // PRIMERO: Obtener TODAS las órdenes para marcarlas
+                    $todasLasOrdenesAMarcar = DB::table('ordenes')
+                        ->where('mesa_id', $mesa->id)
+                        ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                        ->whereNull('deleted_at')
+                        ->get();
+                    
+                    // SEGUNDO: Marcarlas como pagadas
+                    $updated = DB::table('ordenes')
+                        ->where('mesa_id', $mesa->id)
+                        ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                        ->whereNull('deleted_at')
+                        ->update([
+                            'estado' => 'pagada',
+                            'metodo_pago' => $validated['metodo_pago'],
+                            'propina' => $propinaTotal,
+                            'cerrada_el' => now(),
+                        ]);
+                    
+                    // TERCERO: Verificar que se actualizaron correctamente
+                    $ordenesNoActualizadas = DB::table('ordenes')
+                        ->where('mesa_id', $mesa->id)
+                        ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                        ->whereNull('deleted_at')
+                        ->get();
+                    
+                    Log::info('Todas las órdenes de la mesa marcadas como pagadas', [
+                        'mesa_id' => $mesa->id,
+                        'ordenes_a_marcar' => $todasLasOrdenesAMarcar->count(),
+                        'updated_rows' => $updated,
+                        'ordenes_no_actualizadas' => $ordenesNoActualizadas->count(),
+                        'metodo_pago' => $validated['metodo_pago'],
+                    ]);
+                }
+
+                // ===============================================
+                // VERIFICACIÓN CRÍTICA: ¿HAY ÓRDENES ACTIVAS RESTANTES?
+                // ===============================================
+                $ordenesActivas = DB::table('ordenes')
                     ->where('mesa_id', $mesa->id)
                     ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
                     ->whereNull('deleted_at')
-                    ->update([
-                        'estado' => 'pagada',
-                        'metodo_pago' => $validated['metodo_pago'],
-                        'propina' => $propinaTotal,
-                        'cerrada_el' => Carbon::now(),
-                    ]);
-                
-                Log::info('Todas las órdenes de la mesa marcadas como pagadas', [
-                    'mesa_id' => $mesa->id,
-                    'updated_rows' => $updated,
-                    'metodo_pago' => $validated['metodo_pago'],
-                ]);
-            }
+                    ->count();
 
-            // ===============================================
-            // VERIFICACIÓN CRÍTICA: ¿HAY ÓRDENES ACTIVAS RESTANTES?
-            // ===============================================
-            $ordenesActivas = DB::table('ordenes')
-                ->where('mesa_id', $mesa->id)
-                ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
-                ->whereNull('deleted_at')
-                ->count();
+                // Debug: obtener TODAS las órdenes de la mesa para ver su estado real
+                $todasLasOrdenesMesa = DB::table('ordenes')
+                    ->where('mesa_id', $mesa->id)
+                    ->whereNull('deleted_at')
+                    ->select('id', 'estado', 'numero_orden', 'cuenta_dividida')
+                    ->get();
 
-            // Debug: obtener TODAS las órdenes de la mesa para ver su estado real
-            $todasLasOrdenesMesa = DB::table('ordenes')
-                ->where('mesa_id', $mesa->id)
-                ->whereNull('deleted_at')
-                ->select('id', 'estado', 'numero_orden', 'cuenta_dividida')
-                ->get();
+                $estadosPorTipo = [
+                    'pagada' => $todasLasOrdenesMesa->where('estado', 'pagada')->count(),
+                    'pendiente' => $todasLasOrdenesMesa->where('estado', 'pendiente')->count(),
+                    'en proceso' => $todasLasOrdenesMesa->where('estado', 'en proceso')->count(),
+                    'servida' => $todasLasOrdenesMesa->where('estado', 'servida')->count(),
+                ];
 
-            $estadosPorTipo = [
-                'pagada' => $todasLasOrdenesMesa->where('estado', 'pagada')->count(),
-                'pendiente' => $todasLasOrdenesMesa->where('estado', 'pendiente')->count(),
-                'en proceso' => $todasLasOrdenesMesa->where('estado', 'en proceso')->count(),
-                'servida' => $todasLasOrdenesMesa->where('estado', 'servida')->count(),
-            ];
-
-            Log::info('Verificación de órdenes después del pago', [
-                'mesa_id' => $mesa->id,
-                'mesa_numero' => $mesa->numero,
-                'ordenes_activas_restantes' => $ordenesActivas,
-                'total_ordenes' => $todasLasOrdenesMesa->count(),
-                'estado_por_tipo' => $estadosPorTipo,
-                'todas_ordenes_mesa' => $todasLasOrdenesMesa->toArray(),
-            ]);
-
-            // ===============================================
-            // SI NO HAY ÓRDENES ACTIVAS → LIBERAR LA MESA
-            // ===============================================
-            if ($ordenesActivas === 0) {
-                // ACTUALIZAR: estado = disponible, mesero_id = null, total_consumo = 0
-                DB::table('mesas')->where('id', $mesa->id)->update([
-                    'estado' => 'disponible',
-                    'updated_at' => Carbon::now(),
-                ]);
-                
-                if (Schema::hasColumn('mesas', 'mesero_id')) {
-                    DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
-                }
-                if (Schema::hasColumn('mesas', 'total_consumo')) {
-                    DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
-                }
-                
-                // Recargar la mesa desde BD para confirmar que está liberada
-                $mesaRecargada = Mesa::find($mesa->id);
-                
-                Log::info('✅ MESA LIBERADA COMPLETAMENTE', [
-                    'mesa_id' => $mesa->id,
-                    'mesa_numero' => $mesa->numero,
-                    'estado_nuevo' => 'disponible',
-                    'estado_bd_after' => $mesaRecargada?->estado,
-                    'mesero_id_bd' => $mesaRecargada?->mesero_id,
-                    'total_consumo_bd' => $mesaRecargada?->total_consumo,
-                    'total_ordenes_pagadas' => $estadosPorTipo['pagada'],
-                ]);
-            } else {
-                Log::info('Mesa permanece ocupada - aún hay órdenes activas', [
+                Log::info('Verificación de órdenes después del pago', [
                     'mesa_id' => $mesa->id,
                     'mesa_numero' => $mesa->numero,
                     'ordenes_activas_restantes' => $ordenesActivas,
+                    'total_ordenes' => $todasLasOrdenesMesa->count(),
                     'estado_por_tipo' => $estadosPorTipo,
+                    'todas_ordenes_mesa' => $todasLasOrdenesMesa->toArray(),
                 ]);
-            }
 
-            // Registrar movimiento en caja
-            if (Schema::hasTable('caja_movimientos')) {
-                $movimientoData = [
-                    'concepto' => 'Pago de mesa ' . $mesa->numero,
-                    'monto' => $total,
-                    'tipo' => 'Ingreso',
-                    'responsable' => auth()->user()->nombre ?? auth()->user()->email,
-                    'comentarios' => 'Pago con ' . $validated['metodo_pago'] . ($validated['referencia'] ? '. Ref: ' . $validated['referencia'] : '') . '. Cambio: ' . number_format($cambio, 2) . ' | IVA: $' . number_format($ivaTotal, 2) . ' | Propina: $' . number_format($propinaTotal, 2),
-                    'estado' => 'Completado',
-                ];
-
-                if (Schema::hasColumn('caja_movimientos', 'metodo_pago')) {
-                    $movimientoData['metodo_pago'] = $validated['metodo_pago'];
+                // ===============================================
+                // SI NO HAY ÓRDENES ACTIVAS → LIBERAR LA MESA
+                // ===============================================
+                if ($ordenesActivas === 0) {
+                    // ACTUALIZAR: estado = disponible, mesero_id = null, total_consumo = 0
+                    DB::table('mesas')->where('id', $mesa->id)->update([
+                        'estado' => 'disponible',
+                        'updated_at' => now(),
+                    ]);
+                    
+                    if (Schema::hasColumn('mesas', 'mesero_id')) {
+                        DB::table('mesas')->where('id', $mesa->id)->update(['mesero_id' => null]);
+                    }
+                    if (Schema::hasColumn('mesas', 'total_consumo')) {
+                        DB::table('mesas')->where('id', $mesa->id)->update(['total_consumo' => 0]);
+                    }
+                    
+                    // Recargar la mesa desde BD para confirmar que está liberada
+                    $mesaRecargada = Mesa::find($mesa->id);
+                    
+                    Log::info('✅ MESA LIBERADA COMPLETAMENTE', [
+                        'mesa_id' => $mesa->id,
+                        'mesa_numero' => $mesa->numero,
+                        'estado_nuevo' => 'disponible',
+                        'estado_bd_after' => $mesaRecargada?->estado,
+                        'mesero_id_bd' => $mesaRecargada?->mesero_id,
+                        'total_consumo_bd' => $mesaRecargada?->total_consumo,
+                        'total_ordenes_pagadas' => $estadosPorTipo['pagada'],
+                    ]);
+                } else {
+                    Log::info('Mesa permanece ocupada - aún hay órdenes activas', [
+                        'mesa_id' => $mesa->id,
+                        'mesa_numero' => $mesa->numero,
+                        'ordenes_activas_restantes' => $ordenesActivas,
+                        'estado_por_tipo' => $estadosPorTipo,
+                    ]);
                 }
-                if (Schema::hasColumn('caja_movimientos', 'referencia')) {
-                    $movimientoData['referencia'] = $validated['referencia'] ?? null;
-                }
 
-                CajaMovimiento::create($movimientoData);
-            }
-        });
+                // Registrar movimiento en caja
+                if (Schema::hasTable('caja_movimientos')) {
+                    $movimientoData = [
+                        'concepto' => 'Pago de mesa ' . $mesa->numero,
+                        'monto' => $total,
+                        'tipo' => 'Ingreso',
+                        'responsable' => auth()->user()->nombre ?? auth()->user()->email,
+                        'comentarios' => 'Pago con ' . $validated['metodo_pago'] . ($validated['referencia'] ? '. Ref: ' . $validated['referencia'] : '') . '. Cambio: ' . number_format($cambio, 2) . ' | IVA: $' . number_format($ivaTotal, 2) . ' | Propina: $' . number_format($propinaTotal, 2),
+                        'estado' => 'Completado',
+                    ];
+
+                    if (Schema::hasColumn('caja_movimientos', 'metodo_pago')) {
+                        $movimientoData['metodo_pago'] = $validated['metodo_pago'];
+                    }
+                    if (Schema::hasColumn('caja_movimientos', 'referencia')) {
+                        $movimientoData['referencia'] = $validated['referencia'] ?? null;
+                    }
+
+                    CajaMovimiento::create($movimientoData);
+                }
+            });
+        } catch (\Exception $e) {
+            Log::error('Error en transacción de pago', [
+                'error_message' => $e->getMessage(),
+                'error_line' => $e->getLine(),
+                'error_file' => $e->getFile(),
+                'mesa_id' => $mesa->id ?? null,
+                'orden_id' => $orden->id ?? null,
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'mesa_liberada' => false,
+            ], 422);
+        }
 
         // ===============================================
         // RESPUESTA FINAL: Confirmar estado de la mesa
         // ===============================================
         $mesaFinal = Mesa::find($mesa->id);
+        
+        // ⚠️ VERIFICACIÓN CRÍTICA: Confirmar que la mesa está realmente disponible y sin órdenes activas
+        $ordenesActivasFinales = DB::table('ordenes')
+            ->where('mesa_id', $mesa->id)
+            ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+            ->whereNull('deleted_at')
+            ->count();
 
         Log::info('Respuesta final del método pagar()', [
             'mesa_id' => $mesa->id,
+            'mesa_numero' => $mesaFinal->numero,
             'mesa_liberada' => $mesaFinal->estado === 'disponible',
             'estado_final_bd' => $mesaFinal->estado,
             'mesero_id_final' => $mesaFinal->mesero_id,
+            'total_consumo_final' => $mesaFinal->total_consumo ?? 0,
+            'ordenes_activas_finales' => $ordenesActivasFinales,
         ]);
 
         return response()->json([
@@ -924,6 +1092,40 @@ class CajaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al liberar la mesa: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener estado actual de una mesa
+     */
+    public function getEstadoMesa(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'mesa_id' => 'required|integer|exists:mesas,id',
+        ]);
+
+        try {
+            $mesa = Mesa::findOrFail($validated['mesa_id']);
+            
+            $ordenesActivas = DB::table('ordenes')
+                ->where('mesa_id', $mesa->id)
+                ->whereIn('estado', ['pendiente', 'en proceso', 'servida'])
+                ->whereNull('deleted_at')
+                ->count();
+
+            return response()->json([
+                'success' => true,
+                'mesa_id' => $mesa->id,
+                'mesa_numero' => $mesa->numero,
+                'estado' => $mesa->estado,
+                'ordenes_activas' => $ordenesActivas,
+                'está_disponible' => $mesa->estado === 'disponible' && $ordenesActivas === 0,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error obteniendo estado de mesa: ' . $e->getMessage(),
             ], 500);
         }
     }

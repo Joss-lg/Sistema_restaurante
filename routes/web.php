@@ -138,6 +138,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
         Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
         Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
+        Route::post('/api/estado-mesa', [CajaController::class, 'getEstadoMesa'])->name('api.estado-mesa');
         Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');
         Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
     });

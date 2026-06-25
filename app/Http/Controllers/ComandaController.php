@@ -127,34 +127,63 @@ class ComandaController extends Controller
 
             DB::beginTransaction();
 
-            $orden = \App\Models\Orden::create([
-                'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
-                'mesa_id' => $mesa->id,
-                'mesero_id' => $usuario->id,
-                'estado' => 'pendiente',
-                'total' => $totalNeto,
-                'propina' => 0,
-                'abierta_el' => now(),
-            ]);
+            // ✅ ARREGLO: REUTILIZAR la orden activa existente en lugar de crear una nueva
+            $orden = \App\Models\Orden::where('mesa_id', $mesa->id)
+                                      ->where('estado', '!=', 'pagada')
+                                      ->first();
+
+            // Si no existe orden activa, crearla
+            if (!$orden) {
+                $orden = \App\Models\Orden::create([
+                    'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                    'mesa_id' => $mesa->id,
+                    'mesero_id' => $usuario->id,
+                    'estado' => 'pendiente',
+                    'total' => 0,
+                    'propina' => 0,
+                    'abierta_el' => now(),
+                ]);
+            }
 
             $usaGramaje = Schema::hasColumn('detalles_orden', 'gramaje');
 
-            foreach ($request->platillos as $platillo) {
-                $detalleData = [
+            // ✅ IMPORTANTE: Agregar detalles solo a la PRIMERA orden
+            // Las otras órdenes divididas NO necesitan detalles, solo el cálculo del total
+            // El cliente calcula el total dividido automáticamente
+            
+            // Si es NO dividida o es la primera orden de división, agregar detalles
+            $agregarDetalles = true;
+            if ($orden->cuenta_dividida ?? false) {
+                // Solo agregar a órdenes con numero_cuenta_division = 1 o null
+                $agregarDetalles = (($orden->numero_cuenta_division ?? 1) == 1);
+                \Log::info('Orden dividida detectada', [
                     'orden_id' => $orden->id,
-                    'producto_id' => $platillo['id'],
-                    'cantidad' => intval($platillo['cantidad']),
-                    'precio_unitario' => floatval($platillo['precio']),
-                    'estado' => 'en cocina',
-                    'notas' => $platillo['notas'] ?? null,
-                ];
+                    'numero_cuenta_division' => $orden->numero_cuenta_division,
+                    'agregarDetalles' => $agregarDetalles
+                ]);
+            }
 
-                if ($usaGramaje) {
-                    $detalleData['gramaje'] = isset($platillo['gramaje']) ? floatval($platillo['gramaje']) : null;
+            if ($agregarDetalles) {
+                foreach ($request->platillos as $platillo) {
+                    $detalleData = [
+                        'orden_id' => $orden->id,
+                        'producto_id' => $platillo['id'],
+                        'cantidad' => intval($platillo['cantidad']),
+                        'precio_unitario' => floatval($platillo['precio']),
+                        'estado' => 'en cocina',
+                        'notas' => $platillo['notas'] ?? null,
+                    ];
+
+                    if ($usaGramaje) {
+                        $detalleData['gramaje'] = isset($platillo['gramaje']) ? floatval($platillo['gramaje']) : null;
+                    }
+
+                    $detalle = \App\Models\DetalleOrden::create($detalleData);
                 }
+            }
 
-                $detalle = \App\Models\DetalleOrden::create($detalleData);
-
+            // Procesar inventario para todos los productos (se decrementa una sola vez)
+            foreach ($request->platillos as $platillo) {
                 $producto = Producto::with('insumos')->find($platillo['id']);
                 if ($producto) {
                     foreach ($producto->insumos as $insumo) {

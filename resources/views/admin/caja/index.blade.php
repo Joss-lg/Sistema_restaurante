@@ -125,39 +125,6 @@
                                 <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
                             </div>
                         </a>
-                    @else
-                        <div data-mesa-status="{{ $mesa->estado }}" data-mesa-id="{{ $mesa->id }}" data-mesa-numero="{{ $mesa->numero }}" class="mesa-card btn-abrir-mesa relative overflow-hidden rounded-3xl border border-dashed border-[var(--border-color)] bg-[var(--card-color)] p-6 transition-all duration-300 opacity-60 hover:opacity-100 hover:border-emerald-500/50 hover:bg-emerald-500/5 flex flex-col justify-between min-h-[220px] cursor-pointer group">
-                            <div class="flex justify-between items-start relative z-10">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--border-color)] group-hover:bg-emerald-500/10 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all">
-                                    <i class="fas fa-chair text-xl"></i>
-                                </div>
-                                <span class="inline-flex items-center rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] px-3 py-1 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:bg-emerald-500/10 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all">Libre</span>
-                            </div>
-                            
-                            <div class="relative z-10 mt-auto flex flex-col gap-2">
-                                <div>
-                                    <h3 class="text-[var(--text-color)] font-black text-xl tracking-tight group-hover:text-emerald-400 transition-colors">Mesa {{ $mesa->numero }}</h3>
-                                    <p class="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1 group-hover:text-emerald-500/70">Haz clic para ocupar</p>
-                                </div>
-                                
-                                @if(auth()->user()->tienePermiso('mesas.eliminar'))
-                                    <button 
-                                        type="button"
-                                        data-mesa-delete="true"
-                                        data-mesa-id="{{ $mesa->id }}"
-                                        data-mesa-numero="{{ $mesa->numero }}"
-                                        class="btn-eliminar-mesa mt-2 w-full py-2 px-3 bg-red-500/15 hover:bg-red-500/30 text-red-400 hover:text-red-300 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-red-500/30 hover:border-red-500/50 transition-all duration-200 flex items-center justify-center gap-2"
-                                    >
-                                        <i class="fas fa-trash-alt text-xs"></i>
-                                        <span>Eliminar</span>
-                                    </button>
-                                @endif
-                            </div>
-
-                            <div class="absolute -right-3 -bottom-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i class="fas fa-arrow-right text-4xl text-emerald-500/20"></i>
-                            </div>
-                        </div>
                     @endif
                 @empty
                     <div class="col-span-full glass-card rounded-3xl flex flex-col items-center justify-center py-16 border border-[var(--border-color)]">
