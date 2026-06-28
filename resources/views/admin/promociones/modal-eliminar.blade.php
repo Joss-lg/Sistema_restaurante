@@ -44,7 +44,7 @@
         const txtNombre = document.getElementById('delete_nombre_display');
 
         // Configurar los datos dinámicos de la promoción
-        form.action = `/admin/promociones/${id}`;
+        form.action = `/promociones/${id}`;
         txtNombre.textContent = `"${nombre}"`;
 
         // Mostrar el fondo del modal

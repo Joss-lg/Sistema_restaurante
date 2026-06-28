@@ -133,9 +133,9 @@
      */
     function editPromo(id) {
         const form = document.getElementById('formEditarPromocion');
-        form.action = `/admin/promociones/${id}`;
+        form.action = `/promociones/${id}`;
 
-        fetch(`/admin/promociones/${id}/edit`)
+        fetch(`/promociones/${id}/edit`)
             .then(response => {
                 // 🔍 SI EL SERVIDOR RESPONDE CON ERROR (404, 500, etc.)
                 if (!response.ok) {

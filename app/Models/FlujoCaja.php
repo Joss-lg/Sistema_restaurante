@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FlujoCaja extends Model
 {
@@ -14,11 +15,13 @@ class FlujoCaja extends Model
     protected $table = 'flujo_caja';
 
     protected $fillable = [
+        'caja_movimiento_id', // Añadido: Para amarrarlo al turno operativo
         'tipo',
         'categoria',
         'concepto',
         'monto',
         'metodo_pago',
+        'referencia',         // Añadido: Para tickets o transferencias
         'fecha',
         'flujoable_id',
         'flujoable_type',
@@ -30,12 +33,11 @@ class FlujoCaja extends Model
         'fecha' => 'datetime',
     ];
 
-    // --- RELACIONES POLIMÓRFICAS ---
+    public function cajaMovimiento(): BelongsTo
+    {
+        return $this->belongsTo(CajaMovimiento::class, 'caja_movimiento_id');
+    }
 
-    /**
-     * Relación polimórfica genérica
-     * Puede relacionarse con Transaccion, Gasto, PagoNomina, etc.
-     */
     public function flujoable(): MorphTo
     {
         return $this->morphTo();
@@ -86,7 +88,10 @@ class FlujoCaja extends Model
 
     public function scopeEntre($query, $fechaInicio, $fechaFin)
     {
-        return $query->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+        return $query->whereBetween('fecha', [
+            $fechaInicio . ' 00:00:00', 
+            $fechaFin . ' 23:59:59'
+        ]);
     }
 
     public function scopeOrdenado($query, $orden = 'desc')
@@ -94,27 +99,16 @@ class FlujoCaja extends Model
         return $query->orderBy('fecha', $orden);
     }
 
-    // --- MÉTODOS HELPERS ---
-
-    /**
-     * Obtiene el nombre legible del tipo
-     */
+    
     public function getTipoLegible(): string
     {
-        return $this->tipo === 'ingreso' ? 'Ingreso' : 'Egreso';
+        return ucfirst($this->tipo); // Retorna 'Ingreso' o 'Egreso' dinámicamente
     }
 
-    /**
-     * Obtiene el símbolo del tipo (+ para ingreso, - para egreso)
-     */
     public function getSimboloTipo(): string
     {
         return $this->tipo === 'ingreso' ? '+' : '-';
     }
-
-    /**
-     * Calcula el monto con signo según el tipo
-     */
     public function getMontoConSigno(): float
     {
         return $this->tipo === 'ingreso' ? $this->monto : -$this->monto;

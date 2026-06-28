@@ -10,6 +10,25 @@ class Orden extends Model
 {
     use HasFactory, SoftDeletes;
 
+    // --- CONSTANTES DE ESTADO ---
+    const ESTADO_PENDIENTE = 'pendiente';
+    const ESTADO_EN_PROCESO = 'en proceso';
+    const ESTADO_SERVIDA   = 'servida';
+    const ESTADO_PAGADA    = 'pagada';
+
+    /**
+     * Retorna los estados que se consideran "activos" o "en servicio".
+     * Útil para consultas en el controlador.
+     */
+    public static function getEstadosActivos(): array
+    {
+        return [
+            self::ESTADO_PENDIENTE,
+            self::ESTADO_EN_PROCESO,
+            self::ESTADO_SERVIDA,
+        ];
+    }
+
     protected $table = 'ordenes';
 
     protected $fillable = [
@@ -24,7 +43,7 @@ class Orden extends Model
         'abierta_el',
         'cerrada_el',
         'cuenta_dividida',
-        'numero_cuenta_division', // El número de personas
+        'numero_cuenta_division',
         'total_cuentas_division',
     ];
 
@@ -59,23 +78,19 @@ class Orden extends Model
         return $this->hasMany(DetalleOrden::class, 'orden_id');
     }
 
-    // --- ACCESORES (Lógica de negocio) ---
+    // --- ACCESORES ---
 
-    // Calcular total con propina
     public function getTotalConImpuestosAttribute()
     {
         return $this->total + ($this->propina ?? 0);
     }
 
-    // NUEVO: Calcular cuánto paga cada persona automáticamente
     public function getMontoPorPersonaAttribute()
     {
-        // Si la cuenta está dividida y hay más de una persona, dividimos
         if ($this->cuenta_dividida && $this->numero_cuenta_division > 1) {
             return $this->total / $this->numero_cuenta_division;
         }
 
-        // Si no está dividida, el monto por persona es el total
         return $this->total;
     }
 }

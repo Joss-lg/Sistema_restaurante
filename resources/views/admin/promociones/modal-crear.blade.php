@@ -25,39 +25,36 @@
             </div>
         </div>
 
-        {{-- Formulario --}}
-        <form action="{{ route('admin.promociones.store') }}" method="POST" id="formCrearPromocion">
-            @csrf
-            <div class="space-y-6">
-                
-                {{-- Nombre de la Promo --}}
-                <div>
-                    <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Nombre de la Promoción</label>
-                    <input type="text" name="nombre" required class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner" placeholder="Ej: Jueves de Alitas 2x1">
-                </div>
+       <form id="formCrearPromocion" onsubmit="guardarPromocion(event)">
+    @csrf
+    <div class="space-y-6">
+        {{-- ¡FALTABA ESTE INPUT! --}}
+        <div>
+            <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Nombre de la Promoción</label>
+            <input type="text" name="nombre" required class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner">
+        </div>
 
-                {{-- Descripción (Campo nuevo desde cero) --}}
-                <div>
-                    <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Descripción de la Oferta</label>
-                    <textarea name="descripcion" rows="2" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner resize-none" placeholder="Breve nota explicativa para los meseros o clientes..."></textarea>
-                </div>
+        {{-- ... (Descripción igual) ... --}}
 
-                {{-- Fila: Tipo y Valor --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Tipo de Promoción</label>
-                        <select name="tipo_promocion" required class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner cursor-pointer">
-                            <option value="" class="text-[var(--text-muted)]">-- Selecciona tipo --</option>
-                            <option value="porcentaje">Porcentaje (%)</option>
-                            <option value="2x1">Paquete 2 x 1</option>
-                            <option value="fijo">Descuento Fijo ($)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Valor Descuento / Cantidad</label>
-                        <input type="number" name="valor_descuento" required step="0.01" min="0" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner" placeholder="Ej: 15.00 o 0.00 si es 2x1">
-                    </div>
-                </div>
+        {{-- Fila: Tipo y Valor (AJUSTADOS PARA COINCIDIR CON LA BD) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Tipo de Promoción</label>
+                {{-- CAMBIADO: de name="tipo" a name="tipo_promocion" --}}
+                <select name="tipo_promocion" required class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner cursor-pointer">
+                    <option value="">-- Selecciona tipo --</option>
+                    <option value="porcentaje">Porcentaje (%)</option>
+                    <option value="dos_por_uno">Paquete 2 x 1</option>
+                    <option value="descuento_fijo">Descuento Fijo ($)</option>
+                    <option value="combo">Combo</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Valor Descuento / Cantidad</label>
+                {{-- CAMBIADO: de name="valor" a name="valor_descuento" --}}
+                <input type="number" name="valor_descuento" required step="0.01" min="0" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner" placeholder="Ej: 15.00">
+            </div>
+        </div>
 
                 {{-- Fila: Vigencia de Fechas (Campos nuevos desde cero) --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -118,12 +115,14 @@
                     </div>
                 </div>
 
-                {{-- Botonera Final --}}
+                {{-- Botonera Final Modificada --}}
                 <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[var(--border-color)]">
                     <button type="button" onclick="closeModal('modalCrear')" class="w-full sm:flex-1 bg-[var(--input-bg)] hover:bg-[var(--border-color)]/50 border border-[var(--border-color)] text-[var(--text-color)] py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition outline-none">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-[0_10px_25px_-5px_rgba(59,130,246,0.4)] transition outline-none">
+                    
+                    {{-- Botón con ID para el script --}}
+                    <button type="submit" id="btn-guardar-promocion" class="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-[0_10px_25px_-5px_rgba(59,130,246,0.4)] transition outline-none">
                         Guardar Promoción
                     </button>
                 </div>

@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes; // 1. Importa el trait
 
 class Insumo extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes; // 2. Agrega SoftDeletes aquí
 
-    protected $table = 'insumos'; // Opcional, pero buena práctica
+    protected $table = 'insumos'; 
 
     protected $fillable = [
         'codigo',
@@ -22,7 +23,6 @@ class Insumo extends Model
         'esta_activo'
     ];
 
-    // Para que los números se traten como decimales y los booleanos como true/false
     protected $casts = [
         'stock_actual' => 'decimal:2',
         'stock_minimo' => 'decimal:2',
@@ -47,7 +47,8 @@ class Insumo extends Model
     {
         return $this->stock_actual <= $this->stock_minimo;
     }
-        // En qué platillos se utiliza este ingrediente
+
+    // En qué platillos se utiliza este ingrediente
     public function productos()
     {
         return $this->belongsToMany(Producto::class, 'recetas', 'insumo_id', 'producto_id')

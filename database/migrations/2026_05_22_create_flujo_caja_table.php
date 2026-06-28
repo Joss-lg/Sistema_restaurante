@@ -13,22 +13,30 @@ return new class extends Migration
     {
         Schema::create('flujo_caja', function (Blueprint $table) {
             $table->id();
-            $table->enum('tipo', ['ingreso', 'egreso']); // Tipo de movimiento
-            $table->string('categoria'); // Categoría (Ej: "Venta", "Nómina", "Compra Insumos", etc.)
-            $table->string('concepto'); // Descripción del concepto
-            $table->decimal('monto', 10, 2); // Monto del movimiento
-            $table->string('metodo_pago'); // Método de pago utilizado
-            $table->datetime('fecha'); // Fecha del movimiento
             
-            // Relación Polimórfica
-            $table->unsignedBigInteger('flujoable_id')->nullable(); // ID del modelo relacionado
-            $table->string('flujoable_type')->nullable(); // Tipo de modelo (Transaccion, Gasto, PagoNomina, etc.)
+            // Relación con el turno/sesión de caja operativa (opcional, por si es un movimiento externo como banco)
+            $table->foreignId('caja_movimiento_id')
+                  ->nullable()
+                  ->constrained('caja_movimientos')
+                  ->nullOnDelete(); 
+
+            $table->enum('tipo', ['ingreso', 'egreso']); // Tipo de movimiento financiero
+            $table->string('categoria'); // "Venta", "Nómina", "Insumos", "Caja Chica"
+            $table->string('concepto'); // Descripción clara del movimiento
+            $table->decimal('monto', 12, 2); // Capacidad para montos grandes
+            $table->string('metodo_pago'); // "Efectivo", "Tarjeta", "Transferencia"
+            $table->string('referencia')->nullable(); // Clave de rastreo o número de operación bancaria
+            $table->datetime('fecha'); // Cuándo ocurrió realmente el movimiento
             
-            $table->text('observaciones')->nullable(); // Notas adicionales
+            // Relación Polimórfica (Para enlazar directamente con un Pedido, Gasto, Nómina, etc.)
+            $table->unsignedBigInteger('flujoable_id')->nullable(); 
+            $table->string('flujoable_type')->nullable(); 
+            
+            $table->text('observaciones')->nullable(); 
             $table->timestamps();
             $table->softDeletes();
             
-            // Índices para optimizar búsquedas
+            // Índices de velocidad para reportes rápidos
             $table->index(['tipo', 'fecha']);
             $table->index(['flujoable_type', 'flujoable_id']);
         });

@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\Insumo;
@@ -89,9 +88,9 @@ class AlimentoController extends Controller
         if (!empty($validated['insumos']) && !empty($validated['cantidades'])) {
             $receta = [];
             foreach ($validated['insumos'] as $index => $insumoId) {
-                $cantidad = $validated['cantidades'][$index] ?? null;
-                if ($insumoId && $cantidad && floatval($cantidad) > 0) {
-                    $receta[$insumoId] = ['cantidad_usada' => floatval($cantidad)];
+                $amount = $validated['cantidades'][$index] ?? null;
+                if ($insumoId && $amount && floatval($amount) > 0) {
+                    $receta[$insumoId] = ['cantidad_usada' => floatval($amount)];
                 }
             }
             if (!empty($receta)) {
@@ -150,9 +149,9 @@ class AlimentoController extends Controller
         $receta = [];
         if (!empty($validated['insumos']) && !empty($validated['cantidades'])) {
             foreach ($validated['insumos'] as $index => $insumoId) {
-                $cantidad = $validated['cantidades'][$index] ?? null;
-                if ($insumoId && $cantidad && floatval($cantidad) > 0) {
-                    $receta[$insumoId] = ['cantidad_usada' => floatval($cantidad)];
+                $amount = $validated['cantidades'][$index] ?? null;
+                if ($insumoId && $amount && floatval($amount) > 0) {
+                    $receta[$insumoId] = ['cantidad_usada' => floatval($amount)];
                 }
             }
         }

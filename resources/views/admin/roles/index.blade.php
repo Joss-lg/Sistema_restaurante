@@ -125,5 +125,4 @@
 @if(auth()->user()->tienePermiso('roles.eliminar'))
     @include('admin.roles.modal-eliminar')
 @endif
-
 @endsection

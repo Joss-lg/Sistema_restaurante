@@ -10,7 +10,7 @@
             </button>
         </div>
 
-        <form action="{{ route('roles.store') }}" method="POST" class="space-y-6 relative z-10">
+        <form action="{{ route('admin.roles.store') }}" method="POST" class="space-y-6 relative z-10">
             @csrf
             
             <div>

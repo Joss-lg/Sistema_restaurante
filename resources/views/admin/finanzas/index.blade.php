@@ -48,7 +48,7 @@
                 <span class="text-[11px] font-black text-emerald-500 uppercase tracking-wider">Este Mes</span>
             </div>
             <p class="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest mb-1">Ingresos</p>
-            <h3 class="text-2xl font-black text-emerald-500">S/ {{ number_format($ingresosMes, 2) }}</h3>
+            <h3 class="text-2xl font-black text-emerald-500">$ {{ number_format($ingresosMes, 2) }}</h3>
             <p class="text-[10px] text-[var(--text-muted)] mt-2">Ventas registradas</p>
         </div>
 
@@ -60,7 +60,7 @@
                 <span class="text-[11px] font-black text-rose-500 uppercase tracking-wider">Este Mes</span>
             </div>
             <p class="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest mb-1">Egresos</p>
-            <h3 class="text-2xl font-black text-rose-500">S/ {{ number_format($egresosMes, 2) }}</h3>
+            <h3 class="text-2xl font-black text-rose-500">$ {{ number_format($egresosMes, 2) }}</h3>
             <p class="text-[10px] text-[var(--text-muted)] mt-2">Gastos registrados</p>
         </div>
 
@@ -73,7 +73,7 @@
             </div>
             <p class="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest mb-1">Neto</p>
             <h3 class="text-2xl font-black {{ $balanceNeto >= 0 ? 'text-emerald-500' : 'text-rose-500' }}">
-                S/ {{ number_format($balanceNeto, 2) }}
+                $ {{ number_format($balanceNeto, 2) }}
             </h3>
             <p class="text-[10px] text-[var(--text-muted)] mt-2">{{ $balanceNeto >= 0 ? '✅ Superávit' : '⚠️ Déficit' }}</p>
         </div>
@@ -86,7 +86,7 @@
                 <span class="text-[11px] font-black text-purple-500 uppercase tracking-wider">Pendiente</span>
             </div>
             <p class="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest mb-1">Nómina</p>
-            <h3 class="text-2xl font-black text-purple-500">S/ {{ number_format($nominaPendiente, 2) }}</h3>
+            <h3 class="text-2xl font-black text-purple-500">$ {{ number_format($nominaPendiente, 2) }}</h3>
             <p class="text-[10px] text-[var(--text-muted)] mt-2">Por pagar a empleados</p>
         </div>
     </div>
@@ -132,7 +132,7 @@
                     <tr class="fila-flujo border-none hover:bg-black/5 transition-colors group rounded-xl">
                         
                         <td class="py-4 px-4 text-xs font-mono text-[var(--text-muted)]">
-                            {{ $flujo->fecha->format('d/m/Y H:i') }}
+                            {{ $flujo->fecha->format('d/m/Y') }}
                         </td>
 
                         <td class="py-4 px-4">
@@ -164,7 +164,7 @@
                         </td>
 
                         <td class="py-4 px-4 text-right font-bold text-lg {{ $flujo->tipo === 'ingreso' ? 'text-emerald-500' : 'text-rose-500' }}">
-                            {{ $flujo->tipo === 'ingreso' ? '+' : '-' }}S/ {{ number_format($flujo->monto, 2) }}
+                            {{ $flujo->tipo === 'ingreso' ? '+' : '-' }}$ {{ number_format($flujo->monto, 2) }}
                         </td>
                     </tr>
                     @empty
@@ -200,7 +200,7 @@
                         <p class="text-sm font-bold text-[var(--text-color)]">{{ $cat->categoria }}</p>
                         <p class="text-xs text-[var(--text-muted)]">{{ $cat->cantidad }} transacciones</p>
                     </div>
-                    <p class="text-lg font-black text-emerald-500">S/ {{ number_format($cat->total, 2) }}</p>
+                    <p class="text-lg font-black text-emerald-500">$ {{ number_format($cat->total, 2) }}</p>
                 </div>
                 @empty
                 <p class="text-center text-[var(--text-muted)] py-6">Sin ingresos este período</p>
@@ -223,7 +223,7 @@
                         <p class="text-sm font-bold text-[var(--text-color)]">{{ $cat->categoria }}</p>
                         <p class="text-xs text-[var(--text-muted)]">{{ $cat->cantidad }} transacciones</p>
                     </div>
-                    <p class="text-lg font-black text-rose-500">S/ {{ number_format($cat->total, 2) }}</p>
+                    <p class="text-lg font-black text-rose-500">$ {{ number_format($cat->total, 2) }}</p>
                 </div>
                 @empty
                 <p class="text-center text-[var(--text-muted)] py-6">Sin egresos este período</p>
@@ -305,7 +305,6 @@
     });
 </script>
 
-{{-- 🌟 INCLUSIÓN CONDICIONAL DE MODALES SEGÚN EL PERMISO --}}
 @if(auth()->user()->tienePermiso('finanzas.crear'))
     @include('admin.finanzas.modal-crear-gasto')
 @endif

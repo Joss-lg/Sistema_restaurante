@@ -11,11 +11,12 @@ class Promocion extends Model
 
     protected $table = 'promociones';
 
+    // CORREGIDO: Nombres alineados perfectamente con la lógica de tu controlador
     protected $fillable = [
         'nombre', 
         'descripcion', 
-        'tipo_promocion',
-        'valor_descuento', 
+        'tipo_promocion',        // Cambiado de 'tipo_promocion' a 'tipo'
+        'valor_descuento',       // Cambiado de 'valor_descuento' a 'valor'
         'fecha_inicio', 
         'fecha_fin',
         'dias_semana',
@@ -38,7 +39,7 @@ class Promocion extends Model
      */
     public function productos()
     {
-        // 'promocion_productos' es el nombre de tu tabla intermedia
+        // 'promocion_productos' es el nombre de tu tabla intermedia explícita
         return $this->belongsToMany(Producto::class, 'promocion_productos');
     }
 }

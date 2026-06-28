@@ -1,0 +1,186 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Models\Producto;
+use App\Models\Categoria;
+use App\Models\Insumo;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class ProductoController extends Controller
+{
+    /**
+     * Muestra el catálogo de Alimentos (Menú) y sus recetas.
+     */
+    public function index()
+    {
+        // 1. Traemos los platillos con su categoría y sus insumos acotando columnas (Evita N+1)
+        $productos = Producto::with(['categoria:id,nombre', 'insumos:id,nombre,unidad_medida'])
+                             ->orderBy('nombre')
+                             ->get();
+
+        // 2. Traemos datos optimizados para los selectores de los modales
+        $categorias = Categoria::orderBy('nombre')->select(['id', 'nombre'])->get();
+        
+        // Solo insumos activos para la formulación de nuevas recetas
+        $insumosDisponibles = Insumo::where('esta_activo', true)
+                                    ->orderBy('nombre')
+                                    ->select(['id', 'nombre', 'unidad_medida'])
+                                    ->get();
+
+        return view('admin.alimentos.index', compact('productos', 'categorias', 'insumosDisponibles'));
+    }
+
+    /**
+     * Registra un nuevo platillo y guarda su receta (ingredientes).
+     */
+    public function store(Request $request)
+    {
+        $request->merge([
+            'nombre' => trim($request->nombre)
+        ]);
+
+        $request->validate([
+            'nombre'             => 'required|string|max:255',
+            'categoria_id'       => 'required|exists:categorias,id',
+            'precio'             => 'required|numeric|min:0',
+            'tiempo_preparacion' => 'required|integer|min:0',
+            'insumos'            => 'nullable|array',
+            'insumos.*'          => 'exists:insumos,id',
+            'cantidades'         => 'nullable|array',
+            'cantidades.*'       => 'required_with:insumos|numeric|min:0.001',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Creamos el Platillo principal
+            $producto = Producto::create([
+                'nombre'             => $request->nombre,
+                'categoria_id'       => $request->categoria_id,
+                'precio'             => $request->precio,
+                'tiempo_preparacion' => $request->tiempo_preparacion,
+                'esta_disponible'    => $request->boolean('esta_disponible'), // Evalúa "on", 1 o true
+            ]);
+
+            // 2. Mapeo seguro de la receta en base a correspondencia de llaves
+            if ($request->filled('insumos') && $request->filled('cantidades')) {
+                $receta = [];
+                foreach ($request->insumos as $index => $insumoId) {
+                    if (isset($request->cantidades[$index]) && (float)$request->cantidades[$index] > 0) {
+                        $receta[$insumoId] = [
+                            'cantidad_usada' => (float)$request->cantidades[$index]
+                        ];
+                    }
+                }
+                
+                if (!empty($receta)) {
+                    $producto->insumos()->sync($receta);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('admin.productos.index')
+                             ->with('success', 'Platillo y receta guardados correctamente.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error en ProductoController@store: ' . $e->getMessage());
+            return redirect()->back()
+                             ->withInput()
+                             ->with('error', 'Ocurrió un error inesperado al guardar el platillo.');
+        }
+    }
+
+    /**
+     * Actualiza un platillo y modifica su receta estructural.
+     */
+    public function update(Request $request, $id)
+    {
+        $request->merge([
+            'nombre' => trim($request->nombre)
+        ]);
+
+        $request->validate([
+            'nombre'             => 'required|string|max:255',
+            'categoria_id'       => 'required|exists:categorias,id',
+            'precio'             => 'required|numeric|min:0',
+            'tiempo_preparacion' => 'required|integer|min:0',
+            'insumos'            => 'nullable|array',
+            'insumos.*'          => 'exists:insumos,id',
+            'cantidades'         => 'nullable|array',
+            'cantidades.*'       => 'required_with:insumos|numeric|min:0.001',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $producto = Producto::findOrFail($id);
+
+            // 1. Actualización del modelo principal
+            $producto->update([
+                'nombre'             => $request->nombre,
+                'categoria_id'       => $request->categoria_id,
+                'precio'             => $request->precio,
+                'tiempo_preparacion' => $request->tiempo_preparacion,
+                'esta_disponible'    => $request->boolean('esta_disponible'),
+            ]);
+
+            // 2. Re-sincronización estructural de ingredientes
+            $receta = [];
+            if ($request->filled('insumos') && $request->filled('cantidades')) {
+                foreach ($request->insumos as $index => $insumoId) {
+                    if (isset($request->cantidades[$index]) && (float)$request->cantidades[$index] > 0) {
+                        $receta[$insumoId] = [
+                            'cantidad_usada' => (float)$request->cantidades[$index]
+                        ];
+                    }
+                }
+            }
+            
+            // Sync vacía o sobreescribe la tabla pivote de manera segura
+            $producto->insumos()->sync($receta);
+
+            DB::commit();
+            return redirect()->route('admin.productos.index')
+                             ->with('success', 'Platillo y estructura de receta actualizados.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error en ProductoController@update: ' . $e->getMessage());
+            return redirect()->back()
+                             ->withInput()
+                             ->with('error', 'Ocurrió un error inesperado al modificar el platillo.');
+        }
+    }
+
+    /**
+     * Elimina un platillo del menú (Soporta Soft Delete nativo).
+     */
+    public function destroy($id)
+    {
+        $producto = Producto::findOrFail($id);
+        $producto->delete(); 
+        
+        return redirect()->route('admin.productos.index')
+                         ->with('success', "El platillo ({$producto->nombre}) fue dado de baja del menú.");
+    }
+
+    /**
+     * Alterna la disponibilidad instantánea del platillo (Switch de operaciones).
+     */
+    public function toggleDisponibilidad($id)
+    {
+        $producto = Producto::findOrFail($id);
+        $producto->esta_disponible = !$producto->esta_disponible;
+        $producto->save();
+
+        $estadoStr = $producto->esta_disponible ? 'habilitado' : 'deshabilitado';
+
+        return redirect()->back()
+                         ->with('success', "El platillo ({$producto->nombre}) ha sido {$estadoStr} en el menú.");
+    }
+}

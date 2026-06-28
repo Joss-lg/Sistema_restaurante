@@ -8,14 +8,12 @@
 @section('content')
 <div class="p-6 lg:p-8 xl:p-10 max-w-[1400px] mx-auto w-full space-y-8 flex-1 flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
-    {{-- CABECERA Y BOTÓN (Diseño Limpio Apple/Stripe) --}}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
             <h1 class="text-3xl font-black tracking-tight text-[var(--text-color)]">Menú de Alimentos</h1>
             <p class="text-sm font-medium text-[var(--text-muted)] mt-1">Gestiona los platillos del restaurante</p>
         </div>
 
-        {{-- 🌟 PERMISO: productos.agregar --}}
         @if(auth()->user()->tienePermiso('productos.agregar'))
             <button onclick="openModalAlimento()" class="flex items-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
                 <i class="fas fa-plus text-[12px]"></i>
@@ -24,7 +22,6 @@
         @endif
     </div>
 
-    {{-- CARDS DE ESTADÍSTICAS --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div class="bg-[var(--bg-panel)] rounded-[20px] p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
             <div class="flex items-center justify-between mb-4">
@@ -57,27 +54,27 @@
         </div>
     </div>
 
-    {{-- LISTADO DE PLATILLOS --}}
     <div class="bg-[var(--bg-panel)] rounded-[24px] p-2 md:p-6 shadow-sm border border-[var(--border-color)] min-h-[420px]">
-        {{-- 🌟 INYECCIÓN DE PERMISOS CORREGIDA --}}
         <div id="categorias-container" class="space-y-6"
              data-permiso-editar="{{ auth()->user()->tienePermiso('productos.editar') ? 'true' : 'false' }}"
              data-permiso-eliminar="{{ auth()->user()->tienePermiso('productos.eliminar') ? 'true' : 'false' }}"
              data-permiso-gestionar="{{ auth()->user()->tienePermiso('productos.reporte') ? 'true' : 'false' }}">
-            {{-- Se llena dinámicamente con JavaScript --}}
         </div>
     </div>
 </div>
 
-{{-- COMPONENTES MODALES --}}
 @include('admin.alimentos.modal-crear')
 @include('admin.alimentos.modal-editar')
 @include('admin.alimentos.modal-eliminar')
 
 <script>
-    // =========================================================================
-    // ESTADO GLOBAL Y CONFIGURACIÓN
-    // =========================================================================
+    // RUTAS DEFINIDAS PARA EVITAR ERRORES DE PREFIJO
+    const RUTA_PRODUCTOS = "{{ route('admin.productos.api.productos') }}";
+    const RUTA_ESTADISTICAS = "{{ route('admin.productos.api.estadisticas') }}";
+    const RUTA_STORE = "{{ route('admin.productos.api.store') }}";
+    const RUTA_UPDATE_BASE = "/alimentos/api/"; // URL base para los updates
+    const RUTA_TOGGLE_BASE = "/alimentos/api/"; // URL base para el toggle
+
     let estadoGlobal = {
         editandoId: null,
         productos: {},
@@ -100,7 +97,7 @@
     });
 
     function cargarProductos() {
-        fetch('/admin/alimentos/api/productos')
+        fetch(RUTA_PRODUCTOS)
             .then(response => response.json())
             .then(data => {
                 estadoGlobal.productos = data;
@@ -116,7 +113,7 @@
     }
 
     function cargarEstadisticas() {
-        fetch('/admin/alimentos/api/estadisticas')
+        fetch(RUTA_ESTADISTICAS)
             .then(response => response.json())
             .then(data => {
                 document.getElementById('stat-total').textContent = data.total;
@@ -126,9 +123,6 @@
             .catch(error => console.error('Error cargando estadísticas:', error));
     }
 
-    // =========================================================================
-    // RENDERIZADO DE LA INTERFAZ
-    // =========================================================================
     function renderizarProductos() {
         const container = document.getElementById('categorias-container');
         container.innerHTML = '';
@@ -188,14 +182,13 @@
             </button>`;
         }
 
-        // Toggle Switch estilo iOS (Evaluará correctamente gracias al cambio del data-attribute)
         let toggleHTML = '';
         if (tienePermisoGestionar) {
             toggleHTML = `<button class="w-9 h-5 rounded-full transition-colors duration-300 relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'}" onclick="toggleDisponibilidad(${producto.id})" title="Cambiar disponibilidad">
                 <div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 transition-transform duration-300 ${producto.esta_disponible ? 'translate-x-4.5' : 'translate-x-0.5'}"></div>
             </button>`;
         } else {
-            toggleHTML = `<div class="w-9 h-5 rounded-full relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'} opacity-50 cursor-not-allowed" title="No tienes permisos para gestionar la disponibilidad">
+            toggleHTML = `<div class="w-9 h-5 rounded-full relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'} opacity-50 cursor-not-allowed">
                 <div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 ${producto.esta_disponible ? 'translate-x-4.5' : 'translate-x-0.5'}"></div>
             </div>`;
         }
@@ -237,20 +230,14 @@
         return 'fas fa-concierge-bell';
     }
 
-    // =========================================================================
-    // MODALES Y PETICIONES
-    // =========================================================================
     function openModalAlimento() { 
         estadoGlobal.editandoId = null;
         const form = document.getElementById('formulario-crear-alimento');
         if(form) form.reset();
-        
         document.getElementById('categoria_id').value = '';
         document.getElementById('descripcion').value = '';
-        
         limpiarIngredientesContainer('crear');
         agregarIngrediente('crear');
-
         const modal = document.getElementById('modal-crear-alimento');
         const panel = document.getElementById('modal-crear-panel');
         modal.classList.remove('hidden');
@@ -270,27 +257,14 @@
 
     function editarProducto(id) {
         const producto = encontrarProductoPorId(id);
-        if (!producto) {
-            console.error('Producto no encontrado:', id);
-            return;
-        }
-
+        if (!producto) return;
         estadoGlobal.editandoId = id;
         document.getElementById('edit-nombre').value = producto.nombre || '';
         document.getElementById('edit-precio').value = producto.precio || '';
         document.getElementById('edit-descripcion').value = producto.descripcion || '';
-        
         document.getElementById('edit-categoria_nombre').value = producto.categoria ? producto.categoria.nombre : '';
         document.getElementById('edit-categoria_id').value = producto.categoria ? producto.categoria.id : '';
-
-        let modsString = '';
-        if (producto.modificadores && producto.modificadores.length > 0) {
-            modsString = producto.modificadores.map(m => m.nombre).join(', ');
-        }
-        document.getElementById('edit-modificadores_input').value = modsString;
-
         llenarIngredientesEdicion(producto);
-
         const modal = document.getElementById('modal-editar-alimento');
         const panel = document.getElementById('modal-editar-panel');
         modal.classList.remove('hidden');
@@ -308,34 +282,25 @@
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
 
-    function encontrarProductoPorId(id) {
-        return estadoGlobal.productosMap[id] || null;
-    }
-
+    function encontrarProductoPorId(id) { return estadoGlobal.productosMap[id] || null; }
     function obtenerCategoriaIdPorNombre(nombre) {
         if (!nombre) return null;
         const categoria = categoriasDisponibles.find(cat => cat.nombre.toLowerCase() === nombre.toLowerCase());
         return categoria ? categoria.id : null;
     }
-
-    function limpiarIngredientesContainer(tipo) {
-        document.getElementById(`ingredientes-container-${tipo}`).innerHTML = '';
-    }
+    function limpiarIngredientesContainer(tipo) { document.getElementById(`ingredientes-container-${tipo}`).innerHTML = ''; }
 
     function crearFilaIngrediente(ingrediente = {}) {
         const row = document.createElement('div');
         row.className = 'grid grid-cols-12 gap-3 items-end ingrediente-row';
-
         const insumoValue = ingrediente.insumo_id || '';
         const cantidadValue = ingrediente.cantidad || '';
         const unidadValue = ingrediente.unidad_medida || '';
         const stockActual = ingrediente.stock_actual ?? '';
-
         const options = insumosDisponibles.map(insumo => {
             const selected = insumo.id == insumoValue ? 'selected' : '';
             return `<option value="${insumo.id}" data-unidad="${insumo.unidad_medida}" data-stock="${insumo.stock_actual}" ${selected}>${insumo.nombre}</option>`;
         }).join('');
-
         row.innerHTML = `
             <div class="col-span-7">
                 <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Ingrediente</label>
@@ -359,36 +324,23 @@
                 <span class="text-[10px] text-[var(--text-muted)] mt-1">${stockActual ? `Stock ${stockActual}` : ''}</span>
             </div>
         `;
-
         const select = row.querySelector('select[name="insumos[]"]');
-        if (insumoValue) {
-            select.value = insumoValue;
-            sincronizarInsumo(select);
-        }
-
+        if (insumoValue) { select.value = insumoValue; sincronizarInsumo(select); }
         return row;
     }
 
     function agregarIngrediente(tipo = 'crear', ingrediente = {}) {
         const container = document.getElementById(`ingredientes-container-${tipo}`);
-        if(container) {
-            container.appendChild(crearFilaIngrediente(ingrediente));
-        }
+        if(container) container.appendChild(crearFilaIngrediente(ingrediente));
     }
 
-    function eliminarIngredienteRow(button) {
-        const row = button.closest('.ingrediente-row');
-        if (row) row.remove();
-    }
-
+    function eliminarIngredienteRow(button) { button.closest('.ingrediente-row').remove(); }
     function sincronizarInsumo(select) {
         const selectedOption = select.querySelector('option:checked');
         const row = select.closest('.ingrediente-row');
         if (!row) return;
-
         const unidadInput = row.querySelector('input[disabled]');
         const stockLabel = row.querySelector('span');
-
         if (selectedOption && selectedOption.value !== "") {
             unidadInput.value = selectedOption.dataset.unidad || '';
             stockLabel.textContent = selectedOption.dataset.stock ? `Stock ${selectedOption.dataset.stock}` : '';
@@ -402,79 +354,55 @@
         limpiarIngredientesContainer('editar');
         if (producto.insumos && producto.insumos.length > 0) {
             producto.insumos.forEach(insumo => {
-                agregarIngrediente('editar', {
-                    insumo_id: insumo.id,
-                    cantidad: insumo.pivot?.cantidad_usada || '',
-                    unidad_medida: insumo.unidad_medida || '',
-                    stock_actual: insumo.stock_actual || ''
-                });
+                agregarIngrediente('editar', { insumo_id: insumo.id, cantidad: insumo.pivot?.cantidad_usada || '', unidad_medida: insumo.unidad_medida || '', stock_actual: insumo.stock_actual || '' });
             });
-        } else {
-            agregarIngrediente('editar');
-        }
+        } else { agregarIngrediente('editar'); }
     }
 
     function guardarAlimento(event) {
         event.preventDefault();
-        
         const btnGuardar = document.getElementById('btn-guardar');
         if (!btnGuardar || btnGuardar.disabled) return;
-
         const textoOriginal = btnGuardar.textContent;
         btnGuardar.textContent = 'GUARDANDO...';
         btnGuardar.disabled = true;
-        
         const form = document.getElementById('formulario-crear-alimento');
         const formData = new FormData(form);
         const data = {};
-
         formData.forEach((value, key) => {
             if (key.endsWith('[]')) {
                 const name = key.slice(0, -2);
                 if (!data[name]) data[name] = [];
                 data[name].push(value);
-            } else {
-                data[key] = value;
-            }
+            } else { data[key] = value; }
         });
-
         const txtCategoria = document.getElementById('categoria_nombre').value;
         data.categoria_nombre = txtCategoria;
         data.categoria_id = obtenerCategoriaIdPorNombre(txtCategoria);
-
-        ejecutarPeticion('/admin/alimentos/api/store', data, btnGuardar, textoOriginal, closeModalCrear);
+        ejecutarPeticion(RUTA_STORE, data, btnGuardar, textoOriginal, closeModalCrear);
     }
 
     function actualizarAlimento(event) {
         event.preventDefault();
-
         const btnActualizar = document.getElementById('btn-actualizar');
         if (!btnActualizar || btnActualizar.disabled) return;
-
         const textoOriginal = btnActualizar.textContent;
         btnActualizar.textContent = 'ACTUALIZANDO...';
         btnActualizar.disabled = true;
-
         const form = document.getElementById('formulario-editar-alimento');
         const formData = new FormData(form);
         const data = {};
-
         formData.forEach((value, key) => {
             if (key.endsWith('[]')) {
                 const name = key.slice(0, -2);
                 if (!data[name]) data[name] = [];
                 data[name].push(value);
-            } else {
-                data[key] = value;
-            }
+            } else { data[key] = value; }
         });
-
-        const txtCategoria = document.getElementById('edit-categoria_nombre').value;
-        data.categoria_nombre = txtCategoria;
-        data.categoria_id = obtenerCategoriaIdPorNombre(txtCategoria);
+        data.categoria_nombre = document.getElementById('edit-categoria_nombre').value;
+        data.categoria_id = obtenerCategoriaIdPorNombre(data.categoria_nombre);
         data._method = 'PUT'; 
-
-        ejecutarPeticion(`/admin/alimentos/api/${estadoGlobal.editandoId}`, data, btnActualizar, textoOriginal, closeModalEditar);
+        ejecutarPeticion(RUTA_UPDATE_BASE + estadoGlobal.editandoId, data, btnActualizar, textoOriginal, closeModalEditar);
     }
 
     function ejecutarPeticion(url, data, boton, textoBoton, cerrarModalFn) {
@@ -488,61 +416,40 @@
             body: JSON.stringify(data)
         })
         .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { 
-                    throw new Error(err.message || 'Error en la validación del servidor'); 
-                });
-            }
+            if (!response.ok) return response.json().then(err => { throw new Error(err.message || 'Error'); });
             return response.json();
         })
         .then(resultado => {
             cerrarModalFn();
             cargarProductos();
             cargarEstadisticas();
-            mostrarNotificacion(resultado.message || 'Operación realizada con éxito', 'success');
+            mostrarNotificacion(resultado.message || 'Operación exitosa', 'success');
         })
         .catch(error => {
             mostrarNotificacion(error.message || 'Error en el servidor', 'error');
-            console.error('Error detallado:', error);
         })
-        .finally(() => {
-            boton.textContent = textoBoton;
-            boton.disabled = false;
-        });
+        .finally(() => { boton.textContent = textoBoton; boton.disabled = false; });
     }
 
     function eliminarProducto(id) {
         const producto = encontrarProductoPorId(id);
-        if (!producto) {
-            console.error('Producto no encontrado:', id);
-            return;
-        }
-        abrirModalEliminar(id, producto.nombre);
+        if (producto) abrirModalEliminar(id, producto.nombre);
     }
 
     function toggleDisponibilidad(id) {
-        fetch(`/admin/alimentos/api/${id}/toggle-disponibilidad`, {
+        fetch(RUTA_TOGGLE_BASE + id + '/toggle-disponibilidad', {
             method: 'PATCH',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-            }
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }
         })
-        .then(response => response.json())
-        .then(() => {
-            cargarProductos();
-            cargarEstadisticas();
-        })
+        .then(() => { cargarProductos(); cargarEstadisticas(); })
         .catch(error => console.error(error));
     }
 
     function mostrarNotificacion(mensaje, tipo) {
         const notificacion = document.createElement('div');
-        notificacion.className = `fixed top-4 right-4 px-6 py-3 rounded-lg font-bold text-white z-[200] shadow-xl transition-all duration-300 ${
-            tipo === 'success' ? 'bg-green-600' : 'bg-red-600'
-        }`;
+        notificacion.className = `fixed top-4 right-4 px-6 py-3 rounded-lg font-bold text-white z-[200] shadow-xl ${tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
         notificacion.textContent = mensaje;
         document.body.appendChild(notificacion);
-        
         setTimeout(() => notificacion.remove(), 3000);
     }
 </script>

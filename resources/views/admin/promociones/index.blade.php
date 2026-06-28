@@ -15,7 +15,7 @@
             <p class="text-sm font-medium text-[var(--text-muted)] tracking-wide">Controla las ofertas activas, paquetes especiales y descuentos para tus clientes.</p>
         </div>
 
-            {{-- CORREGIDO: .agregar coincide con tu seeder --}}
+        <div>
             @if(auth()->user()->tienePermiso('promociones.agregar'))
                 <button onclick="openModal('modalCrear')" class="group relative flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-white transition-all hover:from-blue-500 hover:to-blue-400 shadow-[0_8px_20px_rgba(59,130,246,0.3)] hover:shadow-[0_8px_25px_rgba(59,130,246,0.5)] hover:-translate-y-0.5">
                     <i class="fas fa-plus transition-transform group-hover:rotate-90"></i>
@@ -60,7 +60,6 @@
             <h2 class="text-3xl font-black text-[var(--text-color)] tracking-tight">Sin promociones activas</h2>
             <p class="mt-3 text-sm text-[var(--text-muted)] font-medium max-w-md">No tienes ninguna oferta configurada en el sistema. Crea una nueva promo para atraer más clientes.</p>
             
-            {{-- CORREGIDO: .agregar --}}
             @if(auth()->user()->tienePermiso('promociones.agregar'))
                 <button onclick="openModal('modalCrear')" class="mt-8 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-color)] px-6 py-3 text-xs font-black uppercase tracking-widest text-[var(--text-color)] transition-all hover:bg-[var(--border-color)]">
                     Comenzar ahora
@@ -72,17 +71,15 @@
             @foreach($promociones as $promo)
                 <article class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[24px] p-6 relative group transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/30 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden">
                     
-                    {{-- Brillo superior condicional --}}
                     <div class="absolute inset-x-0 top-0 h-1 {{ $promo->esta_activa ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-[var(--border-color)]' }}"></div>
 
-                    {{-- HEADER DE LA TARJETA (Icono e Interruptor iOS) --}}
+                    {{-- HEADER DE LA TARJETA --}}
                     <div class="flex justify-between items-start mb-6 pt-2">
                         <div class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $promo->esta_activa ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--border-color)]' }} transition-all duration-300">
                             <i class="fas fa-ticket-alt text-xl"></i>
                         </div>
                         
-                        {{-- AJUSTADO: Se cambia .gestionar por .editar porque .gestionar no existe en tu seeder --}}
-                        @if(auth()->user()->tienePermiso('promociones.reporte'))
+                        @if(auth()->user()->tienePermiso('promociones.editar'))
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input id="togglePromo{{ $promo->id }}" type="checkbox" class="sr-only peer" {{ $promo->esta_activa ? 'checked' : '' }} onchange="togglePromo({{ $promo->id }})">
                                 <div class="w-11 h-6 rounded-full bg-[var(--input-bg)] border border-[var(--border-color)] peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all duration-300 shadow-inner relative">
@@ -103,13 +100,19 @@
                         {{-- Valor Masivo --}}
                         <div class="mt-4 flex items-end gap-2">
                             <span class="bg-clip-text text-transparent bg-gradient-to-r {{ $promo->esta_activa ? 'from-blue-400 to-indigo-500' : 'from-[var(--text-muted)] to-gray-500' }} font-black text-4xl tracking-tighter">
-                                {{ $promo->tipo_promocion == 'porcentaje' ? $promo->valor_descuento.'%' : '$'.$promo->valor_descuento }}
+                                @if($promo->tipo === 'dos_por_uno')
+                                    2x1
+                                @elseif($promo->tipo === 'combo')
+                                    Combo
+                                @else
+                                    {{ $promo->tipo === 'porcentaje' ? (int)$promo->valor.'%' : '$'.number_format($promo->valor, 2) }}
+                                @endif
                             </span>
-                            <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-1.5 pb-0.5">Descuento</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-1.5 pb-0.5">Beneficio</span>
                         </div>
                     </div>
 
-                    {{-- DÍAS DE LA SEMANA (Píldoras Premium) --}}
+                    {{-- DÍAS DE LA SEMANA --}}
                     <div class="mb-6">
                         <p class="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] mb-3">Días aplicables</p>
                         <div class="flex justify-between gap-1">
@@ -129,18 +132,19 @@
                             {{ $promo->esta_activa ? 'Activa' : 'Inactiva' }}
                         </span>
                         
-                        {{-- VALIDACIÓN COMPLETA DE EDICIÓN Y ELIMINACIÓN --}}
-                        @if(auth()->user()->tienePermiso('promociones.editar'))
-                            <button onclick="editPromo({{ $promo->id }})" class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-muted)] transition-all hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-blue-500">
-                                <i class="fas fa-pen text-xs"></i>
-                            </button>
-                        @endif
+                        <div class="flex items-center gap-2">
+                            @if(auth()->user()->tienePermiso('promociones.editar'))
+                                <button onclick="editPromo({{ $promo->id }})" class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-muted)] transition-all hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-blue-500">
+                                    <i class="fas fa-pen text-xs"></i>
+                                </button>
+                            @endif
 
-                        @if(auth()->user()->tienePermiso('promociones.eliminar'))
-                            <button onclick="openDeleteModal({{ $promo->id }}, '{{ addslashes($promo->nombre) }}')" class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-muted)] transition-all hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-500">
-                                <i class="fas fa-trash-alt text-xs"></i>
-                            </button>
-                        @endif
+                            @if(auth()->user()->tienePermiso('promociones.eliminar'))
+                                <button onclick="openDeleteModal({{ $promo->id }}, '{{ addslashes($promo->nombre) }}')" class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-muted)] transition-all hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-500">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </article>
             @endforeach
@@ -165,11 +169,50 @@
         m.classList.remove('flex');
     }
 
+    function guardarPromocion(event) {
+        event.preventDefault();
+
+        const form = document.getElementById('formCrearPromocion');
+        const btn = document.getElementById('btn-guardar-promocion');
+        const formData = new FormData(form);
+
+        btn.disabled = true;
+        btn.textContent = 'GUARDANDO...';
+
+        fetch("{{ route('admin.promociones.store') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('modalCrear');
+                form.reset();
+                window.location.reload();
+            } else {
+                alert(data.message || 'Error al guardar.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error inesperado.');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = 'GUARDAR PROMOCIÓN';
+        });
+    }
+
     function togglePromo(id) {
         const checkbox = document.getElementById(`togglePromo${id}`);
         
         const formData = new FormData();
         formData.append('_method', 'PUT'); 
+        formData.append('toggle_status', '1');
         formData.append('esta_activa', checkbox.checked ? '1' : '0');
 
         fetch(`/admin/promociones/${id}`, {
@@ -181,23 +224,19 @@
             body: formData
         })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Error en el servidor');
-            }
+            if (!response.ok) throw new Error('Error en el servidor');
             return response.json();
         })
         .then(data => {
-            console.log('Estado actualizado con éxito');
-            
-            // 🌟 RECARGA AUTOMÁTICA DE LA PÁGINA
-            window.location.reload();
+            if(data.success){
+                window.location.reload(); 
+            }
         })
         .catch(error => {
             console.error(error);
-            // Si falla, revertimos el switch visualmente antes de la alerta
             checkbox.checked = !checkbox.checked;
             alert('No se pudo cambiar el estado de la promoción.');
         });
     }
 </script>
-@endsection
+@endsection 

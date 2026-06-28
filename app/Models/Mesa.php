@@ -11,6 +11,10 @@ class Mesa extends Model
 {
     use HasFactory, SoftDeletes;
 
+    // --- Definición de Constantes ---
+    const ESTADO_DISPONIBLE = 'disponible';
+    const ESTADO_OCUPADA = 'ocupada';
+
     protected $table = 'mesas';
 
     protected $fillable = [
@@ -25,7 +29,7 @@ class Mesa extends Model
         'ancho',
         'alto',
         'mesero_id',
-        'total_consumo',  // ✅ Agregado para permitir asignación
+        'total_consumo',
     ];
 
     // Relación con Mesero
@@ -34,13 +38,13 @@ class Mesa extends Model
         return $this->belongsTo(User::class, 'mesero_id');
     }
 
-    // Relación con Órdenes - Una mesa puede tener múltiples órdenes
+    // Relación con Órdenes
     public function ordenes()
     {
         return $this->hasMany(Orden::class, 'mesa_id');
     }
 
-    // Relación con Órdenes activas (no pagadas)
+    // Relación con Órdenes activas (usando las constantes de Orden si es posible)
     public function ordenesActivas()
     {
         return $this->ordenes()
@@ -48,17 +52,14 @@ class Mesa extends Model
             ->whereNull('ordenes.deleted_at');
     }
 
-    // Accesador para calcular el total dinámicamente con IVA incluido a partir de los detalles reales
-    // PERO: Si hay un valor almacenado en la BD, usarlo primero (es más rápido que recalcular)
+    // Accesador para calcular el total
     public function getTotalConsumoAttribute()
     {
-        // ✅ Si existe un valor en BD (no es null o 0), usarlo directamente
         $totalEnBD = $this->attributes['total_consumo'] ?? null;
         if ($totalEnBD !== null && $totalEnBD > 0) {
             return floatval($totalEnBD);
         }
 
-        // Si no hay valor en BD, calcular dinámicamente desde órdenes activas
         $totalDetalles = $this->ordenesActivas()
             ->join('detalles_orden', 'ordenes.id', '=', 'detalles_orden.orden_id')
             ->selectRaw('SUM(detalles_orden.cantidad * detalles_orden.precio_unitario) as total_detalle')
@@ -68,7 +69,6 @@ class Mesa extends Model
         return round($totalDetalles * 1.16, 2);
     }
 
-    // Accesador para obtener todos los detalles de órdenes activas
     public function getProductosAttribute()
     {
         return $this->ordenesActivas()
@@ -79,17 +79,17 @@ class Mesa extends Model
             });
     }
 
-    // Accesador para obtener número total de productos pendientes
     public function getNumeroProductosPendientesAttribute()
     {
         return $this->getProductosAttribute()->where('estado', '!=', 'entregado')->count();
     }
 
-    // Método para obtener el estado visual de la mesa (para colores)
+    // --- Método actualizado con la constante ---
     public function getEstadoVisualAttribute()
     {
-        if ($this->estado === 'disponible') {
-            return 'blue'; // Azul - Normal
+        // Usamos la constante en lugar del string "duro"
+        if ($this->estado === self::ESTADO_DISPONIBLE) {
+            return 'blue'; 
         }
 
         $ordenActiva = $this->ordenesActivas()->latest()->first();
@@ -100,11 +100,11 @@ class Mesa extends Model
         $tiempoDesdeCreacion = now()->diffInMinutes($ordenActiva->created_at);
         
         if ($tiempoDesdeCreacion < 30) {
-            return 'blue'; // Azul - Normal (menos de 30 min)
+            return 'blue'; 
         } elseif ($tiempoDesdeCreacion < 60) {
-            return 'yellow'; // Amarillo - Precaución (30-60 min)
+            return 'yellow'; 
         } else {
-            return 'red'; // Rojo - Crítico (más de 60 min)
+            return 'red'; 
         }
     }
 }

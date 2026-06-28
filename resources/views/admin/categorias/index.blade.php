@@ -318,7 +318,7 @@
         const display = document.getElementById('delete_nombre_display');
         if (!modal || !container) return;
         if (display) display.innerText = nombre;
-        if (form) form.action = `/admin/categorias/${id}`;
+        if (form) form.action = `/categorias/${id}`;
         modal.classList.remove('hidden'); modal.classList.add('flex');
         setTimeout(() => { container.classList.remove('scale-95', 'opacity-0'); container.classList.add('scale-100', 'opacity-100'); }, 10);
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Categoria;
@@ -14,8 +14,7 @@ class CategoriaController extends Controller
      */
     public function index()
     {
-        // Traemos todas las categorías ordenadas por el campo 'orden_visualizacion' (Ej: 1, 2, 3)
-        // y luego alfabéticamente por 'nombre'
+        // Traemos todas las categorías ordenadas por el campo 'orden_visualizacion' y luego por 'nombre'
         $categorias = Categoria::orderBy('orden_visualizacion')
                                ->orderBy('nombre')
                                ->get();
@@ -28,7 +27,9 @@ class CategoriaController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validamos los datos estrictamente
+        // 1. Validamos los datos estrictamente (Se limpia el input antes de validar la unicidad)
+        $request->merge(['nombre' => trim($request->nombre)]);
+
         $request->validate([
             'nombre'              => 'required|string|max:255|unique:categorias,nombre',
             'color'               => 'nullable|string|max:20',
@@ -37,13 +38,12 @@ class CategoriaController extends Controller
 
         // 2. Creamos la categoría
         Categoria::create([
-            'nombre'              => trim($request->nombre), // Quitamos espacios en blanco extra
-            'slug'                => Str::slug($request->nombre), // Convierte "Platos Fuertes" en "platos-fuertes"
-            'color'               => $request->color ?? '#3B82F6', // Azul por defecto si no escogen uno
-            'orden_visualizacion' => $request->orden_visualizacion ?? 0 // Cero si no lo llenan
+            'nombre'              => $request->nombre,
+            'slug'                => Str::slug($request->nombre),
+            'color'               => $request->color ?? '#3B82F6', // Azul por defecto
+            'orden_visualizacion' => $request->orden_visualizacion ?? 0
         ]);
 
-        // 3. Regresamos a la pantalla con éxito
         return redirect()->route('admin.categorias.index')
                          ->with('success', '¡Categoría creada exitosamente!');
     }
@@ -55,15 +55,17 @@ class CategoriaController extends Controller
     {
         $categoria = Categoria::findOrFail($id);
 
+        // Limpiamos espacios antes de la validación
+        $request->merge(['nombre' => trim($request->nombre)]);
+
         $request->validate([
-            // unique excluye el ID actual para que deje guardar si no le cambian el nombre
             'nombre'              => 'required|string|max:255|unique:categorias,nombre,' . $id,
             'color'               => 'nullable|string|max:20',
             'orden_visualizacion' => 'nullable|integer|min:0'
         ]);
 
         $categoria->update([
-            'nombre'              => trim($request->nombre),
+            'nombre'              => $request->nombre,
             'slug'                => Str::slug($request->nombre),
             'color'               => $request->color ?? $categoria->color,
             'orden_visualizacion' => $request->orden_visualizacion ?? 0
@@ -80,13 +82,13 @@ class CategoriaController extends Controller
     {
         $categoria = Categoria::findOrFail($id);
         
-        // Antes de borrar, podrías revisar si la categoría tiene productos asignados
-        if ($categoria->productos()->count() > 0) {
+        // Verificación de seguridad usando la relación (se asume que existe el método 'productos' en el modelo)
+        if ($categoria->productos()->exists()) {
             return redirect()->back()
                              ->with('error', 'No puedes eliminar esta categoría porque aún tiene platillos asignados.');
         }
 
-        $categoria->delete(); // Gracias al modelo, esto hace un SoftDelete (no lo borra de la BD)
+        $categoria->delete();
 
         return redirect()->route('admin.categorias.index')
                          ->with('success', 'Categoría eliminada del menú.');
