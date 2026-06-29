@@ -41,13 +41,28 @@
             <div>
                 <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Tipo de Promoción</label>
                 {{-- CAMBIADO: de name="tipo" a name="tipo_promocion" --}}
-                <select name="tipo_promocion" required class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner cursor-pointer">
-                    <option value="">-- Selecciona tipo --</option>
-                    <option value="porcentaje">Porcentaje (%)</option>
-                    <option value="dos_por_uno">Paquete 2 x 1</option>
-                    <option value="descuento_fijo">Descuento Fijo ($)</option>
-                    <option value="combo">Combo</option>
-                </select>
+                <select
+name="tipo_promocion"
+id="edit_tipo_promocion"
+required>
+
+<option value="porcentaje">
+Porcentaje (%)
+</option>
+
+<option value="descuento_fijo">
+Descuento fijo ($)
+</option>
+
+<option value="dos_por_uno">
+2 x 1
+</option>
+
+<option value="combo">
+Combo
+</option>
+
+</select>
             </div>
             <div>
                 <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Valor Descuento / Cantidad</label>

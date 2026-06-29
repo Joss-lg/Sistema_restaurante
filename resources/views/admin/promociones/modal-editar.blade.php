@@ -48,11 +48,27 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Tipo de Promoción</label>
-                        <select name="tipo_promocion" id="edit_tipo_promocion" required class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-color)] focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition shadow-inner cursor-pointer">
-                            <option value="porcentaje">Porcentaje (%)</option>
-                            <option value="2x1">Paquete 2 x 1</option>
-                            <option value="fijo">Descuento Fijo ($)</option>
-                        </select>
+                       <select
+name="tipo_promocion"
+id="edit_tipo_promocion">
+
+<option value="porcentaje">
+Porcentaje (%)
+</option>
+
+<option value="descuento_fijo">
+Descuento fijo ($)
+</option>
+
+<option value="dos_por_uno">
+2 x 1
+</option>
+
+<option value="combo">
+Combo
+</option>
+
+</select>
                     </div>
                     <div>
                         <label class="block text-[var(--text-muted)] uppercase text-[10px] font-black tracking-[0.2em] mb-2">Valor Descuento / Cantidad</label>
@@ -131,57 +147,11 @@
     /**
      * Carga de forma asíncrona los datos de la promoción y abre el modal
      */
-    function editPromo(id) {
-        const form = document.getElementById('formEditarPromocion');
-        form.action = `/promociones/${id}`;
-
-        fetch(`/promociones/${id}/edit`)
-            .then(response => {
-                // 🔍 SI EL SERVIDOR RESPONDE CON ERROR (404, 500, etc.)
-                if (!response.ok) {
-                    response.text().then(textoError => {
-                        console.error("--- ERROR REAL DEL SERVIDOR ---");
-                        console.log(textoError); // Esto imprimirá el error real de Laravel en tu consola
-                    });
-                    throw new Error('Error de servidor detectado.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Inyectamos los valores a los inputs planos
-                document.getElementById('edit_nombre').value = data.promocion.nombre;
-                document.getElementById('edit_descripcion').value = data.promocion.descripcion || '';
-                document.getElementById('edit_tipo_promocion').value = data.promocion.tipo_promocion;
-                document.getElementById('edit_valor_descuento').value = data.promocion.valor_descuento;
-                document.getElementById('edit_fecha_inicio').value = data.promocion.fecha_inicio;
-                document.getElementById('edit_fecha_fin').value = data.promocion.fecha_fin;
-
-                // Controlar el Switch de estado de iOS
-                document.getElementById('edit_esta_activa').checked = parseInt(data.promocion.esta_activa) === 1;
-
-                // Limpiar y marcar días
-                document.querySelectorAll('.edit-dia-checkbox').forEach(cb => cb.checked = false);
-                if (data.promocion.dias_semana && Array.isArray(data.promocion.dias_semana)) {
-                    data.promocion.dias_semana.forEach(dia => {
-                        const checkboxDia = document.getElementById(`edit_dia_${dia}`);
-                        if (checkboxDia) checkboxDia.checked = true;
-                    });
-                }
-
-                // Limpiar y marcar productos
-                document.querySelectorAll('.edit-prod-checkbox').forEach(cb => cb.checked = false);
-                if (data.productos_vinculados && Array.isArray(data.productos_vinculados)) {
-                    data.productos_vinculados.forEach(prodId => {
-                        const checkboxProd = document.getElementById(`edit_prod_${prodId}`);
-                        if (checkboxProd) checkboxProd.checked = true;
-                    });
-                }
-
-                openModal('modalEditar');
-            })
-            .catch(error => {
-                console.error(error);
-                alert('No se pudo cargar la información. Revisa la consola de desarrollador (F12).');
-            });
-    }
+   public function edit(Promocion $promocion)
+{
+    return response()->json([
+        'success' => true,
+        'promocion' => $promocion->load('productos') // Importante cargar productos
+    ]);
+}
 </script>

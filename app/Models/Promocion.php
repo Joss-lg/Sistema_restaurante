@@ -11,35 +11,80 @@ class Promocion extends Model
 
     protected $table = 'promociones';
 
-    // CORREGIDO: Nombres alineados perfectamente con la lógica de tu controlador
     protected $fillable = [
-        'nombre', 
-        'descripcion', 
-        'tipo_promocion',        // Cambiado de 'tipo_promocion' a 'tipo'
-        'valor_descuento',       // Cambiado de 'valor_descuento' a 'valor'
-        'fecha_inicio', 
+        'nombre',
+        'descripcion',
+        'tipo_promocion',
+        'valor_descuento',
+        'fecha_inicio',
         'fecha_fin',
         'dias_semana',
-        'esta_activa'
+        'esta_activa',
     ];
 
-    /**
-     * El casteo de atributos.
-     * Hace que coincida el formato JSON de la BD con arreglos nativos de PHP.
-     */
     protected $casts = [
-        'dias_semana' => 'array',
-        'esta_activa' => 'boolean',
+        'dias_semana'  => 'array',
+        'esta_activa'  => 'boolean',
         'fecha_inicio' => 'date',
-        'fecha_fin' => 'date',
+        'fecha_fin'    => 'date',
     ];
 
-    /**
-     * Relación: Una promoción se aplica a muchos productos.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | RELACIONES
+    |--------------------------------------------------------------------------
+    */
+
     public function productos()
     {
-        // 'promocion_productos' es el nombre de tu tabla intermedia explícita
-        return $this->belongsToMany(Producto::class, 'promocion_productos');
+        return $this->belongsToMany(
+            Producto::class,
+            'promocion_productos',
+            'promocion_id',
+            'producto_id'
+        )->withTimestamps();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACCESSORS
+    |--------------------------------------------------------------------------
+    */
+
+    public function getEstadoTextoAttribute()
+    {
+        return $this->esta_activa ? 'Activa' : 'Inactiva';
+    }
+
+    public function getValorFormateadoAttribute()
+    {
+        return match ($this->tipo_promocion) {
+
+            'porcentaje' =>
+                $this->valor_descuento.'%',
+
+            'descuento_fijo' =>
+                '$'.number_format($this->valor_descuento,2),
+
+            'dos_por_uno' =>
+                '2x1',
+
+            'combo' =>
+                'Combo',
+
+            default =>
+                '-'
+        };
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeActivas($query)
+    {
+        return $query->where('esta_activa',true);
     }
 }

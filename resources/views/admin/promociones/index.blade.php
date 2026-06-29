@@ -97,15 +97,17 @@
                             <p class="text-xs font-medium text-[var(--text-muted)] line-clamp-2 mt-1 tracking-wide leading-relaxed">{{ $promo->descripcion }}</p>
                         @endif
                         
-                        {{-- Valor Masivo --}}
+                        {{-- Valor Masivo Corregido a tus columnas reales --}}
                         <div class="mt-4 flex items-end gap-2">
                             <span class="bg-clip-text text-transparent bg-gradient-to-r {{ $promo->esta_activa ? 'from-blue-400 to-indigo-500' : 'from-[var(--text-muted)] to-gray-500' }} font-black text-4xl tracking-tighter">
-                                @if($promo->tipo === 'dos_por_uno')
+                                @if($promo->tipo_promocion === 'dos_por_uno')
                                     2x1
-                                @elseif($promo->tipo === 'combo')
+                                @elseif($promo->tipo_promocion === 'combo')
                                     Combo
+                                @elseif($promo->tipo_promocion === 'porcentaje')
+                                    {{ (int)$promo->valor_descuento }}%
                                 @else
-                                    {{ $promo->tipo === 'porcentaje' ? (int)$promo->valor.'%' : '$'.number_format($promo->valor, 2) }}
+                                    ${{ number_format($promo->valor_descuento, 2) }}
                                 @endif
                             </span>
                             <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-1.5 pb-0.5">Beneficio</span>
@@ -116,7 +118,25 @@
                     <div class="mb-6">
                         <p class="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] mb-3">Días aplicables</p>
                         <div class="flex justify-between gap-1">
-                            @php $dias = $promo->dias_semana ?? []; @endphp
+                            @php
+
+$dias = $promo->dias_semana;
+
+// Si viene doblemente codificado
+if (is_string($dias)) {
+
+    $decode = json_decode($dias, true);
+
+    if (is_string($decode)) {
+        $decode = json_decode($decode, true);
+    }
+
+    $dias = $decode;
+}
+
+$dias = is_array($dias) ? $dias : [];
+
+@endphp
                             @foreach(['L','M','M','J','V','S','D'] as $i => $d)
                                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-colors {{ in_array($i+1, $dias) ? 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.4)]' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--border-color)]' }}">
                                     {{ $d }}
@@ -215,7 +235,7 @@
         formData.append('toggle_status', '1');
         formData.append('esta_activa', checkbox.checked ? '1' : '0');
 
-        fetch(`/admin/promociones/${id}`, {
+       fetch(`/promociones/${id}`, {
             method: 'POST', 
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -237,6 +257,44 @@
             checkbox.checked = !checkbox.checked;
             alert('No se pudo cambiar el estado de la promoción.');
         });
+
     }
+    function editPromo(id) {
+        fetch(`/promociones/${id}/edit`, {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const promo = data.promocion;
+            const form = document.getElementById('formEditarPromocion');
+            
+            form.action = `/promociones/${id}`;
+            form.querySelector('[name="nombre"]').value = promo.nombre;
+            form.querySelector('[name="descripcion"]').value = promo.descripcion || '';
+            form.querySelector('[name="tipo_promocion"]').value = promo.tipo_promocion;
+            form.querySelector('[name="valor_descuento"]').value = promo.valor_descuento;
+            form.querySelector('[name="fecha_inicio"]').value = promo.fecha_inicio;
+            form.querySelector('[name="fecha_fin"]').value = promo.fecha_fin;
+            document.getElementById('edit_esta_activa').checked = (promo.esta_activa == 1);
+            
+            openModal('modalEditar');
+        });
+    }
+
+    document.getElementById('formEditarPromocion').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+            });
+            const data = await response.json();
+            if (data.success) location.reload();
+            else alert(data.message);
+        } catch (err) { alert('Error al actualizar'); }
+    });
 </script>
-@endsection 
+@endsection

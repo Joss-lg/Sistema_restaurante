@@ -19,21 +19,22 @@ class PromocionController extends Controller
     {
         try {
             $promociones = Promocion::where('esta_activa', true)
-                ->select(['id', 'nombre', 'descripcion', 'tipo', 'valor', 'dias_semana'])
+                // Seleccionamos las columnas reales de la base de datos
+                ->select(['id', 'nombre', 'descripcion', 'tipo_promocion', 'valor_descuento', 'dias_semana'])
                 ->get()
                 ->map(function ($promo) {
                     return [
-                        'id' => $promo->id,
-                        'nombre' => $promo->nombre,
-                        'descripcion' => $promo->descripcion,
-                        'tipo_promocion' => $promo->tipo,       
-                        'valor_descuento' => $promo->valor,     
-                        'dias_semana' => $promo->dias_semana,
+                        'id'              => $promo->id,
+                        'nombre'          => $promo->nombre,
+                        'descripcion'     => $promo->descripcion,
+                        'tipo_promocion'  => $promo->tipo_promocion, // Sincronizado       
+                        'valor_descuento' => $promo->valor_descuento, // Sincronizado     
+                        'dias_semana'     => $promo->dias_semana,
                     ];
                 });
 
             return response()->json([
-                'success' => true,
+                'success'     => true,
                 'promociones' => $promociones,
             ]);
         } catch (\Exception $e) {
@@ -47,7 +48,6 @@ class PromocionController extends Controller
             ], 500);
         }
     }
-
     /**
      * Cargar el listado de promociones y los productos disponibles.
      */
@@ -119,7 +119,7 @@ class PromocionController extends Controller
                 'valor_descuento' => $request->valor_descuento, // Corregido
                 'fecha_inicio'    => $request->fecha_inicio,
                 'fecha_fin'       => $request->fecha_fin,
-                'dias_semana'     => json_encode($request->input('dias_semana', [])), // Guardamos array como JSON
+               'dias_semana' => $request->input('dias_semana', []),
                 'esta_activa'     => $request->boolean('esta_activa'),
             ]);
 
@@ -144,46 +144,70 @@ class PromocionController extends Controller
     /**
      * Registrar una nueva promoción.
      */
-   public function store(Request $request)
+ public function store(Request $request)
 {
-    // Validamos usando los nombres que vienen del formulario (asegúrate que el HTML tenga estos names)
     $request->validate([
-        'nombre'          => 'required|string|max:255',
-        'descripcion'     => 'nullable|string|max:500',
-        'tipo_promocion'  => 'required|in:descuento_fijo,porcentaje,dos_por_uno,combo',
+        'nombre' => 'required|string|max:255',
+        'descripcion' => 'nullable|string',
+        'tipo_promocion' => 'required|in:descuento_fijo,porcentaje,dos_por_uno,combo',
         'valor_descuento' => 'required|numeric|min:0',
-        'fecha_inicio'    => 'required|date',
-        'fecha_fin'       => 'required|date|after_or_equal:fecha_inicio',
-        'dias_semana'     => 'nullable|array',
-        'productos'       => 'nullable|array',
-        'productos.*'     => 'exists:productos,id',
+        'fecha_inicio' => 'required|date',
+        'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+        'dias_semana' => 'nullable|array',
+        'productos' => 'nullable|array',
     ]);
 
     try {
-        return DB::transaction(function () use ($request) {
-            // Mapeamos los datos a los nombres reales de tus columnas en la BD
-            $promocion = Promocion::create([
-                'nombre'          => $request->nombre,
-                'descripcion'     => $request->descripcion,
-                'tipo_promocion'  => $request->tipo_promocion,
-                'valor_descuento' => $request->valor_descuento,
-                'fecha_inicio'    => $request->fecha_inicio,
-                'fecha_fin'       => $request->fecha_fin,
-                'dias_semana'     => json_encode($request->input('dias_semana', [])), // Guardamos como JSON
-                'esta_activa'     => $request->boolean('esta_activa', true),
-            ]);
 
-            if ($request->filled('productos')) {
-                $promocion->productos()->sync($request->productos);
-            }
+        DB::beginTransaction();
 
-            return response()->json(['success' => true, 'message' => 'Promoción creada correctamente.'], 200);
-        });
-    } catch (\Exception $e) {
-        Log::error('Error en store: ' . $e->getMessage());
-        return response()->json(['success' => false, 'message' => 'Error al registrar'], 500);
+        $promocion = Promocion::create([
+
+            'nombre' => $request->nombre,
+
+            'descripcion' => $request->descripcion,
+
+            'tipo_promocion' => $request->tipo_promocion,
+
+            'valor_descuento' => $request->valor_descuento,
+
+            'fecha_inicio' => $request->fecha_inicio,
+
+            'fecha_fin' => $request->fecha_fin,
+
+            // IMPORTANTE: SIN json_encode()
+            'dias_semana' => $request->dias_semana,
+
+            'esta_activa' => $request->boolean('esta_activa', true),
+
+        ]);
+
+        if ($request->filled('productos')) {
+
+            $promocion->productos()->sync($request->productos);
+
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Promoción creada correctamente.'
+        ]);
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ],500);
+
     }
+
 }
+
 
     /**
      * Eliminar el registro de manera atómica.
