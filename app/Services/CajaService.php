@@ -31,7 +31,10 @@ class CajaService
             'iva' => $iva,
             'propina' => $propina,
             'total' => $total,
-            'ordenes' => $ordenesActivas
+            'ordenes' => $ordenesActivas,
+            // Agregamos estos datos para la vista de cobro
+            'cuentasDivididas' => $mesa->cuenta_dividida ?? false,
+            'totalCuentasDivision' => $mesa->numero_cuenta_division ?? 1
         ];
     }
 

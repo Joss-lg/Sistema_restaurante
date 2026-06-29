@@ -45,33 +45,32 @@ class CajaController extends Controller
         return view('admin.caja.index', compact('mesas', 'mesasActivas', 'totalAbierto'));
     }
 
-    public function cobrar($id)
-    {
-        $mesa = Mesa::findOrFail($id);
-        
-        // Usamos el servicio para obtener el desglose limpio
-        $desglose = $this->cajaService->obtenerDesgloseMesa($mesa);
-        $ordenes = $desglose['ordenes'];
+   public function cobrar($id)
+{
+    $mesa = Mesa::findOrFail($id);
+    $desglose = $this->cajaService->obtenerDesgloseMesa($mesa);
+    $ordenes = $desglose['ordenes'];
 
-        if ($ordenes->isEmpty()) {
-            if ($mesa->estado === Mesa::ESTADO_OCUPADA) {
-                $this->cajaService->liberarMesa($mesa);
-            }
-            return redirect()->route('admin.caja.index')->with('error', 'La mesa no tiene órdenes activas.');
+    if ($ordenes->isEmpty()) {
+        if ($mesa->estado === Mesa::ESTADO_OCUPADA) {
+            $this->cajaService->liberarMesa($mesa);
         }
-
-        // Aquí mantienes tu lógica de cuentas divididas o normal
-        // Ya tienes disponibles las variables en $desglose (subtotal, iva, propina, total)
-        return view('admin.caja.cobrar', [
-            'mesa' => $mesa,
-            'ordenes' => $ordenes,
-            'subtotal' => $desglose['subtotal'],
-            'iva' => $desglose['iva'],
-            'propina' => $desglose['propina'],
-            'totalPagar' => $desglose['total']
-        ]);
+        // Ruta corregida: sin el prefijo 'admin.'
+        return redirect()->route('caja.index')->with('error', 'La mesa no tiene órdenes activas.');
     }
 
+    // Ruta de la vista corregida: 'caja.cobrar.index'
+    return view('caja.cobrar.index', [
+        'mesa' => $mesa,
+        'ordenes' => $ordenes,
+        'subtotal' => $desglose['subtotal'],
+        'iva' => $desglose['iva'],
+        'propina' => $desglose['propina'],
+        'totalPagar' => $desglose['total'],
+        'cuentasDivididas' => $desglose['cuentasDivididas'],
+        'totalCuentasDivision' => $desglose['totalCuentasDivision']
+    ]);
+}
     public function pagar(Request $request): JsonResponse
     {
         // ... (Tu validación y lógica de transacción)
@@ -122,6 +121,43 @@ class CajaController extends Controller
             'esta_disponible' => $mesa->estado === Mesa::ESTADO_DISPONIBLE && $mesa->ordenesActivas()->count() === 0,
         ]);
     }
+    public function procesarPago(Request $request): JsonResponse
+{
+    $request->validate([
+        'mesa_id' => 'required|exists:mesas,id',
+        'monto_pagado' => 'required|numeric|min:0',
+        'metodo_pago' => 'required|string',
+    ]);
 
-    // ... (Métodos adicionales como getEstadisticas, getMovimientos, store que ya tenías)
+    try {
+        return DB::transaction(function () use ($request) {
+            $mesa = Mesa::findOrFail($request->mesa_id);
+            
+            // 1. Registrar el movimiento en caja
+            CajaMovimiento::create([
+                'concepto' => 'Pago Mesa #' . $mesa->numero,
+                'monto' => $request->monto_pagado,
+                'tipo' => 'ingreso',
+                'metodo_pago' => $request->metodo_pago,
+                'fecha' => Carbon::now(),
+                'user_id' => auth()->id(),
+            ]);
+
+            // 2. Liberar mesa (usando tu servicio existente)
+            $this->cajaService->liberarMesa($mesa);
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Pago procesado y mesa liberada con éxito.'
+            ]);
+        });
+    } catch (\Exception $e) {
+        Log::error("Error procesando pago: " . $e->getMessage());
+        return response()->json([
+            'success' => false, 
+            'message' => 'Error al procesar el pago: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
 }

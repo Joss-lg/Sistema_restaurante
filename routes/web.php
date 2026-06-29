@@ -27,12 +27,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/mesa/reabrir', [ComandaController::class, 'reabrir'])->name('mesa.reabrir');
     });
     
-    // --- MÓDULOS ADMINISTRATIVOS (URL LIMPIAS) ---
-    // Quitamos el prefijo 'admin' de la URL, pero mantenemos el nombre 'admin.' para tus vistas
+    // --- MÓDULOS ADMINISTRATIVOS ---
     Route::name('admin.')->group(function () {
-
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+        // Empleados
         Route::prefix('empleados')->name('empleados.')->group(function () {
             Route::get('/', [EmpleadoController::class, 'index'])->name('index');
             Route::post('/store', [EmpleadoController::class, 'store'])->name('store');
@@ -40,8 +39,11 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{id}', [EmpleadoController::class, 'update'])->name('update');
             Route::get('/{id}/permisos', [EmpleadoController::class, 'permisos'])->name('permisos');
             Route::post('/{id}/permisos', [EmpleadoController::class, 'actualizarPermisos'])->name('permisos.update');
+            Route::patch('/{id}/reactivar', [EmpleadoController::class, 'reactivar'])->name('reactivar');
         });
 
+        // Inventario, Alimentos, Categorías, Caja, Mesas, Plano, Cocina, Promociones, Roles, Finanzas...
+        // [He mantenido todas tus rutas internas aquí...]
         Route::prefix('inventario')->name('inventario.')->group(function () {
             Route::get('/bajo-stock-pdf', [InventarioController::class, 'exportarPdfBajoStock'])->name('exportar_pdf_bajo_stock');
             Route::get('/', [InventarioController::class, 'index'])->name('index');
@@ -71,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
             Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
             Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
+            Route::post('/api/procesar-pago', [CajaController::class, 'procesarPago'])->name('api.procesar-pago');
             Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
             Route::post('/api/estado-mesa', [CajaController::class, 'getEstadoMesa'])->name('api.estado-mesa');
             Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');
@@ -104,15 +107,13 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/orden/{id}/estado', [CocinaController::class, 'actualizarEstado'])->name('orden.estado');
         });
 
-       Route::prefix('promociones')->name('promociones.')->group(function () {
+        Route::prefix('promociones')->name('promociones.')->group(function () {
             Route::get('/', [PromocionController::class, 'index'])->name('index');
-            
             Route::post('/store', [PromocionController::class, 'store'])->name('store');
-            
             Route::get('/{promocion}/edit', [PromocionController::class, 'edit'])->name('edit');
             Route::put('/{promocion}', [PromocionController::class, 'update'])->name('update');
             Route::delete('/{promocion}', [PromocionController::class, 'destroy'])->name('destroy');
-        });
+        }); 
 
         Route::prefix('roles')->name('roles.')->group(function () {
             Route::get('/', [RolController::class, 'index'])->name('index');
@@ -138,7 +139,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/permisos/store', [PermisoController::class, 'store'])->name('permisos.store');
     });
 
-    Route::post('/logout', function () { Auth::logout(); return redirect()->route('login'); })->name('logout');
-
-    Route::patch('admin/empleados/{id}/reactivar', [EmpleadoController::class, 'reactivar'])->name('admin.empleados.reactivar');
+    Route::post('/logout', function () { 
+        Auth::logout(); 
+        return redirect()->route('login'); 
+    })->name('logout');
 });
