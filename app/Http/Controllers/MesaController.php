@@ -107,20 +107,49 @@ class MesaController extends Controller
         return response()->json(['success' => true, 'message' => 'Mesa creada', 'mesa' => $mesa], 201);
     }
 
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $mesa = Mesa::findOrFail($id);
         $mesa->update($request->validate([
-            'numero' => 'required|string|max:20',
-            'capacidad' => 'required|integer|min:1',
-            'estado' => 'required|string',
+            'numero' => 'sometimes|string|max:20',
+            'capacidad' => 'sometimes|integer|min:1',
+            'zona' => 'sometimes|string',
+            'forma' => 'sometimes|string',
+            // Agrega posición por si quieres editarla manualmente también
+            'posicion_x' => 'sometimes|integer',
+            'posicion_y' => 'sometimes|integer',
         ]));
-        return response()->json(['success' => true, 'message' => 'Mesa actualizada', 'mesa' => $mesa]);
+        return response()->json(['success' => true, 'mesa' => $mesa]);
     }
 
     public function destroy($id)
     {
         Mesa::findOrFail($id)->delete();
         return response()->json(['success' => true, 'message' => 'Mesa eliminada']);
+    }
+    // Método para obtener todas las mesas (para el renderizado inicial de tu JS)
+    public function apiIndex(): JsonResponse
+    {
+        return response()->json(Mesa::all());
+    }
+
+    // Método para guardar el plano (recibe el array de mesas movidas)
+    public function guardarPlano(Request $request): JsonResponse
+    {
+        $request->validate([
+            'mesas' => 'required|array'
+        ]);
+
+        try {
+            foreach ($request->mesas as $mesaData) {
+                Mesa::where('id', $mesaData['id'])->update([
+                    'posicion_x' => $mesaData['posicion_x'],
+                    'posicion_y' => $mesaData['posicion_y']
+                ]);
+            }
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }

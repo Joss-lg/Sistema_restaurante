@@ -9,6 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('caja_movimientos', function (Blueprint $table) {
+            // 1. Primero creamos 'tipo' si no existe, para poder usarla como referencia
+            if (! Schema::hasColumn('caja_movimientos', 'tipo')) {
+                $table->string('tipo')->nullable()->after('estado');
+            }
+
+            // 2. Ahora agregamos el resto de columnas usando 'tipo' como referencia
             if (! Schema::hasColumn('caja_movimientos', 'metodo_pago')) {
                 $table->string('metodo_pago')->nullable()->after('tipo');
             }
@@ -32,6 +38,10 @@ return new class extends Migration
             }
             if (Schema::hasColumn('caja_movimientos', 'metodo_pago')) {
                 $table->dropColumn('metodo_pago');
+            }
+            // También eliminamos 'tipo' al hacer rollback
+            if (Schema::hasColumn('caja_movimientos', 'tipo')) {
+                $table->dropColumn('tipo');
             }
         });
     }
