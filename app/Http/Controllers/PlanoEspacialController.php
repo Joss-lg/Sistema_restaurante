@@ -137,5 +137,68 @@ class PlanoEspacialController extends Controller
                 'message' => 'Error al remover la mesa del mapa.',
             ], 500);
         }
+        
     }
+public function store(Request $request): JsonResponse
+{
+    try {
+        // 1. Validar los datos recibidos
+        $validated = $request->validate([
+            'numero'    => 'required|string|max:50|unique:mesas,numero',
+            'capacidad' => 'required|integer|min:1|max:20',
+            'estado'    => 'required|in:disponible,reservada,limpieza',
+        ]);
+
+        // 2. Crear la mesa con valores por defecto para el plano
+        $mesa = Mesa::create([
+            'numero'     => $validated['numero'],
+            'capacidad'  => $validated['capacidad'],
+            'estado'     => $validated['estado'],
+            'zona'       => 'salon', // Zona por defecto
+            'forma'      => 'redonda', // Forma por defecto
+            'posicion_x' => 20, // Aparecerá en la esquina superior izquierda
+            'posicion_y' => 20,
+            'ancho'      => 60, // Tamaño estándar inicial
+            'alto'       => 60,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesa creada correctamente.',
+            'data'    => $mesa
+        ], 201);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error de validación: ' . $e->getMessage(),
+        ], 422);
+    } catch (\Exception $e) {
+        Log::error('Error al crear mesa: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error interno al crear la mesa.',
+        ], 500);
+    }
+}
+
+public function update(Request $request, $id)
+{
+    $mesa = Mesa::findOrFail($id);
+
+    // Solo validamos lo que el usuario realmente edita en el panel de propiedades
+    $validated = $request->validate([
+        'numero' => 'required|string|max:50',
+        'capacidad' => 'required|integer|min:1',
+    ]);
+
+    $mesa->update($validated);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Mesa actualizada correctamente'
+    ]);
+}
+
+
 }

@@ -44,18 +44,18 @@
             <p class="text-[11px] font-bold text-[var(--m-muted)] uppercase tracking-[0.2em] mt-2 opacity-80">Actualización de credenciales</p>
         </div>
 
-        {{-- IMPORTANTE: El ID editEmpleadoForm es clave para el JS --}}
-        <form id="formEditar" action="#" method="POST" class="p-8 pt-4 space-y-6">
+        {{-- FORMULARIO INICIADO AQUÍ --}}
+        <form id="formEditar" action="{{ route('admin.empleados.update', $empleado->id) }}" method="POST" class="space-y-6">
             @csrf
             @method('PUT')
-
+            
             <div class="group">
                 <label for="edit_nombre" class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90 group-focus-within:text-[#3B82F6] transition-colors">Nombre Completo</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                         <i class="fas fa-user text-[var(--m-muted)] group-focus-within:text-[#3B82F6] transition-colors text-sm"></i>
                     </div>
-                    <input type="text" id="edit_nombre" name="nombre" required 
+                    <input type="text" id="edit_nombre" name="nombre" value="{{ $empleado->nombre }}" required 
                         class="w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl pl-12 pr-6 text-sm font-bold text-[var(--m-text)] outline-none transition-all focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10">
                 </div>
             </div>
@@ -66,7 +66,7 @@
                     <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                         <i class="fas fa-lock text-[var(--m-muted)] group-focus-within:text-[#3B82F6] transition-colors text-sm"></i>
                     </div>
-                    <input type="text" id="edit_codigo_empleado" name="codigo_empleado" maxlength="4" required 
+                    <input type="text" id="edit_codigo_empleado" name="codigo_empleado" value="{{ $empleado->codigo_empleado }}" maxlength="4" required 
                         class="w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl pl-12 pr-6 text-base font-black tracking-[0.8em] text-[var(--m-text)] outline-none transition-all focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10">
                 </div>
             </div>
@@ -74,13 +74,13 @@
             <div class="relative group" id="editDropdownContainer">
                 <label class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90 group-focus-within:text-[#3B82F6] transition-colors">Rol del Sistema</label>
                 
-                <input type="hidden" name="rol_id" id="edit_rol_id_input">
+                <input type="hidden" name="rol_id" id="edit_rol_id_input" value="{{ $empleado->rol_id }}">
                 
                 <button type="button" onclick="toggleEditDropdown(event)" id="editDropdownBtn"
                     class="flex items-center justify-between w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl pl-5 pr-6 text-sm font-bold text-[var(--m-text)] outline-none transition-all focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-shield-halved text-[var(--m-muted)] group-focus-within:text-[#3B82F6] transition-colors text-sm"></i>
-                        <span id="editDropdownSelected">Seleccionar...</span>
+                        <span id="editDropdownSelected">{{ $empleado->rol->nombre ?? 'Seleccionar...' }}</span>
                     </div>
                     <i class="fas fa-chevron-down text-[var(--m-muted)] transition-transform duration-300" id="editDropdownIcon"></i>
                 </button>
@@ -106,10 +106,9 @@
                     Guardar Cambios
                 </button>
             </div>
-        </form>
+        </form> {{-- FORMULARIO CERRADO AQUÍ --}}
     </div>
 </div>
-
 <script>
     /**
      * Función principal para abrir el modal y configurar la ruta de guardado
@@ -118,6 +117,8 @@
         const modal = document.getElementById('editEmpleadoModal');
         const content = document.getElementById('editModalContent');
         const form = document.getElementById('formEditar');
+
+        if (!modal || !form) return;
 
         // 1. ASIGNAMOS LA RUTA CORRECTA DINÁMICAMENTE
         form.action = `/admin/empleados/${id}`;
@@ -128,21 +129,27 @@
         document.getElementById('edit_rol_id_input').value = rolId;
         document.getElementById('editDropdownSelected').innerText = rolNombre || 'Seleccionar...';
 
-        // 3. MOSTRAR CON ANIMACIÓN
+        // 3. MOSTRAR CON ANIMACIÓN FLUIDA
         modal.classList.remove('hidden');
         setTimeout(() => {
             modal.classList.remove('opacity-0');
-            content.classList.remove('scale-95');
+            if (content) content.classList.remove('scale-95');
         }, 10);
     }
-
 
     function cerrarEditModal() {
         const modal = document.getElementById('editEmpleadoModal');
         const content = document.getElementById('editModalContent');
 
+        if (!modal) return;
+
         modal.classList.add('opacity-0');
-        content.classList.add('scale-95');
+        if (content) content.classList.add('scale-95');
+        
+        // Cerrar el menú interno por si acaso
+        const menu = document.getElementById('editDropdownMenu');
+        if (menu) menu.classList.add('hidden', 'opacity-0', 'translate-y-[-10px]');
+
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 500);
@@ -150,31 +157,50 @@
 
     // Funciones del Dropdown
     function toggleEditDropdown(event) {
-        event.stopPropagation();
+        if (event) event.stopPropagation();
         const menu = document.getElementById('editDropdownMenu');
         const icon = document.getElementById('editDropdownIcon');
-        menu.classList.toggle('hidden');
-        setTimeout(() => {
-            menu.classList.toggle('opacity-0');
-            menu.classList.toggle('translate-y-[-10px]');
-            icon.classList.toggle('rotate-180');
-        }, 10);
+        
+        if (!menu) return;
+
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            setTimeout(() => {
+                menu.classList.remove('opacity-0', 'translate-y-[-10px]');
+                if (icon) icon.classList.add('rotate-180');
+            }, 10);
+        } else {
+            menu.classList.add('opacity-0', 'translate-y-[-10px]');
+            if (icon) icon.classList.remove('rotate-180');
+            setTimeout(() => menu.classList.add('hidden'), 300);
+        }
     }
 
     function selectEditRole(label, value) {
-        document.getElementById('editDropdownSelected').innerText = label;
-        document.getElementById('edit_rol_input').value = value;
+        const selected = document.getElementById('editDropdownSelected');
+        const input = document.getElementById('edit_rol_id_input'); // <-- CORREGIDO: ID exacto del HTML
         const menu = document.getElementById('editDropdownMenu');
-        menu.classList.add('hidden', 'opacity-0', 'translate-y-[-10px]');
+        const icon = document.getElementById('editDropdownIcon');
+
+        if (selected) selected.innerText = label;
+        if (input) input.value = value;
+        
+        if (menu) menu.classList.add('hidden', 'opacity-0', 'translate-y-[-10px]');
+        if (icon) icon.classList.remove('rotate-180');
     }
 
-    // Cerrar dropdown si se hace clic fuera
-    window.onclick = function(event) {
-        if (!event.target.matches('#editDropdownBtn') && !event.target.closest('#editDropdownBtn')) {
-            const menu = document.getElementById('editDropdownMenu');
+    // Escucha de clics fuera de forma segura sin pisar otros scripts
+    document.addEventListener('click', function(event) {
+        const container = document.getElementById('editDropdownContainer');
+        const menu = document.getElementById('editDropdownMenu');
+        const icon = document.getElementById('editDropdownIcon');
+        
+        if (container && !container.contains(event.target)) {
             if (menu && !menu.classList.contains('hidden')) {
-                menu.classList.add('hidden', 'opacity-0', 'translate-y-[-10px]');
+                menu.classList.add('opacity-0', 'translate-y-[-10px]');
+                if (icon) icon.classList.remove('rotate-180');
+                setTimeout(() => menu.classList.add('hidden'), 300);
             }
         }
-    }
+    });
 </script>

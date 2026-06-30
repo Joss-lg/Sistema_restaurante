@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnCancelar')?.addEventListener('click', () => {
         estadoGlobal.modoEdicion = false;
         renderizarMapaMesas();
+    document.getElementById('btnCancelar')?.addEventListener('click', cancelarEdicion);
     });
 
     document.getElementById('btnAgregarMesa')?.addEventListener('click', abrirModalNuevaMesa);
@@ -59,16 +60,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- CARGA Y RENDERIZADO ---
 async function cargarMesas() {
     try {
-        // CAMBIO: Apuntando a tu ruta de PlanoEspacialController
         const res = await fetch('/plano-espacial/api/mesas');
         if (!res.ok) throw new Error('Error en API');
-        estadoGlobal.mesas = await res.json();
-        renderizarMapaMesas();
+        
+        const response = await res.json();
+        
+        // CORRECCIÓN: Si recibes un objeto único, conviértelo en array.
+        // Si ya es un array, mantén el array.
+       estadoGlobal.mesas = response.data || [];
+        
+       renderizarMapaMesas();
     } catch (e) { console.error(e); }
 }
 
 function renderizarMapaMesas() {
-    // CAMBIO: Apuntando al ID de tu vista plano-espacial.blade.php
     const contenedor = document.getElementById('planoContenedor');
     if (!contenedor) return;
     contenedor.innerHTML = '';
@@ -79,7 +84,11 @@ function renderizarMapaMesas() {
 
     mesasFiltradas.forEach(mesa => {
         const div = document.createElement('div');
-        div.className = 'mesa-elemento absolute bg-blue-500 rounded-lg cursor-move flex items-center justify-center text-white font-bold border-2 border-slate-900';
+        
+        // 1. Eliminamos 'bg-blue-500' y añadimos la clase de estado dinámica
+        // La clase base será 'mesa-ui' (que ya tienes en el CSS) + la clase de estado
+        div.className = `mesa-elemento mesa-ui absolute rounded-lg cursor-move flex items-center justify-center text-white font-bold border-2 border-slate-900 mesa-${mesa.estado}`;
+        
         div.dataset.id = mesa.id;
         div.style.left = (mesa.posicion_x || 50) + 'px';
         div.style.top = (mesa.posicion_y || 50) + 'px';
@@ -88,14 +97,21 @@ function renderizarMapaMesas() {
         
         div.innerHTML = mesa.numero;
 
+        // 2. Solo añadimos la clase de selección si está en modo fusión, no por defecto
+        if (estadoGlobal.modoFusion) {
+            div.classList.add('mesa-fusion-selected');
+        }
+
         div.addEventListener('pointerdown', (e) => iniciarArrastre(e, div, mesa));
         div.addEventListener('click', (e) => {
-            if (estadoGlobal.modoEdicion) { e.stopPropagation(); seleccionarMesa(mesa); }
+            if (estadoGlobal.modoEdicion) { 
+                e.stopPropagation(); 
+                seleccionarMesa(mesa); 
+            }
         });
         contenedor.appendChild(div);
     });
     
-    // Actualizar contador visual
     const total = document.getElementById('totalMesas');
     if (total) total.innerText = `Mesas: ${mesasFiltradas.length}`;
 }
@@ -144,25 +160,8 @@ window.toggleModoEdicion = () => {
     document.getElementById('btnCancelar')?.classList.toggle('hidden', !estadoGlobal.modoEdicion);
 };
 
-window.abrirModalNuevaMesa = () => {
-    const modal = document.getElementById('modalNuevaMesa');
-    modal.classList.remove('hidden');
-    // Forzamos un reflow para que la transición de opacidad funcione
-    setTimeout(() => {
-        modal.classList.remove('opacity-0');
-        modal.classList.add('opacity-100');
-    }, 10);
-};
-
-window.cerrarModalNuevaMesa = () => {
-    const modal = document.getElementById('modalNuevaMesa');
-    modal.classList.remove('opacity-100');
-    modal.classList.add('opacity-0');
-    // Esperamos a que termine la animación antes de ocultar
-    setTimeout(() => {
-        modal.classList.add('hidden');
-    }, 300);
-};
+window.abrirModalNuevaMesa = () => document.getElementById('modalCrearMesa').classList.remove('hidden');
+window.cerrarModalNuevaMesa = () => document.getElementById('modalCrearMesa').classList.add('hidden');
 
 window.crearNuevaMesa = async () => {
     const data = {
@@ -171,29 +170,22 @@ window.crearNuevaMesa = async () => {
         estado: document.getElementById('newEstado').value
     };
 
-    const res = await fetch('/plano-espacial/api/crear', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json', 
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
-        },
-        body: JSON.stringify(data)
-    });
+   const res = await fetch('/plano-espacial/api/crear', {
+    method: 'POST',
+    headers: { 
+        'Content-Type': 'application/json', 
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
+    },
+    body: JSON.stringify(data)
+});
 
     if (res.ok) {
         window.cerrarModalNuevaMesa();
-        cargarMesas(); // Refresca el plano
+        cargarMesas();
     } else {
         alert('Error al crear la mesa');
     }
 };
-
-function toggleModoEdicion() {
-    estadoGlobal.modoEdicion = !estadoGlobal.modoEdicion;
-    document.getElementById('modosEdicion')?.classList.toggle('hidden', !estadoGlobal.modoEdicion);
-    document.getElementById('btnGuardar')?.classList.toggle('hidden', !estadoGlobal.modoEdicion);
-    document.getElementById('btnCancelar')?.classList.toggle('hidden', !estadoGlobal.modoEdicion);
-}
 
 function seleccionarMesa(mesa) {
     estadoGlobal.mesaSeleccionada = mesa;
@@ -204,6 +196,80 @@ function seleccionarMesa(mesa) {
     document.getElementById('btnActualizar')?.classList.remove('hidden');
 }
 
+// --- ACCIONES DE GUARDADO Y CANCELAR ---
+
+// Esta es la función definitiva que usa el estado global (el JS ya tiene las posiciones actualizadas en estadoGlobal.mesas)
+async function guardarPlanoEnServidor() {
+    try {
+        const res = await fetch('/plano-espacial/api/guardar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ mesas: estadoGlobal.mesas })
+        });
+
+        // IMPORTANTE: Verifica si la respuesta es OK antes de hacer .json()
+        if (!res.ok) {
+            const errorText = await res.text(); // Lee el error como texto plano
+            console.error('Respuesta del servidor no exitosa:', errorText);
+            return;
+        }
+
+        const result = await res.json();
+        console.log('Guardado exitoso:', result);
+    } catch (e) {
+        console.error('Error en la petición:', e);
+    }
+}
+
+function cancelarEdicion() {
+    if (confirm('¿Deseas descartar los cambios sin guardar?')) {
+        estadoGlobal.modoEdicion = false;
+        // Ocultar botones de guardado
+        document.getElementById('btnGuardar')?.classList.add('hidden');
+        document.getElementById('btnCancelar')?.classList.add('hidden');
+        document.getElementById('modosEdicion')?.classList.add('hidden');
+        cargarMesas(); 
+    }
+}
+
 // Exportación para funciones globales en HTML
 window.abrirModalNuevaMesa = () => document.getElementById('modalCrearMesa').classList.remove('hidden');
 window.cerrarModalNuevaMesa = () => document.getElementById('modalCrearMesa').classList.add('hidden');
+window.actualizarPropiedadesMesa = async () => {
+    if (!estadoGlobal.mesaSeleccionada) return;
+
+    const data = {
+        numero: document.getElementById('propNumero').value,
+        capacidad: document.getElementById('propCapacidad').value
+    };
+
+    try {
+        const res = await fetch(`/plano-espacial/api/actualizar/${estadoGlobal.mesaSeleccionada.id}`, {
+            method: 'POST', // O 'PUT' según tu configuración en rutas
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            alert('Propiedades actualizadas');
+            cargarMesas(); // Refresca el plano
+        } else {
+            alert('Error al actualizar la mesa');
+        }
+    } catch (e) {
+        console.error('Error:', e);
+    }
+};
+window.eliminarMesaDelPlano = async () => {
+    if (!estadoGlobal.mesaSeleccionada) return;
+    
+    if (confirm('¿Estás seguro de eliminar esta mesa?')) {
+        // ... (tu código de fetch)
+    }
+};

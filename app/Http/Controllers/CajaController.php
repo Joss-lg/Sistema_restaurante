@@ -56,7 +56,7 @@ class CajaController extends Controller
             $this->cajaService->liberarMesa($mesa);
         }
         // Ruta corregida: sin el prefijo 'admin.'
-        return redirect()->route('caja.index')->with('error', 'La mesa no tiene órdenes activas.');
+        return redirect()->route('admin.caja.index')->with('error', 'La mesa no tiene órdenes activas.');
     }
 
     // Ruta de la vista corregida: 'caja.cobrar.index'

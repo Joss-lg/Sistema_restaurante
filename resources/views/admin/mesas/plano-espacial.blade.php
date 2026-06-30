@@ -98,53 +98,25 @@
                     </div>
 
                     <div id="formularioMesa" class="hidden space-y-3">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-300 mb-1">Número</label>
-                            <input type="text" id="propNumero" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
-                        </div>
+    <div>
+        <label class="block text-sm font-semibold text-slate-300 mb-1">Número</label>
+        <input type="text" id="propNumero" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:ring-2 focus:ring-blue-500">
+    </div>
 
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-300 mb-1">Capacidad</label>
-                            <input type="number" id="propCapacidad" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" min="1" max="20">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-300 mb-1">Zona</label>
-                            <select id="propZona" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="salon">Salón</option>
-                                <option value="terraza">Terraza</option>
-                                <option value="vip">VIP</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-300 mb-1">Forma</label>
-                            <select id="propForma" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="redonda">Redonda</option>
-                                <option value="cuadrada">Cuadrada</option>
-                            </select>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-300 mb-1">Ancho</label>
-                                <input type="number" id="propAncho" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" min="30" max="200">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-300 mb-1">Alto</label>
-                                <input type="number" id="propAlto" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" min="30" max="200">
-                            </div>
-                        </div>
-
-                        <div id="botonesAccion" class="pt-3 flex gap-2">
-                            <button id="btnEliminar" class="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-semibold transition">
-                                Eliminar
-                            </button>
-                            <button id="btnActualizar" class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold transition hidden">
-                                Actualizar
-                            </button>
-                        </div>
-                    </div>
+    <div>
+        <label class="block text-sm font-semibold text-slate-300 mb-1">Capacidad</label>
+        <input type="number" id="propCapacidad" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:ring-2 focus:ring-blue-500" min="1" max="20">
+    </div>
+    
+    <div id="botonesAccion" class="pt-3 flex gap-2">
+        <button id="btnEliminar" class="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-semibold transition">
+            Eliminar
+        </button>
+        <button id="btnActualizar" class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold transition">
+            Actualizar
+        </button>
+    </div>
+</div>
                 </div>
             </div>
         </div>
