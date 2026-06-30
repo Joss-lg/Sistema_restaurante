@@ -45,8 +45,7 @@
         @endforelse
     </div>
 
-    @include('cobrar.modals.abrir-mesa')
-    @include('cobrar.modals.eliminar-mesa')
+   
 </div>
 @endsection
 
