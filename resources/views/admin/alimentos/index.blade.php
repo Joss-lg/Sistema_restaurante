@@ -6,55 +6,55 @@
 @section('header-subtitle', 'Administra el menú y las recetas de los platillos')
 
 @section('content')
-<div class="p-6 lg:p-8 xl:p-10 max-w-[1400px] mx-auto w-full space-y-8 flex-1 flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+<div class="p-4 sm:p-6 lg:p-8 xl:p-10 max-w-[1400px] mx-auto w-full space-y-6 sm:space-y-8 flex-1 flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-            <h1 class="text-3xl font-black tracking-tight text-[var(--text-color)]">Menú de Alimentos</h1>
-            <p class="text-sm font-medium text-[var(--text-muted)] mt-1">Gestiona los platillos del restaurante</p>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-color)]">Menú de Alimentos</h1>
+            <p class="text-xs sm:text-sm font-medium text-[var(--text-muted)] mt-1">Gestiona los platillos del restaurante</p>
         </div>
 
         @if(auth()->user()->tienePermiso('productos.agregar'))
-            <button onclick="openModalAlimento()" class="flex items-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
+            <button onclick="openModalAlimento()" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
                 <i class="fas fa-plus text-[12px]"></i>
                 <span>Agregar Platillo</span>
             </button>
         @endif
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
             <div class="flex items-center justify-between mb-4">
                 <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Total Platillos</span>
                 <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
                     <i class="fas fa-utensils text-sm"></i>
                 </div>
             </div>
-            <span class="text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-total">0</span>
+            <span class="text-3xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-total">0</span>
         </div>
 
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
             <div class="flex items-center justify-between mb-4">
                 <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Disponibles</span>
                 <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
                     <i class="fas fa-check text-sm"></i>
                 </div>
             </div>
-            <span class="text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-disponibles">0</span>
+            <span class="text-3xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-disponibles">0</span>
         </div>
 
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md col-span-1 sm:col-span-2 md:col-span-1">
             <div class="flex items-center justify-between mb-4">
                 <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Categorías</span>
                 <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
                     <i class="fas fa-tags text-sm"></i>
                 </div>
             </div>
-            <span class="text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-categorias">0</span>
+            <span class="text-3xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-categorias">0</span>
         </div>
     </div>
 
-    <div class="bg-[var(--bg-panel)] rounded-[24px] p-2 md:p-6 shadow-sm border border-[var(--border-color)] min-h-[420px]">
+    <div class="bg-[var(--bg-panel)] rounded-[24px] p-3 sm:p-6 shadow-sm border border-[var(--border-color)] min-h-[420px]">
         <div id="categorias-container" class="space-y-6"
              data-permiso-editar="{{ auth()->user()->tienePermiso('productos.editar') ? 'true' : 'false' }}"
              data-permiso-eliminar="{{ auth()->user()->tienePermiso('productos.eliminar') ? 'true' : 'false' }}"
@@ -135,21 +135,21 @@
         Object.keys(estadoGlobal.productos).forEach(categoriaNombre => {
             const productos = estadoGlobal.productos[categoriaNombre];
             const seccion = document.createElement('div');
-            seccion.className = 'mb-8 bg-[var(--bg-color)] rounded-[20px] p-4 border border-[var(--border-color)]';
+            seccion.className = 'mb-8 bg-[var(--bg-color)] rounded-[20px] p-3 sm:p-4 border border-[var(--border-color)]';
             
             const icono = obtenerIconoCategoria(categoriaNombre);
             
             seccion.innerHTML = `
                 <div class="flex items-center gap-4 mb-5 border-b border-[var(--border-color)] pb-4 px-2">
-                    <div class="w-10 h-10 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl flex items-center justify-center text-[var(--text-color)] shadow-sm">
+                    <div class="w-10 h-10 shrink-0 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl flex items-center justify-center text-[var(--text-color)] shadow-sm">
                         <i class="${icono} text-sm"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-black text-[var(--text-color)] tracking-tight uppercase">${categoriaNombre}</h2>
+                        <h2 class="text-base sm:text-lg font-black text-[var(--text-color)] tracking-tight uppercase">${categoriaNombre}</h2>
                         <p class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">${productos.length} Platillo${productos.length !== 1 ? 's' : ''}</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="grid-${categoriaNombre.replace(/\s+/g, '-')}"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="grid-${categoriaNombre.replace(/\s+/g, '-')}"></div>
             `;
             
             container.appendChild(seccion);
@@ -163,7 +163,8 @@
 
     function crearCardProducto(producto) {
         const card = document.createElement('div');
-        card.className = 'bg-[var(--bg-panel)] rounded-[16px] p-5 border border-[var(--border-color)] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group flex flex-col relative';
+        // Se asegura visibilidad de botones táctiles en móviles y hover en computadoras
+        card.className = 'bg-[var(--bg-panel)] rounded-[16px] p-4 sm:p-5 border border-[var(--border-color)] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group flex flex-col relative';
         
         let etiquetasMods = '';
         if(producto.modificadores && producto.modificadores.length > 0) {
@@ -194,13 +195,13 @@
         }
 
         card.innerHTML = `
-            <div class="flex justify-between items-start mb-4">
-                <div class="overflow-hidden pr-3">
+            <div class="flex justify-between items-start mb-4 gap-2">
+                <div class="overflow-hidden">
                     <h3 class="text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
-                    <p class="text-[12px] text-[var(--text-muted)] mt-1 line-clamp-1">${producto.descripcion ? producto.descripcion : 'Sin descripción'}</p>
+                    <p class="text-[12px] text-[var(--text-muted)] mt-1 line-clamp-2">${producto.descripcion ? producto.descripcion : 'Sin descripción'}</p>
                     ${etiquetasMods}
                 </div>
-                <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <div class="flex items-center gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
                     ${botonesHTML}
                 </div>
             </div>
@@ -290,38 +291,46 @@
     }
     function limpiarIngredientesContainer(tipo) { document.getElementById(`ingredientes-container-${tipo}`).innerHTML = ''; }
 
+    // REESTRUCTURACIÓN COMPLETA DE LA FILA DE INGREDIENTES PARA MÓVIL
     function crearFilaIngrediente(ingrediente = {}) {
         const row = document.createElement('div');
-        row.className = 'grid grid-cols-12 gap-3 items-end ingrediente-row';
+        row.className = 'flex flex-col md:grid md:grid-cols-12 gap-3 items-stretch md:items-end p-4 md:p-0 bg-[var(--bg-color)] md:bg-transparent rounded-2xl border border-[var(--border-color)] md:border-0 ingrediente-row relative mb-3 md:mb-0';
+        
         const insumoValue = ingrediente.insumo_id || '';
         const cantidadValue = ingrediente.cantidad || '';
         const unidadValue = ingrediente.unidad_medida || '';
         const stockActual = ingrediente.stock_actual ?? '';
+        
         const options = insumosDisponibles.map(insumo => {
             const selected = insumo.id == insumoValue ? 'selected' : '';
             return `<option value="${insumo.id}" data-unidad="${insumo.unidad_medida}" data-stock="${insumo.stock_actual}" ${selected}>${insumo.nombre}</option>`;
         }).join('');
+        
         row.innerHTML = `
-            <div class="col-span-7">
+            <div class="md:col-span-6">
                 <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Ingrediente</label>
-                <select name="insumos[]" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 transition" onchange="sincronizarInsumo(this)" required>
+                <select name="insumos[]" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-1 text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 transition" onchange="sincronizarInsumo(this)" required>
                     <option value="">Seleccionar...</option>
                     ${options}
                 </select>
             </div>
-            <div class="col-span-3">
-                <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Cantidad</label>
-                <input type="number" name="cantidades[]" step="0.001" min="0.001" value="${cantidadValue}" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 transition" placeholder="0.000" required>
+            <div class="grid grid-cols-12 gap-2 items-end md:col-span-6">
+                <div class="col-span-6">
+                    <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Cantidad</label>
+                    <input type="number" name="cantidades[]" step="0.001" min="0.001" value="${cantidadValue}" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-1 text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 transition" placeholder="0.000" required>
+                </div>
+                <div class="col-span-3">
+                    <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 text-center block">Uni</label>
+                    <input type="text" value="${unidadValue}" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-1 text-[var(--text-color)] text-center font-medium" disabled>
+                </div>
+                <div class="col-span-3 flex flex-col items-center justify-end h-full">
+                    <button type="button" class="w-full md:w-10 h-12 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition shadow-sm flex items-center justify-center" onclick="eliminarIngredienteRow(this)">
+                        <i class="fas fa-trash-alt text-sm"></i>
+                    </button>
+                </div>
             </div>
-            <div class="col-span-1">
-                <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Uni</label>
-                <input type="text" value="${unidadValue}" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-2 text-[var(--text-color)]" disabled>
-            </div>
-            <div class="col-span-1 flex flex-col items-end gap-2">
-                <button type="button" class="w-10 h-10 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition shadow-sm" onclick="eliminarIngredienteRow(this)">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-                <span class="text-[10px] text-[var(--text-muted)] mt-1">${stockActual ? `Stock ${stockActual}` : ''}</span>
+            <div class="text-[10px] text-[var(--text-muted)] font-bold mt-1 px-1 item-stock-label">
+                ${stockActual ? `<span class="bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-md inline-block">Stock: ${stockActual}</span>` : ''}
             </div>
         `;
         const select = row.querySelector('select[name="insumos[]"]');
@@ -335,18 +344,20 @@
     }
 
     function eliminarIngredienteRow(button) { button.closest('.ingrediente-row').remove(); }
+    
+    // OPTIMIZACIÓN DE SINCRONIZACIÓN DE STOCK RESPONSIVA
     function sincronizarInsumo(select) {
         const selectedOption = select.querySelector('option:checked');
         const row = select.closest('.ingrediente-row');
         if (!row) return;
         const unidadInput = row.querySelector('input[disabled]');
-        const stockLabel = row.querySelector('span');
+        const stockLabel = row.querySelector('.item-stock-label');
         if (selectedOption && selectedOption.value !== "") {
             unidadInput.value = selectedOption.dataset.unidad || '';
-            stockLabel.textContent = selectedOption.dataset.stock ? `Stock ${selectedOption.dataset.stock}` : '';
+            stockLabel.innerHTML = selectedOption.dataset.stock ? `<span class="bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-md inline-block">Stock: ${selectedOption.dataset.stock}</span>` : '';
         } else {
             unidadInput.value = '';
-            stockLabel.textContent = '';
+            stockLabel.innerHTML = '';
         }
     }
 
