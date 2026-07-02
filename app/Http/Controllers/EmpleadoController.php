@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Permiso;
 use App\Models\Rol;
@@ -11,153 +10,103 @@ use Illuminate\Support\Facades\Hash;
 
 class EmpleadoController extends Controller
 {
-    /**
-     * Muestra la lista de empleados activos.
-     */
     public function index(Request $request)
-{
-    // Si la URL tiene ?ver_inactivos=1, traemos a todos. Si no, solo los activos.
-    $query = User::query();
+    {
+        $query = User::query();
 
-    if (!$request->has('ver_inactivos')) {
-        $query->where('esta_activo', true);
+        if (!$request->has('ver_inactivos')) {
+            $query->where('esta_activo', true);
+        }
+
+        $empleados = $query->with(['permisos:id,nombre', 'rol:id,nombre'])->get();
+        $permisos = Permiso::select(['id', 'nombre', 'slug'])->get();
+        
+        // CORRECCIÓN: Eliminamos el where('puede_acceder_pos', true)
+        // porque esa columna ya no existe en la tabla roles.
+        $roles = Rol::orderBy('nombre')->get(); 
+
+        return view('admin.empleados.index', compact('empleados', 'permisos', 'roles'));
     }
 
-    $empleados = $query->with(['permisos:id,nombre', 'rol:id,nombre'])
-                       ->get();
-    
-    $permisos = Permiso::select(['id', 'nombre', 'slug'])->get();
-    $roles = Rol::where('puede_acceder_pos', true)->orderBy('nombre')->get();
-
-    return view('admin.empleados.index', compact('empleados', 'permisos', 'roles'));
-}
-
-    /**
-     * Registra un nuevo empleado en el sistema.
-     */
     public function store(Request $request)
     {
-        $request->merge([
-            'nombre' => trim($request->nombre),
-            'codigo_empleado' => trim($request->codigo_empleado)
+        $request->validate([
+            'nombre'            => 'required|string|max:255',
+            'rol_id'            => 'required|exists:roles,id',
+            'puede_acceder_pos' => 'boolean',
+            'codigo_empleado'   => 'required_if:puede_acceder_pos,1|nullable|digits:4|unique:users,codigo_empleado',
         ]);
 
-        $request->validate([
-            'nombre'          => 'required|string|max:255',
-            'codigo_empleado' => 'required|digits:4|unique:users,codigo_empleado',
-            'rol_id'          => 'required|exists:roles,id',
-        ]);
+        $esPOS = $request->boolean('puede_acceder_pos');
 
         User::create([
-            'nombre'          => $request->nombre,
-            'codigo_empleado' => $request->codigo_empleado,
-            'rol_id'          => $request->rol_id,
-            'password'        => Hash::make($request->codigo_empleado),
-            'esta_activo'     => true,
+            'nombre'            => trim($request->nombre),
+            'email'             => $request->email ?? strtolower(str_replace(' ', '', $request->nombre)) . '@empresa.com',
+            'rol_id'            => $request->rol_id,
+            'puede_acceder_pos' => $esPOS,
+            'codigo_empleado'   => $esPOS ? $request->codigo_empleado : null,
+            'password'          => $esPOS ? Hash::make($request->codigo_empleado) : Hash::make('acceso_limitado'),
+            'esta_activo'       => true,
         ]);
 
-        return redirect()->route('admin.empleados.index')
-                         ->with('success', '¡Empleado registrado! Ahora puedes configurar sus permisos.');
+        return redirect()->route('admin.empleados.index')->with('success', 'Empleado registrado.');
     }
 
-    /**
-     * Muestra la Matriz de Permisos para un empleado específico.
-     */
-    public function permisos($id)
-    {
-        $empleado = User::with(['permisos', 'rol'])->findOrFail($id);
-        $permisosBase = Permiso::orderBy('nombre')->get();
-
-        return view('admin.empleados.permisos', compact('empleado', 'permisosBase'));
-    }
-
-    /**
-     * Procesa y guarda los permisos seleccionados en la matriz (Checkboxes).
-     */
-    public function actualizarPermisos(Request $request, $id)
-    {
-        $empleado = User::with('rol')->findOrFail($id);
-
-        if ($empleado->id === auth()->id()) {
-            return redirect()->back()->with('error', 'No puedes modificar tus propios permisos por seguridad corporativa.');
-        }
-
-        $request->validate([
-            'permisos'   => 'nullable|array',
-            'permisos.*' => 'exists:permisos,id',
-        ]);
-
-        $permisosSeleccionados = $request->input('permisos', []);
-        $empleado->permisos()->sync($permisosSeleccionados);
-
-        return redirect()->route('admin.empleados.index')
-                         ->with('success', "Los permisos de {$empleado->nombre} se han actualizado correctamente.");
-    }
-
-    /**
-     * Da de baja un empleado (Borrado Lógico).
-     */
-    public function destroy($id)
-    {
-        $empleado = User::with('rol')->findOrFail($id);
-        
-        if ($empleado->id === auth()->id()) {
-            return redirect()->back()->with('error', 'No puedes eliminar tu propia cuenta de usuario.');
-        }
-
-        if ($empleado->rol && $empleado->rol->slug === 'admin') {
-            return redirect()->back()->with('error', 'No se puede eliminar a un administrador del sistema.');
-        }
-
-        $empleado->update(['esta_activo' => false]);
-
-        return redirect()->back()->with('success', 'Empleado dado de baja correctamente.');
-    }
-
-    /**
-     * Actualiza los datos base del empleado.
-     */
     public function update(Request $request, $id)
     {
-        $request->merge([
-            'nombre' => trim($request->nombre),
-            'codigo_empleado' => trim($request->codigo_empleado)
-        ]);
+        $empleado = User::findOrFail($id);
 
         $request->validate([
-            'nombre'          => 'required|string|max:255',
-            'codigo_empleado' => 'required|digits:4|unique:users,codigo_empleado,' . $id,
-            'rol_id'          => 'required|exists:roles,id',
+            'nombre'            => 'required|string|max:255',
+            'rol_id'            => 'required|exists:roles,id',
+            'puede_acceder_pos' => 'boolean',
+            'codigo_empleado'   => 'required_if:puede_acceder_pos,1|nullable|digits:4|unique:users,codigo_empleado,' . $id,
         ]);
 
-        $empleado = User::findOrFail($id);
+        $esPOS = $request->boolean('puede_acceder_pos');
         
         $data = [
-            'nombre'          => $request->nombre,
-            'codigo_empleado' => $request->codigo_empleado,
-            'rol_id'          => $request->rol_id,
+            'nombre'            => trim($request->nombre),
+            'rol_id'            => $request->rol_id,
+            'puede_acceder_pos' => $esPOS,
+            'codigo_empleado'   => $esPOS ? $request->codigo_empleado : null,
         ];
 
-        if ($empleado->codigo_empleado !== $request->codigo_empleado) {
+        if ($esPOS && $request->filled('codigo_empleado')) {
             $data['password'] = Hash::make($request->codigo_empleado);
         }
 
         $empleado->update($data);
 
-        return redirect()->route('admin.empleados.index')
-                         ->with('success', "¡Datos de {$empleado->nombre} actualizados correctamente!");
+        return redirect()->route('admin.empleados.index')->with('success', 'Datos actualizados.');
     }
 
-    /**
- * Reactiva un empleado dado de baja.
- */
-public function reactivar($id)
-{
-    $empleado = User::findOrFail($id);
-    
-    $empleado->update(['esta_activo' => true]);
+    public function permisos($id)
+    {
+        $empleado = User::with(['permisos', 'rol'])->findOrFail($id);
+        $permisosBase = Permiso::orderBy('nombre')->get();
+        return view('admin.empleados.permisos', compact('empleado', 'permisosBase'));
+    }
 
-    return redirect()->back()->with('success', "¡El empleado {$empleado->nombre} ha sido reactivado correctamente!");
-}
+    public function actualizarPermisos(Request $request, $id)
+    {
+        $empleado = User::findOrFail($id);
+        $request->validate(['permisos' => 'nullable|array', 'permisos.*' => 'exists:permisos,id']);
+        $empleado->permisos()->sync($request->input('permisos', []));
+        return redirect()->route('admin.empleados.index')->with('success', "Permisos actualizados.");
+    }
 
+    public function destroy($id)
+    {
+        $empleado = User::findOrFail($id);
+        if ($empleado->id === auth()->id()) return redirect()->back()->with('error', 'No puedes eliminarte a ti mismo.');
+        $empleado->update(['esta_activo' => false]);
+        return redirect()->back()->with('success', 'Empleado dado de baja.');
+    }
+
+    public function reactivar($id)
+    {
+        User::findOrFail($id)->update(['esta_activo' => true]);
+        return redirect()->back()->with('success', "Empleado reactivado.");
+    }
 }

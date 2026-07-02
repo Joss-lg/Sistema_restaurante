@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Permiso;
 use App\Models\Rol;
 use Illuminate\Support\Facades\Hash;
 
@@ -12,15 +11,16 @@ class UsuarioAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Obtener el rol de administrador desde la tabla roles
-        $rolAdmin = Rol::where('slug', 'admin')->first();
-        
-        if (!$rolAdmin) {
-            $this->command->warn('El rol "admin" no existe en la tabla roles. Crea los roles primero.');
-            return;
-        }
+        // 1. CREAMOS el rol base necesario para que el sistema no explote
+        $rolAdmin = Rol::firstOrCreate(
+            ['slug' => 'admin'],
+            [
+                'nombre' => 'Administrador',
+                'descripcion' => 'Rol con acceso total al sistema'
+            ]
+        );
 
-        // 2. Creamos el Usuario Administrador Maestro con rol_id en lugar de rol string
+        // 2. Creamos al usuario ID 1 (Tú)
         $admin = User::updateOrCreate(
             ['email' => 'admin@ollintem.com'],
             [
@@ -29,15 +29,10 @@ class UsuarioAdminSeeder extends Seeder
                 'codigo_empleado' => '1010',
                 'rol_id' => $rolAdmin->id,
                 'esta_activo' => true,
+                'puede_acceder_pos' => true, // El nuevo campo de la migración
             ]
         );
 
-        // 3. En lugar de una lista manual, tomamos TODOS los permisos de la base de datos
-        // Esto incluye los de Inventario, Mesas, Cocina, etc., que creó el otro Seeder.
-        $todosLosPermisos = Permiso::all();
-
-        // 4. Se los asignamos todos de un golpe
-        // Usamos sync() para que el Admin siempre esté actualizado con lo último
-        $admin->permisos()->sync($todosLosPermisos->pluck('id'));
+        $this->command->info('¡Rol Administrador y Usuario ID 1 creados con éxito!');
     }
 }

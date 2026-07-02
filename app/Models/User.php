@@ -21,14 +21,10 @@ class User extends Authenticatable
         'nombre',
         'email',
         'password',
-        'codigo_empleado', // PIN de acceso
-        'rol_id',          // Cambiamos 'rol' por 'rol_id' para la relación
+        'codigo_empleado',
+        'rol_id',
         'esta_activo',
-    ];
-
-    protected $hidden = [
-        'password',
-        'remember_token',
+        'puede_acceder_pos', 
     ];
 
     protected function casts(): array
@@ -37,6 +33,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'esta_activo' => 'boolean',
+            'puede_acceder_pos' => 'boolean', 
         ];
     }
 
@@ -45,9 +42,6 @@ class User extends Authenticatable
         return $this->password;
     }
 
-    /**
-     * Relación con el nuevo modelo Rol
-     */
     public function rol(): BelongsTo
     {
         return $this->belongsTo(Rol::class, 'rol_id');
@@ -55,24 +49,17 @@ class User extends Authenticatable
 
     public function getRolAttribute($value)
     {
-        // Si la relación ya está cargada, devolverla directamente.
         if ($this->relationLoaded('rol')) {
             return $this->getRelation('rol');
         }
 
-        // Si hay rol_id, forzar la relación desde el modelo Rol.
         if (!empty($this->attributes['rol_id'])) {
             return $this->rol()->first();
         }
 
-        // Si todavía existe el campo legacy 'rol', devolver su valor original.
         return $value;
     }
 
-    /**
-     * Mantenemos permisos directos por si necesitas asignar 
-     * algo específico a un usuario fuera de su rol.
-     */
     public function permisos(): BelongsToMany
     {
         return $this->belongsToMany(Permiso::class, 'permiso_user');
@@ -83,59 +70,22 @@ class User extends Authenticatable
         return $this->hasMany(Mesa::class, 'mesero_id');
     }
 
-    protected function obtenerSlugRol(): ?string
-    {
-        $rol = $this->rol;
-
-        if ($rol instanceof Rol) {
-            return strtolower(trim($rol->slug));
-        }
-
-        return $rol ? strtolower(trim((string) $rol)) : null;
-    }
-
     /**
-     * MÉTODO CLAVE: Ahora verifica permisos por ROL y directos.
+     * Función ajustada para verificar permisos por el NOMBRE del módulo
      */
-    public function tienePermiso($permisoRequerido)
+    public function tienePermiso($nombreModulo)
     {
-        $permisoRequerido = strtolower($permisoRequerido);
-        
-        // 1. Obtener el Rol (usando lazy loading optimizado como ya lo tenías)
-        $rol = $this->relationLoaded('rol')
-            ? $this->getRelation('rol')
-            : $this->rol()->first();
+        // 1. El ID 1 es el Administrador supremo (bypass total)
+        if ($this->id === 1) return true;
 
-        if ($rol instanceof Rol) {
-            $rolSlug = strtolower(trim((string) $rol->slug));
-
-            // El Administrador supremo siempre tiene acceso a todo
-            if (in_array($rolSlug, ['admin', 'administrador'], true)) {
-                return true;
-            }
+        // 2. ¿Tiene el permiso asignado directamente? (Busca por campo 'nombre')
+        if ($this->permisos()->where('nombre', $nombreModulo)->exists()) {
+            return true;
         }
 
-        // 2. REGLA DE ANULACIÓN: Si el usuario tiene personalizaciones directas,
-        // sus permisos directos MANDAN sobre el rol.
-        if ($this->permisos()->exists()) {
-            return $this->permisos()->where('slug', $permisoRequerido)->exists();
-        }
-
-        // 3. FALLBACK: Si el usuario no tiene permisos personalizados, hereda del Rol
-        if ($rol instanceof Rol) {
-            if ($rol->relationLoaded('permisos')) {
-                if ($rol->permisos->contains('slug', $permisoRequerido)) {
-                    return true;
-                }
-            } else {
-                if (DB::table('permiso_rol')
-                    ->join('permisos', 'permiso_rol.permiso_id', '=', 'permisos.id')
-                    ->where('permiso_rol.rol_id', $rol->id)
-                    ->where('permisos.slug', $permisoRequerido)
-                    ->exists()) {
-                    return true;
-                }
-            }
+        // 3. ¿Su rol tiene el permiso? (Busca por campo 'nombre')
+        if ($this->rol && $this->rol->permisos()->where('nombre', $nombreModulo)->exists()) {
+            return true;
         }
 
         return false;

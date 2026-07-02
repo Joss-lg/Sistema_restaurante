@@ -17,7 +17,7 @@ class Rol extends Model
         'nombre',
         'slug',
         'descripcion',
-        'puede_acceder_pos' // El switch para personal de nómina
+        // 'puede_acceder_pos' <--- ¡ELIMINAR ESTA LÍNEA!
     ];
 
     public function permisos(): BelongsToMany

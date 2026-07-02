@@ -6,7 +6,7 @@
 <div class="p-4 lg:p-12 max-w-[1500px] mx-auto w-full space-y-8">
     
     <div class="bg-[var(--card-color)] rounded-[3rem] border border-[var(--border-color)] shadow-2xl overflow-hidden modo-crema:bg-white">
-         <form action="{{ route('admin.empleados.permisos.update', $empleado->id) }}" method="POST" id="permisosForm">
+            <form action="{{ route('admin.empleados.permisos.update', $empleado->id) }}" method="POST" id="permisosForm">
             @csrf
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse">

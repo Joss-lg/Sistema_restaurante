@@ -34,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Empleados
-        Route::prefix('admin/empleados')->name('empleados.')->group(function () {
+        Route::middleware(['role:Empleados'])->prefix('admin/empleados')->name('empleados.')->group(function () {
             Route::get('/', [EmpleadoController::class, 'index'])->name('index');
             Route::post('/store', [EmpleadoController::class, 'store'])->name('store');
             Route::delete('/{id}', [EmpleadoController::class, 'destroy'])->name('destroy');
@@ -44,9 +44,8 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{id}/reactivar', [EmpleadoController::class, 'reactivar'])->name('reactivar');
         });
 
-        // Inventario, Alimentos, Categorías, Caja, Mesas, Plano, Cocina, Promociones, Roles, Finanzas...
-        // [He mantenido todas tus rutas internas aquí...]
-        Route::prefix('inventario')->name('inventario.')->group(function () {
+        // Inventario
+        Route::middleware(['role:Inventario'])->prefix('inventario')->name('inventario.')->group(function () {
             Route::get('/bajo-stock-pdf', [InventarioController::class, 'exportarPdfBajoStock'])->name('exportar_pdf_bajo_stock');
             Route::get('/', [InventarioController::class, 'index'])->name('index');
             Route::post('/store', [InventarioController::class, 'store'])->name('store');
@@ -55,7 +54,8 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', [InventarioController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('alimentos')->name('productos.')->group(function () {
+        // Alimentos
+        Route::middleware(['role:Alimentos'])->prefix('alimentos')->name('productos.')->group(function () {
             Route::get('/', [AlimentoController::class, 'index'])->name('index');
             Route::get('/api/productos', [AlimentoController::class, 'getProductos'])->name('api.productos');
             Route::get('/api/estadisticas', [AlimentoController::class, 'getEstadisticas'])->name('api.estadisticas');
@@ -65,9 +65,10 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/api/{id}/toggle-disponibilidad', [AlimentoController::class, 'toggleDisponibilidad'])->name('api.toggle');
         });
 
-        Route::resource('categorias', CategoriaController::class);
+        Route::middleware(['role:Categorias'])->resource('categorias', CategoriaController::class);
 
-        Route::prefix('caja')->name('caja.')->group(function () {
+        // Caja
+        Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function () {
             Route::get('/', [CajaController::class, 'index'])->name('index');
             Route::get('/cobrar/{id}', [CajaController::class, 'cobrar'])->name('cobrar');
             Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
@@ -82,7 +83,8 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('mesas')->name('mesas.')->group(function () {
+        // Mesas
+        Route::middleware(['role:Mesas'])->prefix('mesas')->name('mesas.')->group(function () {
             Route::get('/', [MesaController::class, 'index'])->name('index');
             Route::get('/api/mesas', [MesaController::class, 'getMesas'])->name('api.mesas');
             Route::post('/api', [MesaController::class, 'store'])->name('api.store');
@@ -94,24 +96,25 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/api/{id}', [MesaController::class, 'destroy'])->name('api.destroy');
         });
 
-        Route::prefix('plano-espacial')->name('plano-espacial.')->group(function () {
-    Route::get('/', [PlanoEspacialController::class, 'index'])->name('index');
-    
-    // API Endpoints
-    Route::get('/api/mesas', [PlanoEspacialController::class, 'getMesas'])->name('api.mesas');
-    Route::get('/api/mesas/{id}', [PlanoEspacialController::class, 'getMesa'])->name('api.mesa');
-    Route::post('/api/guardar', [PlanoEspacialController::class, 'guardarPlano'])->name('api.guardar');
-    Route::post('/api/crear', [PlanoEspacialController::class, 'store'])->name('api.crear');
-    Route::post('/api/actualizar/{id}', [PlanoEspacialController::class, 'update']);
-    Route::delete('/api/eliminar/{id}', [PlanoEspacialController::class, 'eliminarDelPlano'])->name('api.eliminar');
-});
-        Route::prefix('cocina')->name('cocina.')->group(function () {
+        // Plano Espacial
+        Route::middleware(['role:Plano'])->prefix('plano-espacial')->name('plano-espacial.')->group(function () {
+            Route::get('/', [PlanoEspacialController::class, 'index'])->name('index');
+            Route::get('/api/mesas', [PlanoEspacialController::class, 'getMesas'])->name('api.mesas');
+            Route::get('/api/mesas/{id}', [PlanoEspacialController::class, 'getMesa'])->name('api.mesa');
+            Route::post('/api/guardar', [PlanoEspacialController::class, 'guardarPlano'])->name('api.guardar');
+            Route::post('/api/crear', [PlanoEspacialController::class, 'store'])->name('api.crear');
+            Route::post('/api/actualizar/{id}', [PlanoEspacialController::class, 'update']);
+            Route::delete('/api/eliminar/{id}', [PlanoEspacialController::class, 'eliminarDelPlano'])->name('api.eliminar');
+        });
+
+        // Cocina
+        Route::middleware(['role:Cocina'])->prefix('cocina')->name('cocina.')->group(function () {
             Route::get('/', [CocinaController::class, 'index'])->name('index');
             Route::patch('/orden/{id}/estado', [CocinaController::class, 'actualizarEstado'])->name('orden.estado');
         });
 
-
-        Route::prefix('promociones')->name('promociones.')->group(function () {
+        // Promociones
+        Route::middleware(['role:Promociones'])->prefix('promociones')->name('promociones.')->group(function () {
             Route::get('/', [PromocionController::class, 'index'])->name('index');
             Route::post('/store', [PromocionController::class, 'store'])->name('store');
             Route::get('/{promocion}/edit', [PromocionController::class, 'edit'])->name('edit');
@@ -119,14 +122,16 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{promocion}', [PromocionController::class, 'destroy'])->name('destroy');
         }); 
 
-        Route::prefix('roles')->name('roles.')->group(function () {
+        // Roles
+        Route::middleware(['role:Roles'])->prefix('roles')->name('roles.')->group(function () {
             Route::get('/', [RolController::class, 'index'])->name('index');
             Route::post('/', [RolController::class, 'store'])->name('store');
             Route::put('/{id}', [RolController::class, 'update'])->name('update');
             Route::delete('/{id}', [RolController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('finanzas')->name('finanzas.')->group(function () {
+        // Finanzas
+        Route::middleware(['role:Finanzas'])->prefix('finanzas')->name('finanzas.')->group(function () {
             Route::get('/', [FinanzasController::class, 'index'])->name('index');
             Route::get('/exportar-csv', [FinanzasController::class, 'exportarCSV'])->name('exportar');
             Route::post('/estadisticas-periodo', [FinanzasController::class, 'estadisticasPeriodo'])->name('estadisticas.periodo');

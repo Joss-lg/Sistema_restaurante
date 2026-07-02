@@ -2,120 +2,96 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Rol;
+use App\Models\Permiso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class RolController extends Controller
 {
-    /**
-     * Muestra el panel del catálogo de roles y puestos con sus métricas.
-     */
     public function index()
     {
-        // Traemos los roles contando eficientemente la cantidad de usuarios vinculados (Evita N+1)
+        // Traemos los roles con el conteo de usuarios asignados
         $roles = Rol::withCount('usuarios')->orderBy('nombre', 'asc')->get(); 
-        
         return view('admin.roles.index', compact('roles'));
     }
 
-    /**
-     * Registra un nuevo puesto/rol en el sistema de manera dinámica.
-     */
+    public function create()
+    {
+        $permisos = Permiso::all(); 
+        return view('admin.roles.create', compact('permisos'));
+    }
+
     public function store(Request $request)
     {
-        // 1. Limpieza preventiva de espacios para evitar falsos positivos en unique
-        $request->merge([
-            'nombre' => trim($request->nombre)
-        ]);
-
-        // 2. Validación estricta del payload
         $request->validate([
-            'nombre'            => 'required|string|max:255|unique:roles,nombre',
-            'descripcion'       => 'nullable|string|max:500',
-            'puede_acceder_pos' => 'boolean' // Cambiado a opcional/boolean para mayor flexibilidad de UI (Switches)
+            'nombre'      => 'required|string|max:255|unique:roles,nombre',
+            'descripcion' => 'nullable|string|max:500',
+            'permisos'    => 'nullable|array', 
+            'permisos.*'  => 'exists:permisos,id'
         ]);
 
         try {
-            // 3. Persistencia mediante el Modelo
-            Rol::create([
-                'nombre'            => $request->nombre,
-                'slug'              => Str::slug($request->nombre), 
-                'descripcion'       => trim($request->descripcion),
-                'puede_acceder_pos' => $request->boolean('puede_acceder_pos'), // Convierte on, 1 o true limpiamente
+            $rol = Rol::create([
+                'nombre'      => trim($request->nombre),
+                'slug'        => Str::slug($request->nombre),
+                'descripcion' => trim($request->descripcion),
             ]);
 
+            // Sincronización limpia de permisos
+            if ($request->has('permisos')) {
+                $rol->permisos()->sync($request->permisos);
+            }
+
             return redirect()->route('admin.roles.index')
-                             ->with('success', '¡Puesto registrado con éxito de manera dinámica!');
+                             ->with('success', 'Rol creado y permisos asignados.');
 
         } catch (\Exception $e) {
-            Log::error('Error en RolController@store: ' . $e->getMessage());
-            return redirect()->back()
-                             ->withInput()
-                             ->with('error', 'Ocurrió un error inesperado al registrar el puesto.');
+            Log::error('Error al guardar rol: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Error al registrar.');
         }
     }
 
-    /**
-     * Actualiza las propiedades estructurales de un puesto existente.
-     */
     public function update(Request $request, $id)
     {
-        $request->merge([
-            'nombre' => trim($request->nombre)
-        ]);
+        $rol = Rol::findOrFail($id);
 
         $request->validate([
-            'nombre'            => 'required|string|max:255|unique:roles,nombre,' . $id,
-            'descripcion'       => 'nullable|string|max:500',
-            'puede_acceder_pos' => 'boolean'
+            'nombre'      => 'required|string|max:255|unique:roles,nombre,' . $id,
+            'descripcion' => 'nullable|string|max:500',
+            'permisos'    => 'nullable|array',
+            'permisos.*'  => 'exists:permisos,id'
         ]);
 
         try {
-            $rol = Rol::findOrFail($id);
-
             $rol->update([
-                'nombre'            => $request->nombre,
-                'slug'              => Str::slug($request->nombre),
-                'descripcion'       => trim($request->descripcion),
-                'puede_acceder_pos' => $request->boolean('puede_acceder_pos'),
+                'nombre'      => trim($request->nombre),
+                'slug'        => Str::slug($request->nombre),
+                'descripcion' => trim($request->descripcion),
             ]);
 
-            return redirect()->route('admin.roles.index')
-                             ->with('success', 'Puesto actualizado correctamente.');
+            // Usamos sync() para actualizar la tabla pivote de forma segura
+            $rol->permisos()->sync($request->input('permisos', []));
 
+            return redirect()->route('admin.roles.index')
+                             ->with('success', 'Rol y permisos actualizados.');
         } catch (\Exception $e) {
-            Log::error('Error en RolController@update: ' . $e->getMessage());
-            return redirect()->back()
-                             ->withInput()
-                             ->with('error', 'Ocurrió un error al intentar modificar el puesto.');
+            Log::error('Error al actualizar rol: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al actualizar.');
         }
     }
 
-    /**
-     * Elimina un rol del sistema si no cuenta con dependencias activas de personal.
-     */
     public function destroy($id)
     {
         $rol = Rol::withCount('usuarios')->findOrFail($id);
 
-        // Candado relacional de seguridad: impide dejar huérfanos a los empleados activos
         if ($rol->usuarios_count > 0) {
             return redirect()->route('admin.roles.index')
-                             ->with('error', "No se puede eliminar el puesto '{$rol->nombre}' porque tiene {$rol->usuarios_count} empleados asignados.");
+                             ->with('error', "No se puede eliminar: tiene empleados asignados.");
         }
 
-        try {
-            $rol->delete();
-            return redirect()->route('admin.roles.index')
-                             ->with('success', 'Puesto removido del sistema correctamente.');
-                             
-        } catch (\Exception $e) {
-            Log::error('Error en RolController@destroy: ' . $e->getMessage());
-            return redirect()->route('admin.roles.index')
-                             ->with('error', 'Ocurrió un error interno al procesar la baja del puesto.');
-        }
+        $rol->delete();
+        return redirect()->route('admin.roles.index')->with('success', 'Rol eliminado correctamente.');
     }
 }

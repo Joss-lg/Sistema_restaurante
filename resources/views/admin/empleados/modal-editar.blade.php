@@ -1,36 +1,4 @@
-<style>
-    /* VARIABLES DE CONTRASTE INVERSO PREMIUM */
-    .modal-inverso {
-        --m-bg: #ffffff;
-        --m-text: #09090b;
-        --m-muted: #71717a;
-        --m-input-bg: #f8fafc;
-        --m-border: #e2e8f0;
-        --m-btn-bg: #0f172a;
-        --m-btn-text: #ffffff;
-        --m-drop-bg: #ffffff;
-        --m-drop-hover: #f1f5f9;
-        --m-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-        --m-glow: rgba(0, 0, 0, 0.05);
-    }
-
-    body.modo-crema .modal-inverso {
-        --m-bg: #09090b;
-        --m-text: #fafafa;
-        --m-muted: #a1a1aa;
-        --m-input-bg: rgba(255, 255, 255, 0.03);
-        --m-border: rgba(255, 255, 255, 0.08);
-        --m-btn-bg: #ffffff;
-        --m-btn-text: #09090b;
-        --m-drop-bg: #18181b;
-        --m-drop-hover: rgba(255, 255, 255, 0.05);
-        --m-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.8);
-        --m-glow: rgba(255, 255, 255, 0.03);
-    }
-</style>
-
 <div id="editEmpleadoModal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden opacity-0 transition-all duration-500">
-    
     <div class="modal-inverso relative bg-[var(--m-bg)] border border-[var(--m-border)] rounded-[2.5rem] p-10 w-full max-w-[480px] transform scale-95 transition-all duration-500" style="box-shadow: var(--m-shadow);" id="editModalContent">
         
         <div class="absolute -top-24 -right-24 w-48 h-48 bg-[var(--m-glow)] rounded-full blur-3xl pointer-events-none"></div>
@@ -44,163 +12,105 @@
             <p class="text-[11px] font-bold text-[var(--m-muted)] uppercase tracking-[0.2em] mt-2 opacity-80">Actualización de credenciales</p>
         </div>
 
-        {{-- FORMULARIO INICIADO AQUÍ --}}
-        <form id="formEditar" action="{{ route('admin.empleados.update', $empleado->id) }}" method="POST" class="space-y-6">
+        <form id="formEditar" action="#" method="POST" class="space-y-6">
             @csrf
             @method('PUT')
             
+            {{-- Nombre --}}
             <div class="group">
-                <label for="edit_nombre" class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90 group-focus-within:text-[#3B82F6] transition-colors">Nombre Completo</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <i class="fas fa-user text-[var(--m-muted)] group-focus-within:text-[#3B82F6] transition-colors text-sm"></i>
-                    </div>
-                    <input type="text" id="edit_nombre" name="nombre" value="{{ $empleado->nombre }}" required 
-                        class="w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl pl-12 pr-6 text-sm font-bold text-[var(--m-text)] outline-none transition-all focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10">
-                </div>
-            </div>
-            
-            <div class="group">
-                <label for="edit_codigo_empleado" class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90 group-focus-within:text-[#3B82F6] transition-colors">PIN de Seguridad (4 dígitos)</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <i class="fas fa-lock text-[var(--m-muted)] group-focus-within:text-[#3B82F6] transition-colors text-sm"></i>
-                    </div>
-                    <input type="text" id="edit_codigo_empleado" name="codigo_empleado" value="{{ $empleado->codigo_empleado }}" maxlength="4" required 
-                        class="w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl pl-12 pr-6 text-base font-black tracking-[0.8em] text-[var(--m-text)] outline-none transition-all focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10">
-                </div>
+                <label for="edit_nombre" class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90">Nombre Completo</label>
+                <input type="text" id="edit_nombre" name="nombre" required class="w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl px-6 font-bold text-[var(--m-text)] outline-none focus:border-[#3B82F6]">
             </div>
 
-            <div class="relative group" id="editDropdownContainer">
-                <label class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90 group-focus-within:text-[#3B82F6] transition-colors">Rol del Sistema</label>
-                
-                <input type="hidden" name="rol_id" id="edit_rol_id_input" value="{{ $empleado->rol_id }}">
-                
-                <button type="button" onclick="toggleEditDropdown(event)" id="editDropdownBtn"
-                    class="flex items-center justify-between w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl pl-5 pr-6 text-sm font-bold text-[var(--m-text)] outline-none transition-all focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-shield-halved text-[var(--m-muted)] group-focus-within:text-[#3B82F6] transition-colors text-sm"></i>
-                        <span id="editDropdownSelected">{{ $empleado->rol->nombre ?? 'Seleccionar...' }}</span>
-                    </div>
-                    <i class="fas fa-chevron-down text-[var(--m-muted)] transition-transform duration-300" id="editDropdownIcon"></i>
-                </button>
+            {{-- Switch de Acceso --}}
+            <div class="flex items-center justify-between p-4 bg-[var(--m-input-bg)] rounded-2xl border border-[var(--m-border)]">
+                <div class="flex flex-col">
+                    <label class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em]">Acceso al Sistema</label>
+                    <p class="text-[9px] text-[var(--m-muted)]">¿Este empleado usará la plataforma?</p>
+                </div>
+                <input type="checkbox" id="edit_toggleAcceso" name="puede_acceder_pos" value="1" onchange="toggleEditAccesoFields()" class="toggle-checkbox w-6 h-6 cursor-pointer">
+            </div>
 
-                <div id="editDropdownMenu" class="absolute top-[calc(100%+8px)] left-0 w-full bg-[var(--m-drop-bg)] border border-[var(--m-border)] rounded-2xl shadow-2xl z-[110] py-2 hidden opacity-0 translate-y-[-10px] transition-all duration-300 max-h-48 overflow-y-auto backdrop-blur-xl">
-                    @foreach($roles ?? [] as $rol)
-                    <button type="button" onclick="selectEditRole('{{ $rol->nombre }}', '{{ $rol->id }}')"
-                        class="flex items-center justify-between w-full px-6 py-3.5 text-sm font-bold text-[var(--m-text)] hover:bg-[var(--m-drop-hover)] hover:text-[#3B82F6] transition-all outline-none"
-                        data-rol-id="{{ $rol->id }}">
-                        {{ $rol->nombre }}
+            {{-- Contenedor Condicional --}}
+            <div id="edit_accesoFields" class="hidden space-y-6 transition-all duration-500">
+                <div class="group">
+                    <label for="edit_codigo_empleado" class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90">PIN de Seguridad (4 dígitos)</label>
+                    <input type="text" id="edit_codigo_empleado" name="codigo_empleado" maxlength="4" class="w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl px-6 font-black tracking-[0.8em] text-[var(--m-text)] outline-none focus:border-[#3B82F6]">
+                </div>
+
+                <div class="relative group" id="editDropdownContainer">
+                    <label class="text-[10px] font-black text-[var(--m-text)] uppercase tracking-[0.2em] mb-3 block opacity-90">Rol del Sistema</label>
+                    <input type="hidden" name="rol_id" id="edit_rol_id_input">
+                    <button type="button" onclick="toggleEditDropdown(event)" id="editDropdownBtn" class="flex items-center justify-between w-full h-14 bg-[var(--m-input-bg)] border border-[var(--m-border)] rounded-2xl pl-5 pr-6 text-sm font-bold text-[var(--m-text)] outline-none">
+                        <span id="editDropdownSelected">Seleccionar...</span>
+                        <i class="fas fa-chevron-down" id="editDropdownIcon"></i>
                     </button>
-                    @endforeach
+                    <div id="editDropdownMenu" class="absolute w-full bg-[var(--m-drop-bg)] border border-[var(--m-border)] rounded-2xl shadow-2xl z-[110] py-2 hidden mt-2">
+                        @foreach($roles ?? [] as $rol)
+                            <button type="button" onclick="selectEditRole('{{ $rol->nombre }}', '{{ $rol->id }}')" class="w-full px-6 py-3 text-left hover:bg-[var(--m-drop-hover)]">{{ $rol->nombre }}</button>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
             <div class="flex justify-end gap-4 mt-12 pt-8 border-t border-[var(--m-border)]">
-                <button type="button" onclick="cerrarEditModal()" 
-                    class="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[var(--m-muted)] hover:text-[var(--m-text)] hover:bg-[var(--m-input-bg)] transition-all outline-none">
-                    Cancelar
-                </button>
-                <button type="submit" 
-                    class="px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-[var(--m-btn-bg)] text-[var(--m-btn-text)] hover:-translate-y-1 active:scale-95 transition-all shadow-xl outline-none">
-                    Guardar Cambios
-                </button>
+                <button type="button" onclick="cerrarEditModal()" class="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[var(--m-muted)] hover:text-[var(--m-text)] hover:bg-[var(--m-input-bg)] transition-all">Cancelar</button>
+                <button type="submit" class="px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-[var(--m-btn-bg)] text-[var(--m-btn-text)]">Guardar Cambios</button>
             </div>
-        </form> {{-- FORMULARIO CERRADO AQUÍ --}}
+        </form>
     </div>
 </div>
+
 <script>
-    /**
-     * Función principal para abrir el modal y configurar la ruta de guardado
-     */
-    function abrirModalEditar(id, nombre, codigo, rolId, rolNombre) {
-        const modal = document.getElementById('editEmpleadoModal');
-        const content = document.getElementById('editModalContent');
-        const form = document.getElementById('formEditar');
+    function toggleEditAccesoFields() {
+        const checkbox = document.getElementById('edit_toggleAcceso');
+        const fields = document.getElementById('edit_accesoFields');
+        fields.classList.toggle('hidden', !checkbox.checked);
+    }
 
-        if (!modal || !form) return;
+    function toggleEditDropdown(event) {
+        event.stopPropagation();
+        document.getElementById('editDropdownMenu').classList.toggle('hidden');
+    }
 
-        // 1. ASIGNAMOS LA RUTA CORRECTA DINÁMICAMENTE
-        form.action = `/admin/empleados/${id}`;
-
-        // 2. LLENAMOS LOS CAMPOS
-        document.getElementById('edit_nombre').value = nombre;
-        document.getElementById('edit_codigo_empleado').value = codigo;
-        document.getElementById('edit_rol_id_input').value = rolId;
-        document.getElementById('editDropdownSelected').innerText = rolNombre || 'Seleccionar...';
-
-        // 3. MOSTRAR CON ANIMACIÓN FLUIDA
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            if (content) content.classList.remove('scale-95');
-        }, 10);
+    function selectEditRole(nombre, id) {
+        document.getElementById('editDropdownSelected').innerText = nombre;
+        document.getElementById('edit_rol_id_input').value = id;
+        document.getElementById('editDropdownMenu').classList.add('hidden');
     }
 
     function cerrarEditModal() {
         const modal = document.getElementById('editEmpleadoModal');
         const content = document.getElementById('editModalContent');
-
-        if (!modal) return;
-
         modal.classList.add('opacity-0');
-        if (content) content.classList.add('scale-95');
-        
-        // Cerrar el menú interno por si acaso
-        const menu = document.getElementById('editDropdownMenu');
-        if (menu) menu.classList.add('hidden', 'opacity-0', 'translate-y-[-10px]');
+        content.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 500);
+    }
 
+    // Cambiado a prepararModalEditar para coincidir con index.blade.php
+    window.prepararModalEditar = function(id, nombre, codigo, rolId, rolNombre, tieneAcceso) {
+        const modal = document.getElementById('editEmpleadoModal');
+        const content = document.getElementById('editModalContent');
+        const form = document.getElementById('formEditar');
+        const toggle = document.getElementById('edit_toggleAcceso');
+
+        form.action = `/admin/empleados/${id}`;
+        document.getElementById('edit_nombre').value = nombre;
+        document.getElementById('edit_codigo_empleado').value = codigo || '';
+        document.getElementById('edit_rol_id_input').value = rolId || '';
+        document.getElementById('editDropdownSelected').innerText = rolNombre || 'Seleccionar...';
+        
+        toggle.checked = (tieneAcceso == 1);
+        toggleEditAccesoFields();
+
+        modal.classList.remove('hidden');
         setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 500);
-    }
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+        }, 10);
+    };
 
-    // Funciones del Dropdown
-    function toggleEditDropdown(event) {
-        if (event) event.stopPropagation();
-        const menu = document.getElementById('editDropdownMenu');
-        const icon = document.getElementById('editDropdownIcon');
-        
-        if (!menu) return;
-
-        if (menu.classList.contains('hidden')) {
-            menu.classList.remove('hidden');
-            setTimeout(() => {
-                menu.classList.remove('opacity-0', 'translate-y-[-10px]');
-                if (icon) icon.classList.add('rotate-180');
-            }, 10);
-        } else {
-            menu.classList.add('opacity-0', 'translate-y-[-10px]');
-            if (icon) icon.classList.remove('rotate-180');
-            setTimeout(() => menu.classList.add('hidden'), 300);
-        }
-    }
-
-    function selectEditRole(label, value) {
-        const selected = document.getElementById('editDropdownSelected');
-        const input = document.getElementById('edit_rol_id_input'); // <-- CORREGIDO: ID exacto del HTML
-        const menu = document.getElementById('editDropdownMenu');
-        const icon = document.getElementById('editDropdownIcon');
-
-        if (selected) selected.innerText = label;
-        if (input) input.value = value;
-        
-        if (menu) menu.classList.add('hidden', 'opacity-0', 'translate-y-[-10px]');
-        if (icon) icon.classList.remove('rotate-180');
-    }
-
-    // Escucha de clics fuera de forma segura sin pisar otros scripts
-    document.addEventListener('click', function(event) {
-        const container = document.getElementById('editDropdownContainer');
-        const menu = document.getElementById('editDropdownMenu');
-        const icon = document.getElementById('editDropdownIcon');
-        
-        if (container && !container.contains(event.target)) {
-            if (menu && !menu.classList.contains('hidden')) {
-                menu.classList.add('opacity-0', 'translate-y-[-10px]');
-                if (icon) icon.classList.remove('rotate-180');
-                setTimeout(() => menu.classList.add('hidden'), 300);
-            }
-        }
+    window.addEventListener('click', () => {
+        document.getElementById('editDropdownMenu').classList.add('hidden');
     });
 </script>

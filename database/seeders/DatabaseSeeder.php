@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         // 1. Primero creamos todos los permisos
         $this->call(PermisosSeeder::class);
 
-        // 2. Luego creamos al Admin (que ya podrá tomar los permisos creados arriba)
+        // 2. Creamos el rol Administrador y al SuperAdmin (ID 1) con acceso total por código.
         $this->call(UsuarioAdminSeeder::class);
     }
 }
