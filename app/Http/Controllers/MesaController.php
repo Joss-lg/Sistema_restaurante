@@ -32,16 +32,27 @@ class MesaController extends Controller
         $mesa = Mesa::findOrFail($mesaId);
         $usuario = auth()->user();
 
-        // Validaciones de acceso (asegúrate de que estos métodos existan en tu MesaService)
+        // 1. Ahora esta verificación es segura gracias a los cambios en MesaService
         $this->mesaService->verificarAccesoMesa($mesa, $usuario);
         $esCapitan = $this->mesaService->esCapitan($usuario);
         
+        // 2. Cargamos datos necesarios
         $categorias = Categoria::all();
         $productos = Producto::with(['categoria', 'modificadores'])->orderBy('nombre', 'asc')->get();
         
-        $mesasAbiertas = $esCapitan ? Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get() : collect();
+        // 3. Mesas abiertas (solo visible para capitanes/admins)
+        $nombreRol = strtolower(trim($usuario->rol?->nombre ?? ''));
+        $esAdmin = $nombreRol === 'administrador';
         
-        $ordenActiva = Orden::where('mesa_id', $mesa->id)->where('estado', '!=', 'pagada')->latest()->first();
+        $mesasAbiertas = ($esCapitan || $esAdmin) 
+            ? Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get() 
+            : collect();
+        
+        // 4. Lógica de orden activa (cargada de forma segura)
+        $ordenActiva = Orden::where('mesa_id', $mesa->id)
+            ->where('estado', '!=', 'pagada')
+            ->latest()
+            ->first();
         
         $platillosEnviados = collect();
         if ($ordenActiva) {
@@ -51,7 +62,11 @@ class MesaController extends Controller
                 ->get();
         }
 
-        return view('mesero.comanda', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan', 'platillosEnviados'));
+        // Pasamos 'ordenActiva' también, por si lo necesitas en la vista
+        return view('mesero.comanda', compact(
+            'mesa', 'categorias', 'productos', 'mesasAbiertas', 
+            'esCapitan', 'platillosEnviados', 'ordenActiva'
+        ));
     }
 
     public function enviar(Request $request)

@@ -1,15 +1,15 @@
 <div id="modalEliminar" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300">
-    <div id="deleteContainer" class="relative bg-[#1c1c1e] border border-white/5 rounded-[2rem] w-full max-w-md mx-4 shadow-2xl scale-95 opacity-0 transition-all duration-300">
+    <div id="deleteContainer" class="relative !bg-white dark:!bg-[#1c1c1e] border !border-gray-200 dark:!border-white/5 rounded-[2rem] w-full max-w-md mx-4 shadow-2xl scale-95 opacity-0 transition-all duration-300">
 
         {{-- Contenido del Aviso --}}
         <div class="p-8 text-center space-y-4">
-            <div class="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto shadow-inner">
-                <i class="fas fa-trash-alt text-rose-500 text-2xl"></i>
+            <div class="w-16 h-16 rounded-2xl !bg-rose-50 dark:!bg-rose-500/10 border !border-rose-100 dark:!border-rose-500/20 flex items-center justify-center mx-auto shadow-inner">
+                <i class="fas fa-trash-alt !text-rose-500 text-2xl"></i>
             </div>
             <div class="space-y-2">
-                <h2 class="text-xl font-black text-white tracking-tight">¿Eliminar promoción?</h2>
-                <p class="text-xs text-zinc-400 font-medium leading-relaxed max-w-xs mx-auto tracking-wide">
-                    Vas a eliminar permanentemente la oferta <span id="delete_nombre_display" class="text-rose-400 font-bold"></span> del sistema. Esta acción no se puede revertir.
+                <h2 class="text-xl font-black !text-gray-900 dark:!text-white tracking-tight">¿Eliminar promoción?</h2>
+                <p class="text-xs !text-gray-500 dark:!text-zinc-400 font-medium leading-relaxed max-w-xs mx-auto tracking-wide">
+                    Vas a eliminar permanentemente la oferta <span id="delete_nombre_display" class="!text-rose-500 dark:!text-rose-400 font-bold"></span> del sistema. Esta acción no se puede revertir.
                 </p>
             </div>
         </div>
@@ -21,11 +21,11 @@
             
             <div class="flex items-center gap-3 px-8 pb-8">
                 <button type="button" onclick="closeDeleteModal()"
-                    class="flex-1 h-13 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all border border-white/5 outline-none">
+                    class="flex-1 py-4 !bg-gray-50 dark:!bg-white/5 hover:!bg-gray-200 dark:hover:!bg-white/10 !text-gray-500 dark:!text-white/60 hover:!text-gray-900 dark:hover:!text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all border !border-gray-200 dark:!border-white/5 outline-none">
                     Cancelar
                 </button>
                 <button type="submit"
-                    class="flex-1 h-13 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-[0_8px_20px_rgba(244,63,94,0.2)] hover:shadow-[0_8px_25px_rgba(244,63,94,0.4)] outline-none">
+                    class="flex-1 py-4 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 !text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-[0_8px_20px_rgba(244,63,94,0.2)] hover:shadow-[0_8px_25px_rgba(244,63,94,0.4)] outline-none">
                     Sí, eliminar
                 </button>
             </div>

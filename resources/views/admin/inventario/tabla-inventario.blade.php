@@ -8,28 +8,28 @@
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 mb-2">
         <div>
-            <h1 class="text-2xl sm:text-3xl font-black text-[var(--text-color)] tracking-tight">Inventario del Restaurante</h1>
-            <p class="text-xs sm:text-sm text-[var(--text-muted)] mt-1">Control de insumos y materia prima</p>
+            <h1 class="text-2xl sm:text-3xl font-black text-[var(--text-color)] dark:text-zinc-100 tracking-tight">Inventario del Restaurante</h1>
+            <p class="text-xs sm:text-sm text-[var(--text-muted)] dark:text-zinc-500 mt-1">Control de insumos y materia prima</p>
         </div>
         
         {{-- En móviles todo se apila de forma vertical y limpia ocupando el ancho completo --}}
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72 group">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-[#3B82F6]">
-                    <i class="fas fa-search text-[var(--text-muted)] text-sm"></i>
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500">
+                    <i class="fas fa-search text-[var(--text-muted)] dark:text-zinc-500 text-sm"></i>
                 </div>
-                <input type="text" id="buscadorInventario" placeholder="Buscar ingrediente..." class="w-full h-12 bg-black/5 modo-crema:bg-black/5 border border-transparent rounded-xl pl-11 pr-4 text-xs font-bold text-[var(--text-color)] focus:bg-[var(--card-color)] focus:border-[#3B82F6] focus:ring-4 focus:ring-[#3B82F6]/10 outline-none transition-all">
+                <input type="text" id="buscadorInventario" placeholder="Buscar ingrediente..." class="w-full h-12 bg-black/5 dark:bg-zinc-900/50 modo-crema:bg-black/5 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl pl-11 pr-4 text-xs font-bold text-[var(--text-color)] dark:text-zinc-100 focus:bg-[var(--card-color)] dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all">
             </div>
 
             @if(auth()->user()->tienePermiso('gestionar.reporte'))
                 <a href="{{ route('admin.inventario.exportar_pdf_bajo_stock') }}" 
-                class="w-full sm:w-auto bg-[#e11d48] hover:bg-[#be123c] text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-[#e11d48]/20 outline-none flex items-center justify-center gap-2">
+                class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white px-6 h-12 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all shadow-lg shadow-rose-600/20 hover:shadow-rose-600/30 active:scale-95 outline-none flex items-center justify-center gap-2">
                     <i class="fas fa-file-pdf"></i> Reporte Bajo Stock
                 </a>
             @endif
 
             @if(auth()->user()->tienePermiso('inventario.agregar'))
-            <button onclick="openModalCrear()" class="w-full sm:w-auto bg-[#3B82F6] hover:bg-[#2563EB] text-white px-7 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-[#3B82F6]/20 outline-none flex items-center justify-center gap-2">
+            <button onclick="openModalCrear()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-7 h-12 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 active:scale-95 outline-none flex items-center justify-center gap-2">
                 <i class="fas fa-plus"></i> Agregar Producto
             </button>
             @endif
@@ -37,47 +37,47 @@
     </div>
 
     {{-- Contenedor principal: Ajuste de padding en móvil (p-4) para aprovechar la pantalla --}}
-    <div class="bg-[var(--card-color)] rounded-[1.5rem] shadow-sm p-4 sm:p-6 lg:p-8 w-full">
+    <div class="bg-[var(--card-color)] border border-zinc-200/60 dark:border-zinc-800/60 rounded-[2.5rem] shadow-sm p-5 sm:p-6 lg:p-8 w-full">
         
         <div class="mb-6 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-[#3B82F6]/10 flex items-center justify-center text-[#3B82F6]">
+            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-500/5 dark:border-blue-500/10">
                 <i class="fas fa-boxes text-lg"></i>
             </div>
-            <h2 class="text-lg sm:text-xl font-bold text-[var(--text-color)]">Existencias | <span class="text-[var(--text-muted)] font-normal text-xs sm:text-sm">{{ count($insumos ?? []) }} registrados</span></h2>
+            <h2 class="text-lg sm:text-xl font-black text-[var(--text-color)] dark:text-zinc-100 uppercase tracking-tight">Existencias | <span class="text-[var(--text-muted)] dark:text-zinc-500 font-bold text-xs sm:text-sm normal-case tracking-normal">{{ count($insumos ?? []) }} registrados</span></h2>
         </div>
 
         {{-- ================= VISTA PARA ESCRITORIO (Se oculta en móviles: hidden md:block) ================= --}}
         <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr>
-                        <th class="pb-4 px-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-wider">Código</th>
-                        <th class="pb-4 px-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-wider">Producto / Ingrediente</th>
-                        <th class="pb-4 px-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-wider">Cantidad</th>
-                        <th class="pb-4 px-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-wider">Unidad</th>
-                        <th class="pb-4 px-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-wider">Stock Mínimo</th>
-                        <th class="pb-4 px-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-wider">Estado</th>
-                        <th class="pb-4 px-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-wider text-right">Acciones</th>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-900">
+                        <th class="pb-4 px-4 text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em]">Código</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em]">Producto / Ingrediente</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em]">Cantidad</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em]">Unidad</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em]">Stock Mínimo</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em]">Estado</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em] text-right">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tablaInventario">
                     @forelse($insumos ?? [] as $item)
-                    <tr class="fila-articulo border-none hover:bg-black/5 transition-colors group rounded-xl">
-                        <td class="py-4 px-4 text-xs font-mono text-[var(--text-muted)] rounded-l-xl">
+                    <tr class="fila-articulo border-b border-zinc-100/50 dark:border-zinc-900/30 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors group">
+                        <td class="py-4 px-4 text-xs font-mono font-bold text-[var(--text-muted)] dark:text-zinc-500">
                             {{ $item->codigo ?? 'S/N' }}
                         </td>
-                        <td class="py-4 px-4 text-sm font-bold text-[var(--text-color)] nombre-celda">
+                        <td class="py-4 px-4 text-sm font-black text-[var(--text-color)] dark:text-zinc-200 nombre-celda">
                             {{ $item->nombre }}
                         </td>
-                        <td class="py-4 px-4 text-sm font-medium text-[var(--text-color)]">
+                        <td class="py-4 px-4 text-sm font-black text-[var(--text-color)] dark:text-zinc-100">
                             {{ number_format($item->stock_actual, 2) }}
                         </td>
                         <td class="py-4 px-4">
-                            <span class="px-3 py-1 bg-black/5 modo-crema:bg-white/5 rounded-md text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                            <span class="px-3 py-1.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200/40 dark:border-zinc-800/40 rounded-xl text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-400 uppercase tracking-widest">
                                 {{ $item->unidad_medida }}
                             </span>
                         </td>
-                        <td class="py-4 px-4 text-sm font-medium text-[var(--text-muted)]">
+                        <td class="py-4 px-4 text-sm font-bold text-[var(--text-muted)] dark:text-zinc-400">
                             {{ number_format($item->stock_minimo, 2) }}
                         </td>
                         <td class="py-4 px-4">
@@ -86,45 +86,45 @@
                                 $porcentaje = ($item->stock_actual / $minimo) * 100;
                                 
                                 if($porcentaje >= 150) {
-                                    $colorClase = 'bg-[#22c55e]'; 
+                                    $colorClase = 'bg-emerald-500 text-white shadow-emerald-500/10'; 
                                     $modoClase = 'modo-crema:bg-emerald-50 modo-crema:text-emerald-900';
                                     $textoEstado = 'Óptimo';
                                 } elseif($porcentaje > 100) {
-                                    $colorClase = 'bg-[#3B82F6]'; 
+                                    $colorClase = 'bg-blue-500 text-white shadow-blue-500/10'; 
                                     $modoClase = 'modo-crema:bg-blue-100 modo-crema:text-blue-900';
                                     $textoEstado = 'Bien';
                                 } elseif($porcentaje >= 50) {
-                                    $colorClase = 'bg-orange-500'; 
+                                    $colorClase = 'bg-amber-500 text-white shadow-amber-500/10'; 
                                     $modoClase = 'modo-crema:bg-orange-100 modo-crema:text-orange-900';
                                     $textoEstado = 'Regular';
                                 } else {
-                                    $colorClase = 'bg-rose-500'; 
+                                    $colorClase = 'bg-rose-500 text-white shadow-rose-500/10'; 
                                     $modoClase = 'modo-crema:bg-rose-50 modo-crema:text-rose-900';
                                     $textoEstado = 'Crítico';
                                 }
                             @endphp
-                            <span class="px-3 py-1.5 {{ $colorClase }} {{ $modoClase }} text-white rounded-full text-[11px] font-black shadow-sm uppercase tracking-wider">
+                            <span class="px-3 py-1.5 inline-block {{ $colorClase }} {{ $modoClase }} rounded-full text-[10px] font-black shadow-sm uppercase tracking-wider">
                                 {{ $textoEstado }} ({{ round($porcentaje) }}%)
                             </span>
                         </td>
-                        <td class="py-4 px-4 text-right rounded-r-xl">
-                            <div class="flex items-center justify-end gap-3">
+                        <td class="py-4 px-4 text-right">
+                            <div class="flex items-center justify-end gap-2.5">
                                 @if(auth()->user()->tienePermiso('inventario.editar'))
                                 <button type="button" title="Ajustar Stock"
                                     onclick="openModalMovimiento('{{ $item->id }}', '{{ $item->nombre }}')" 
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg text-emerald-500 hover:bg-emerald-500/10 transition-colors outline-none">
+                                    class="w-9 h-9 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all outline-none">
                                     <i class="fas fa-exchange-alt text-sm"></i>
                                 </button>
                                 <button type="button" title="Editar Detalles"
                                     onclick="abrirModalEspecifico('modalEditar-{{ $item->id }}')" 
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg text-[#3B82F6] hover:bg-[#3B82F6]/10 transition-colors outline-none">
+                                    class="w-9 h-9 flex items-center justify-center rounded-xl text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 transition-all outline-none">
                                     <i class="fas fa-cog text-sm"></i>
                                 </button>
                                 @endif
                                 @if(auth()->user()->tienePermiso('inventario.eliminar'))
                                 <button type="button" title="Dar de baja"
                                     onclick="confirmarEliminacion('{{ $item->id }}', '{{ $item->nombre }}')" 
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors outline-none">
+                                    class="w-9 h-9 flex items-center justify-center rounded-xl text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 transition-all outline-none">
                                     <i class="far fa-trash-alt text-sm"></i>
                                 </button>
                                 @endif
@@ -134,7 +134,7 @@
                     @include('admin.inventario.modal-editar', ['item' => $item])
                     @empty
                     <tr>
-                        <td colspan="7" class="py-12 text-center text-[var(--text-muted)]">No hay productos registrados en el inventario.</td>
+                        <td colspan="7" class="py-12 text-center text-[var(--text-muted)] dark:text-zinc-500 font-bold text-sm">No hay productos registrados en el inventario.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -145,65 +145,63 @@
         <div class="block md:hidden space-y-4">
             @forelse($insumos ?? [] as $item)
                 @php
-                    // Mismo cálculo de estado para mantener la coherencia visual
                     $minimo = $item->stock_minimo > 0 ? $item->stock_minimo : 1; 
                     $porcentaje = ($item->stock_actual / $minimo) * 100;
                     
                     if($porcentaje >= 150) {
-                        $colorClase = 'bg-[#22c55e]'; $modoClase = 'modo-crema:bg-emerald-50 modo-crema:text-emerald-900'; $textoEstado = 'Óptimo';
+                        $colorClase = 'bg-emerald-500 text-white'; $modoClase = 'modo-crema:bg-emerald-50 modo-crema:text-emerald-900'; $textoEstado = 'Óptimo';
                     } elseif($porcentaje > 100) {
-                        $colorClase = 'bg-[#3B82F6]'; $modoClase = 'modo-crema:bg-blue-100 modo-crema:text-blue-900'; $textoEstado = 'Bien';
+                        $colorClase = 'bg-blue-500 text-white'; $modoClase = 'modo-crema:bg-blue-100 modo-crema:text-blue-900'; $textoEstado = 'Bien';
                     } elseif($porcentaje >= 50) {
-                        $colorClase = 'bg-orange-500'; $modoClase = 'modo-crema:bg-orange-100 modo-crema:text-orange-900'; $textoEstado = 'Regular';
+                        $colorClase = 'bg-amber-500 text-white'; $modoClase = 'modo-crema:bg-orange-100 modo-crema:text-orange-900'; $textoEstado = 'Regular';
                     } else {
-                        $colorClase = 'bg-rose-500'; $modoClase = 'modo-crema:bg-rose-50 modo-crema:text-rose-900'; $textoEstado = 'Crítico';
+                        $colorClase = 'bg-rose-500 text-white'; $modoClase = 'modo-crema:bg-rose-50 modo-crema:text-rose-900'; $textoEstado = 'Crítico';
                     }
                 @endphp
 
-                {{-- La clase "fila-articulo" permite que tu buscador JS encuentre y oculte esta tarjeta también --}}
-                <div class="fila-articulo bg-black/5 modo-crema:bg-white/5 border border-black/5 dark:border-white/5 p-4 rounded-xl space-y-3 transition-all">
+                <div class="fila-articulo bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/60 dark:border-zinc-800/60 p-5 rounded-2xl space-y-3 transition-all shadow-sm">
                     
                     {{-- Fila Superior: Código y Estado --}}
                     <div class="flex justify-between items-center text-[11px]">
-                        <span class="font-mono text-[var(--text-muted)]">Cod: {{ $item->codigo ?? 'S/N' }}</span>
-                        <span class="px-2.5 py-1 {{ $colorClase }} {{ $modoClase }} text-white rounded-full font-black uppercase tracking-wider text-[10px]">
+                        <span class="font-mono font-bold text-[var(--text-muted)] dark:text-zinc-500">Cod: {{ $item->codigo ?? 'S/N' }}</span>
+                        <span class="px-2.5 py-1 {{ $colorClase }} {{ $modoClase }} rounded-full font-black uppercase tracking-wider text-[10px]">
                             {{ $textoEstado }} ({{ round($porcentaje) }}%)
                         </span>
                     </div>
 
                     {{-- Nombre del producto (La clase "nombre-celda" mapea con tu buscador JS) --}}
-                    <h3 class="text-sm font-black text-[var(--text-color)] nombre-celda leading-tight">
+                    <h3 class="text-base font-black text-[var(--text-color)] dark:text-zinc-100 nombre-celda leading-tight uppercase tracking-tight">
                         {{ $item->nombre }}
                     </h3>
 
                     {{-- Cuadrícula de Stocks (Limpia y espaciada para el dedo) --}}
-                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/10 text-xs">
+                    <div class="grid grid-cols-2 gap-2 pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50 text-xs">
                         <div>
-                            <span class="block text-[10px] uppercase font-black tracking-wider text-[var(--text-muted)] mb-0.5">Stock Actual</span>
-                            <span class="font-bold text-[var(--text-color)] text-sm">
+                            <span class="block text-[9px] uppercase font-black tracking-[0.15em] text-[var(--text-muted)] dark:text-zinc-500 mb-0.5">Stock Actual</span>
+                            <span class="font-black text-[var(--text-color)] dark:text-zinc-100 text-sm">
                                 {{ number_format($item->stock_actual, 2) }}
-                                <span class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider ml-0.5">{{ $item->unidad_medida }}</span>
+                                <span class="text-[10px] font-black text-[var(--text-muted)] dark:text-zinc-400 uppercase tracking-wider ml-0.5">{{ $item->unidad_medida }}</span>
                             </span>
                         </div>
                         <div>
-                            <span class="block text-[10px] uppercase font-black tracking-wider text-[var(--text-muted)] mb-0.5">Mínimo Req.</span>
-                            <span class="font-medium text-[var(--text-muted)] text-sm">
+                            <span class="block text-[9px] uppercase font-black tracking-[0.15em] text-[var(--text-muted)] dark:text-zinc-500 mb-0.5">Mínimo Req.</span>
+                            <span class="font-bold text-[var(--text-muted)] dark:text-zinc-400 text-sm">
                                 {{ number_format($item->stock_minimo, 2) }}
                             </span>
                         </div>
                     </div>
 
                     {{-- Botones de Acción de tamaño grande (Fáciles de presionar en pantallas touch) --}}
-                    <div class="flex items-center gap-2 pt-2 border-t border-black/5 dark:border-white/10">
+                    <div class="flex items-center gap-2 pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50">
                         @if(auth()->user()->tienePermiso('inventario.editar'))
                             <button type="button" 
                                 onclick="openModalMovimiento('{{ $item->id }}', '{{ $item->nombre }}')" 
-                                class="flex-1 h-10 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-xs font-bold rounded-lg flex items-center justify-center gap-1 transition-colors">
+                                class="flex-1 h-11 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition-colors">
                                 <i class="fas fa-exchange-alt"></i> Ajustar
                             </button>
                             <button type="button" 
                                 onclick="abrirModalEspecifico('modalEditar-{{ $item->id }}')" 
-                                class="flex-1 h-10 bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20 text-[#3B82F6] text-xs font-bold rounded-lg flex items-center justify-center gap-1 transition-colors">
+                                class="flex-1 h-11 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition-colors">
                                 <i class="fas fa-cog"></i> Editar
                             </button>
                         @endif
@@ -211,7 +209,7 @@
                         @if(auth()->user()->tienePermiso('inventario.eliminar'))
                             <button type="button" 
                                 onclick="confirmarEliminacion('{{ $item->id }}', '{{ $item->nombre }}')" 
-                                class="w-10 h-10 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-lg flex items-center justify-center transition-colors">
+                                class="w-11 h-11 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center transition-colors">
                                 <i class="far fa-trash-alt text-sm"></i>
                             </button>
                         @endif
@@ -224,7 +222,7 @@
                 @endif
 
             @empty
-                <div class="py-8 text-center text-[var(--text-muted)] text-sm">No hay productos registrados en el inventario.</div>
+                <div class="py-8 text-center text-[var(--text-muted)] dark:text-zinc-500 font-bold text-sm">No hay productos registrados en el inventario.</div>
             @endforelse
         </div>
 

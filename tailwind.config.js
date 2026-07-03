@@ -1,5 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // AGREGA ESTA LÍNEA:
+  // Le dice a Tailwind que busque la clase "dark" en un elemento padre (usualmente el html o body)
+  darkMode: 'class', 
+
   content: [
     "./resources/**/*.blade.php",
     "./resources/**/*.js",
@@ -8,7 +12,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Aquí puedes definir tus colores "Luxury" para usarlos en todo el sitio
         'luxury-bg': '#0a0a0c',
         'luxury-card': '#141417',
         'luxury-accent': '#3b82f6', 

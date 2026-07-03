@@ -25,20 +25,28 @@ class MesaService
 
     public function esCapitan($usuario)
     {
-        return strtolower(trim($usuario->rol?->slug ?? '')) === 'capitan';
+        // Accedemos directamente al nombre del rol
+        return strtolower(trim($usuario->rol?->nombre ?? '')) === 'capitán';
     }
 
     public function verificarAccesoMesa($mesa, $usuario)
     {
-        $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
+        $nombreRol = strtolower(trim($usuario->rol?->nombre ?? ''));
 
-        if ($rolSlug === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
-            if ($mesa->mesero_id !== $usuario->id) {
+        // Si es Administrador, dejamos pasar siempre
+        if ($nombreRol === 'administrador') {
+            return; 
+        }
+
+        // Lógica para Meseros
+        if ($nombreRol === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
+            if ($mesa->mesero_id !== null && $mesa->mesero_id !== $usuario->id) {
                 abort(403, 'No tienes permiso para ver esta mesa.');
             }
         }
 
-        if ($rolSlug === 'capitan' && $mesa->estado !== 'ocupada') {
+        // Lógica para Capitanes
+        if ($nombreRol === 'capitán' && $mesa->estado !== 'ocupada') {
             abort(403, 'Solo puedes ver mesas abiertas.');
         }
     }

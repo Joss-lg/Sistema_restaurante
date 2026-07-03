@@ -1,121 +1,93 @@
-<?php
+@extends('layouts.admin')
 
-namespace App\Http\Controllers;
+@section('title', 'Empleados | Ollintem Pro')
+@section('header-title', 'Gestión de Personal')
+@section('header-subtitle', 'Administra roles y permisos del equipo')
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Schema, DB, Log};
-use App\Models\{Mesa, Categoria, Producto, Orden, DetalleOrden, User};
-use App\Services\ComandaService;
+@section('content')
+<div class="min-h-screen bg-gray-50 dark:bg-[#0B0C10] p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 max-w-[1800px] mx-auto w-full space-y-6 md:space-y-8 flex-1 flex flex-col">
+    
+    {{-- CABECERA --}}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">Empleados</h1>
+        </div>
 
-class ComandaController extends Controller
-{
-    protected $comandaService;
+        @if(auth()->user()->tienePermiso('empleados.agregar'))
+            <div class="relative group z-10 w-full sm:w-auto">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition duration-500 pointer-events-none"></div>
+                <button type="button" onclick="abrirModalCrear()" class="relative flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 outline-none w-full sm:w-auto shadow-lg">
+                    <i class="fas fa-plus"></i> 
+                    <span>Agregar Empleado</span>
+                </button>
+            </div>
+        @endif
+    </div>
 
-    public function __construct(ComandaService $comandaService)
-    {
-        $this->comandaService = $comandaService;
-    }
+    {{-- GRID DE ESTADÍSTICAS --}}
+    {{-- Mantenemos tu lógica PHP de colores, pero asegurando coherencia en el diseño --}}
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
+        @foreach($tarjetasStats as $stat)
+        <div class="bg-white dark:bg-[#121318] border border-gray-200 dark:border-gray-800 rounded-2xl p-4 md:p-6 flex flex-col justify-between h-28 md:h-36 relative group overflow-hidden shadow-sm dark:shadow-none transition-colors">
+            <div class="flex justify-between items-start w-full relative z-10">
+                <h3 class="text-[9px] md:text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest truncate">{{ $stat['titulo'] }}</h3>
+                <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg {{ $stat['bgIcono'] }} {{ $stat['textIcono'] }} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105 duration-300">
+                    <i class="fas fa-{{ $stat['icono'] }} text-xs md:text-base"></i>
+                </div>
+            </div>
+            <p class="text-3xl md:text-5xl font-black text-gray-900 dark:text-white relative z-10 mt-2">{{ $stat['valor'] }}</p>
+        </div>
+        @endforeach
+    </div>
 
-    public function show($mesaId)
-    {
-        $mesa = Mesa::findOrFail($mesaId);
-        $usuario = auth()->user();
-        $rolSlug = strtolower(trim($usuario->rol?->slug ?? ''));
-        $esCapitan = $rolSlug === 'capitan';
-
-        // Restricciones de acceso
-        if ($rolSlug === 'mesero' && Schema::hasColumn('mesas', 'mesero_id') && $mesa->mesero_id !== $usuario->id) {
-            abort(403, 'No tienes permiso para ver esta mesa.');
-        }
-        if ($esCapitan && $mesa->estado !== 'ocupada') {
-            abort(403, 'Solo puedes ver mesas abiertas.');
-        }
-
-        $categorias = Categoria::all();
-        $productos = Producto::with(['categoria', 'modificadores'])->orderBy('nombre', 'asc')->get();
-        $mesasAbiertas = $esCapitan ? Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get() : collect();
-
-        $ordenActiva = Orden::where('mesa_id', $mesa->id)->where('estado', '!=', 'pagada')->latest()->first();
-        $platillosEnviados = $ordenActiva ? $ordenActiva->detalles()->with('producto')->get() : collect();
-
-        return view('mesero.comanda', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan', 'platillosEnviados'));
-    }
-
-    public function enviar(Request $request)
-    {
-        $request->validate([
-            'mesa_id' => 'required|exists:mesas,id',
-            'platillos' => 'required|array|min:1',
-        ]);
-
-        try {
-            $mesa = Mesa::findOrFail($request->mesa_id);
-            $usuario = auth()->user();
-
-            // Validación de permisos
-            if ($usuario->rol?->slug !== 'capitan') {
-                if (Schema::hasColumn('mesas', 'mesero_id') && $mesa->mesero_id !== $usuario->id) {
-                    return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
-                }
-            }
-
-            // Delegamos toda la lógica transaccional, inventario y orden al Service
-            $orden = $this->comandaService->procesarEnvio($mesa, $request->platillos, $usuario);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Orden enviada y mesa actualizada.',
-                'orden_id' => $orden->id,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
-    }
-
-    public function verificarCapitan(Request $request)
-    {
-        $request->validate(['nip' => 'required|string']);
-        $usuario = User::where('codigo_empleado', $request->nip)->first();
-
-        if (!$usuario || strtolower($usuario->rol?->slug ?? '') !== 'capitan') {
-            return response()->json(['success' => false, 'message' => 'Acceso denegado.'], 403);
-        }
-
-        $mesas = Mesa::where('estado', 'ocupada')->get(['id', 'numero', 'estado']);
-        return response()->json(['success' => true, 'mesas' => $mesas]);
-    }
-
-    public function apiMesasAbiertas()
-    {
-        $mesas = Mesa::all();
-        return response()->json([
-            'success' => true,
-            'mesas_abiertas' => $mesas->where('estado', 'ocupada')->values(),
-            'mesas_libres' => $mesas->where('estado', 'disponible')->values(),
-        ]);
-    }
-
-    public function storeMesa(Request $request)
-    {
-        // Tu lógica de apertura sigue aquí, pero podrías considerar moverla a un MesaService
-        $request->validate(['numero' => 'required', 'capacidad' => 'required|integer']);
+    {{-- LISTA DE EMPLEADOS --}}
+    <div class="bg-white dark:bg-[#121318] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 md:p-8 w-full flex-1 flex flex-col shadow-sm dark:shadow-none transition-colors">
         
-        $mesa = Mesa::updateOrCreate(['numero' => $request->numero], [
-            'estado' => 'ocupada',
-            'capacidad' => $request->capacidad,
-            'mesero_id' => auth()->user()->id
-        ]);
-        
-        // ... Lógica de creación de órdenes iniciales ...
-        return response()->json(['success' => true, 'mesa' => $mesa]);
-    }
+        <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h2 class="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Lista de Empleados</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ count($empleados ?? []) }} registrados</p>
+            </div>
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <input type="text" id="buscadorEmpleados" placeholder="Buscar..." class="w-full sm:w-72 h-10 bg-gray-100 dark:bg-black/20 border border-gray-200 dark:border-gray-800 rounded-full px-4 text-xs text-gray-900 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+        </div>
 
-    public function reabrir(Request $request)
-    {
-        $mesa = Mesa::findOrFail($request->mesa_id);
-        $mesa->update(['estado' => 'ocupada', 'mesero_id' => auth()->user()->id]);
-        
-        // ... Creación de nueva orden ...
-        return response()->json(['success' => true]);
-    }
-}
+        <div class="w-full overflow-x-auto">
+            <table class="w-full min-w-[800px] text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-100 dark:border-gray-800">
+                        <th class="pb-4 px-4 text-[10px] font-black text-gray-400 uppercase">Nombre</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-gray-400 uppercase">PIN</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-gray-400 uppercase">Rol</th>
+                        <th class="pb-4 px-4 text-[10px] font-black text-gray-400 uppercase">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaEmpleados">
+                    @forelse($empleados ?? [] as $empleado)
+                    <tr class="fila-empleado hover:bg-gray-50 dark:hover:bg-white/5 border-b border-gray-100 dark:border-gray-800 transition-colors">
+                        <td class="py-4 px-4 font-bold text-gray-900 dark:text-gray-100">{{ $empleado->nombre }}</td>
+                        <td class="py-4 px-4 text-gray-600 dark:text-gray-400 font-mono">{{ $empleado->codigo_empleado }}</td>
+                        <td class="py-4 px-4">
+                            <span class="px-2 py-1 rounded text-[9px] font-bold uppercase {{ $colorClass }}">
+                                {{ $empleado->rol?->nombre ?? 'Sin rol' }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                                {{-- Acciones (Botones) --}}
+                                <button class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="py-10 text-center text-gray-400">No hay empleados</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endsection

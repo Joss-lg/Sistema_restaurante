@@ -15,13 +15,13 @@ class FlujoCaja extends Model
     protected $table = 'flujo_caja';
 
     protected $fillable = [
-        'caja_movimiento_id', // Añadido: Para amarrarlo al turno operativo
+        'caja_movimiento_id', // Enlace directo con el turno operativo
         'tipo',
         'categoria',
         'concepto',
         'monto',
         'metodo_pago',
-        'referencia',         // Añadido: Para tickets o transferencias
+        'referencia',
         'fecha',
         'flujoable_id',
         'flujoable_type',
@@ -29,15 +29,21 @@ class FlujoCaja extends Model
     ];
 
     protected $casts = [
-        'monto' => 'float',
+        'monto' => 'decimal:2', // Cambiado a decimal para evitar imprecisiones de coma flotante
         'fecha' => 'datetime',
     ];
 
+    /**
+     * RELACIÓN: Este movimiento pertenece a un turno/sesión de caja específico.
+     */
     public function cajaMovimiento(): BelongsTo
     {
         return $this->belongsTo(CajaMovimiento::class, 'caja_movimiento_id');
     }
 
+    /**
+     * RELACIÓN POLIMÓRFICA: Conecta dinámicamente con Pedidos, Gastos, Nóminas, etc.
+     */
     public function flujoable(): MorphTo
     {
         return $this->morphTo();
@@ -99,17 +105,19 @@ class FlujoCaja extends Model
         return $query->orderBy('fecha', $orden);
     }
 
+    // --- MÉTODOS AUXILIARES ---
     
     public function getTipoLegible(): string
     {
-        return ucfirst($this->tipo); // Retorna 'Ingreso' o 'Egreso' dinámicamente
+        return ucfirst($this->tipo); // Retorna 'Ingreso' o 'Egreso'
     }
 
     public function getSimboloTipo(): string
     {
         return $this->tipo === 'ingreso' ? '+' : '-';
     }
-    public function getMontoConSigno(): float
+
+    public function getMontoConSigno()
     {
         return $this->tipo === 'ingreso' ? $this->monto : -$this->monto;
     }

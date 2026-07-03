@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
         // 1. Primero creamos todos los Modulos
         $this->call(ModuloSeeder::class);
 
+        $this->call(RoleSeeder::class);
+
         // 2. Creamos el rol Administrador y al SuperAdmin (ID 1) con acceso total por código.
         $this->call(UsuarioAdminSeeder::class);
     }

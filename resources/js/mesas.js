@@ -36,11 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Eventos UI
     document.getElementById('btnEditar')?.addEventListener('click', toggleModoEdicion);
     document.getElementById('btnGuardar')?.addEventListener('click', guardarPlanoEnServidor);
-    document.getElementById('btnCancelar')?.addEventListener('click', () => {
-        estadoGlobal.modoEdicion = false;
-        renderizarMapaMesas();
     document.getElementById('btnCancelar')?.addEventListener('click', cancelarEdicion);
-    });
 
     document.getElementById('btnAgregarMesa')?.addEventListener('click', abrirModalNuevaMesa);
     document.getElementById('btnConfirmarNueva')?.addEventListener('click', crearNuevaMesa);
@@ -84,31 +80,30 @@ function renderizarMapaMesas() {
 
     mesasFiltradas.forEach(mesa => {
         const div = document.createElement('div');
-        
-        // 1. Eliminamos 'bg-blue-500' y añadimos la clase de estado dinámica
-        // La clase base será 'mesa-ui' (que ya tienes en el CSS) + la clase de estado
-        div.className = `mesa-elemento mesa-ui absolute rounded-lg cursor-move flex items-center justify-center text-white font-bold border-2 border-slate-900 mesa-${mesa.estado}`;
+        div.className = `mesa-elemento mesa-ui absolute rounded-lg cursor-move flex items-center justify-center font-bold border-2 text-[var(--text-color)] border-[var(--text-color)] mesa-${mesa.estado}`;
         
         div.dataset.id = mesa.id;
         div.style.left = (mesa.posicion_x || 50) + 'px';
         div.style.top = (mesa.posicion_y || 50) + 'px';
         div.style.width = (mesa.ancho || 80) + 'px';
         div.style.height = (mesa.alto || 80) + 'px';
-        
         div.innerHTML = mesa.numero;
 
-        // 2. Solo añadimos la clase de selección si está en modo fusión, no por defecto
-        if (estadoGlobal.modoFusion) {
-            div.classList.add('mesa-fusion-selected');
-        }
+        // --- CORRECCIÓN AQUÍ ---
+        div.addEventListener('pointerdown', (e) => {
+            if (estadoGlobal.modoEdicion) iniciarArrastre(e, div, mesa);
+        });
 
-        div.addEventListener('pointerdown', (e) => iniciarArrastre(e, div, mesa));
         div.addEventListener('click', (e) => {
             if (estadoGlobal.modoEdicion) { 
                 e.stopPropagation(); 
                 seleccionarMesa(mesa); 
+            } else {
+                // Navegación para no-admin/meseros
+                window.location.href = `/mesero/comanda/${mesa.id}`;
             }
         });
+
         contenedor.appendChild(div);
     });
     
@@ -134,6 +129,7 @@ function iniciarArrastre(e, el, mesa) {
     el.addEventListener('pointerup', detenerArrastre);
 }
 
+// --- ACCIONES ---
 function manejarArrastre(e) {
     if (!dragState.activo) return;
     const x = e.clientX - dragState.startX + dragState.originX;
@@ -152,7 +148,6 @@ function detenerArrastre() {
     dragState.activo = false;
 }
 
-// --- ACCIONES ---
 window.toggleModoEdicion = () => {
     estadoGlobal.modoEdicion = !estadoGlobal.modoEdicion;
     document.getElementById('modosEdicion')?.classList.toggle('hidden', !estadoGlobal.modoEdicion);
@@ -198,7 +193,6 @@ function seleccionarMesa(mesa) {
 
 // --- ACCIONES DE GUARDADO Y CANCELAR ---
 
-// Esta es la función definitiva que usa el estado global (el JS ya tiene las posiciones actualizadas en estadoGlobal.mesas)
 async function guardarPlanoEnServidor() {
     try {
         const res = await fetch('/plano-espacial/api/guardar', {
@@ -210,9 +204,8 @@ async function guardarPlanoEnServidor() {
             body: JSON.stringify({ mesas: estadoGlobal.mesas })
         });
 
-        // IMPORTANTE: Verifica si la respuesta es OK antes de hacer .json()
         if (!res.ok) {
-            const errorText = await res.text(); // Lee el error como texto plano
+            const errorText = await res.text();
             console.error('Respuesta del servidor no exitosa:', errorText);
             return;
         }
@@ -227,7 +220,6 @@ async function guardarPlanoEnServidor() {
 function cancelarEdicion() {
     if (confirm('¿Deseas descartar los cambios sin guardar?')) {
         estadoGlobal.modoEdicion = false;
-        // Ocultar botones de guardado
         document.getElementById('btnGuardar')?.classList.add('hidden');
         document.getElementById('btnCancelar')?.classList.add('hidden');
         document.getElementById('modosEdicion')?.classList.add('hidden');
@@ -235,9 +227,6 @@ function cancelarEdicion() {
     }
 }
 
-// Exportación para funciones globales en HTML
-window.abrirModalNuevaMesa = () => document.getElementById('modalCrearMesa').classList.remove('hidden');
-window.cerrarModalNuevaMesa = () => document.getElementById('modalCrearMesa').classList.add('hidden');
 window.actualizarPropiedadesMesa = async () => {
     if (!estadoGlobal.mesaSeleccionada) return;
 
@@ -248,7 +237,7 @@ window.actualizarPropiedadesMesa = async () => {
 
     try {
         const res = await fetch(`/plano-espacial/api/actualizar/${estadoGlobal.mesaSeleccionada.id}`, {
-            method: 'POST', // O 'PUT' según tu configuración en rutas
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -258,7 +247,7 @@ window.actualizarPropiedadesMesa = async () => {
 
         if (res.ok) {
             alert('Propiedades actualizadas');
-            cargarMesas(); // Refresca el plano
+            cargarMesas();
         } else {
             alert('Error al actualizar la mesa');
         }
@@ -266,6 +255,7 @@ window.actualizarPropiedadesMesa = async () => {
         console.error('Error:', e);
     }
 };
+
 window.eliminarMesaDelPlano = async () => {
     if (!estadoGlobal.mesaSeleccionada) return;
     

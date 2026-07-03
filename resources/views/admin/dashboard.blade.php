@@ -5,11 +5,12 @@
 @section('header-subtitle', 'Visión analítica de operaciones')
 
 @section('content')
-<div class="p-8 lg:p-10 xl:p-12 max-w-[1800px] mx-auto w-full space-y-8 flex-1 flex flex-col">
+{{-- CORRECCIÓN AQUÍ: Cambiamos p-8 por p-4 sm:p-8 para celulares --}}
+<div class="p-4 sm:p-8 lg:p-10 xl:p-12 max-w-[1800px] mx-auto w-full space-y-8 flex-1 flex flex-col overflow-x-hidden">
     
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         
-        <div class="glass-card rounded-[1.5rem] p-7 flex flex-col justify-between h-44 group">
+        <div class="glass-card rounded-[1.5rem] p-6 sm:p-7 flex flex-col justify-between h-40 sm:h-44 group">
             <div class="flex justify-between items-start">
                 <h3 class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Ingresos Brutos</h3>
                 <div class="w-9 h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper group-hover:border-emerald-500/40 transition-all duration-300">
@@ -17,14 +18,14 @@
                 </div>
             </div>
             <div class="mt-4">
-                <p class="text-[2.5rem] leading-none font-black text-metallic tracking-tighter">${{ number_format($stats['ventas_dia'] ?? 0, 2) }}</p>
-                <p class="text-[11px] font-bold text-emerald-400 mt-3 flex items-center gap-1.5 opacity-90 tracking-wide">
+                <p class="text-3xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter">${{ number_format($stats['ventas_dia'] ?? 0, 2) }}</p>
+                <p class="text-[11px] font-bold text-emerald-400 mt-2 sm:mt-3 flex items-center gap-1.5 opacity-90 tracking-wide">
                     <i class="fas fa-arrow-trend-up"></i> +4.2% vs ayer
                 </p>
             </div>
         </div>
 
-        <div class="glass-card rounded-[1.5rem] p-7 flex flex-col justify-between h-44 group">
+        <div class="glass-card rounded-[1.5rem] p-6 sm:p-7 flex flex-col justify-between h-40 sm:h-44 group">
             <div class="flex justify-between items-start">
                 <h3 class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Volumen de Órdenes</h3>
                 <div class="w-9 h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper group-hover:border-[#3B82F6]/40 transition-all duration-300">
@@ -32,12 +33,12 @@
                 </div>
             </div>
             <div class="mt-4">
-                <p class="text-[2.5rem] leading-none font-black text-metallic tracking-tighter">{{ $stats['ordenes_dia'] ?? 0 }}</p>
-                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-3 uppercase tracking-wide">Transacciones</p>
+                <p class="text-3xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter">{{ $stats['ordenes_dia'] ?? 0 }}</p>
+                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-2 sm:mt-3 uppercase tracking-wide">Transacciones</p>
             </div>
         </div>
 
-        <div class="glass-card rounded-[1.5rem] p-7 flex flex-col justify-between h-44 group">
+        <div class="glass-card rounded-[1.5rem] p-6 sm:p-7 flex flex-col justify-between h-40 sm:h-44 group">
             <div class="flex justify-between items-start">
                 <h3 class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Ticket Promedio</h3>
                 <div class="w-9 h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper group-hover:border-indigo-400/40 transition-all duration-300">
@@ -45,12 +46,12 @@
                 </div>
             </div>
             <div class="mt-4">
-                <p class="text-[2.5rem] leading-none font-black text-metallic tracking-tighter">${{ number_format($stats['ticket_promedio'] ?? 0, 2) }}</p>
-                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-3 uppercase tracking-wide">Por Comensal</p>
+                <p class="text-3xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter">${{ number_format($stats['ticket_promedio'] ?? 0, 2) }}</p>
+                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-2 sm:mt-3 uppercase tracking-wide">Por Comensal</p>
             </div>
         </div>
 
-        <div class="glass-card rounded-[1.5rem] p-7 flex flex-col justify-between h-44 group">
+        <div class="glass-card rounded-[1.5rem] p-6 sm:p-7 flex flex-col justify-between h-40 sm:h-44 group">
             <div class="flex justify-between items-start">
                 <h3 class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Afluencia Total</h3>
                 <div class="w-9 h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper group-hover:border-orange-400/40 transition-all duration-300">
@@ -58,21 +59,21 @@
                 </div>
             </div>
             <div class="mt-4">
-                <p class="text-[2.5rem] leading-none font-black text-metallic tracking-tighter">{{ number_format($stats['clientes'] ?? 0, 0) }}</p>
-                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-3 uppercase tracking-wide">Registros</p>
+                <p class="text-3xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter">{{ number_format($stats['clientes'] ?? 0, 0) }}</p>
+                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-2 sm:mt-3 uppercase tracking-wide">Registros</p>
             </div>
         </div>
     </div>
 
-    <div class="glass-card rounded-[2rem] p-8 lg:p-10 w-full flex-1 flex flex-col min-h-[450px]">
-        <div class="flex justify-between items-start mb-8">
+    <div class="glass-card rounded-[2rem] p-5 sm:p-8 lg:p-10 w-full flex-1 flex flex-col min-h-[400px] sm:min-h-[450px]">
+        <div class="flex justify-between items-start mb-6 sm:mb-8">
             <div>
-                <h2 class="text-xl font-black tracking-tight text-[var(--text-color)]">Análisis de Flujo</h2>
-                <p class="text-xs text-[var(--text-muted)] font-medium mt-1.5">Métricas de rendimiento a lo largo de la jornada</p>
+                <h2 class="text-lg sm:text-xl font-black tracking-tight text-[var(--text-color)]">Análisis de Flujo</h2>
+                <p class="text-[10px] sm:text-xs text-[var(--text-muted)] font-medium mt-1.5">Métricas de rendimiento a lo largo de la jornada</p>
             </div>
         </div>
         
-        <div class="w-full relative flex-1 min-h-[300px]">
+        <div class="w-full relative flex-1 min-h-[250px] sm:min-h-[300px]">
             <canvas id="salesChart"></canvas>
         </div>
     </div>
@@ -122,7 +123,7 @@
                     pointBackgroundColor: esCrema ? '#ffffff' : '#0A0A0C', 
                     pointBorderColor: '#F97316',
                     pointBorderWidth: 2.5,
-                    pointRadius: 4,
+                    pointRadius: window.innerWidth < 768 ? 2 : 4, // Puntos más chicos en móvil
                     pointHoverRadius: 7,
                     fill: true,
                     tension: 0.45 
@@ -145,18 +146,17 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, font: { size: 12, weight: '700' }, color: textColor, padding: 25 } },
-                    tooltip: { backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: tooltipText, borderColor: gridColor, borderWidth: 1, padding: 16, cornerRadius: 16, titleFont: { size: 13, weight: '600', family: 'Inter' }, bodyFont: { size: 14, weight: 'bold', family: 'Inter' }, displayColors: true, boxPadding: 8, usePointStyle: true }
+                    legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, font: { size: window.innerWidth < 768 ? 10 : 12, weight: '700' }, color: textColor, padding: window.innerWidth < 768 ? 15 : 25 } },
+                    tooltip: { backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: tooltipText, borderColor: gridColor, borderWidth: 1, padding: 12, cornerRadius: 12, titleFont: { size: 12, weight: '600' }, bodyFont: { size: 13, weight: 'bold' }, displayColors: true, boxPadding: 6, usePointStyle: true }
                 },
                 scales: {
-                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { weight: '600', size: 11 }, padding: 10 } },
-                    y: { beginAtZero: true, grid: { color: gridColor, borderDash: [6, 6] }, border: { display: false }, ticks: { font: { weight: '600', size: 11 }, padding: 15 } }
+                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { weight: '600', size: 10 }, padding: 8 } },
+                    y: { beginAtZero: true, grid: { color: gridColor, borderDash: [6, 6] }, border: { display: false }, ticks: { font: { weight: '600', size: 10 }, padding: window.innerWidth < 768 ? 5 : 15 } }
                 }
             }
         });
     }
 
-    // Observar cuando se cambie el tema (modo crema/oscuro) para redibujar la gráfica automáticamente
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.attributeName === "class") {
@@ -165,6 +165,11 @@
         });
     });
     observer.observe(document.body, { attributes: true });
+
+    // Recargar gráfica al girar el celular
+    window.addEventListener('resize', () => {
+        if(myChart) initChart();
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
         initChart();

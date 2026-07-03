@@ -12,6 +12,7 @@
 
     <script>
         tailwind.config = {
+            darkMode: 'class', // Necesario para que Tailwind use la clase 'dark'
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
@@ -63,38 +64,25 @@
 
         body { background-color: var(--bg-color); font-family: 'Inter', sans-serif; color: var(--text-color); overflow-x: hidden; margin: 0; padding: 0; transition: background-color 0.4s ease, color 0.4s ease; }
         
-        /* Animaciones Premium */
-        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
-        @keyframes toastPop { 
-            0% { transform: translateX(100%) scale(0.8); opacity: 0; } 
-            45% { transform: translateX(-10px) scale(1.02); opacity: 1; } 
-            100% { transform: translateX(0) scale(1); opacity: 1; } 
-        }
-        @keyframes toastFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-        @keyframes progress { from { width: 100%; } to { width: 0%; } }
-
-        .toast-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-        .toast-card:hover { transform: translateY(-3px); box-shadow: 0 40px 90px -45px rgba(15, 23, 42, 0.85); }
-
         .glass-card { backdrop-filter: blur(20px); border: 1px solid var(--border-color); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background-color: var(--glass-bg); }
         body:not(.modo-crema) .glass-card { background-color: var(--glass-bg); box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
         body.modo-crema .glass-card { background-color: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005); }
         
-        .filter-button { padding: 0.65rem 1.1rem; border-radius: 0.85rem; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid transparent; color: var(--text-color); background-color: var(--card-color); transition: all 0.25s ease; }
-        .filter-button:hover { background-color: rgba(59, 130, 246, 0.18); border-color: rgba(59, 130, 246, 0.35); color: #ffffff; transform: translateY(-1px); }
-        .filter-button--active { background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(14, 165, 233, 0.85)); border-color: rgba(59, 130, 246, 0.85); color: #ffffff; box-shadow: 0 16px 35px -20px rgba(59, 130, 246, 0.75); }
-        
-        .header-action-btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1.2rem; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(59, 130, 246, 0.12); color: #EFF6FF; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease; }
-        .header-action-btn:hover { transform: translateY(-2px); background: rgba(59, 130, 246, 0.22); box-shadow: 0 18px 40px -30px rgba(59, 130, 246, 0.8); }
-
         ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
     </style>
 </head>
+
 <body class="selection:bg-[#3B82F6]/30 selection:text-[var(--text-color)]">
 
     <script>
-        if (localStorage.getItem('tema-ollintem') === 'crema') {
+        // Sincronización inicial antes de que cargue el contenido
+        const temaGuardado = localStorage.getItem('tema-ollintem');
+        if (temaGuardado === 'crema') {
             document.body.classList.add('modo-crema');
+            document.documentElement.classList.remove('dark');
+        } else {
+            document.body.classList.remove('modo-crema');
+            document.documentElement.classList.add('dark');
         }
     </script>
 
@@ -118,19 +106,13 @@
                     
                     <div class="flex items-center gap-4">
                         @hasSection('header-actions')
-                            <div class="hidden md:flex items-center gap-3">
-                                @yield('header-actions')
-                            </div>
+                            <div class="hidden md:flex items-center gap-3">@yield('header-actions')</div>
                         @endif
-                        <div class="w-10 h-10 rounded-xl border border-[#3B82F6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] shrink-0 overflow-hidden">
-                            <img src="{{ asset('images/logo.png') }}" alt="Perfil" class="w-full h-full object-cover">
-                        </div>
                         <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-[var(--sidebar-bg)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all shadow-inner">
                             <i id="dashThemeIcon" class="fas fa-sun text-sm"></i>
                         </button>
                     </div>
                 </header>
-
                 @yield('content')
             </main>
         </div>
@@ -138,13 +120,22 @@
 
     @yield('modals')
 
-    {{-- LÓGICA DE TEMA E ICONOS --}}
     <script>
         function toggleTheme() {
             const body = document.body;
+            const html = document.documentElement;
+            
             body.classList.toggle('modo-crema');
             const esCrema = body.classList.contains('modo-crema');
-            localStorage.setItem('tema-ollintem', esCrema ? 'crema' : 'negro');
+            
+            // Sincronizar Tailwind y localStorage
+            if (esCrema) {
+                html.classList.remove('dark');
+                localStorage.setItem('tema-ollintem', 'crema');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('tema-ollintem', 'negro');
+            }
             actualizarIcono(esCrema);
         }
 
@@ -168,34 +159,6 @@
             actualizarIcono(esCrema);
         });
     </script>
-
-    {{-- NOTIFICACIONES "ULTRA PREMIUM" --}}
-    @if(session('success'))
-        <div id="toast-success" class="fixed top-6 right-6 z-[9999] w-full max-w-[17rem]">
-            <div role="status" aria-live="polite" class="toast-card overflow-hidden rounded-[24px] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.14),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(34,197,94,0.1),_transparent_30%),#020617] shadow-[0_24px_60px_-30px_rgba(0,0,0,0.75)] backdrop-blur-3xl animate-[toastPop_0.55s_cubic-bezier(0.16,1,0.3,1),toastFloat_3.8s_ease-in-out_1] relative ring-1 ring-inset ring-white/5">
-                <div class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500"></div>
-                <div class="relative flex items-start gap-2 p-3">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 shadow-[0_0_18px_rgba(52,211,153,0.2)]">
-                        <i class="fas fa-check text-sm"></i>
-                    </div>
-                    <div class="flex-1 pt-0.5">
-                        <p class="text-[9px] font-black uppercase tracking-[0.45em] text-emerald-200/80">Operación Exitosa</p>
-                        <p class="mt-1 text-[13px] font-semibold text-[var(--text-color)] leading-5">{{ session('success') }}</p>
-                    </div>
-                    <button onclick="document.getElementById('toast-success')?.remove()" class="text-[var(--text-muted)] hover:text-white transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-emerald-400/50">
-                        <i class="fas fa-times text-[10px]"></i>
-                    </button>
-                </div>
-                <div class="absolute bottom-0 left-0 h-1 w-full bg-white/10">
-                    <div class="h-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 animate-[progress_3.8s_linear_forwards]"></div>
-                </div>
-            </div>
-        </div>
-        <script>
-            setTimeout(() => { document.getElementById('toast-success')?.remove(); }, 3800);
-        </script>
-    @endif
-
     @stack('scripts')
 </body>
 </html>

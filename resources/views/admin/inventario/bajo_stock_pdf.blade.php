@@ -3,50 +3,43 @@
 <head>
     <meta charset="utf-8">
     <title>Reporte de Bajo Stock</title>
-    <style>
-        body { font-family: sans-serif; color: #333; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; }
-        .logo { font-size: 24px; font-weight: bold; color: #1e293b; }
-        .title { font-size: 18px; margin-top: 5px; color: #64748b; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #f8fafc; color: #475569; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 12px; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
-        .status-badge { background-color: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #94a3b8; }
-    </style>
 </head>
-<body>
-    <div class="header">
-        <div class="logo">OLLINTEM PRO</div>
-        <div class="title">Reporte de Insumos con Bajo Stock</div>
-        <p style="font-size: 12px;">Generado el: {{ date('d/m/Y H:i') }}</p>
+<body class="font-sans text-slate-900 bg-white dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
+
+    <div class="text-center mb-8 pb-3 border-b-2 border-blue-500 dark:border-blue-400">
+        <div class="text-2xl font-bold text-slate-900 dark:text-white">OLLINTEM PRO</div>
+        <div class="text-lg mt-1 text-slate-500 dark:text-slate-400">Reporte de Insumos con Bajo Stock</div>
+        <p class="text-xs text-slate-500 dark:text-slate-500 mt-2">Generado el: {{ date('d/m/Y H:i') }}</p>
     </div>
 
-    <table>
+    <table class="w-full border-collapse mt-5">
         <thead>
             <tr>
-                <th>Insumo</th>
-                <th>Categoría</th>
-                <th>Stock Actual</th>
-                <th>Stock Mínimo</th>
-                <th>Estado</th>
+                <th class="px-3 py-3 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 text-left">Insumo</th>
+                <th class="px-3 py-3 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 text-left">Categoría</th>
+                <th class="px-3 py-3 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 text-left">Stock Actual</th>
+                <th class="px-3 py-3 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 text-left">Stock Mínimo</th>
+                <th class="px-3 py-3 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 text-left">Estado</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
             @foreach($insumos as $insumo)
-            <tr>
-                <td>{{ $insumo->nombre }}</td>
-                <td>{{ $insumo->categoria->nombre ?? 'S/C' }}</td>
-                <td style="font-weight: bold; color: #e11d48;">{{ $insumo->stock_actual }} {{ $insumo->unidad_medida }}</td>
-                <td>{{ $insumo->stock_minimo }}</td>
-                <td><span class="status-badge">REABASTECER</span></td>
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-3 py-3 text-sm text-slate-800 dark:text-slate-200">{{ $insumo->nombre }}</td>
+                <td class="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{{ $insumo->categoria->nombre ?? 'S/C' }}</td>
+                <td class="px-3 py-3 text-sm font-semibold text-rose-600 dark:text-rose-400">{{ $insumo->stock_actual }} {{ $insumo->unidad_medida }}</td>
+                <td class="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{{ $insumo->stock_minimo }}</td>
+                <td class="px-3 py-3 text-sm">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-transparent dark:border-rose-500/20 text-[11px] font-semibold">REABASTECER</span>
+                </td>
             </tr>
             @endforeach
         </tbody>
     </table>
 
-    <div class="footer">
+    <div class="fixed bottom-0 left-0 w-full text-center text-[10px] text-slate-400 dark:text-slate-500 pb-2">
         Sistema de Gestión de Restaurante - Ollintem Pro
     </div>
+
 </body>
 </html>

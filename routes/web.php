@@ -68,21 +68,24 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['role:Categorias'])->resource('categorias', CategoriaController::class);
 
         // Caja
-        Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function () {
-            Route::get('/', [CajaController::class, 'index'])->name('index');
-            Route::get('/cobrar/{id}', [CajaController::class, 'cobrar'])->name('cobrar');
-            Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
-            Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
-            Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
-            Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
-            Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
-            Route::post('/api/procesar-pago', [CajaController::class, 'procesarPago'])->name('api.procesar-pago');
-            Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
-            Route::post('/api/estado-mesa', [CajaController::class, 'getEstadoMesa'])->name('api.estado-mesa');
-            Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');
-            Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
-        });
-
+Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function () {
+    Route::get('/', [CajaController::class, 'index'])->name('index');
+    
+   
+    Route::post('/abrir', [CajaController::class, 'abrir'])->name('abrir');   // URL: /caja/abrir | Nombre: caja.abrir
+    Route::post('/cerrar', [CajaController::class, 'cerrar'])->name('cerrar'); // URL: /caja/cerrar | Nombre: caja.cerrar
+    Route::get('/cobrar/{id}', [CajaController::class, 'cobrar'])->name('cobrar');
+    Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
+    Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
+    Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
+    Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
+    Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
+    Route::post('/api/procesar-pago', [CajaController::class, 'procesarPago'])->name('api.procesar-pago');
+    Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
+    Route::post('/api/estado-mesa', [CajaController::class, 'getEstadoMesa'])->name('api.estado-mesa');
+    Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');
+    Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
+});
         // Mesas
         Route::middleware(['role:Mesas'])->prefix('mesas')->name('mesas.')->group(function () {
             Route::get('/', [MesaController::class, 'index'])->name('index');
@@ -146,10 +149,14 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::post('/permisos/store', [PermisoController::class, 'store'])->name('permisos.store');
+
+        // Rutas del Historial de Turnos y Cajas
+    Route::get('/historial-cajas', [HistorialCajaController::class, 'index'])->name('historial.index');
+    Route::get('/historial-cajas/{id}', [HistorialCajaController::class, 'show'])->name('historial.show');
     });
 
     Route::post('/logout', function () { 
         Auth::logout(); 
         return redirect()->route('login'); 
     })->name('logout');
-});
+}); 

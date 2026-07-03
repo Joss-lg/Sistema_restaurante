@@ -1,115 +1,105 @@
 {{-- modal-editar.blade.php --}}
-<div id="modalEditar-{{ $item->id }}" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div id="modalContainer-{{ $item->id }}" class="relative bg-[#1c1c1e] rounded-2xl w-full max-w-md mx-4 shadow-2xl scale-95 opacity-0 transition-all duration-200">
+<div id="modalEditar-{{ $item->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300">
+    <div id="modalContainer-{{ $item->id }}" class="relative bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 rounded-[2.5rem] w-full max-w-md mx-4 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] dark:shadow-[0_0_50px_rgba(0,0,0,0.5)] scale-95 opacity-0 overflow-hidden transform transition-all duration-500">
 
         {{-- Header --}}
-        <div class="flex items-center gap-4 p-7 pb-5">
-            <div class="w-12 h-12 rounded-xl bg-[#3B82F6]/15 flex items-center justify-center shrink-0">
-                <i class="fas fa-pen text-[#3B82F6]"></i>
-            </div>
-            <div>
-                <h2 class="text-xl font-black text-white">Editar Insumo</h2>
-                <p class="text-xs text-white/30 uppercase tracking-widest mt-0.5">{{ strtoupper($item->nombre) }}</p>
+        <div class="p-8 pb-5 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-500/10 dark:border-blue-500/20 shrink-0">
+                    <i class="fas fa-pen text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight uppercase">Editar Insumo</h3>
+                    <p class="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-[0.2em] mt-0.5">{{ strtoupper($item->nombre) }}</p>
+                </div>
             </div>
             <button onclick="cerrarModalEspecifico('modalEditar-{{ $item->id }}')"
-                class="ml-auto w-8 h-8 flex items-center justify-center rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors outline-none">
+                class="w-9 h-9 rounded-xl flex items-center justify-center bg-zinc-100 dark:bg-white/5 text-zinc-400 dark:text-zinc-500 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all outline-none">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
 
         {{-- Divisor --}}
-        <div class="mx-7 border-t border-white/5"></div>
+        <div class="mx-8 border-t border-zinc-100 dark:border-zinc-900"></div>
 
         {{-- Formulario --}}
-        <form action="{{ route('admin.inventario.update', $item->id) }}" method="POST">
+        <form action="{{ route('admin.inventario.update', $item->id) }}" method="POST" class="p-8 pt-6 space-y-5">
             @csrf
             @method('PUT')
 
-            <div class="p-7 space-y-6">
-
-                {{-- Nombre --}}
-                <div class="space-y-2">
-                    <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
-                        <i class="fas fa-tag text-[#3B82F6] text-[10px]"></i>
-                        Nombre del Artículo
-                    </label>
-                    <input type="text" name="nombre" value="{{ $item->nombre }}"
-                        class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 text-sm font-semibold text-white placeholder:text-white/20 outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all">
-                </div>
-
-                {{-- Unidad de Medida --}}
-                <div class="space-y-2">
-                    <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
-                        <i class="fas fa-balance-scale text-[#3B82F6] text-[10px]"></i>
-                        Unidad de Medida
-                    </label>
-                    <div class="relative">
-                        <select name="unidad_medida"
-                            class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 pr-10 text-sm font-semibold text-white appearance-none outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all cursor-pointer">
-                            @foreach(['kg' => 'Kilogramos (kg)', 'g' => 'Gramos (g)', 'l' => 'Litros (l)', 'ml' => 'Mililitros (ml)', 'pz' => 'Piezas (pz)', 'caja' => 'Caja', 'bolsa' => 'Bolsa'] as $val => $label)
-                                <option value="{{ $val }}" {{ $item->unidad_medida === $val ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-white/30">
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Categoría --}}
-                <div class="space-y-2">
-                    <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
-                        <i class="fas fa-layer-group text-[#3B82F6] text-[10px]"></i>
-                        Categoría
-                    </label>
-                    <div class="relative">
-                        <select name="categoria_id"
-                            class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 pr-10 text-sm font-semibold text-white appearance-none outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all cursor-pointer">
-                            <option value="">Sin categoría</option>
-                            @foreach($categorias ?? [] as $cat)
-                                <option value="{{ $cat->id }}" {{ $item->categoria_id == $cat->id ? 'selected' : '' }}>
-                                    {{ $cat->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-white/30">
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Stock Actual y Mínimo --}}
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
-                            <i class="fas fa-layer-group text-[#3B82F6] text-[10px]"></i>
-                            Stock Actual
-                        </label>
-                        <div class="h-12 bg-[#111113] border border-white/5 rounded-xl px-4 flex items-center">
-                            <span class="text-sm font-bold text-[#3B82F6]">{{ number_format($item->stock_actual, 2) }}</span>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
-                            <i class="fas fa-bell text-rose-400 text-[10px]"></i>
-                            Stock Mínimo
-                        </label>
-                        <input type="number" name="stock_minimo" value="{{ $item->stock_minimo }}" step="0.01" min="0"
-                            class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 text-sm font-semibold text-white outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all">
-                    </div>
-                </div>
-
+            {{-- Nombre --}}
+            <div class="space-y-2">
+                <label class="flex items-center gap-2 text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                    <i class="fas fa-tag opacity-60"></i> Nombre del Artículo
+                </label>
+                <input type="text" name="nombre" value="{{ $item->nombre }}" required
+                    class="w-full h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl px-5 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600">
             </div>
 
-            {{-- Footer --}}
-            <div class="flex items-center justify-between px-7 pb-7 gap-4">
+            {{-- Unidad de Medida --}}
+            <div class="space-y-2">
+                <label class="flex items-center gap-2 text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                    <i class="fas fa-scale-balanced opacity-60"></i> Unidad de Medida
+                </label>
+                <div class="relative">
+                    <select name="unidad_medida" required
+                        class="w-full h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl px-5 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer">
+                        @foreach(['kg' => 'Kilogramos (kg)', 'g' => 'Gramos (g)', 'l' => 'Litros (l)', 'ml' => 'Mililitros (ml)', 'pz' => 'Piezas (pz)', 'caja' => 'Caja', 'bolsa' => 'Bolsa'] as $val => $label)
+                            <option value="{{ $val }}" class="bg-white dark:bg-zinc-900" {{ $item->unidad_medida === $val ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none text-[10px]"></i>
+                </div>
+            </div>
+
+            {{-- Categoría --}}
+            <div class="space-y-2">
+                <label class="flex items-center gap-2 text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                    <i class="fas fa-folder opacity-60"></i> Categoría
+                </label>
+                <div class="relative">
+                    <select name="categoria_id"
+                        class="w-full h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl px-5 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="" class="bg-white dark:bg-zinc-900">Sin categoría</option>
+                        @foreach($categorias ?? [] as $cat)
+                            <option value="{{ $cat->id }}" class="bg-white dark:bg-zinc-900" {{ $item->categoria_id == $cat->id ? 'selected' : '' }}>
+                                {{ $cat->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none text-[10px]"></i>
+                </div>
+            </div>
+
+            {{-- Stock Actual y Mínimo --}}
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                        <i class="fas fa-box opacity-60"></i> Stock Actual
+                    </label>
+                    <div class="h-12 bg-zinc-100/60 dark:bg-zinc-900/30 border border-zinc-200/40 dark:border-zinc-800/40 rounded-2xl px-5 flex items-center cursor-not-allowed">
+                        <span class="text-xs font-black text-blue-600 dark:text-blue-400">{{ number_format($item->stock_actual, 2) }}</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                        <i class="fas fa-bell opacity-60"></i> Stock Mínimo
+                    </label>
+                    <input type="number" name="stock_minimo" value="{{ $item->stock_minimo }}" step="0.01" min="0" required
+                        class="w-full h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl px-5 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500">
+                </div>
+            </div>
+
+            {{-- Footer (Botones) --}}
+            <div class="flex items-center gap-4 pt-4 pb-2">
                 <button type="button" onclick="cerrarModalEspecifico('modalEditar-{{ $item->id }}')"
-                    class="text-sm font-bold text-white/30 hover:text-white transition-colors uppercase tracking-widest outline-none px-2 py-3">
+                    class="flex-1 h-12 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 transition-all outline-none">
                     Cancelar
                 </button>
                 <button type="submit"
-                    class="flex-1 h-12 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black text-sm uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-[#3B82F6]/20 outline-none">
-                    <i class="fas fa-save"></i> Guardar Cambios
+                    class="flex-[1.5] h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all active:scale-95 outline-none flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> Guardar
                 </button>
             </div>
         </form>

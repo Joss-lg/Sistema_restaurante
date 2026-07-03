@@ -67,22 +67,22 @@
             $menu = [
                 'Administración' => [
                     ['route' => 'admin.dashboard', 'icon' => 'fas fa-th-large', 'label' => 'Dashboard', 'modulo_id' => 1],
-                    ['route' => 'admin.empleados.index', 'icon' => 'fas fa-users', 'label' => 'Empleados', 'modulo_id' => 6],
+                    ['route' => 'admin.empleados.index', 'icon' => 'fas fa-users', 'label' => 'Empleados', 'modulo_id' => 3],
                     ['route' => 'admin.roles.index', 'icon' => 'fas fa-id-badge', 'label' => 'Roles', 'modulo_id' => 11],
                     ['route' => 'admin.finanzas.index', 'icon' => 'fas fa-chart-line', 'label' => 'Finanzas', 'modulo_id' => 10],
                 ],
                 'Productos' => [
-                    ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menú', 'modulo_id' => 7],
-                    ['route' => 'admin.inventario.index', 'icon' => 'fas fa-cube', 'label' => 'Inventario', 'modulo_id' => 5],
-                    ['route' => 'admin.categorias.index', 'icon' => 'fas fa-layer-group', 'label' => 'Categorías', 'modulo_id' => 8],
-                    ['route' => 'admin.promociones.index', 'icon' => 'fas fa-tags', 'label' => 'Promociones', 'modulo_id' => 9],
+                    ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menú', 'modulo_id' => 4],
+                    ['route' => 'admin.inventario.index', 'icon' => 'fas fa-cube', 'label' => 'Inventario', 'modulo_id' => 2],
+                    ['route' => 'admin.categorias.index', 'icon' => 'fas fa-layer-group', 'label' => 'Categorías', 'modulo_id' => 5],
+                    ['route' => 'admin.promociones.index', 'icon' => 'fas fa-tags', 'label' => 'Promociones', 'modulo_id' => 7],
                 ],
                 'Operaciones' => [
-                    ['route' => 'admin.cocina.index', 'icon' => 'fas fa-fire-burner', 'label' => 'Cocina', 'modulo_id' => 4],
-                    ['route' => 'admin.mesas.index', 'icon' => 'fas fa-chair', 'label' => 'Mesas', 'modulo_id' => 3],
+                    ['route' => 'admin.cocina.index', 'icon' => 'fas fa-fire-burner', 'label' => 'Cocina', 'modulo_id' => 8],
+                    ['route' => 'admin.mesas.index', 'icon' => 'fas fa-chair', 'label' => 'Mesas', 'modulo_id' => 6],
                 ],
                 'Caja' => [
-                    ['route' => 'admin.caja.index', 'icon' => 'fas fa-cash-register', 'label' => 'Caja', 'modulo_id' => 2],
+                    ['route' => 'admin.caja.index', 'icon' => 'fas fa-cash-register', 'label' => 'Caja', 'modulo_id' => 9],
                 ]
             ];
         @endphp

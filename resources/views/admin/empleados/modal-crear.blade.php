@@ -1,122 +1,144 @@
-<div id="employeeModal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden opacity-0 transition-all duration-500">
-    <div id="modalContent" class="modal-inverso relative bg-[var(--m-bg,#ffffff)] border border-[var(--m-border,#e2e8f0)] rounded-[2.5rem] p-10 w-full max-w-[480px] transform scale-95 transition-all duration-500" style="box-shadow: var(--m-shadow);">
+<div id="modalCrearEmpleado" class="fixed inset-0 z-[110] hidden bg-black/50 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300">
+    
+    {{-- Contenedor principal: Cambia de blanco (modo claro) a oscuro automáticamente con Tailwind --}}
+    <div class="bg-white dark:bg-[#111315] border border-gray-200 dark:border-gray-800 w-full max-w-md rounded-[1.5rem] shadow-xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="modalCrearContent">
         
-        <div class="absolute -top-24 -right-24 w-48 h-48 bg-[var(--m-glow,rgba(0,0,0,0.02))] rounded-full blur-3xl pointer-events-none"></div>
-
-        <button type="button" onclick="closeModal()" class="absolute top-8 right-8 text-[var(--m-muted,#71717a)] hover:text-[var(--m-text,#09090b)] hover:rotate-90 transition-all duration-300 outline-none z-10">
-            <i class="fas fa-times text-xl"></i>
-        </button>
-
-        <div class="mb-10 relative z-10">
-            {{-- Si existe $usuario, es edición. Si no, es registro. --}}
-            <h2 class="text-3xl font-black text-[var(--m-text,#09090b)] tracking-tighter">
-                {{ isset($usuario) ? 'Editar Perfil' : 'Registrar Perfil' }}
-            </h2>
-            <p class="text-[11px] font-bold text-[var(--m-muted,#71717a)] uppercase tracking-[0.2em] mt-2 opacity-80">
-                {{ isset($usuario) ? 'Actualización de credenciales' : 'Nueva credencial de acceso' }}
-            </p>
-        </div>
-
-        {{-- Ajuste de acción para permitir edición o creación --}}
-        <form action="{{ isset($usuario) ? route('admin.empleados.update', $usuario->id) : route('admin.empleados.store') }}" method="POST" class="p-8 pt-4 space-y-6">
+        <form id="formCrearEmpleado" method="POST" action="{{ route('admin.empleados.store') }}" class="flex flex-col h-full relative z-10 overflow-hidden bg-white dark:bg-[#111315]">
             @csrf
-            @if(isset($usuario)) @method('PUT') @endif
+            
+            {{-- Cuerpo del modal --}}
+            <div class="p-6 sm:p-8 overflow-y-auto flex-1 space-y-5 bg-white dark:bg-[#111315]">
+                
+                {{-- Encabezado --}}
+                <div class="flex justify-between items-start pb-2">
+                    <div>
+                        <h2 class="text-xl font-black text-gray-800 dark:text-gray-100 tracking-tight flex items-center gap-2">
+                            Registrar Perfil <i class="fas fa-user-plus text-blue-600 dark:text-blue-500 text-base"></i>
+                        </h2>
+                        <p class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mt-0.5">Nueva credencial de acceso</p>
+                    </div>
+                    <button type="button" onclick="cerrarModalCrear()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/60 flex-shrink-0">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
 
-            {{-- Nombre --}}
-            <div class="group">
-                <label for="nombre" class="text-[10px] font-black text-[var(--m-text,#09090b)] uppercase tracking-[0.2em] mb-3 block opacity-90">Nombre Completo</label>
-                <input type="text" id="nombre" name="nombre" value="{{ old('nombre', $usuario->nombre ?? '') }}" required placeholder="Ej. Juan Pérez" class="w-full h-14 bg-[var(--m-input-bg,#f8fafc)] border border-[var(--m-border,#e2e8f0)] rounded-2xl px-6 font-bold text-[var(--m-text,#09090b)] outline-none focus:border-[#3B82F6]">
+                {{-- Campo: Nombre Completo --}}
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Nombre Completo</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400 dark:text-gray-500 group-focus-within:text-blue-600 transition-colors"></i>
+                        </div>
+                        <input type="text" name="nombre" id="crear_nombre" required placeholder="Ej. Juan Pérez" autocomplete="off"
+                            class="w-full h-12 bg-gray-50 dark:bg-[#1a1d20] border border-gray-300 dark:border-gray-700 rounded-xl pl-11 pr-4 text-sm font-semibold text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm">
+                    </div>
+                </div>
+
+                {{-- Campo: Rol del Sistema --}}
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Rol del Sistema</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-shield-alt text-gray-400 dark:text-gray-500 group-focus-within:text-blue-600 transition-colors"></i>
+                        </div>
+                        <select name="rol_id" id="crear_rol_id" required 
+                            class="w-full h-12 bg-gray-50 dark:bg-[#1a1d20] border border-gray-300 dark:border-gray-700 rounded-xl pl-11 pr-10 text-sm font-semibold text-gray-800 dark:text-gray-100 appearance-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all cursor-pointer shadow-sm">
+                            <option value="" disabled selected class="text-gray-400 dark:text-gray-500">Seleccionar rol...</option>
+                            @foreach($roles ?? [] as $rol)
+                                <option value="{{ $rol->id }}" class="text-gray-800 dark:text-gray-200 bg-white dark:bg-[#1a1d20]">{{ $rol->nombre }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400 dark:text-gray-500 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Switch: Acceso al Sistema --}}
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#1a1d20] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+                    <div class="pr-2">
+                        <label class="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Acceso al sistema</label>
+                        <p class="text-[11px] font-medium text-gray-400 dark:text-gray-500 mt-0.5">¿Este empleado usará la plataforma?</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                        <input type="checkbox" name="puede_acceder_pos" id="crear_acceso" value="1" onchange="toggleCrearAccesoFields()" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                {{-- Contenedor dinámico: PIN --}}
+                <div id="crear_accesoFields" class="hidden transition-all duration-300">
+                    <label class="block text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">PIN de Seguridad (4 dígitos)</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400 dark:text-gray-500 group-focus-within:text-blue-500 transition-colors"></i>
+                        </div>
+                        <input type="password" name="codigo_empleado" id="crear_codigo" maxlength="4" placeholder="••••" autocomplete="new-password"
+                            class="w-full h-12 bg-gray-50 dark:bg-[#1a1d20] border border-gray-300 dark:border-gray-700 rounded-xl pl-11 pr-4 text-lg tracking-[0.4em] font-black text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm">
+                    </div>
+                </div>
             </div>
 
-            {{-- Rol del Sistema --}}
-            <div class="relative group" id="dropdownContainer">
-                <label class="text-[10px] font-black text-[var(--m-text,#09090b)] uppercase tracking-[0.2em] mb-3 block opacity-90">Rol del Sistema</label>
-                <input type="hidden" name="rol_id" id="rol_id_input" value="{{ $usuario->rol_id ?? '' }}" required>
-                <button type="button" onclick="toggleDropdown(event)" id="dropdownBtn" class="flex items-center justify-between w-full h-14 bg-[var(--m-input-bg,#f8fafc)] border border-[var(--m-border,#e2e8f0)] rounded-2xl pl-5 pr-6 text-sm font-bold text-[var(--m-text,#09090b)] outline-none">
-                    <span id="dropdownSelected">{{ isset($usuario) ? $usuario->rol->nombre : 'Seleccionar...' }}</span>
-                    <i class="fas fa-chevron-down" id="dropdownIcon"></i>
+            {{-- Barra inferior de acciones --}}
+            <div class="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#15181b] flex-shrink-0">
+                <button type="button" onclick="cerrarModalCrear()" class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                    Cancelar
                 </button>
-                <div id="dropdownMenu" class="absolute w-full bg-[var(--m-drop-bg,#ffffff)] border border-[var(--m-border,#e2e8f0)] rounded-2xl shadow-2xl z-[110] py-2 hidden mt-2">
-                    @foreach($roles ?? [] as $rol)
-                        <button type="button" onclick="selectRole('{{ $rol->nombre }}', '{{ $rol->id }}')" class="w-full px-6 py-3 text-left hover:bg-[var(--m-drop-hover,#f1f5f9)]">{{ $rol->nombre }}</button>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Switch de Acceso --}}
-            <div class="flex items-center justify-between p-4 bg-[var(--m-input-bg,#f8fafc)] rounded-2xl border border-[var(--m-border,#e2e8f0)]">
-                <div class="flex flex-col">
-                    <label class="text-[10px] font-black text-[var(--m-text,#09090b)] uppercase tracking-[0.2em]">Acceso al Sistema</label>
-                    <p class="text-[9px] text-[var(--m-muted,#71717a)]">¿Este empleado usará la plataforma?</p>
-                </div>
-                {{-- LÓGICA DE PROTECCIÓN: Si es ID 1, ponemos 'disabled' --}}
-                <input type="checkbox" 
-                       id="toggleAcceso" 
-                       name="puede_acceder_pos" 
-                       value="1" 
-                       {{ (isset($usuario) && $usuario->esta_activo) ? 'checked' : '' }}
-                       {{ (isset($usuario) && $usuario->id == 1) ? 'disabled' : '' }} 
-                       onchange="toggleAccesoFields()" 
-                       class="toggle-checkbox w-6 h-6 cursor-pointer">
-            </div>
-
-            {{-- CONDICIONAL --}}
-            <div id="accesoFields" class="{{ (isset($usuario) && $usuario->esta_activo) ? '' : 'hidden' }} space-y-6 transition-all duration-500">
-                <div class="group">
-                    <label for="codigo_empleado" class="text-[10px] font-black text-[var(--m-text,#09090b)] uppercase tracking-[0.2em] mb-3 block opacity-90">PIN de Seguridad (4 dígitos)</label>
-                    <input type="text" id="codigo_empleado" name="codigo_empleado" value="{{ $usuario->codigo_empleado ?? '' }}" maxlength="4" placeholder="0000" class="w-full h-14 bg-[var(--m-input-bg,#f8fafc)] border border-[var(--m-border,#e2e8f0)] rounded-2xl px-6 font-black tracking-[0.8em] text-[var(--m-text,#09090b)] outline-none focus:border-[#3B82F6]">
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-4 mt-12 pt-8 border-t border-[var(--m-border,#e2e8f0)]">
-                <button type="button" onclick="closeModal()" class="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[var(--m-muted,#71717a)]">Cancelar</button>
-                <button type="submit" class="px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-[var(--m-btn-bg,#0f172a)] text-[var(--m-btn-text,#ffffff)]">Guardar</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm">
+                    Guardar
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    // Inicializar visualización de campos al cargar (si estás editando)
-    document.addEventListener('DOMContentLoaded', () => {
-        toggleAccesoFields();
-    });
-
-    function toggleAccesoFields() {
-        const checkbox = document.getElementById('toggleAcceso');
-        const fields = document.getElementById('accesoFields');
-        // Si el checkbox está marcado, mostramos los campos
-        if (checkbox.checked) {
-            fields.classList.remove('hidden');
-        } else {
-            fields.classList.add('hidden');
+    function toggleCrearAccesoFields() {
+        const checkbox = document.getElementById('crear_acceso');
+        const fields = document.getElementById('crear_accesoFields');
+        const inputPin = document.getElementById('crear_codigo');
+        
+        if (checkbox && fields && inputPin) {
+            if (checkbox.checked) {
+                fields.classList.remove('hidden');
+                inputPin.setAttribute('required', 'required');
+            } else {
+                fields.classList.add('hidden');
+                inputPin.removeAttribute('required');
+                inputPin.value = '';
+            }
         }
     }
 
-    function openModal() {
-        document.getElementById('employeeModal').classList.remove('hidden');
-        setTimeout(() => {
-            document.getElementById('employeeModal').classList.remove('opacity-0');
-            document.getElementById('modalContent').classList.remove('scale-95');
-        }, 10);
+    function abrirModalCrear() {
+        const form = document.getElementById('formCrearEmpleado');
+        if (form) form.reset();
+        
+        toggleCrearAccesoFields();
+
+        const modal = document.getElementById('modalCrearEmpleado');
+        const content = document.getElementById('modalCrearContent');
+        
+        if (modal && content) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
     }
 
-    function closeModal() {
-        document.getElementById('employeeModal').classList.add('opacity-0');
-        document.getElementById('modalContent').classList.add('scale-95');
-        setTimeout(() => document.getElementById('employeeModal').classList.add('hidden'), 500);
+    function cerrarModalCrear() {
+        const modal = document.getElementById('modalCrearEmpleado');
+        const content = document.getElementById('modalCrearContent');
+        
+        if (modal && content) {
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
     }
-
-    function toggleDropdown(event) {
-        event.stopPropagation();
-        document.getElementById('dropdownMenu').classList.toggle('hidden');
-    }
-
-    function selectRole(nombre, id) {
-        document.getElementById('dropdownSelected').innerText = nombre;
-        document.getElementById('rol_id_input').value = id;
-        document.getElementById('dropdownMenu').classList.add('hidden');
-    }
-
-    window.addEventListener('click', () => document.getElementById('dropdownMenu').classList.add('hidden'));
 </script>

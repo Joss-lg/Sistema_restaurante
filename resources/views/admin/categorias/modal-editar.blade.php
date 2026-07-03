@@ -1,5 +1,5 @@
 <div id="modalEditar-{{ $categoria->id }}" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div id="modalContainer-{{ $categoria->id }}" class="relative bg-[#1c1c1e] rounded-2xl w-full max-w-md mx-4 shadow-2xl scale-95 opacity-0 transition-all duration-200">
+    <div id="modalContainer-{{ $categoria->id }}" class="relative bg-[#1c1c1e] rounded-2xl w-full max-w-md mx-4 shadow-2xl scale-95 opacity-0 transition-all duration-200 overflow-hidden">
 
         <div class="flex items-center gap-4 p-7 pb-5">
             <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"

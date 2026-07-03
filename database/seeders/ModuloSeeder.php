@@ -20,6 +20,8 @@ class ModuloSeeder extends Seeder
             ['nombre' => 'Cocina'],
             ['nombre' => 'Caja'],
             ['nombre' => 'Finanzas'],
+            ['nombre' => 'Roles'],
+            ['nombre' => 'Historial de Cajas'],
         ];
 
         DB::table('modulos')->insert($modulos);
