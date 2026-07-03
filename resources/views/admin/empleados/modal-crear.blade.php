@@ -93,5 +93,30 @@
         }
     }
 
-    // ... [resto de tus funciones openModal, closeModal, etc.]
+    function openModal() {
+        document.getElementById('employeeModal').classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('employeeModal').classList.remove('opacity-0');
+            document.getElementById('modalContent').classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeModal() {
+        document.getElementById('employeeModal').classList.add('opacity-0');
+        document.getElementById('modalContent').classList.add('scale-95');
+        setTimeout(() => document.getElementById('employeeModal').classList.add('hidden'), 500);
+    }
+
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        document.getElementById('dropdownMenu').classList.toggle('hidden');
+    }
+
+    function selectRole(nombre, id) {
+        document.getElementById('dropdownSelected').innerText = nombre;
+        document.getElementById('rol_id_input').value = id;
+        document.getElementById('dropdownMenu').classList.add('hidden');
+    }
+
+    window.addEventListener('click', () => document.getElementById('dropdownMenu').classList.add('hidden'));
 </script>

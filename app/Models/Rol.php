@@ -15,7 +15,6 @@ class Rol extends Model
     // Agregado 'descripcion' para permitir la asignación masiva
     protected $fillable = [
         'nombre',
-        'descripcion',
     ];
 
     public function usuarios(): HasMany

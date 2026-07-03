@@ -23,13 +23,11 @@ class RolController extends Controller
     {
         $request->validate([
             'nombre'      => 'required|string|max:255|unique:roles,nombre',
-            'descripcion' => 'nullable|string|max:500',
         ]);
 
         try {
             Rol::create([
                 'nombre'      => trim($request->nombre),
-                'descripcion' => $request->descripcion,
             ]);
 
             return redirect()->route('admin.roles.index')
@@ -47,13 +45,11 @@ class RolController extends Controller
 
         $request->validate([
             'nombre'      => 'required|string|max:255|unique:roles,nombre,' . $id,
-            'descripcion' => 'nullable|string|max:500',
         ]);
 
         try {
             $rol->update([
                 'nombre'      => trim($request->nombre),
-                'descripcion' => $request->descripcion,
             ]);
 
             return redirect()->route('admin.roles.index')
