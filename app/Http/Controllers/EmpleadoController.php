@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Permiso;
+use App\Models\Modulo;
 use App\Models\Rol;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -18,12 +19,7 @@ class EmpleadoController extends Controller
             $query->where('esta_activo', true);
         }
 
-        // CORRECCIÓN 1: Quitamos 'permisos:id,nombre' porque la tabla permisos ya no tiene 'nombre'.
-        // Solo traemos la relación completa.
         $empleados = $query->with(['permisos', 'rol:id,nombre'])->get();
-        
-        // CORRECCIÓN 2: Eliminamos la consulta $permisosBase porque los permisos 
-        // ahora se calculan dinámicamente por módulo, no por catálogo de nombres.
         $roles = Rol::orderBy('nombre')->get(); 
 
         return view('admin.empleados.index', compact('empleados', 'roles'));
@@ -43,7 +39,7 @@ class EmpleadoController extends Controller
         User::create([
             'nombre'            => trim($request->nombre),
             'email'             => $request->email ?? strtolower(str_replace(' ', '', $request->nombre)) . '@empresa.com',
-            'rol_id'            => $request->rol_id, // El rol sirve para agrupar/identificar el puesto, está perfecto.
+            'rol_id'            => $request->rol_id,
             'puede_acceder_pos' => $esPOS,
             'codigo_empleado'   => $esPOS ? $request->codigo_empleado : null,
             'password'          => $esPOS ? Hash::make($request->codigo_empleado) : Hash::make('acceso_limitado'),
@@ -56,19 +52,31 @@ class EmpleadoController extends Controller
     public function update(Request $request, $id)
     {
         $empleado = User::findOrFail($id);
+        
+        // 🌟 LÓGICA DE BLINDAJE: Verificamos si te estás editando a ti mismo
+        $esMismoUsuario = ($empleado->id === auth()->id());
 
-        $request->validate([
+        $reglas = [
             'nombre'            => 'required|string|max:255',
-            'rol_id'            => 'required|exists:roles,id',
             'puede_acceder_pos' => 'boolean',
             'codigo_empleado'   => 'required_if:puede_acceder_pos,1|nullable|digits:4|unique:users,codigo_empleado,' . $id,
-        ]);
+        ];
 
-        $esPOS = $request->boolean('puede_acceder_pos');
+        // Solo exigimos el rol_id si NO eres tú mismo (porque si eres tú, el campo se envía vacío o bloqueado)
+        if (!$esMismoUsuario) {
+            $reglas['rol_id'] = 'required|exists:roles,id';
+        }
+
+        $request->validate($reglas);
+
+        // Si eres tú mismo, forzamos tus valores actuales de la Base de Datos
+        // Si es otro empleado, tomamos lo que seleccionaste en el formulario
+        $esPOS = $esMismoUsuario ? $empleado->puede_acceder_pos : $request->boolean('puede_acceder_pos');
+        $rolId = $esMismoUsuario ? $empleado->rol_id : $request->rol_id;
         
         $data = [
             'nombre'            => trim($request->nombre),
-            'rol_id'            => $request->rol_id,
+            'rol_id'            => $rolId,
             'puede_acceder_pos' => $esPOS,
             'codigo_empleado'   => $esPOS ? $request->codigo_empleado : null,
         ];
@@ -82,43 +90,48 @@ class EmpleadoController extends Controller
         return redirect()->route('admin.empleados.index')->with('success', 'Datos actualizados.');
     }
 
-    // CORRECCIÓN 3: Limpiamos la función que carga la vista
     public function permisos($id)
     {
-        // Ya no buscamos $permisosBase. La vista que armamos ya tiene los módulos definidos.
         $empleado = User::with('permisos')->findOrFail($id);
-        
         return view('admin.empleados.permisos', compact('empleado'));
     }
 
-    // CORRECCIÓN 4: Integramos la lógica de updateOrCreate que te mostré antes
     public function actualizarPermisos(Request $request, $id)
-    {
-        $empleado = User::findOrFail($id);
-        
-        $request->validate([
-            'permisos' => 'required|array',
-        ]);
+{
+    $empleado = User::findOrFail($id);
+    // Traemos todos los IDs de módulos existentes para asegurar que cubrimos el 1 al 10
+    $todosLosModulos = \App\Models\Modulo::pluck('id'); 
+    $permisosEnviados = $request->input('permisos', []);
 
-        // Recorremos los checkboxes enviados desde la vista
-        foreach ($request->permisos as $moduloId => $acciones) {
-            Permiso::updateOrCreate(
-                [
-                    'user_id'   => $empleado->id,
-                    'modulo_id' => $moduloId
-                ],
-                [
-                    'mostrar'   => isset($acciones['mostrar']) ? 1 : 0,
-                    'crear'     => isset($acciones['crear']) ? 1 : 0,
-                    'editar'    => isset($acciones['editar']) ? 1 : 0,
-                    'eliminar'  => isset($acciones['eliminar']) ? 1 : 0,
-                    'gestionar' => isset($acciones['gestionar']) ? 1 : 0,
-                ]
-            );
+    foreach ($todosLosModulos as $moduloId) {
+        $acciones = $permisosEnviados[$moduloId] ?? [];
+
+        // Buscamos primero el registro existente
+        $permiso = Permiso::where('user_id', $empleado->id)
+                          ->where('modulo_id', $moduloId)
+                          ->first();
+
+        $data = [
+            'mostrar'   => isset($acciones['mostrar']) ? 1 : 0,
+            'crear'     => isset($acciones['crear']) ? 1 : 0,
+            'editar'    => isset($acciones['editar']) ? 1 : 0,
+            'eliminar'  => isset($acciones['eliminar']) ? 1 : 0,
+            'gestionar' => isset($acciones['gestionar']) ? 1 : 0,
+        ];
+
+        if ($permiso) {
+            $permiso->update($data);
+        } else {
+            Permiso::create(array_merge([
+                'user_id' => $empleado->id, 
+                'modulo_id' => $moduloId
+            ], $data));
         }
-
-        return redirect()->route('admin.empleados.index')->with('success', "Permisos de {$empleado->nombre} actualizados correctamente.");
     }
+
+    return redirect()->route('admin.empleados.index')
+                     ->with('success', "Permisos de {$empleado->nombre} actualizados correctamente.");
+}
 
     public function destroy($id)
     {
@@ -134,4 +147,3 @@ class EmpleadoController extends Controller
         return redirect()->back()->with('success', "Empleado reactivado.");
     }
 }
-

@@ -13,19 +13,20 @@ class PermisoController extends Controller
      * Esta función recibe los permisos marcados en un formulario.
      * Se espera que el formulario envíe algo como: permisos[modulo_id][accion] = true
      */
-    public function asignarPermisos(Request $request, $userId)
+   public function asignarPermisos(Request $request, $userId)
     {
+        dd($request->all());
         $empleado = User::findOrFail($userId);
+        
+        $todosLosModulos = Modulo::pluck('id');
+        
+        // Obtenemos los permisos enviados (si no viene nada, es un array vacío)
+        $permisosEnviados = $request->input('permisos', []);
 
-        // Validamos que recibimos un array de permisos
-        $request->validate([
-            'permisos' => 'required|array',
-        ]);
+        foreach ($todosLosModulos as $moduloId) {
+            // Obtenemos las acciones para este módulo, si no existen, ponemos un array vacío
+            $acciones = $permisosEnviados[$moduloId] ?? [];
 
-        // Recorremos el array de permisos enviado desde el formulario
-        // Estructura esperada: permisos[1] = ['mostrar' => 1, 'crear' => 1, ...]
-        foreach ($request->permisos as $moduloId => $acciones) {
-            
             Permiso::updateOrCreate(
                 [
                     'user_id'   => $empleado->id,
@@ -41,6 +42,6 @@ class PermisoController extends Controller
             );
         }
 
-        return back()->with('success', "Permisos actualizados correctamente para {$empleado->nombre}.");
+        return back()->with('success', "Permisos actualizados correctamente.");
     }
 }

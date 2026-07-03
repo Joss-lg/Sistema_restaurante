@@ -2,7 +2,7 @@
 
 @section('title', 'KDS Cocina | Ollintem Pro')
 
-@section('header-title', 'Kitchen Display System')
+@section('header-title', 'Modulo de Cocina')
 @section('header-subtitle', 'Monitor en tiempo real de comandas, tiempos de preparación y notas especiales')
 
 @section('content')
