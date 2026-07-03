@@ -13,7 +13,7 @@
                     <thead>
                         <tr class="bg-black/20 modo-crema:bg-zinc-50/80 border-b border-[var(--border-color)]">
                             <th class="py-10 px-10 text-[11px] font-black text-[var(--text-color)] uppercase tracking-[0.4em] text-left">Módulos</th>
-                            @php $permisosHeader = ['Ver', 'Crear', 'Editar', 'Borrar', 'Reporte/Gestión']; @endphp
+                            @php $permisosHeader = ['Ver', 'Crear', 'Editar', 'Borrar', 'Gestión']; @endphp
                             @foreach($permisosHeader as $p)
                             <th class="py-10 px-4 text-[11px] font-black text-[var(--text-color)] uppercase tracking-[0.4em] text-center">{{ $p }}</th>
                             @endforeach
@@ -22,19 +22,18 @@
                     </thead>
                     <tbody class="divide-y divide-[var(--border-color)]">
                         @php
-
+                            // Catálogo de módulos con sus IDs correspondientes a tu tabla 'modulos'
                             $items = [
-                                ['n' => 'Dashboard',     'slug' => 'dashboard',   'i' => 'fa-th-large'],
-                                ['n' => 'Caja',          'slug' => 'caja',        'i' => 'fa-cash-register'],
-                                ['n' => 'Mesas',         'slug' => 'mesas',       'i' => 'fa-chair'],
-                                ['n' => 'Cocina',        'slug' => 'cocina',      'i' => 'fa-fire-burner'],
-                                ['n' => 'Inventario',    'slug' => 'inventario',  'i' => 'fa-cube'],
-                                ['n' => 'Empleados',     'slug' => 'empleados',   'i' => 'fa-users'],
-                                ['n' => 'Menu',          'slug' => 'productos',   'i' => 'fa-utensils'],
-                                ['n' => 'Categorías',    'slug' => 'categorias',  'i' => 'fa-layer-group'],
-                                ['n' => 'Promociones',   'slug' => 'promociones', 'i' => 'fa-tags'],
-                                ['n' => 'Finanzas',      'slug' => 'finanzas',    'i' => 'fa-chart-line'],
-                                ['n' => 'Roles',         'slug' => 'roles',       'i' => 'fa-id-badge'],
+                                ['id' => 1,  'n' => 'Dashboard',   'i' => 'fa-th-large'],
+                                ['id' => 2,  'n' => 'Inventario',  'i' => 'fa-cube'],
+                                ['id' => 3,  'n' => 'Empleados',   'i' => 'fa-users'],
+                                ['id' => 4,  'n' => 'Productos',   'i' => 'fa-utensils'],
+                                ['id' => 5,  'n' => 'Categorías',  'i' => 'fa-layer-group'],
+                                ['id' => 6,  'n' => 'Mesas',       'i' => 'fa-chair'],
+                                ['id' => 7,  'n' => 'Promociones', 'i' => 'fa-tags'],
+                                ['id' => 8,  'n' => 'Cocina',      'i' => 'fa-fire-burner'],
+                                ['id' => 9,  'n' => 'Caja',        'i' => 'fa-cash-register'],
+                                ['id' => 10, 'n' => 'Finanzas',    'i' => 'fa-chart-line'],
                             ];
                         @endphp
 
@@ -49,45 +48,26 @@
                                     </div>
                                 </td>
 
-                                @foreach(['ver', 'agregar', 'editar', 'eliminar', 'gestionar'] as $accion)
-                                    @php
-                                        $accionReal = $accion;
-                                        if ($item['slug'] == 'caja' && $accion == 'agregar') $accionReal = 'abrir';
-                                        if ($item['slug'] == 'caja' && $accion == 'editar') $accionReal = 'cerrar';
-                                        if ($item['slug'] == 'caja' && $accion == 'gestionar') $accionReal = 'reporte';
-                                        if ($item['slug'] == 'inventario' && $accion == 'gestionar') $accionReal = 'reporte';
-                                        if ($item['slug'] == 'empleados' && $accion == 'gestionar') $accionReal = 'reporte';
-                                        
-                                        if ($item['slug'] == 'productos' && $accion == 'gestionar') $accionReal = 'reporte';
-                                        
-                                        if ($item['slug'] == 'finanzas' && $accion == 'gestionar') $accionReal = 'reporte';
-                                        if ($item['slug'] == 'promociones' && $accion == 'gestionar') $accionReal = 'reporte';
-                                        if ($item['slug'] == 'roles' && $accion == 'gestionar') $accionReal = null;
-                                        if ($accionReal === null) continue;
+                                @php
+                                    // Validamos qué permisos tiene ya guardados este usuario para el módulo actual
+                                    $permisoActual = $empleado->permisos->where('modulo_id', $item['id'])->first();
+                                @endphp
 
-                                        $slugBusqueda = $item['slug'] . '.' . $accionReal;
-                                        $permisoObj = $permisosBase->where('slug', $slugBusqueda)->first();
-                                    @endphp
+                                @foreach(['mostrar', 'crear', 'editar', 'eliminar', 'gestionar'] as $accion)
                                     <td class="py-8 px-4">
-                                        @if($permisoObj)
-                                            <label class="relative flex items-center justify-center cursor-pointer group/check">
-                                                <input type="checkbox" 
-                                                    name="permisos[]" 
-                                                    value="{{ $permisoObj->id }}"
-                                                    class="permiso-checkbox peer sr-only"
-                                                    {{ $empleado->permisos->contains($permisoObj->id) ? 'checked' : '' }}>
-                                                
-                                                <div class="w-9 h-9 rounded-xl border-2 border-[var(--border-color)] bg-[var(--input-bg)] transition-all duration-300
-                                                    peer-checked:bg-[#3B82F6] peer-checked:border-[#3B82F6] peer-checked:shadow-[0_0_20px_rgba(59,130,246,0.5)]
-                                                    group-hover/check:border-[#3B82F6]/50 flex items-center justify-center">
-                                                    <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all"></i>
-                                                </div>
-                                            </label>
-                                        @else
-                                            <div class="flex justify-center">
-                                                <div class="w-9 h-9 rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-color)] opacity-20"></div>
+                                        <label class="relative flex items-center justify-center cursor-pointer group/check">
+                                            <input type="checkbox" 
+                                                name="permisos[{{ $item['id'] }}][{{ $accion }}]" 
+                                                value="1"
+                                                class="permiso-checkbox peer sr-only"
+                                                {{ ($permisoActual && $permisoActual->$accion) ? 'checked' : '' }}>
+                                            
+                                            <div class="w-9 h-9 rounded-xl border-2 border-[var(--border-color)] bg-[var(--input-bg)] transition-all duration-300
+                                                peer-checked:bg-[#3B82F6] peer-checked:border-[#3B82F6] peer-checked:shadow-[0_0_20px_rgba(59,130,246,0.5)]
+                                                group-hover/check:border-[#3B82F6]/50 flex items-center justify-center">
+                                                <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all"></i>
                                             </div>
-                                        @endif
+                                        </label>
                                     </td>
                                 @endforeach
 
@@ -106,7 +86,7 @@
                 <div class="flex items-center gap-4">
                     <div class="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse"></div>
                     <p class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">
-                        Seguridad de Acceso Nivel: <span class="text-[var(--text-color)]">Empresarial</span>
+                        Seguridad de Acceso Nivel: <span class="text-[var(--text-color)]">Granular</span>
                     </p>
                 </div>
                 
@@ -125,14 +105,12 @@
 </div>
 
 <style>
-    /* Estilos para el scrollbar premium */
     .overflow-x-auto::-webkit-scrollbar { height: 6px; }
     .overflow-x-auto::-webkit-scrollbar-track { background: transparent; }
     .overflow-x-auto::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
 </style>
 
 <script>
-    // Lógica para seleccionar toda la fila al dar clic en "Todos"
     document.querySelectorAll('.toggle-row').forEach(button => {
         button.addEventListener('click', function() {
             const row = this.closest('tr');
@@ -143,7 +121,6 @@
                 cb.checked = !allChecked;
             });
             
-            // Animación sutil de feedback
             this.style.color = '#3B82F6';
             setTimeout(() => { this.style.color = ''; }, 500);
         });

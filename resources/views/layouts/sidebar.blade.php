@@ -60,65 +60,74 @@
         </button>
     </div>
 
-    {{-- Navegación --}}
-    <nav class="py-4 px-3 space-y-2 overflow-y-auto overflow-x-hidden max-h-[calc(100vh-14rem)] scrollbar-hide relative z-10 flex-1" id="nav-container">
+   {{-- Navegación --}}
+    <nav class="py-4 px-3 space-y-6 overflow-y-auto overflow-x-hidden max-h-[calc(100vh-14rem)] scrollbar-hide relative z-10 flex-1" id="nav-container">
         
         @php
-            $seccionesMenu = [
-                ['route' => 'admin.dashboard', 'icon' => 'fas fa-th-large', 'label' => 'Dashboard', 'permission' => 'dashboard.ver'],
-                ['route' => 'admin.caja.index', 'icon' => 'fas fa-cash-register', 'label' => 'Caja', 'permission' => 'caja.ver'],
-                ['route' => 'admin.mesas.index', 'icon' => 'fas fa-chair', 'label' => 'Mesas', 'permission' => 'mesas.ver'],
-                ['route' => 'admin.cocina.index', 'icon' => 'fas fa-fire-burner', 'label' => 'Cocina', 'permission' => 'cocina.ver'],
-                ['route' => 'admin.inventario.index', 'icon' => 'fas fa-cube', 'label' => 'Inventario', 'permission' => 'inventario.ver'],
-                ['route' => 'admin.empleados.index', 'icon' => 'fas fa-users', 'label' => 'Empleados', 'permission' => 'empleados.ver'],
-                ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menú', 'permission' => 'productos.ver'],
-                ['route' => 'admin.categorias.index', 'icon' => 'fas fa-layer-group', 'label' => 'Categorías', 'permission' => 'categorias.ver'],
-                ['route' => 'admin.promociones.index', 'icon' => 'fas fa-tags', 'label' => 'Promociones', 'permission' => 'promociones.ver'],
-                ['route' => 'admin.finanzas.index', 'icon' => 'fas fa-chart-line', 'label' => 'Finanzas', 'permission' => 'finanzas.ver'],
-                ['route' => 'admin.roles.index', 'icon' => 'fas fa-id-badge', 'label' => 'Roles', 'permission' => 'roles.ver'],
+            $menu = [
+                'Administración' => [
+                    ['route' => 'admin.dashboard', 'icon' => 'fas fa-th-large', 'label' => 'Dashboard', 'modulo_id' => 1],
+                    ['route' => 'admin.empleados.index', 'icon' => 'fas fa-users', 'label' => 'Empleados', 'modulo_id' => 6],
+                    ['route' => 'admin.roles.index', 'icon' => 'fas fa-id-badge', 'label' => 'Roles', 'modulo_id' => 11],
+                    ['route' => 'admin.finanzas.index', 'icon' => 'fas fa-chart-line', 'label' => 'Finanzas', 'modulo_id' => 10],
+                ],
+                'Productos' => [
+                    ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menú', 'modulo_id' => 7],
+                    ['route' => 'admin.inventario.index', 'icon' => 'fas fa-cube', 'label' => 'Inventario', 'modulo_id' => 5],
+                    ['route' => 'admin.categorias.index', 'icon' => 'fas fa-layer-group', 'label' => 'Categorías', 'modulo_id' => 8],
+                    ['route' => 'admin.promociones.index', 'icon' => 'fas fa-tags', 'label' => 'Promociones', 'modulo_id' => 9],
+                ],
+                'Operaciones' => [
+                    ['route' => 'admin.cocina.index', 'icon' => 'fas fa-fire-burner', 'label' => 'Cocina', 'modulo_id' => 4],
+                    ['route' => 'admin.mesas.index', 'icon' => 'fas fa-chair', 'label' => 'Mesas', 'modulo_id' => 3],
+                ],
+                'Caja' => [
+                    ['route' => 'admin.caja.index', 'icon' => 'fas fa-cash-register', 'label' => 'Caja', 'modulo_id' => 2],
+                ]
             ];
         @endphp
-            
-        @foreach($seccionesMenu as $item)
-            @if(auth()->user()->tienePermiso($item['permission']))
-                @php
-                    try {
-                        $url = route($item['route']);
-                        $isActive = request()->routeIs(str_replace('.index', '.*', $item['route'])) || request()->routeIs($item['route']);
-                    } catch (Exception $e) {
-                        $url = '#';
-                        $isActive = false;
-                    }
-                @endphp
 
-                <a href="{{ $url }}"
-                   class="menu-link relative flex items-center px-3 py-2.5 rounded-xl transition-all duration-300 group overflow-hidden
-                   {{ $isActive 
-                        ? 'bg-blue-600/10 border border-blue-500/30 shadow-[0_4px_20px_rgba(59,130,246,0.08)]' 
-                        : 'border border-transparent hover:bg-[var(--input-bg)]' }}">
+        @foreach($menu as $titulo => $items)
+            @php
+                // Verificamos si al menos un item de esta sección tiene permiso para mostrarse
+                $mostrarSeccion = collect($items)->contains(fn($item) => auth()->user()->tienePermiso($item['modulo_id'], 'mostrar'));
+            @endphp
 
-                    {{-- Icono --}}
-                    <div class="menu-icon flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 shrink-0 relative z-10
-                        {{ $isActive 
-                            ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' 
-                            : 'bg-[var(--card-color)] border border-[var(--border-color)] text-[var(--text-muted)] group-hover:text-[var(--text-color)]' }}">
-                        <i class="{{ $item['icon'] }} text-[15px]"></i>
-                    </div>
-
-                    {{-- Texto con Margen en lugar de Gap --}}
-                    <span class="sidebar-text ml-4 text-[14px] tracking-wide
-                        {{ $isActive ? 'text-[var(--text-color)] font-bold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }}">
-                        {{ $item['label'] }}
+            @if($mostrarSeccion)
+                {{-- Título de la Sección --}}
+                <div class="px-3 pt-2">
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] sidebar-text transition-all duration-300">
+                        {{ $titulo }}
                     </span>
-                    
-                    {{-- Indicador Neón Lateral --}}
-                    @if($isActive)
-                        <div class="absolute left-[-1px] top-1/2 -translate-y-1/2 w-[3px] h-[60%] bg-blue-500 rounded-r-md shadow-[0_0_12px_rgba(59,130,246,0.9)]"></div>
+                </div>
+
+                @foreach($items as $item)
+                    @if(auth()->user()->tienePermiso($item['modulo_id'], 'mostrar'))
+                        @php
+                            try {
+                                $url = route($item['route']);
+                                $isActive = request()->routeIs(str_replace('.index', '.*', $item['route'])) || request()->routeIs($item['route']);
+                            } catch (Exception $e) {
+                                $url = '#';
+                                $isActive = false;
+                            }
+                        @endphp
+
+                        <a href="{{ $url }}" class="menu-link relative flex items-center px-3 py-2.5 rounded-xl transition-all duration-300 group overflow-hidden {{ $isActive ? 'bg-blue-600/10 border border-blue-500/30' : 'border border-transparent hover:bg-[var(--input-bg)]' }}">
+                            <div class="menu-icon flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 shrink-0 relative z-10 {{ $isActive ? 'bg-blue-500 text-white' : 'bg-[var(--card-color)] border border-[var(--border-color)] text-[var(--text-muted)] group-hover:text-[var(--text-color)]' }}">
+                                <i class="{{ $item['icon'] }} text-[15px]"></i>
+                            </div>
+                            <span class="sidebar-text ml-4 text-[14px] tracking-wide {{ $isActive ? 'text-[var(--text-color)] font-bold' : 'text-[var(--text-muted)] font-medium group-hover:text-[var(--text-color)]' }}">
+                                {{ $item['label'] }}
+                            </span>
+                            @if($isActive)
+                                <div class="absolute left-[-1px] top-1/2 -translate-y-1/2 w-[3px] h-[60%] bg-blue-500 rounded-r-md"></div>
+                            @endif
+                        </a>
                     @endif
-                </a>
+                @endforeach
             @endif
         @endforeach
-
     </nav>
 
     {{-- Footer de Usuario --}}

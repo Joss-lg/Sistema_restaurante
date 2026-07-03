@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Permiso extends Model
 {
@@ -12,27 +11,35 @@ class Permiso extends Model
 
     protected $table = 'permisos';
 
+    // Estos son los campos que realmente existen en tu tabla de la imagen
     protected $fillable = [
-        'nombre',      // Ejemplo: "Gestionar Inventario"
-        'slug',        // Ejemplo: "gestionar-inventario"
-        'descripcion'  // Ejemplo: "Permite editar stock y precios"
+        'user_id', 
+        'modulo_id', 
+        'mostrar', 
+        'crear', 
+        'editar', 
+        'eliminar', 
+        'gestionar'
     ];
 
-    /**
-     * Relación con los Roles: Un permiso puede estar en muchos roles.
-     * Usamos la tabla 'permiso_rol' que migramos recientemente.
-     */
-    public function roles(): BelongsToMany
+    // Para que Laravel trate estos campos automáticamente como true/false
+    protected $casts = [
+        'mostrar'   => 'boolean',
+        'crear'     => 'boolean',
+        'editar'    => 'boolean',
+        'eliminar'  => 'boolean',
+        'gestionar' => 'boolean',
+    ];
+
+    // Relación con el Usuario (Empleado)
+    public function user()
     {
-        return $this->belongsToMany(Rol::class, 'permiso_rol');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Mantenemos la relación con usuarios por si decides asignar 
-     * permisos individuales sin pasar por un rol (opcional).
-     */
-    public function usuarios(): BelongsToMany
+    // Relación con el Módulo
+    public function modulo()
     {
-        return $this->belongsToMany(User::class, 'permiso_user');
+        return $this->belongsTo(Modulo::class, 'modulo_id');
     }
 }

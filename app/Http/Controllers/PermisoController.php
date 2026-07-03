@@ -2,62 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Permiso;
 use App\Models\User;
+use App\Models\Modulo;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class PermisoController extends Controller
 {
     /**
-     * Guarda un nuevo permiso en el catálogo base.
+     * Esta función recibe los permisos marcados en un formulario.
+     * Se espera que el formulario envíe algo como: permisos[modulo_id][accion] = true
      */
-    public function store(Request $request)
+    public function asignarPermisos(Request $request, $userId)
     {
-        // 1. Limpiamos espacios en blanco antes de validar la unicidad
-        $request->merge([
-            'nombre' => trim($request->nombre)
-        ]);
+        $empleado = User::findOrFail($userId);
 
+        // Validamos que recibimos un array de permisos
         $request->validate([
-            'nombre'      => 'required|string|max:50|unique:permisos,nombre',
-            'descripcion' => 'nullable|string|max:255'
+            'permisos' => 'required|array',
         ]);
 
-        // 2. Creamos el permiso con su slug limpio
-        Permiso::create([
-            'nombre'      => $request->nombre,
-            'slug'        => Str::slug($request->nombre),
-            'descripcion' => trim($request->descripcion),
-        ]);
-
-        return back()->with('success', 'El permiso ha sido registrado en el sistema correctamente.');
-    }
-
-    /**
-     * Sincroniza los permisos de un empleado específico desde un formulario directo.
-     */
-    public function asignarPermisos(Request $request, $id)
-    {
-        // 1. Buscamos al empleado por su ID
-        $empleado = User::findOrFail($id);
-
-        // Seguridad: Impedir que el usuario en sesión se altere sus propios permisos
-        if ($empleado->id === auth()->id()) {
-            return back()->with('error', 'No puedes modificar tus propios permisos directamente desde este apartado.');
+        // Recorremos el array de permisos enviado desde el formulario
+        // Estructura esperada: permisos[1] = ['mostrar' => 1, 'crear' => 1, ...]
+        foreach ($request->permisos as $moduloId => $acciones) {
+            
+            Permiso::updateOrCreate(
+                [
+                    'user_id'   => $empleado->id,
+                    'modulo_id' => $moduloId
+                ],
+                [
+                    'mostrar'   => isset($acciones['mostrar']) ? 1 : 0,
+                    'crear'     => isset($acciones['crear']) ? 1 : 0,
+                    'editar'    => isset($acciones['editar']) ? 1 : 0,
+                    'eliminar'  => isset($acciones['eliminar']) ? 1 : 0,
+                    'gestionar' => isset($acciones['gestionar']) ? 1 : 0,
+                ]
+            );
         }
 
-        // 2. Validamos que el array de permisos contenga únicamente IDs reales y existentes
-        $request->validate([
-            'permisos'   => 'nullable|array',
-            'permisos.*' => 'exists:permisos,id',
-        ]);
-
-        // 3. Sincronizamos los permisos mapeados en la tabla pivote
-        $permisosSeleccionados = $request->input('permisos', []);
-        $empleado->permisos()->sync($permisosSeleccionados);
-
-        return back()->with('success', "Los permisos del empleado han sido actualizados.");
+        return back()->with('success', "Permisos actualizados correctamente para {$empleado->nombre}.");
     }
 }

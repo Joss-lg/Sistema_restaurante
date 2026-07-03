@@ -21,21 +21,6 @@
                        class="w-full h-12 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl px-4 text-sm font-medium text-gray-900 dark:text-white outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
             </div>
 
-            <div>
-                <label for="editDescripcion" class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 block">Descripción / Notas</label>
-                <textarea id="editDescripcion" name="descripcion" rows="3"
-                          class="w-full bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 text-sm font-medium text-gray-900 dark:text-white outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 resize-none"></textarea>
-            </div>
-
-            <div>
-                <label for="editPuedePOS" class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 block">Acceso al Sistema POS</label>
-                <select id="editPuedePOS" name="puede_acceder_pos" required
-                        class="w-full h-12 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl px-4 text-sm font-bold text-gray-900 dark:text-white outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 appearance-none">
-                    <option value="1">Sí, permitir Punto de Venta</option>
-                    <option value="0">No, Acceso Administrativo</option>
-                </select>
-            </div>
-
             <div class="pt-6 mt-2 flex justify-end gap-3">
                 <button type="button" onclick="cerrarModalEditar()" 
                         class="px-5 py-2.5 rounded-full text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors outline-none">

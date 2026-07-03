@@ -11,16 +11,14 @@ class UsuarioAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. CREAMOS el rol base necesario para que el sistema no explote
+        // 1. CREAMOS el rol base
         $rolAdmin = Rol::firstOrCreate(
-            ['slug' => 'admin'],
-            [
-                'nombre' => 'Administrador',
-                'descripcion' => 'Rol con acceso total al sistema'
-            ]
+            ['nombre' => 'Administrador']
+            // Si la tabla roles también tiene 'puede_acceder_pos', puedes agregarlo aquí abajo:
+            // ['puede_acceder_pos' => true]
         );
 
-        // 2. Creamos al usuario ID 1 (Tú)
+        // 2. Creamos al usuario ID 1
         $admin = User::updateOrCreate(
             ['email' => 'admin@ollintem.com'],
             [
@@ -29,7 +27,7 @@ class UsuarioAdminSeeder extends Seeder
                 'codigo_empleado' => '1010',
                 'rol_id' => $rolAdmin->id,
                 'esta_activo' => true,
-                'puede_acceder_pos' => true, // El nuevo campo de la migración
+                'puede_acceder_pos' => true, // <-- ¡Agregado de vuelta! Ya vi que sí está en tu tabla users
             ]
         );
 

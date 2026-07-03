@@ -20,21 +20,6 @@
                 @error('nombre') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
             </div>
 
-            <div>
-                <label for="descripcion" class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em] mb-3 block">Descripción / Notas</label>
-                <textarea id="descripcion" name="descripcion" placeholder="Responsabilidades o notas del puesto..." rows="3"
-                          class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl p-5 text-sm text-[var(--text-color)] outline-none transition-all focus:border-[#3B82F6] resize-none"></textarea>
-            </div>
-
-            <div>
-                <label for="puede_acceder_pos" class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em] mb-3 block">¿Tiene acceso al Punto de Venta (POS)?</label>
-                <select id="puede_acceder_pos" name="puede_acceder_pos" required 
-                        class="w-full h-12 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl px-5 text-sm font-medium text-[var(--text-color)] outline-none transition-all focus:border-[#3B82F6]">
-                    <option value="1">Sí (Meseros, Cajeros, Bartenders, Admins)</option>
-                    <option value="0">No (Solo Administrativos / Personal de Nómina)</option>
-                </select>
-            </div>
-
             <div class="pt-4 border-t border-[var(--border-color)] flex justify-end gap-3">
                 <button type="button" onclick="cerrarModalCrear()" class="px-5 py-3 rounded-xl text-xs font-bold uppercase text-[var(--text-muted)] hover:bg-black/5 dark:hover:bg-white/5 transition-all">
                     Cancelar

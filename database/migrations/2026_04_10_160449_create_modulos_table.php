@@ -9,14 +9,12 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('permisos', function (Blueprint $table) {
+        Schema::create('modulos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre'); 
-            $table->string('descripcion')->nullable();// Ejemplo: 'crear_pedido'
-            $table->string('slug')->unique(); // Ejemplo: 'crear-pedido' (para el código)
-            $table->timestamps();
+            
         });
     }
 
@@ -25,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('permisos');
+        Schema::dropIfExists('modulos');
     }
 };

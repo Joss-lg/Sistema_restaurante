@@ -5,17 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes; // <-- Agregado
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Facades\DB;
 use App\Models\Mesa;
 use App\Models\Permiso;
 use App\Models\Rol;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes; // <-- Agregado SoftDeletes
 
     protected $fillable = [
         'nombre',
@@ -24,13 +23,21 @@ class User extends Authenticatable
         'codigo_empleado',
         'rol_id',
         'esta_activo',
-        'puede_acceder_pos', 
+        'puede_acceder_pos',
+        'ultimo_acceso', // <-- Agregado para que coincida con tu migración
+    ];
+
+    // <-- Agregado: Vital para la seguridad (oculta contraseñas en respuestas JSON)
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'ultimo_acceso' => 'datetime', // <-- Agregado
             'password' => 'hashed',
             'esta_activo' => 'boolean',
             'puede_acceder_pos' => 'boolean', 
@@ -60,9 +67,9 @@ class User extends Authenticatable
         return $value;
     }
 
-    public function permisos(): BelongsToMany
+    public function permisos(): HasMany
     {
-        return $this->belongsToMany(Permiso::class, 'permiso_user');
+        return $this->hasMany(Permiso::class, 'user_id');
     }
 
     public function mesas(): HasMany
@@ -71,21 +78,29 @@ class User extends Authenticatable
     }
 
     /**
-     * Función ajustada para verificar permisos por el NOMBRE del módulo
+     * Lógica adaptada para soportar tanto parámetros separados ($modulo_id, $accion)
+     * como notación de puntos ('roles.agregar') como usas en tus vistas.
      */
-    public function tienePermiso($nombreModulo)
+    public function tienePermiso($modulo, $accion = null)
     {
         // 1. El ID 1 es el Administrador supremo (bypass total)
         if ($this->id === 1) return true;
 
-        // 2. ¿Tiene el permiso asignado directamente? (Busca por campo 'nombre')
-        if ($this->permisos()->where('nombre', $nombreModulo)->exists()) {
-            return true;
+        // 2. Si mandas un string con punto (ej: 'roles.agregar' desde la vista)
+        if (is_string($modulo) && str_contains($modulo, '.')) {
+            [$modulo, $accion] = explode('.', $modulo);
+        } else if (!$accion) {
+            $accion = 'mostrar'; // Acción por defecto
         }
 
-        // 3. ¿Su rol tiene el permiso? (Busca por campo 'nombre')
-        if ($this->rol && $this->rol->permisos()->where('nombre', $nombreModulo)->exists()) {
-            return true;
+        // 3. Buscamos el permiso. 
+        // Nota: Si 'modulo' en la base de datos es un ID numérico (ej. 1, 2), 
+        // pero pasas 'roles', deberás asegurarte de que tu BD entienda 'roles'.
+        $permiso = $this->permisos->where('modulo_id', $modulo)->first();
+
+        // 4. Si existe el registro, verificamos que la acción requerida esté en 1 (true)
+        if ($permiso) {
+            return $permiso->$accion == 1;
         }
 
         return false;

@@ -18,14 +18,15 @@ class EmpleadoController extends Controller
             $query->where('esta_activo', true);
         }
 
-        $empleados = $query->with(['permisos:id,nombre', 'rol:id,nombre'])->get();
-        $permisos = Permiso::select(['id', 'nombre', 'slug'])->get();
+        // CORRECCIÓN 1: Quitamos 'permisos:id,nombre' porque la tabla permisos ya no tiene 'nombre'.
+        // Solo traemos la relación completa.
+        $empleados = $query->with(['permisos', 'rol:id,nombre'])->get();
         
-        // CORRECCIÓN: Eliminamos el where('puede_acceder_pos', true)
-        // porque esa columna ya no existe en la tabla roles.
+        // CORRECCIÓN 2: Eliminamos la consulta $permisosBase porque los permisos 
+        // ahora se calculan dinámicamente por módulo, no por catálogo de nombres.
         $roles = Rol::orderBy('nombre')->get(); 
 
-        return view('admin.empleados.index', compact('empleados', 'permisos', 'roles'));
+        return view('admin.empleados.index', compact('empleados', 'roles'));
     }
 
     public function store(Request $request)
@@ -42,7 +43,7 @@ class EmpleadoController extends Controller
         User::create([
             'nombre'            => trim($request->nombre),
             'email'             => $request->email ?? strtolower(str_replace(' ', '', $request->nombre)) . '@empresa.com',
-            'rol_id'            => $request->rol_id,
+            'rol_id'            => $request->rol_id, // El rol sirve para agrupar/identificar el puesto, está perfecto.
             'puede_acceder_pos' => $esPOS,
             'codigo_empleado'   => $esPOS ? $request->codigo_empleado : null,
             'password'          => $esPOS ? Hash::make($request->codigo_empleado) : Hash::make('acceso_limitado'),
@@ -81,19 +82,42 @@ class EmpleadoController extends Controller
         return redirect()->route('admin.empleados.index')->with('success', 'Datos actualizados.');
     }
 
+    // CORRECCIÓN 3: Limpiamos la función que carga la vista
     public function permisos($id)
     {
-        $empleado = User::with(['permisos', 'rol'])->findOrFail($id);
-        $permisosBase = Permiso::orderBy('nombre')->get();
-        return view('admin.empleados.permisos', compact('empleado', 'permisosBase'));
+        // Ya no buscamos $permisosBase. La vista que armamos ya tiene los módulos definidos.
+        $empleado = User::with('permisos')->findOrFail($id);
+        
+        return view('admin.empleados.permisos', compact('empleado'));
     }
 
+    // CORRECCIÓN 4: Integramos la lógica de updateOrCreate que te mostré antes
     public function actualizarPermisos(Request $request, $id)
     {
         $empleado = User::findOrFail($id);
-        $request->validate(['permisos' => 'nullable|array', 'permisos.*' => 'exists:permisos,id']);
-        $empleado->permisos()->sync($request->input('permisos', []));
-        return redirect()->route('admin.empleados.index')->with('success', "Permisos actualizados.");
+        
+        $request->validate([
+            'permisos' => 'required|array',
+        ]);
+
+        // Recorremos los checkboxes enviados desde la vista
+        foreach ($request->permisos as $moduloId => $acciones) {
+            Permiso::updateOrCreate(
+                [
+                    'user_id'   => $empleado->id,
+                    'modulo_id' => $moduloId
+                ],
+                [
+                    'mostrar'   => isset($acciones['mostrar']) ? 1 : 0,
+                    'crear'     => isset($acciones['crear']) ? 1 : 0,
+                    'editar'    => isset($acciones['editar']) ? 1 : 0,
+                    'eliminar'  => isset($acciones['eliminar']) ? 1 : 0,
+                    'gestionar' => isset($acciones['gestionar']) ? 1 : 0,
+                ]
+            );
+        }
+
+        return redirect()->route('admin.empleados.index')->with('success', "Permisos de {$empleado->nombre} actualizados correctamente.");
     }
 
     public function destroy($id)
@@ -110,3 +134,4 @@ class EmpleadoController extends Controller
         return redirect()->back()->with('success', "Empleado reactivado.");
     }
 }
+

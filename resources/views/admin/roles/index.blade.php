@@ -109,8 +109,6 @@
                                     <button type="button" 
                                             data-id="{{ $rol->id }}"
                                             data-nombre="{{ $rol->nombre }}"
-                                            data-desc="{{ $rol->descripcion ?? '' }}"
-                                            data-pos="{{ $rol->puede_acceder_pos ? '1' : '0' }}"
                                             onclick="abrirModalEditar(this)"
                                             class="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 transition-all active:scale-95 shadow-sm"
                                             title="Editar puesto">
@@ -162,9 +160,9 @@
         const form = document.getElementById('formEditarRol');
         if(form) form.action = '/roles/' + btn.getAttribute('data-id'); 
         
+        // Solo actualizamos el nombre, que es lo único que nos queda en la tabla
         document.getElementById('editNombre').value = btn.getAttribute('data-nombre');
-        document.getElementById('editDescripcion').value = btn.getAttribute('data-desc');
-        document.getElementById('editPuedePOS').value = btn.getAttribute('data-pos');
+        
         document.getElementById('modalEditarRol').classList.remove('hidden');
     }
 

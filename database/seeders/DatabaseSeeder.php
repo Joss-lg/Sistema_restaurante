@@ -15,8 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Primero creamos todos los permisos
-        $this->call(PermisosSeeder::class);
+        // 1. Primero creamos todos los Modulos
+        $this->call(ModuloSeeder::class);
 
         // 2. Creamos el rol Administrador y al SuperAdmin (ID 1) con acceso total por código.
         $this->call(UsuarioAdminSeeder::class);

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nombre');
             $table->string('email')->unique()->nullable();
             $table->string('password')->nullable();
-            $table->enum('rol', ['admin', 'capitan', 'mesero', 'cocinero', 'cajero']);
+            $table->unsignedBigInteger('rol_id')->nullable();
             $table->string('codigo_empleado')->unique();
             $table->boolean('esta_activo')->default(true);
             $table->timestamp('ultimo_acceso')->nullable();
