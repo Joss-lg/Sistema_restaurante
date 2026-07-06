@@ -60,7 +60,7 @@
         
         // Asignar acción al formulario y nombre al span
         const form = document.getElementById('formEliminarRol');
-        form.action = `{{ url('admin/roles') }}/${btn.getAttribute('data-id')}`;
+        form.action = `{{ url('roles') }}/${btn.getAttribute('data-id')}`;
         document.getElementById('nombreRolEliminar').innerText = btn.getAttribute('data-nombre');
         
         modal.classList.remove('hidden');

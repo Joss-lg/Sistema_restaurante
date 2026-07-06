@@ -32,28 +32,24 @@ class MesaController extends Controller
         $mesa = Mesa::findOrFail($mesaId);
         $usuario = auth()->user();
 
-        // 1. Ahora esta verificación es segura gracias a los cambios en MesaService
         $this->mesaService->verificarAccesoMesa($mesa, $usuario);
         $esCapitan = $this->mesaService->esCapitan($usuario);
-        
-        // 2. Cargamos datos necesarios
+
         $categorias = Categoria::all();
         $productos = Producto::with(['categoria', 'modificadores'])->orderBy('nombre', 'asc')->get();
-        
-        // 3. Mesas abiertas (solo visible para capitanes/admins)
+
         $nombreRol = strtolower(trim($usuario->rol?->nombre ?? ''));
         $esAdmin = $nombreRol === 'administrador';
-        
-        $mesasAbiertas = ($esCapitan || $esAdmin) 
-            ? Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get() 
+
+        $mesasAbiertas = ($esCapitan || $esAdmin)
+            ? Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get()
             : collect();
-        
-        // 4. Lógica de orden activa (cargada de forma segura)
+
         $ordenActiva = Orden::where('mesa_id', $mesa->id)
             ->where('estado', '!=', 'pagada')
             ->latest()
             ->first();
-        
+
         $platillosEnviados = collect();
         if ($ordenActiva) {
             $platillosEnviados = DetalleOrden::where('orden_id', $ordenActiva->id)
@@ -62,9 +58,8 @@ class MesaController extends Controller
                 ->get();
         }
 
-        // Pasamos 'ordenActiva' también, por si lo necesitas en la vista
-        return view('mesero.comanda', compact(
-            'mesa', 'categorias', 'productos', 'mesasAbiertas', 
+        return view('mesero.index', compact( // 👈 antes decía 'mesero.comanda.index'
+            'mesa', 'categorias', 'productos', 'mesasAbiertas',
             'esCapitan', 'platillosEnviados', 'ordenActiva'
         ));
     }

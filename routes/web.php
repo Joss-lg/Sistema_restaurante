@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlanoEspacialController;
 use App\Http\Controllers\CajaController;
+use App\Http\Controllers\HistorialCajaController; 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\{
     Auth\LoginController, DashboardController, PermisoController, EmpleadoController,
@@ -45,7 +46,7 @@ Route::middleware(['auth'])->group(function () {
         });
 
         // Inventario
-        Route::middleware(['role:Inventario'])->prefix('inventario')->name('inventario.')->group(function () {
+        Route::middleware(['role:Inventario'])->prefix('/admin/inventario')->name('inventario.')->group(function () {
             Route::get('/bajo-stock-pdf', [InventarioController::class, 'exportarPdfBajoStock'])->name('exportar_pdf_bajo_stock');
             Route::get('/', [InventarioController::class, 'index'])->name('index');
             Route::post('/store', [InventarioController::class, 'store'])->name('store');
@@ -68,25 +69,24 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['role:Categorias'])->resource('categorias', CategoriaController::class);
 
         // Caja
-Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function () {
-    Route::get('/', [CajaController::class, 'index'])->name('index');
-    
-   
-    Route::post('/abrir', [CajaController::class, 'abrir'])->name('abrir');   // URL: /caja/abrir | Nombre: caja.abrir
-    Route::post('/cerrar', [CajaController::class, 'cerrar'])->name('cerrar'); // URL: /caja/cerrar | Nombre: caja.cerrar
-    Route::get('/cobrar/{id}', [CajaController::class, 'cobrar'])->name('cobrar');
-    Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
-    Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
-    Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
-    Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
-    Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
-    Route::post('/api/procesar-pago', [CajaController::class, 'procesarPago'])->name('api.procesar-pago');
-    Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
-    Route::post('/api/estado-mesa', [CajaController::class, 'getEstadoMesa'])->name('api.estado-mesa');
-    Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');
-    Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
-});
-        // Mesas
+        Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function () {
+            Route::get('/', [CajaController::class, 'index'])->name('index');
+            Route::post('/abrir', [CajaController::class, 'abrir'])->name('abrir');
+            Route::post('/cerrar', [CajaController::class, 'cerrar'])->name('cerrar');
+            Route::get('/cobrar/{id}', [CajaController::class, 'cobrar'])->name('cobrar');
+            Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
+            Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
+            Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
+            Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
+            Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
+            Route::post('/api/procesar-pago', [CajaController::class, 'procesarPago'])->name('api.procesar-pago');
+            Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
+            Route::post('/api/estado-mesa', [CajaController::class, 'getEstadoMesa'])->name('api.estado-mesa');
+            Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');
+            Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
+        });
+
+    // Mesas
         Route::middleware(['role:Mesas'])->prefix('mesas')->name('mesas.')->group(function () {
             Route::get('/', [MesaController::class, 'index'])->name('index');
             Route::get('/api/mesas', [MesaController::class, 'getMesas'])->name('api.mesas');
@@ -98,7 +98,6 @@ Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function 
             Route::put('/api/{id}', [MesaController::class, 'update'])->name('api.update');
             Route::delete('/api/{id}', [MesaController::class, 'destroy'])->name('api.destroy');
         });
-
         // Plano Espacial
         Route::middleware(['role:Plano'])->prefix('plano-espacial')->name('plano-espacial.')->group(function () {
             Route::get('/', [PlanoEspacialController::class, 'index'])->name('index');
@@ -150,13 +149,16 @@ Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function 
 
         Route::post('/permisos/store', [PermisoController::class, 'store'])->name('permisos.store');
 
-        // Rutas del Historial de Turnos y Cajas
-    Route::get('/historial-cajas', [HistorialCajaController::class, 'index'])->name('historial.index');
-    Route::get('/historial-cajas/{id}', [HistorialCajaController::class, 'show'])->name('historial.show');
+    }); // 🌟 Cierre correcto de 'admin.'
+
+    // 🌟 SE MOVIÓ AQUÍ FUERA: Módulo Historial Cajas independiente para mantener URLs cortas
+    Route::middleware(['role:Historial de Cajas'])->prefix('historial-cajas')->name('historial.')->group(function () {
+        Route::get('/', [HistorialCajaController::class, 'index'])->name('index');
+        Route::get('/{id}', [HistorialCajaController::class, 'show'])->name('show');
     });
 
     Route::post('/logout', function () { 
         Auth::logout(); 
         return redirect()->route('login'); 
     })->name('logout');
-}); 
+});

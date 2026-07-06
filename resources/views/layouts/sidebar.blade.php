@@ -70,6 +70,7 @@
                     ['route' => 'admin.empleados.index', 'icon' => 'fas fa-users', 'label' => 'Empleados', 'modulo_id' => 3],
                     ['route' => 'admin.roles.index', 'icon' => 'fas fa-id-badge', 'label' => 'Roles', 'modulo_id' => 11],
                     ['route' => 'admin.finanzas.index', 'icon' => 'fas fa-chart-line', 'label' => 'Finanzas', 'modulo_id' => 10],
+                    ['route' => 'historial.index', 'icon' => 'fas fa-history', 'label' => 'Historial Cajas', 'modulo_id' => 12],
                 ],
                 'Productos' => [
                     ['route' => 'admin.productos.index', 'icon' => 'fas fa-utensils', 'label' => 'Menú', 'modulo_id' => 4],

@@ -34,6 +34,8 @@
                                 ['id' => 8,  'n' => 'Cocina',      'i' => 'fa-fire-burner'],
                                 ['id' => 9,  'n' => 'Caja',        'i' => 'fa-cash-register'],
                                 ['id' => 10, 'n' => 'Finanzas',    'i' => 'fa-chart-line'],
+                                ['id' => 11, 'n' => 'Roles', 'i' => 'fas fa-id-badge'],
+                                ['id' => 12, 'n' => 'Historial de Cajas', 'i' => 'fas fa-history']
                             ];
                         @endphp
 

@@ -15,7 +15,8 @@ class Categoria extends Model
         'nombre',
         'slug',
         'color',
-        'orden_visualizacion'
+        'orden_visualizacion',
+        'area_impresion' // <--- Campo agregado para definir el área de impresión (Cocina, Barra, etc.)
     ];
 
     // Le decimos a Laravel qué tipo de dato es cada campo

@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Caja; // Cambia esto por tu modelo real (ej. CajaActiva, Turno, etc.)
 use Illuminate\Http\Request;
+use App\Models\CajaMovimiento; 
 
 class HistorialCajaController extends Controller
 {
     public function index()
     {
-        // Paginamos de 10 en 10 ordenando por el más reciente
-        $turnos = Caja::with('user') // Suponiendo que la caja pertenece a un usuario (empleado)
+        // Cargamos los turnos de la tabla macro 'caja_movimientos'
+        $turnos = CajaMovimiento::with('user') 
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -20,7 +20,9 @@ class HistorialCajaController extends Controller
 
     public function show($id)
     {
-        $turno = Caja::with(['user', 'ventas'])->findOrFail($id);
+        // Buscamos el turno específico e incluimos sus flujos de dinero internos
+        $turno = CajaMovimiento::with(['user', 'flujos'])->findOrFail($id);
+        
         return view('admin.historial_cajas.show', compact('turno'));
     }
 }

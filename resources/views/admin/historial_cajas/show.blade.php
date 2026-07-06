@@ -8,9 +8,9 @@
     {{-- Botón de Regresar y Encabezado --}}
     <div class="flex flex-col gap-3 border-b border-gray-100 dark:border-slate-800 pb-5">
         <div>
-            <a href="{{ route('admin.historial.index') }}" class="inline-flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2">
-                ← Volver al historial
-            </a>
+            <a href="{{ route('historial.index') }}" class="inline-flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-blue-500 transition-colors">
+    ← Volver al historial
+</a>
         </div>
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>

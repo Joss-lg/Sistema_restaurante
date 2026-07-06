@@ -53,7 +53,7 @@
         
         // Asignar acción al form
         const form = document.getElementById('formEditarRol');
-        form.action = `{{ url('admin/roles') }}/${btn.getAttribute('data-id')}`;
+        form.action = `{{ url('roles') }}/${btn.getAttribute('data-id')}`;
         
         // Asignar valor
         document.getElementById('editNombre').value = btn.getAttribute('data-nombre');

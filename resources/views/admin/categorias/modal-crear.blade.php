@@ -35,6 +35,19 @@
                     class="w-full h-11 bg-zinc-950/60 modo-crema:bg-zinc-50 border border-zinc-800 modo-crema:border-zinc-200 rounded-xl px-4 text-xs font-semibold text-zinc-100 modo-crema:text-zinc-800 placeholder:text-zinc-600 placeholder:opacity-80 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 shadow-inner transition-all">
             </div>
 
+            {{-- Input: Área de Impresión (NUEVO) --}}
+            <div class="space-y-1.5">
+                <label class="flex items-center gap-2 text-[10px] font-black text-zinc-400 modo-crema:text-zinc-500 uppercase tracking-wider">
+                    <i class="fas fa-print text-blue-400 modo-crema:text-blue-500 text-[9px]"></i> Área de Impresión / Comanda
+                </label>
+                <select name="area_impresion" required
+                    class="w-full h-11 bg-zinc-950/60 modo-crema:bg-zinc-50 border border-zinc-800 modo-crema:border-zinc-200 rounded-xl px-4 text-xs font-semibold text-zinc-100 modo-crema:text-zinc-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 shadow-inner transition-all appearance-none cursor-pointer">
+                    <option value="Cocina" class="bg-zinc-900 text-white modo-crema:bg-white modo-crema:text-zinc-800">🍳 Cocina / Calientes</option>
+                    <option value="Barra" class="bg-zinc-900 text-white modo-crema:bg-white modo-crema:text-zinc-800">🍹 Barra / Bebidas</option>
+                    <option value="Parrilla" class="bg-zinc-900 text-white modo-crema:bg-white modo-crema:text-zinc-800">🔥 Parrilla</option>
+                </select>
+            </div>
+
             {{-- Grid de Color y Orden --}}
             <div class="grid grid-cols-2 gap-4">
                 {{-- Selector de Color --}}

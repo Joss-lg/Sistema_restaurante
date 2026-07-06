@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Mesa;
 use App\Models\Permiso;
 use App\Models\Rol;
+use App\Models\Modulo;
 
 class User extends Authenticatable
 {
@@ -80,6 +81,7 @@ class User extends Authenticatable
     /**
      * Lógica adaptada para soportar tanto parámetros separados ($modulo_id, $accion)
      * como notación de puntos ('roles.agregar') como usas en tus vistas.
+     * ADEMÁS: Traduce nombres de módulos (strings) a sus IDs en la BD.
      */
     public function tienePermiso($modulo, $accion = null)
     {
@@ -93,12 +95,21 @@ class User extends Authenticatable
             $accion = 'mostrar'; // Acción por defecto
         }
 
-        // 3. Buscamos el permiso. 
-        // Nota: Si 'modulo' en la base de datos es un ID numérico (ej. 1, 2), 
-        // pero pasas 'roles', deberás asegurarte de que tu BD entienda 'roles'.
+        // 3. Si $modulo es un string (nombre de módulo), traducirlo a ID
+        if (is_string($modulo) && !is_numeric($modulo)) {
+            $moduloObj = Modulo::where('nombre', $modulo)->first();
+            if ($moduloObj) {
+                $modulo = $moduloObj->id;
+            } else {
+                // Si no encuentra el módulo, denegar acceso
+                return false;
+            }
+        }
+
+        // 4. Buscamos el permiso por modulo_id (ahora siempre será numérico)
         $permiso = $this->permisos->where('modulo_id', $modulo)->first();
 
-        // 4. Si existe el registro, verificamos que la acción requerida esté en 1 (true)
+        // 5. Si existe el registro, verificamos que la acción requerida esté en 1 (true)
         if ($permiso) {
             return $permiso->$accion == 1;
         }

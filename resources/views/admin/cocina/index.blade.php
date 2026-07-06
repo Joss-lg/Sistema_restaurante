@@ -67,8 +67,27 @@
                 @endphp
 
                 <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] {{ $config['border'] }} shadow-lg flex flex-col h-full overflow-hidden relative">
-                    {{-- Contenido del Ticket... (Mantener tu estructura original aquí) --}}
-                    {{-- ... --}}
+                   {{-- CABECERA DEL TICKET --}}
+                    <div class="p-4 border-b border-[var(--border-color)]">
+                        <h3 class="font-black text-lg">Mesa {{ $orden->mesa->numero }}</h3>
+                        <p class="text-xs text-[var(--text-muted)]">Mesero: {{ $orden->mesero->nombre ?? 'N/A' }}</p>
+                    </div>
+
+                    {{-- LISTA DE PRODUCTOS --}}
+                    <div class="p-4 flex-1">
+                        <ul class="space-y-2">
+                            @foreach($orden->detalles as $detalle)
+                                <li class="flex justify-between items-center text-sm">
+                                    <span class="font-bold text-[var(--text-color)]">
+                                        {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
+                                    </span>
+                                    @if($detalle->notas)
+                                        <span class="block text-[10px] text-red-400 italic">{{ $detalle->notas }}</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
                     
                     <div class="p-3 sm:p-4 bg-[var(--bg-color)] border-t border-[var(--border-color)]">
                         <form action="{{ route('admin.cocina.orden.estado', $orden->id) }}" method="POST">

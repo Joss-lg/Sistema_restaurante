@@ -33,7 +33,8 @@ class CategoriaController extends Controller
         $request->validate([
             'nombre'              => 'required|string|max:255|unique:categorias,nombre',
             'color'               => 'nullable|string|max:20',
-            'orden_visualizacion' => 'nullable|integer|min:0'
+            'orden_visualizacion' => 'nullable|integer|min:0',
+            'area_impresion'      => 'required|string|in:Cocina,Barra,Parrilla' // <-- Validación agregada
         ]);
 
         // 2. Creamos la categoría
@@ -41,7 +42,8 @@ class CategoriaController extends Controller
             'nombre'              => $request->nombre,
             'slug'                => Str::slug($request->nombre),
             'color'               => $request->color ?? '#3B82F6', // Azul por defecto
-            'orden_visualizacion' => $request->orden_visualizacion ?? 0
+            'orden_visualizacion' => $request->orden_visualizacion ?? 0,
+            'area_impresion'      => $request->area_impresion // <-- Guardado agregado
         ]);
 
         return redirect()->route('admin.categorias.index')
@@ -61,14 +63,16 @@ class CategoriaController extends Controller
         $request->validate([
             'nombre'              => 'required|string|max:255|unique:categorias,nombre,' . $id,
             'color'               => 'nullable|string|max:20',
-            'orden_visualizacion' => 'nullable|integer|min:0'
+            'orden_visualizacion' => 'nullable|integer|min:0',
+            'area_impresion'      => 'required|string|in:Cocina,Barra,Parrilla' // <-- Validación agregada
         ]);
 
         $categoria->update([
             'nombre'              => $request->nombre,
             'slug'                => Str::slug($request->nombre),
             'color'               => $request->color ?? $categoria->color,
-            'orden_visualizacion' => $request->orden_visualizacion ?? 0
+            'orden_visualizacion' => $request->orden_visualizacion ?? 0,
+            'area_impresion'      => $request->area_impresion // <-- Actualización agregada
         ]);
 
         return redirect()->route('admin.categorias.index')

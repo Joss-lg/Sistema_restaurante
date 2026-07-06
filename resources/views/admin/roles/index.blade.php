@@ -105,51 +105,6 @@
 
 @push('scripts')
 <script>
-    /**
-     * Gestión de modales para Roles y Puestos
-     * Nota: Asegúrate de que los IDs del HTML coincidan con estos selectores.
-     */
-    
-    // Abrir Modal de Edición
-    window.abrirModalEditar = function(btn) {
-        const form = document.getElementById('formEditarRol');
-        const id = btn.getAttribute('data-id');
-        
-        if (form) form.action = `{{ url('admin/roles') }}/${id}`;
-        
-        const nombreInput = document.getElementById('editNombre');
-        if (nombreInput) nombreInput.value = btn.getAttribute('data-nombre');
-        
-        const modal = document.getElementById('modalEditarRol');
-        if (modal) modal.classList.remove('hidden');
-    }
-
-    // Abrir Modal de Eliminación
-    window.abrirModalEliminar = function(btn) {
-        const form = document.getElementById('formEliminarRol');
-        const id = btn.getAttribute('data-id');
-        
-        if (form) form.action = `{{ url('admin/roles') }}/${id}`;
-        
-        const spanNombre = document.getElementById('nombreRolEliminar');
-        if (spanNombre) spanNombre.innerText = btn.getAttribute('data-nombre');
-        
-        const modal = document.getElementById('modalEliminarRol');
-        if (modal) modal.classList.remove('hidden');
-    }
-
-    // Cerradores globales
-    window.cerrarModalEditar = function() { 
-        const modal = document.getElementById('modalEditarRol');
-        if (modal) modal.classList.add('hidden'); 
-    }
-    
-    window.cerrarModalEliminar = function() { 
-        const modal = document.getElementById('modalEliminarRol');
-        if (modal) modal.classList.add('hidden'); 
-    }
-
-    // Cerrar al hacer click fuera del contenido (Backdrop)
     document.addEventListener('click', (e) => {
         const modalEditar = document.getElementById('modalEditarRol');
         const modalEliminar = document.getElementById('modalEliminarRol');
