@@ -17,15 +17,19 @@ class MesaService
             return Mesa::orderBy('numero', 'asc')->get();
         }
 
-        return Mesa::where('mesero_id', $usuario->id)
-            ->whereIn('estado', ['ocupada', 'disponible'])
+        return Mesa::where(function ($query) use ($usuario) {
+                $query->where('estado', 'disponible')
+                    ->orWhere(function ($q) use ($usuario) {
+                        $q->where('estado', 'ocupada')
+                            ->where('mesero_id', $usuario->id);
+                    });
+            })
             ->orderBy('numero', 'asc')
             ->get();
     }
 
     public function esCapitan($usuario)
     {
-        // Accedemos directamente al nombre del rol
         return strtolower(trim($usuario->rol?->nombre ?? '')) === 'capitán';
     }
 
@@ -33,19 +37,16 @@ class MesaService
     {
         $nombreRol = strtolower(trim($usuario->rol?->nombre ?? ''));
 
-        // Si es Administrador, dejamos pasar siempre
         if ($nombreRol === 'administrador') {
-            return; 
+            return;
         }
 
-        // Lógica para Meseros
         if ($nombreRol === 'mesero' && Schema::hasColumn('mesas', 'mesero_id')) {
             if ($mesa->mesero_id !== null && $mesa->mesero_id !== $usuario->id) {
                 abort(403, 'No tienes permiso para ver esta mesa.');
             }
         }
 
-        // Lógica para Capitanes
         if ($nombreRol === 'capitán' && $mesa->estado !== 'ocupada') {
             abort(403, 'Solo puedes ver mesas abiertas.');
         }
@@ -75,7 +76,7 @@ class MesaService
             ]);
 
             $totalCuentas = $validated['cuenta_dividida'] ? ($validated['total_cuentas_division'] ?? 1) : 1;
-            
+
             for ($i = 1; $i <= $totalCuentas; $i++) {
                 Orden::create([
                     'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),

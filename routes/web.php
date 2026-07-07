@@ -99,7 +99,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/api/{id}', [MesaController::class, 'destroy'])->name('api.destroy');
         });
         // Plano Espacial
-        Route::middleware(['role:Plano'])->prefix('plano-espacial')->name('plano-espacial.')->group(function () {
+        Route::middleware(['role:Mesas'])->prefix('plano-espacial')->name('plano-espacial.')->group(function () {
             Route::get('/', [PlanoEspacialController::class, 'index'])->name('index');
             Route::get('/api/mesas', [PlanoEspacialController::class, 'getMesas'])->name('api.mesas');
             Route::get('/api/mesas/{id}', [PlanoEspacialController::class, 'getMesa'])->name('api.mesa');
