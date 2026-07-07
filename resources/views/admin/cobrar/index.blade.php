@@ -8,15 +8,19 @@
     
     {{-- IZQUIERDA: Detalle --}}
     <div class="w-full lg:w-2/5 border-r border-white/5 bg-[#141417] flex flex-col border-b lg:border-b-0 overflow-hidden">
-        <div class="p-8">
-            <a href="{{ route('admin.caja.index') }}" class="text-gray-500 hover:text-white text-[10px] font-black flex items-center gap-2 mb-6 transition-all hover:translate-x-1">
-                <i class="fas fa-arrow-left"></i> VOLVER A CAJA
-            </a>
-            <h1 class="text-4xl font-black text-white italic tracking-tighter uppercase">Mesa {{ $mesa->numero }}</h1>
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                {{ $orden->numero_orden ?? 'ORDEN SIN NÚMERO' }} • {{ $orden->mesero->name ?? 'MESERO NO ASIGNADO' }}
-            </p>
-        </div>
+            <div class="p-8">
+                <a href="{{ route('admin.caja.index') }}" class="text-gray-500 hover:text-white text-[10px] font-black flex items-center gap-2 mb-2 transition-all hover:translate-x-1">
+                    <i class="fas fa-arrow-left"></i> VOLVER A CAJA
+                </a>
+                
+                {{-- Texto agrandado aquí --}}
+                <h1 class="text-5xl font-black text-white italic tracking-tighter uppercase">Mesa {{ $mesa->numero }}</h1>
+                
+                {{-- Texto agrandado y más visible aquí --}}
+                <p class="text-lg font-bold text-gray-400 uppercase tracking-wide mt-2">
+                    {{ $orden->numero_orden ?? 'ORDEN SIN NÚMERO' }} • {{ $orden->mesero->nombre ?? 'MESERO NO ASIGNADO' }}
+                </p>
+            </div>
 
         <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
             {{-- Cambiado a la ruta de administración corregida --}}
@@ -37,23 +41,18 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/cobro.js') }}"></script>
+@vite(['resources/js/cobro.js'])
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Inicialización de contexto global para evitar errores
         window.COBRO_CONFIG = {
             mesaId: {{ $mesa->id }},
-            ordenId: {{ $orden->id ?? 0 }},
-            total: parseFloat("{{ $orden->total ?? 0 }}"),
-            csrfToken: "{{ csrf_token() }}"
+            ordenId: {{ $ordenes->first()->id ?? 0 }},
+            total: {{ $totalPagar ?? 0 }},
+            csrfToken: "{{ csrf_token() }}",
+            urlPago: "{{ route('admin.caja.procesar.pago.final') }}"
         };
-
-        // Verificación de seguridad básica
-        if (typeof CobroManager !== 'undefined') {
-            CobroManager.init(window.COBRO_CONFIG);
-        } else {
-            console.error("CobroManager no cargado. Revisa cobro.js");
-        }
     });
 </script>
 @endpush
+
+

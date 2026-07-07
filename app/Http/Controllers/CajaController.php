@@ -123,9 +123,13 @@ class CajaController extends Controller
             return redirect()->route('admin.caja.index')->with('error', 'La mesa no tiene órdenes activas.');
         }
 
+        $orden = $ordenes->first();
+        $orden->load('mesero');
+
        return view('admin.cobrar.index', [
             'mesa' => $mesa,
             'ordenes' => $ordenes,
+            'orden' => $orden, 
             'subtotal' => $desglose['subtotal'],
             'iva' => $desglose['iva'],
             'propina' => $desglose['propina'],
@@ -215,8 +219,9 @@ class CajaController extends Controller
                 $this->cajaService->liberarMesa($mesa);
 
                 return response()->json([
-                    'success' => true, 
-                    'message' => 'Pago procesado y mesa liberada con éxito.'
+                    'success' => true,
+                    'message' => 'Pago realizado con éxito',
+                    'redirect_url' => url('/caja')
                 ]);
             });
         } catch (\Exception $e) {

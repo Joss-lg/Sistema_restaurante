@@ -1,37 +1,27 @@
-<div id="modalCrear" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto p-4">
-    <div class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-8 unique-scrollbar max-h-[90vh] overflow-y-auto">
-        
+<div id="modalCrear" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto overflow-x-hidden p-4">
+    <div class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-8 unique-scrollbar max-h-[90vh] overflow-y-auto overflow-x-hidden">
+
         {{-- Resplandor decorativo de fondo --}}
         <div class="absolute -top-32 -right-32 w-64 h-64 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
         {{-- Cabecera del Modal --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-6 relative z-10">
-            <div class="flex items-center gap-4">
-                <div class="!bg-blue-50 dark:!bg-blue-500/20 w-12 h-12 rounded-2xl flex items-center justify-center !text-blue-600 dark:!text-blue-400 text-xl font-black shadow-inner border !border-blue-100 dark:!border-transparent">
-                    <i class="fas fa-plus"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-black !text-gray-900 dark:!text-white tracking-tight">Crear Nueva Promoción</h2>
-                    <p class="text-xs font-medium !text-gray-500 dark:!text-gray-400 tracking-wide mt-0.5">Configura una oferta especial para el menú.</p>
-                </div>
+        <div class="flex items-center gap-4 mb-8 relative z-10">
+            <div class="!bg-blue-50 dark:!bg-blue-500/20 w-12 h-12 rounded-2xl flex items-center justify-center !text-blue-600 dark:!text-blue-400 text-xl font-black shadow-inner border !border-blue-100 dark:!border-transparent">
+                <i class="fas fa-plus"></i>
             </div>
-            
-            {{-- Interruptor de Estado Premium --}}
-            <div class="flex flex-col items-end gap-1.5 !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 px-4 py-2 rounded-2xl transition-colors">
-                <span class="text-[9px] font-black uppercase tracking-widest !text-gray-500 dark:!text-gray-400">Estado inicial</span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="esta_activa" value="1" checked class="sr-only peer" form="formCrearPromocion">
-                    <div class="w-10 h-5 rounded-full !bg-gray-300 dark:!bg-zinc-700 border !border-gray-300 dark:!border-zinc-600 peer-checked:!border-emerald-500 peer-checked:!bg-emerald-500 transition-all duration-300 relative shadow-inner">
-                        <span class="absolute left-[2px] top-[1px] h-4 w-4 rounded-full !bg-white transition-all duration-300 peer-checked:left-[1.35rem] shadow-sm"></span>
-                    </div>
-                </label>
+            <div>
+                <h2 class="text-2xl font-black !text-gray-900 dark:!text-white tracking-tight">Crear Nueva Promoción</h2>
+                <p class="text-xs font-medium !text-gray-500 dark:!text-gray-400 tracking-wide mt-0.5">Configura una oferta especial para el menú.</p>
             </div>
         </div>
+
+        {{-- La promoción siempre se crea activa; se mantiene oculto para no perder el dato al guardar --}}
+        <input type="checkbox" name="esta_activa" value="1" checked class="hidden" form="formCrearPromocion">
 
         <form id="formCrearPromocion" onsubmit="guardarPromocion(event)" class="relative z-10">
             @csrf
             <div class="space-y-6">
-                
+
                 {{-- Nombre de Promoción --}}
                 <div class="group">
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Nombre de la Promoción</label>
@@ -62,11 +52,17 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Fecha Inicio Vigencia</label>
-                        <input type="date" name="fecha_inicio" required value="{{ date('Y-m-d') }}" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner cursor-pointer">
+                        <div class="relative">
+                            <input type="date" name="fecha_inicio" id="crear_fecha_inicio" required value="{{ date('Y-m-d') }}" class="date-input-icon w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 pl-4 pr-10 text-sm font-bold !text-gray-900 dark:!text-white focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner cursor-pointer">
+                            <i onclick="abrirCalendario('crear_fecha_inicio')" class="fas fa-calendar-days absolute right-4 top-1/2 -translate-y-1/2 !text-blue-500 dark:!text-blue-400 cursor-pointer text-sm z-10"></i>
+                        </div>
                     </div>
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Fecha Fin Vigencia</label>
-                        <input type="date" name="fecha_fin" required value="{{ date('Y-m-d', strtotime('+1 month')) }}" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner cursor-pointer">
+                        <div class="relative">
+                            <input type="date" name="fecha_fin" id="crear_fecha_fin" required value="{{ date('Y-m-d', strtotime('+1 month')) }}" class="date-input-icon w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 pl-4 pr-10 text-sm font-bold !text-gray-900 dark:!text-white focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner cursor-pointer">
+                            <i onclick="abrirCalendario('crear_fecha_fin')" class="fas fa-calendar-days absolute right-4 top-1/2 -translate-y-1/2 !text-blue-500 dark:!text-blue-400 cursor-pointer text-sm z-10"></i>
+                        </div>
                     </div>
                 </div>
 
@@ -74,7 +70,7 @@
                 <div>
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-3">Días de Aplicación Semanal</label>
                     <div class="grid grid-cols-4 sm:flex gap-2 flex-wrap">
-                        @php 
+                        @php
                             $mapeoDias = [
                                 ['L' => 1, 'nombre' => 'Lunes'],
                                 ['M' => 2, 'nombre' => 'Martes'],
@@ -86,7 +82,7 @@
                             ];
                         @endphp
                         @foreach($mapeoDias as $diaData)
-                            @php 
+                            @php
                                 $letra = key($diaData);
                                 $num = $diaData[$letra];
                             @endphp
@@ -122,7 +118,7 @@
                     <button type="button" onclick="closeModal('modalCrear')" class="w-full sm:flex-1 !bg-gray-50 dark:!bg-black/40 hover:!bg-gray-200 dark:hover:!bg-white/10 border !border-gray-200 dark:!border-white/5 !text-gray-600 dark:!text-gray-300 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors outline-none">
                         Cancelar
                     </button>
-                    
+
                     <button type="submit" id="btn-guardar-promocion" class="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-[0_10px_25px_-5px_rgba(59,130,246,0.4)] transition-all outline-none">
                         Guardar Promoción
                     </button>
@@ -137,9 +133,33 @@
     .unique-scrollbar::-webkit-scrollbar { width: 6px; }
     .unique-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .unique-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-    
+
     @media (prefers-color-scheme: dark) {
         .unique-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); }
         .unique-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
     }
+
+    /* Oculta el ícono nativo del navegador para los inputs de fecha y deja solo nuestro ícono personalizado */
+    .date-input-icon::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        width: 2.5rem;
+        height: 100%;
+        cursor: pointer;
+    }
 </style>
+
+<script>
+    /**
+     * Abre el selector de fecha nativo al hacer clic en el ícono de calendario personalizado
+     */
+    function abrirCalendario(inputId) {
+        const input = document.getElementById(inputId);
+        if (input && typeof input.showPicker === 'function') {
+            input.showPicker();
+        } else if (input) {
+            input.focus();
+        }
+    }
+</script>

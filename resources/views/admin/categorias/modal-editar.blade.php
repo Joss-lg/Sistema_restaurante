@@ -32,16 +32,15 @@
                         class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 text-sm font-semibold text-white outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all">
                 </div>
 
-                {{-- Input: Área de Impresión (NUEVO) --}}
+                {{-- Input: Área de Impresión (LIMPIO) --}}
                 <div class="space-y-2">
                     <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
                         <i class="fas fa-print text-[#3B82F6] text-[10px]"></i> Área de Impresión / Comanda
                     </label>
                     <select name="area_impresion" required
                         class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 text-sm font-semibold text-white outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all appearance-none cursor-pointer">
-                        <option value="Cocina" class="bg-[#1c1c1e] text-white" @selected($categoria->area_impresion == 'Cocina')>🍳 Cocina / Calientes</option>
-                        <option value="Barra" class="bg-[#1c1c1e] text-white" @selected($categoria->area_impresion == 'Barra')>🍹 Barra / Bebidas</option>
-                        <option value="Parrilla" class="bg-[#1c1c1e] text-white" @selected($categoria->area_impresion == 'Parrilla')>🔥 Parrilla</option>
+                        <option value="Cocina" class="bg-[#1c1c1e] text-white" @selected($categoria->area_impresion == 'Cocina')>Cocina / Calientes</option>
+                        <option value="Barra" class="bg-[#1c1c1e] text-white" @selected($categoria->area_impresion == 'Barra')>Barra / Bebidas</option>
                     </select>
                 </div>
 

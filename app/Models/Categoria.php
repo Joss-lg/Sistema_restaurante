@@ -13,15 +13,8 @@ class Categoria extends Model
     // Los campos que permitimos guardar desde los formularios
     protected $fillable = [
         'nombre',
-        'slug',
         'color',
-        'orden_visualizacion',
         'area_impresion' // <--- Campo agregado para definir el área de impresión (Cocina, Barra, etc.)
-    ];
-
-    // Le decimos a Laravel qué tipo de dato es cada campo
-    protected $casts = [
-        'orden_visualizacion' => 'integer',
     ];
 
     // =========================================================================

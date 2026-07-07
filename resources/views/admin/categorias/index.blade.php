@@ -4,164 +4,184 @@
 @section('title', 'Categorías | Ollintem Pro')
 
 @section('content')
-<div class="px-4 py-6 sm:p-6 lg:p-8 xl:p-10 max-w-[1800px] mx-auto w-full space-y-6 sm:space-y-8 relative z-10 font-sans min-h-screen bg-zinc-950 text-zinc-100 modo-crema:bg-white modo-crema:text-zinc-800 transition-colors duration-300">
+<div class="px-4 py-6 sm:p-8 lg:p-10 max-w-[1800px] mx-auto w-full space-y-8 relative z-10 font-sans min-h-screen text-slate-800 dark:text-zinc-100 transition-colors duration-300">
 
     {{-- ======================================================== --}}
-    {{-- HERO BANNER (ESTRUCTURA PREMIUM LIMPIA) --}}
+    {{-- ALERTAS DE SESIÓN (ÉXITO Y ERROR) --}}
     {{-- ======================================================== --}}
-    <div class="w-full rounded-3xl border border-zinc-800/80 modo-crema:border-zinc-200 bg-zinc-900/30 modo-crema:bg-zinc-50/40 shadow-xl overflow-hidden relative group transition-all duration-300">
+    @if (session('success'))
+        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center gap-3 shadow-sm">
+            <i class="fas fa-check-circle text-lg"></i>
+            <span class="text-sm font-bold">{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 flex items-center gap-3 shadow-sm">
+            <i class="fas fa-exclamation-triangle text-lg"></i>
+            <span class="text-sm font-bold">{{ session('error') }}</span>
+        </div>
+    @endif
+
+    {{-- ======================================================== --}}
+    {{-- HEADER & MÉTRICAS (ESTILO DASHBOARD PREMIUM) --}}
+    {{-- ======================================================== --}}
+    <div class="flex flex-col xl:flex-row gap-6">
         
-        {{-- Destellos Atmosféricos de Fondo (Mesh suave usando Tailwind) --}}
-        <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none transition-all duration-500 group-hover:scale-110"></div>
-        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none transition-all duration-500 group-hover:scale-110"></div>
-        
-        <div class="relative z-10 p-6 sm:p-8 lg:p-10 space-y-8">
-            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8">
-                
-                {{-- Títulos y Contexto --}}
-                <div class="max-w-2xl space-y-3">
-                    <div class="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3.5 py-1 backdrop-blur-sm shadow-inner">
-                        <i class="fas fa-layer-group text-[10px] text-blue-400 modo-crema:text-blue-600"></i>
-                        <span class="text-[9px] font-black uppercase tracking-[0.25em] text-blue-400 modo-crema:text-blue-600">Categorías Premium</span>
-                    </div>
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-zinc-100 modo-crema:text-zinc-900 leading-tight">
-                        Gestión de Categorías
-                    </h1>
-                    <p class="text-xs sm:text-sm font-medium leading-relaxed text-zinc-400 modo-crema:text-zinc-500">
-                        Diseña y organiza el menú de tu restaurante con un tablero visual arquitectónico. Rápido, preciso y con toda la información clave al primer vistazo.
-                    </p>
+        {{-- Bloque Principal de Contexto --}}
+        <div class="flex-1 rounded-2xl border border-slate-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 p-6 sm:p-8 shadow-sm relative overflow-hidden flex flex-col justify-between group">
+            
+            {{-- Destellos sutiles (Solo visibles en dark mode) --}}
+            <div class="hidden dark:block absolute -top-32 -left-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none transition-transform duration-700 group-hover:translate-x-4"></div>
+            
+            <div class="relative z-10 space-y-4">
+                <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 dark:border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400"></span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Catálogo</span>
                 </div>
                 
-                {{-- Controles Superiores (Buscador y Creación) --}}
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto shrink-0">
-                    
-                    {{-- Buscador Estilo Inset --}}
-                    <div class="relative w-full sm:w-[260px]">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500 modo-crema:text-zinc-400">
-                            <i class="fas fa-search text-xs"></i>
-                        </div>
-                        <input type="text" id="buscadorCategorias" placeholder="Buscar categoría..."
-                            class="w-full h-11 rounded-xl bg-zinc-950/60 modo-crema:bg-zinc-100/80 border border-zinc-800 modo-crema:border-zinc-200/80 pl-9 pr-4 text-xs font-semibold text-zinc-100 modo-crema:text-zinc-800 placeholder:text-zinc-500 placeholder:opacity-70 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none shadow-inner transition-all" />
-                    </div>
-                    
-                    {{-- Botón de Acción Sólido Premium --}}
-                    @if(auth()->user()->tienePermiso('categories.agregar') || auth()->user()->tienePermiso('categorias.agregar'))   
-                        <button onclick="openModalCrear()"
-                            class="inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.98] px-6 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-blue-600/10 transition-all outline-none w-full sm:w-auto cursor-pointer">
-                            <i class="fas fa-plus text-[10px]"></i> Crear Categoría
-                        </button>
-                    @endif
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+                        Gestión de Categorías
+                    </h1>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-zinc-400 max-w-xl leading-relaxed">
+                        Organiza el menú de tu restaurante mediante bloques estructurales. Control rápido, preciso y con información en tiempo real.
+                    </p>
                 </div>
             </div>
 
-            {{-- Tarjetas de Métricas Internas --}}
-            <div class="grid gap-4 sm:grid-cols-3 pt-2">
-                <div class="rounded-2xl border border-zinc-800/60 modo-crema:border-zinc-200/60 bg-zinc-950/40 modo-crema:bg-white/60 p-5 transition-all hover:-translate-y-0.5 shadow-sm group">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500 modo-crema:text-zinc-400 group-hover:text-blue-500 modo-crema:group-hover:text-blue-600 transition-colors">Total Categorías</span>
-                    <p class="mt-2 text-3xl font-black text-zinc-100 modo-crema:text-zinc-900 tracking-tight">{{ count($categorias) }}</p>
-                    <p class="mt-1 text-[11px] font-medium text-zinc-500 modo-crema:text-zinc-400">Bloques registrados en el menú.</p>
+            {{-- Controles (Buscador y Creación) --}}
+            <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 relative z-10">
+                {{-- Buscador Premium --}}
+                <div class="relative w-full sm:max-w-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-zinc-500">
+                        <i class="fas fa-search text-sm"></i>
+                    </div>
+                    <input type="text" id="buscadorCategorias" placeholder="Buscar categoría por nombre..."
+                        class="w-full h-11 rounded-xl bg-slate-50 dark:bg-zinc-950/50 border border-slate-200 dark:border-zinc-800 pl-10 pr-4 text-sm font-medium text-slate-700 dark:text-zinc-200 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-inner dark:shadow-none" />
                 </div>
-                <div class="rounded-2xl border border-zinc-800/60 modo-crema:border-zinc-200/60 bg-zinc-950/40 modo-crema:bg-white/60 p-5 transition-all hover:-translate-y-0.5 shadow-sm group">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500 modo-crema:text-zinc-400 group-hover:text-emerald-500 modo-crema:group-hover:text-emerald-600 transition-colors">Platillos Activos</span>
-                    <p class="mt-2 text-3xl font-black text-zinc-100 modo-crema:text-zinc-900 tracking-tight">{{ $categorias->sum('productos_count') }}</p>
-                    <p class="mt-1 text-[11px] font-medium text-zinc-500 modo-crema:text-zinc-400">Asignados a través del sistema.</p>
+                
+                {{-- Botón Crear --}}
+                @if(auth()->user()->tienePermiso('categories.agregar') || auth()->user()->tienePermiso('categorias.agregar'))   
+                    <button onclick="openModalCrear()"
+                        class="inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 px-6 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-blue-500/20 transition-all outline-none w-full sm:w-auto active:scale-95">
+                        <i class="fas fa-plus"></i> Crear Categoría
+                    </button>
+                @endif
+            </div>
+        </div>
+
+        {{-- Tarjetas de Métricas Laterales --}}
+        <div class="w-full xl:w-80 flex flex-col sm:flex-row xl:flex-col gap-4">
+            <div class="flex-1 rounded-2xl border border-slate-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 p-6 shadow-sm hover:border-slate-300 dark:hover:bg-zinc-900 transition-colors flex flex-col justify-center">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Total Categorías</span>
+                    <div class="h-8 w-8 rounded-full bg-slate-50 dark:bg-zinc-800 flex items-center justify-center text-slate-400">
+                        <i class="fas fa-cubes text-xs"></i>
+                    </div>
                 </div>
-                <div class="rounded-2xl border border-zinc-800/60 modo-crema:border-zinc-200/60 bg-zinc-950/40 modo-crema:bg-white/60 p-5 transition-all hover:-translate-y-0.5 shadow-sm group">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500 modo-crema:text-zinc-400 group-hover:text-purple-500 modo-crema:group-hover:text-purple-600 transition-colors">Jerarquía</span>
-                    <p class="mt-2 text-3xl font-black text-zinc-100 modo-crema:text-zinc-900 tracking-tight">{{ $categorias->max('orden_visualizacion') ?? 0 }}</p>
-                    <p class="mt-1 text-[11px] font-medium text-zinc-500 modo-crema:text-zinc-400">Orden de visualización máximo.</p>
+                <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-zinc-100">{{ count($categorias) }}</p>
+                <p class="mt-1 text-xs font-medium text-slate-400 dark:text-zinc-500">Bloques registrados en el menú</p>
+            </div>
+            
+            <div class="flex-1 rounded-2xl border border-slate-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 p-6 shadow-sm hover:border-slate-300 dark:hover:bg-zinc-900 transition-colors flex flex-col justify-center">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Platillos Activos</span>
+                    <div class="h-8 w-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                        <i class="fas fa-utensils text-xs"></i>
+                    </div>
                 </div>
+                <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-zinc-100">{{ $categorias->sum('productos_count') }}</p>
+                <p class="mt-1 text-xs font-medium text-slate-400 dark:text-zinc-500">Asignados a través del sistema</p>
             </div>
         </div>
     </div>
 
     {{-- ======================================================== --}}
-    {{-- TABLA DE CONTENIDO DE ALTA GAMA --}}
+    {{-- TABLA DE DATOS ROBUSTA Y LIMPIA --}}
     {{-- ======================================================== --}}
-    <div class="w-full rounded-3xl border border-zinc-800/80 modo-crema:border-zinc-200 bg-zinc-900/30 modo-crema:bg-zinc-50/40 shadow-xl overflow-hidden">
+    <div class="w-full rounded-2xl border border-slate-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/40 shadow-sm overflow-hidden flex flex-col">
         
-        {{-- Cabecera de la Tabla --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 border-b border-zinc-800 modo-crema:border-zinc-200/80 bg-zinc-950/20 modo-crema:bg-white/40">
-            <div>
-                <h2 class="text-lg font-black text-zinc-100 modo-crema:text-zinc-900 tracking-tight">Catálogo General</h2>
-                <p class="text-xs font-medium text-zinc-400 modo-crema:text-zinc-500 mt-0.5">Inventario y organización de tus categorías.</p>
-            </div>
-            
-            <div class="inline-flex items-center gap-3 bg-zinc-950/60 modo-crema:bg-zinc-100 border border-zinc-800 modo-crema:border-zinc-200 rounded-xl px-4 py-2 shadow-inner w-fit">
-                <span class="text-[9px] font-black uppercase tracking-wider text-zinc-400 modo-crema:text-zinc-500">Total Registradas</span>
-                <div class="w-[1px] h-3.5 bg-zinc-800 modo-crema:bg-zinc-300"></div>
-                <span class="text-sm font-black text-zinc-100 modo-crema:text-zinc-900">{{ count($categorias) }}</span>
-            </div>
+        {{-- Encabezado de la Tabla --}}
+        <div class="px-6 py-5 border-b border-slate-200 dark:border-zinc-800/80 bg-slate-50/50 dark:bg-transparent flex justify-between items-center">
+            <h2 class="text-base font-bold text-slate-800 dark:text-zinc-200">Listado de Categorías</h2>
+            <span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-zinc-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-zinc-400">
+                {{ count($categorias) }} Registros
+            </span>
         </div>
 
-        {{-- Tabla Responsiva con Scrollbar Premium --}}
-        <div class="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-800 modo-crema:[&::-webkit-scrollbar-thumb]:bg-zinc-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+        <div class="overflow-x-auto w-full [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
             <table class="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
-                    <tr class="border-b border-zinc-800 modo-crema:border-zinc-200 bg-zinc-950/40 modo-crema:bg-zinc-50/70 text-[10px] font-black uppercase tracking-widest text-zinc-400 modo-crema:text-zinc-500">
-                        <th class="px-6 py-4.5 sm:px-8">Categoría</th>
-                        <th class="px-6 py-4.5 sm:px-8">Identificador</th>
-                        <th class="px-6 py-4.5 sm:px-8 text-center">Prioridad</th>
-                        <th class="px-6 py-4.5 sm:px-8">Contenido</th>
-                        <th class="px-6 py-4.5 sm:px-8 text-right">Ajustes</th>
+                    <tr class="border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/80">
+                        <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">Categoría</th>
+                        <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">Área de Impresión</th>
+                        <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">Contenido</th>
+                        <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400 text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="tablaCategorias" class="divide-y divide-zinc-800/50 modo-crema:divide-zinc-200/60 font-medium text-sm text-zinc-300 modo-crema:text-zinc-700">
+                <tbody id="tablaCategorias" class="divide-y divide-slate-100 dark:divide-zinc-800/60 bg-white dark:bg-transparent">
                     @forelse($categorias as $categoria)
-                    <tr class="fila-categoria group hover:bg-zinc-900/30 modo-crema:hover:bg-zinc-50/60 transition-colors duration-150">
+                    <tr class="fila-categoria group hover:bg-slate-50 dark:hover:bg-zinc-800/30 transition-colors duration-200">
                         
-                        {{-- Categoría / Nombre Visual --}}
-                        <td class="px-6 py-4.5 sm:px-8 nombre-celda">
+                        {{-- Nombre e Icono Visual --}}
+                        <td class="px-6 py-4.5 nombre-celda">
                             <div class="flex items-center gap-4">
-                                <div class="h-11 w-11 rounded-xl border border-zinc-800/80 modo-crema:border-zinc-200 bg-zinc-950/60 modo-crema:bg-zinc-100 shadow-inner flex items-center justify-center group-hover:scale-105 group-hover:rotate-2 transition-all duration-300 relative overflow-hidden shrink-0">
-                                    {{-- Resplandor suave usando el color dinámico --}}
-                                    <div class="absolute inset-0 opacity-15" style="background-color: {{ $categoria->color ?? '#3B82F6' }}"></div>
-                                    <span class="text-base font-black relative z-10" style="color: {{ $categoria->color ?? '#3B82F6' }}">
+                                <div class="h-10 w-10 rounded-full flex items-center justify-center shrink-0 border border-slate-200 dark:border-white/5 shadow-sm"
+                                     style="background-color: {{ $categoria->color ?? '#3B82F6' }}15; color: {{ $categoria->color ?? '#3B82F6' }};">
+                                    <span class="text-sm font-black uppercase">
                                         {{ substr($categoria->nombre, 0, 1) }}
                                     </span>
                                 </div>
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-zinc-100 modo-crema:text-zinc-900 tracking-tight group-hover:text-blue-400 modo-crema:group-hover:text-blue-600 transition-colors">
+                                    <span class="text-sm font-semibold text-slate-900 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-white transition-colors">
                                         {{ $categoria->nombre }}
+                                    </span>
+                                    <span class="text-[11px] font-medium text-slate-400 dark:text-zinc-500">
+                                        Añadido el {{ $categoria->created_at->format('d M, Y') }}
                                     </span>
                                 </div>
                             </div>
                         </td>
 
-                        {{-- Identificador (Slug) --}}
-                        <td class="px-6 py-4.5 sm:px-8">
-                            <span class="inline-flex items-center rounded-lg bg-zinc-950/40 modo-crema:bg-zinc-100 border border-zinc-800/60 modo-crema:border-zinc-200 px-2.5 py-1 text-xs font-bold text-zinc-400 modo-crema:text-zinc-600 shadow-inner">
-                                {{ $categoria->slug }}
-                            </span>
+                        {{-- Área de Impresión --}}
+                        <td class="px-6 py-4.5">
+                            <div class="inline-flex items-center gap-2 rounded-md bg-slate-100 dark:bg-zinc-800/80 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/50">
+                                @if($categoria->area_impresion == 'Cocina')
+                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                                @elseif($categoria->area_impresion == 'Barra')
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                                @elseif($categoria->area_impresion == 'Parrilla')
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                @else
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                @endif
+                                <span>{{ $categoria->area_impresion ?? 'Sin asignar' }}</span>
+                            </div>
                         </td>
 
-                        {{-- Prioridad / Orden --}}
-                        <td class="px-6 py-4.5 sm:px-8 text-center">
-                            <span class="text-sm font-black text-zinc-200 modo-crema:text-zinc-900">{{ $categoria->orden_visualizacion ?? 0 }}</span>
-                        </td>
-
-                        {{-- Contenido (Cantidad Productos) --}}
-                        <td class="px-6 py-4.5 sm:px-8">
-                            <span class="inline-flex items-center rounded-lg bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 text-xs font-bold text-blue-400 modo-crema:text-blue-600 shadow-sm">
+                        {{-- Contenido --}}
+                        <td class="px-6 py-4.5">
+                            <span class="inline-flex items-center justify-center rounded-md bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 min-w-[70px]">
                                 {{ $categoria->productos_count ?? $categoria->productos()->count() }} Platillos
                             </span>
                         </td>
 
-                        {{-- Ajustes y Botones de Control --}}
-                        <td class="px-6 py-4.5 sm:px-8 text-right">
-                            <div class="inline-flex items-center justify-end gap-2">
+                        {{-- Botones de Acción --}}
+                        <td class="px-6 py-4.5">
+                            <div class="flex items-center justify-center gap-2.5">
                                 @if(auth()->user()->tienePermiso('categorias.editar'))
                                     <button type="button" title="Editar"
                                         onclick="abrirModalEspecifico('modalEditar-{{ $categoria->id }}')"
-                                        class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 modo-crema:border-zinc-200 bg-zinc-950/40 modo-crema:bg-white text-zinc-400 modo-crema:text-zinc-500 transition-all hover:bg-blue-600 hover:text-white hover:border-transparent hover:shadow-lg hover:shadow-blue-600/20 active:scale-95 cursor-pointer">
-                                        <i class="fas fa-pen text-[10px]"></i>
+                                        class="h-9 w-9 rounded-xl flex items-center justify-center border border-blue-300 dark:border-blue-500/50 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all shadow-sm outline-none">
+                                        <i class="fas fa-pen text-[13px]"></i>
                                     </button>
                                 @endif
                                 @if(auth()->user()->tienePermiso('categorias.eliminar'))
                                     <button type="button" title="Eliminar"
                                         onclick="confirmarEliminacion('{{ $categoria->id }}', '{{ $categoria->nombre }}')"
-                                        class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 modo-crema:border-zinc-200 bg-zinc-950/40 modo-crema:bg-white text-zinc-400 modo-crema:text-zinc-500 transition-all hover:bg-red-600 hover:text-white hover:border-transparent hover:shadow-lg hover:shadow-red-600/20 active:scale-95 cursor-pointer">
-                                        <i class="fas fa-trash-alt text-[10px]"></i>
+                                        class="h-9 w-9 rounded-xl flex items-center justify-center border border-red-300 dark:border-red-500/50 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all shadow-sm outline-none">
+                                        <i class="fas fa-trash-alt text-[13px]"></i>
                                     </button>
                                 @endif
                             </div>
@@ -171,17 +191,17 @@
                     
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-20 text-center">
+                        <td colspan="4" class="px-6 py-20 text-center">
                             <div class="mx-auto flex max-w-sm flex-col items-center gap-4">
-                                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-950/50 modo-crema:bg-zinc-100 border border-zinc-800 modo-crema:border-zinc-200 text-zinc-500 shadow-inner">
-                                    <i class="fas fa-folder-open text-2xl"></i>
+                                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-zinc-800/50 text-slate-400 dark:text-zinc-500">
+                                    <i class="fas fa-folder-open text-3xl"></i>
                                 </div>
-                                <div class="space-y-1">
-                                    <p class="text-sm font-black text-zinc-100 modo-crema:text-zinc-900 tracking-tight">Tu catálogo está vacío.</p>
-                                    <p class="text-xs font-medium text-zinc-400 modo-crema:text-zinc-500">Crea tu primera categoría para organizar tu menú de platillos.</p>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900 dark:text-zinc-200">Aún no hay categorías</h3>
+                                    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 leading-relaxed">Comienza creando tu primera categoría para organizar el menú de tu restaurante correctamente.</p>
                                 </div>
-                                <button onclick="openModalCrear()" class="mt-2 rounded-xl bg-zinc-100 text-zinc-950 modo-crema:bg-zinc-900 modo-crema:text-white px-5 py-2.5 text-xs font-black uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all outline-none shadow-md cursor-pointer">
-                                    Comenzar ahora
+                                <button onclick="openModalCrear()" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-2.5 text-xs font-bold hover:opacity-90 transition-opacity outline-none shadow-md">
+                                    <i class="fas fa-plus"></i> Crear Primera Categoría
                                 </button>
                             </div>
                         </td>
@@ -192,16 +212,13 @@
         </div>
     </div>
 
-    {{-- Modales de Soporte integrados ordenadamente adentro de la sección --}}
+    {{-- Modales --}}
     @include('admin.categorias.modal-crear')
     @include('admin.categorias.modal-eliminar')
 
-    {{-- Scripts de Interactividad Premium --}}
+    {{-- Scripts --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // ==========================================================
-            // BUSCADOR EN TIEMPO REAL (Filtro por caracteres)
-            // ==========================================================
             const buscador = document.getElementById('buscadorCategorias');
             if (buscador) {
                 buscador.addEventListener('input', function () {
@@ -222,18 +239,12 @@
             }
         });
 
-        // ==========================================================
-        // CONTROLADORES DE MODALES DINÁMICOS (Editar / Específicos)
-        // ==========================================================
         function abrirModalEspecifico(modalId) {
             const modal = document.getElementById(modalId);
             if (!modal) return;
-
             const container = modal.querySelector('div[id^="modalContainer-"]');
-            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
             setTimeout(() => {
                 if (container) {
                     container.classList.remove('scale-95', 'opacity-0');
@@ -245,31 +256,23 @@
         function cerrarModalEspecifico(modalId) {
             const modal = document.getElementById(modalId);
             if (!modal) return;
-
             const container = modal.querySelector('div[id^="modalContainer-"]');
-            
             if (container) {
                 container.classList.remove('scale-100', 'opacity-100');
                 container.classList.add('scale-95', 'opacity-0');
             }
-            
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }, 200);
         }
 
-        // ==========================================================
-        // MODAL DE CREACIÓN DE CATEGORÍAS
-        // ==========================================================
         function openModalCrear() {
             const modal = document.getElementById('modalCrear');
             const container = document.getElementById('createContainer');
             if (!modal || !container) return;
-
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
             setTimeout(() => {
                 container.classList.remove('scale-95', 'opacity-0');
                 container.classList.add('scale-100', 'opacity-100');
@@ -280,19 +283,14 @@
             const modal = document.getElementById('modalCrear');
             const container = document.getElementById('createContainer');
             if (!container || !modal) return;
-
             container.classList.remove('scale-100', 'opacity-100');
             container.classList.add('scale-95', 'opacity-0');
-            
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }, 200);
         }
 
-        // ==========================================================
-        // MODAL DE ELIMINACIÓN SEGURA
-        // ==========================================================
         function confirmarEliminacion(id, nombre) {
             const modal = document.getElementById('modalEliminar');
             const container = document.getElementById('deleteContainer');
@@ -300,14 +298,14 @@
             const display = document.getElementById('delete_nombre_display');
             
             if (!modal || !container) return;
-
             if (display) display.innerText = nombre;
             
-            if (form) form.action = `{{ url('admin/categorias') }}/${id}`;
+            // Ruta de borrado armada correctamente
+            let urlBase = "{{ route('admin.categorias.index') }}"; 
+            if (form) form.action = `${urlBase}/${id}`;
             
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
             setTimeout(() => {
                 container.classList.remove('scale-95', 'opacity-0');
                 container.classList.add('scale-100', 'opacity-100');
@@ -318,10 +316,8 @@
             const modal = document.getElementById('modalEliminar');
             const container = document.getElementById('deleteContainer');
             if (!container || !modal) return;
-
             container.classList.remove('scale-100', 'opacity-100');
             container.classList.add('scale-95', 'opacity-0');
-            
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');

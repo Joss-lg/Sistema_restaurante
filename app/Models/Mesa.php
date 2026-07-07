@@ -52,21 +52,16 @@ class Mesa extends Model
             ->whereNull('ordenes.deleted_at');
     }
 
-    // Accesador para calcular el total
     public function getTotalConsumoAttribute()
     {
-        $totalEnBD = $this->attributes['total_consumo'] ?? null;
-        if ($totalEnBD !== null && $totalEnBD > 0) {
-            return floatval($totalEnBD);
-        }
+        // Si ya tienes la relación cargada en el controlador, úsala de la memoria
+        $total = $this->ordenesActivas->sum(function($orden) {
+            return $orden->detalles->sum(function($detalle) {
+                return $detalle->cantidad * $detalle->precio_unitario;
+            });
+        });
 
-        $totalDetalles = $this->ordenesActivas()
-            ->join('detalles_orden', 'ordenes.id', '=', 'detalles_orden.orden_id')
-            ->selectRaw('SUM(detalles_orden.cantidad * detalles_orden.precio_unitario) as total_detalle')
-            ->value('total_detalle');
-
-        $totalDetalles = floatval($totalDetalles ?: 0);
-        return round($totalDetalles * 1.16, 2);
+        return round($total * 1.16, 2);
     }
 
     public function getProductosAttribute()

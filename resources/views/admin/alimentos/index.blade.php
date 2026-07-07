@@ -66,11 +66,13 @@
     const tienePermisoGestionar = container.dataset.permisoGestionar === 'true';
     const categoriasDisponibles = {!! Illuminate\Support\Js::from($categorias->map(function($c) { return ['id' => $c->id, 'nombre' => $c->nombre]; })) !!};
     const insumosDisponibles = {!! Illuminate\Support\Js::from($insumosDisponibles->map(function($i) { return ['id' => $i->id, 'nombre' => $i->nombre, 'unidad_medida' => $i->unidad_medida, 'stock_actual' => $i->stock_actual]; })) !!};
+    
     document.addEventListener('DOMContentLoaded', function() {
         cargarProductos();
         cargarEstadisticas();
         setInterval(cargarEstadisticas, 10000);
     });
+
     function cargarProductos() {
         fetch(RUTA_PRODUCTOS)
             .then(response => response.json())
@@ -86,6 +88,7 @@
             })
             .catch(error => console.error('Error cargando productos:', error));
     }
+
     function cargarEstadisticas() {
         fetch(RUTA_ESTADISTICAS)
             .then(response => response.json())
@@ -96,6 +99,7 @@
             })
             .catch(error => console.error('Error cargando estadísticas:', error));
     }
+
     function renderizarProductos() {
         const container = document.getElementById('categorias-container');
         container.innerHTML = '';
@@ -127,9 +131,10 @@
             });
         });
     }
+
     function crearCardProducto(producto) {
         const card = document.createElement('div');
-        card.className = 'bg-[var(--bg-panel)] rounded-[16px] p-4 sm:p-5 border border-[var(--border-color)] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group flex flex-col relative';
+        card.className = 'bg-[var(--bg-panel)] rounded-[16px] p-4 sm:p-5 border border-[var(--border-color)] shadow-sm group flex flex-col relative';
         let etiquetasMods = '';
         if(producto.modificadores && producto.modificadores.length > 0) {
             etiquetasMods = `<p class="text-[10px] text-[var(--text-muted)] mt-1.5 truncate"><i class="fas fa-list-ul mr-1 opacity-70"></i> ${producto.modificadores.map(m => m.nombre).join(', ')}</p>`;
@@ -141,12 +146,14 @@
         if (tienePermisoEliminar) {
             botonesHTML += `<button class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition" onclick="eliminarProducto(${producto.id})" title="Eliminar"><i class="fas fa-trash text-[11px]"></i></button>`;
         }
+        
         let toggleHTML = '';
         if (tienePermisoGestionar) {
-            toggleHTML = `<button class="w-9 h-5 rounded-full transition-colors duration-300 relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'}" onclick="toggleDisponibilidad(${producto.id})" title="Cambiar disponibilidad"><div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 transition-transform duration-300 ${producto.esta_disponible ? 'translate-x-4.5' : 'translate-x-0.5'}"></div></button>`;
+            toggleHTML = `<button class="w-9 h-5 rounded-full transition-colors duration-200 relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'}" onclick="toggleDisponibilidad(this, ${producto.id})" title="Cambiar disponibilidad"><div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 transition-transform duration-200 ${producto.esta_disponible ? 'translate-x-[18px]' : 'translate-x-0.5'}"></div></button>`;
         } else {
-            toggleHTML = `<div class="w-9 h-5 rounded-full relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'} opacity-50 cursor-not-allowed"><div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 ${producto.esta_disponible ? 'translate-x-4.5' : 'translate-x-0.5'}"></div></div>`;
+            toggleHTML = `<div class="w-9 h-5 rounded-full relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'} opacity-50 cursor-not-allowed"><div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 transition-transform duration-200 ${producto.esta_disponible ? 'translate-x-[18px]' : 'translate-x-0.5'}"></div></div>`;
         }
+        
         card.innerHTML = `
             <div class="flex justify-between items-start mb-4 gap-2">
                 <div class="overflow-hidden">
@@ -161,13 +168,14 @@
             <div class="flex justify-between items-center mt-auto pt-4 border-t border-[var(--border-color)]">
                 <div class="flex items-center gap-3">
                     ${toggleHTML}
-                    <span class="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">${producto.esta_disponible ? 'Disponible' : 'Agotado'}</span>
+                    <span class="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest texto-estado">${producto.esta_disponible ? 'Disponible' : 'Agotado'}</span>
                 </div>
                 <span class="text-[16px] font-black text-[var(--text-color)] tracking-tight">$${parseFloat(producto.precio).toFixed(2)}</span>
             </div>
         `;
         return card;
     }
+
     function obtenerIconoCategoria(nombre) {
         const nomNormalizado = nombre.toLowerCase();
         if(nomNormalizado.includes('pizza')) return 'fas fa-pizza-slice';
@@ -181,6 +189,7 @@
         if(nomNormalizado.includes('abarrote')) return 'fas fa-box-open';
         return 'fas fa-concierge-bell';
     }
+
     function openModalAlimento() {
         estadoGlobal.editandoId = null;
         const form = document.getElementById('formulario-crear-alimento');
@@ -197,6 +206,7 @@
             panel.classList.add('opacity-100', 'translate-y-0');
         }, 10);
     }
+
     function closeModalCrear() {
         const modal = document.getElementById('modal-crear-alimento');
         const panel = document.getElementById('modal-crear-panel');
@@ -204,6 +214,7 @@
         panel.classList.remove('opacity-100', 'translate-y-0');
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
+
     function editarProducto(id) {
         const producto = encontrarProductoPorId(id);
         if (!producto) return;
@@ -222,6 +233,7 @@
             panel.classList.add('opacity-100', 'translate-y-0');
         }, 10);
     }
+
     function closeModalEditar() {
         const modal = document.getElementById('modal-editar-alimento');
         const panel = document.getElementById('modal-editar-panel');
@@ -229,13 +241,17 @@
         panel.classList.remove('opacity-100', 'translate-y-0');
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
+
     function encontrarProductoPorId(id) { return estadoGlobal.productosMap[id] || null; }
+    
     function obtenerCategoriaIdPorNombre(nombre) {
         if (!nombre) return null;
         const categoria = categoriasDisponibles.find(cat => cat.nombre.toLowerCase() === nombre.toLowerCase());
         return categoria ? categoria.id : null;
     }
+
     function limpiarIngredientesContainer(tipo) { document.getElementById(`ingredientes-container-${tipo}`).innerHTML = ''; }
+    
     function crearFilaIngrediente(ingrediente = {}) {
         const row = document.createElement('div');
         row.className = 'flex flex-col md:grid md:grid-cols-12 gap-3 items-stretch md:items-end p-4 md:p-0 bg-[var(--bg-color)] md:bg-transparent rounded-2xl border border-[var(--border-color)] md:border-0 ingrediente-row relative mb-3 md:mb-0';
@@ -278,11 +294,14 @@
         if (insumoValue) { select.value = insumoValue; sincronizarInsumo(select); }
         return row;
     }
+
     function agregarIngrediente(tipo = 'crear', ingrediente = {}) {
         const container = document.getElementById(`ingredientes-container-${tipo}`);
         if(container) container.appendChild(crearFilaIngrediente(ingrediente));
     }
+
     function eliminarIngredienteRow(button) { button.closest('.ingrediente-row').remove(); }
+
     function sincronizarInsumo(select) {
         const selectedOption = select.querySelector('option:checked');
         const row = select.closest('.ingrediente-row');
@@ -297,6 +316,7 @@
             stockLabel.innerHTML = '';
         }
     }
+
     function llenarIngredientesEdicion(producto) {
         limpiarIngredientesContainer('editar');
         if (producto.insumos && producto.insumos.length > 0) {
@@ -305,6 +325,7 @@
             });
         } else { agregarIngrediente('editar'); }
     }
+
     function guardarAlimento(event) {
         event.preventDefault();
         const btnGuardar = document.getElementById('btn-guardar');
@@ -327,6 +348,7 @@
         data.categoria_id = obtenerCategoriaIdPorNombre(txtCategoria);
         ejecutarPeticion(RUTA_STORE, data, btnGuardar, textoOriginal, closeModalCrear);
     }
+
     function actualizarAlimento(event) {
         event.preventDefault();
         const btnActualizar = document.getElementById('btn-actualizar');
@@ -349,6 +371,7 @@
         data._method = 'PUT';
         ejecutarPeticion(RUTA_UPDATE_BASE + estadoGlobal.editandoId, data, btnActualizar, textoOriginal, closeModalEditar);
     }
+
     function ejecutarPeticion(url, data, boton, textoBoton, cerrarModalFn) {
         fetch(url, {
             method: 'POST',
@@ -374,18 +397,56 @@
         })
         .finally(() => { boton.textContent = textoBoton; boton.disabled = false; });
     }
+
     function eliminarProducto(id) {
         const producto = encontrarProductoPorId(id);
         if (producto) abrirModalEliminar(id, producto.nombre);
     }
-    function toggleDisponibilidad(id) {
+
+    // FUNCIÓN DE DISPONIBILIDAD OPTIMIZADA
+    function toggleDisponibilidad(btn, id) {
+        const circulo = btn.querySelector('div');
+        const estaDisponible = btn.classList.contains('bg-green-500');
+        const textoEstado = btn.nextElementSibling; 
+        
+        // 1. Aplicamos el cambio visual INMEDIATAMENTE
+        btn.classList.toggle('bg-green-500', !estaDisponible);
+        btn.classList.toggle('bg-gray-300', estaDisponible);
+        btn.classList.toggle('dark:bg-zinc-700', estaDisponible);
+        
+        // Animación de la bolita
+        circulo.classList.toggle('translate-x-[18px]', !estaDisponible);
+        circulo.classList.toggle('translate-x-0.5', estaDisponible);
+        
+        if (textoEstado) {
+            textoEstado.textContent = !estaDisponible ? 'DISPONIBLE' : 'AGOTADO';
+        }
+
+        // 2. Hacemos la petición al servidor en segundo plano
         fetch(RUTA_TOGGLE_BASE + id + '/toggle-disponibilidad', {
             method: 'PATCH',
             headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }
         })
-        .then(() => { cargarProductos(); cargarEstadisticas(); })
-        .catch(error => console.error(error));
+        .then(() => {
+            cargarEstadisticas(); 
+        })
+        .catch(error => {
+            console.error(error);
+            // 3. Si algo falla, revertimos el botón a su estado original
+            btn.classList.toggle('bg-green-500', estaDisponible);
+            btn.classList.toggle('bg-gray-300', !estaDisponible);
+            btn.classList.toggle('dark:bg-zinc-700', !estaDisponible);
+            
+            circulo.classList.toggle('translate-x-[18px]', estaDisponible);
+            circulo.classList.toggle('translate-x-0.5', !estaDisponible);
+            
+            if (textoEstado) {
+                textoEstado.textContent = estaDisponible ? 'DISPONIBLE' : 'AGOTADO';
+            }
+            mostrarNotificacion('Error al cambiar disponibilidad', 'error');
+        });
     }
+
     function mostrarNotificacion(mensaje, tipo) {
         const notificacion = document.createElement('div');
         notificacion.className = `fixed top-4 right-4 px-6 py-3 rounded-lg font-bold text-white z-[200] shadow-xl ${tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`;

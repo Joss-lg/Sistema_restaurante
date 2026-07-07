@@ -68,7 +68,7 @@
     function confirmarEliminacion() {
         if (!idProductoAEliminar) return;
 
-        fetch(`/admin/alimentos/api/${idProductoAEliminar}`, {
+        fetch(`/alimentos/api/${idProductoAEliminar}`, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content

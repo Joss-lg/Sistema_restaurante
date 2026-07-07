@@ -13,10 +13,12 @@ class EmpleadoController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::query();
+        // CAMBIO CLAVE: Usamos withTrashed() para que Laravel no nos oculte a los inactivos
+        $query = User::withTrashed();
 
         if (!$request->has('ver_inactivos')) {
-            $query->where('esta_activo', true);
+            // Si NO queremos ver inactivos, filtramos solo los activos y que no estén borrados
+            $query->where('esta_activo', true)->whereNull('deleted_at');
         }
 
         $empleados = $query->with(['permisos', 'rol:id,nombre'])->get();
@@ -36,9 +38,12 @@ class EmpleadoController extends Controller
 
         $esPOS = $request->boolean('puede_acceder_pos');
 
+        // CAMBIO CLAVE: Generamos un correo único agregando un número aleatorio si no se proporciona uno
+        $correoGenerado = strtolower(str_replace(' ', '', $request->nombre)) . rand(100, 999) . '@empresa.com';
+
         User::create([
             'nombre'            => trim($request->nombre),
-            'email'             => $request->email ?? strtolower(str_replace(' ', '', $request->nombre)) . '@empresa.com',
+            'email'             => $request->email ?? $correoGenerado,
             'rol_id'            => $request->rol_id,
             'puede_acceder_pos' => $esPOS,
             'codigo_empleado'   => $esPOS ? $request->codigo_empleado : null,
@@ -46,14 +51,14 @@ class EmpleadoController extends Controller
             'esta_activo'       => true,
         ]);
 
-        return redirect()->route('admin.empleados.index')->with('success', 'Empleado registrado.');
+        return redirect()->route('admin.empleados.index')->with('success', 'Empleado registrado exitosamente.');
     }
 
     public function update(Request $request, $id)
     {
-        $empleado = User::findOrFail($id);
+        // Usamos withTrashed por si acaso estamos editando a alguien inactivo
+        $empleado = User::withTrashed()->findOrFail($id);
         
-        // 🌟 LÓGICA DE BLINDAJE: Verificamos si te estás editando a ti mismo
         $esMismoUsuario = ($empleado->id === auth()->id());
 
         $reglas = [
@@ -62,15 +67,12 @@ class EmpleadoController extends Controller
             'codigo_empleado'   => 'required_if:puede_acceder_pos,1|nullable|digits:4|unique:users,codigo_empleado,' . $id,
         ];
 
-        // Solo exigimos el rol_id si NO eres tú mismo (porque si eres tú, el campo se envía vacío o bloqueado)
         if (!$esMismoUsuario) {
             $reglas['rol_id'] = 'required|exists:roles,id';
         }
 
         $request->validate($reglas);
 
-        // Si eres tú mismo, forzamos tus valores actuales de la Base de Datos
-        // Si es otro empleado, tomamos lo que seleccionaste en el formulario
         $esPOS = $esMismoUsuario ? $empleado->puede_acceder_pos : $request->boolean('puede_acceder_pos');
         $rolId = $esMismoUsuario ? $empleado->rol_id : $request->rol_id;
         
@@ -92,58 +94,74 @@ class EmpleadoController extends Controller
 
     public function permisos($id)
     {
-        $empleado = User::with('permisos')->findOrFail($id);
+        $empleado = User::withTrashed()->with('permisos')->findOrFail($id);
         return view('admin.empleados.permisos', compact('empleado'));
     }
 
     public function actualizarPermisos(Request $request, $id)
-{
-    $empleado = User::findOrFail($id);
-    // Traemos todos los IDs de módulos existentes para asegurar que cubrimos el 1 al 10
-    $todosLosModulos = \App\Models\Modulo::pluck('id'); 
-    $permisosEnviados = $request->input('permisos', []);
+    {
+        $empleado = User::withTrashed()->findOrFail($id);
+        $todosLosModulos = \App\Models\Modulo::pluck('id'); 
+        $permisosEnviados = $request->input('permisos', []);
 
-    foreach ($todosLosModulos as $moduloId) {
-        $acciones = $permisosEnviados[$moduloId] ?? [];
+        foreach ($todosLosModulos as $moduloId) {
+            $acciones = $permisosEnviados[$moduloId] ?? [];
 
-        // Buscamos primero el registro existente
-        $permiso = Permiso::where('user_id', $empleado->id)
-                          ->where('modulo_id', $moduloId)
-                          ->first();
+            $permiso = Permiso::where('user_id', $empleado->id)
+                              ->where('modulo_id', $moduloId)
+                              ->first();
 
-        $data = [
-            'mostrar'   => isset($acciones['mostrar']) ? 1 : 0,
-            'crear'     => isset($acciones['crear']) ? 1 : 0,
-            'editar'    => isset($acciones['editar']) ? 1 : 0,
-            'eliminar'  => isset($acciones['eliminar']) ? 1 : 0,
-            'gestionar' => isset($acciones['gestionar']) ? 1 : 0,
-        ];
+            $data = [
+                'mostrar'   => isset($acciones['mostrar']) ? 1 : 0,
+                'crear'     => isset($acciones['crear']) ? 1 : 0,
+                'editar'    => isset($acciones['editar']) ? 1 : 0,
+                'eliminar'  => isset($acciones['eliminar']) ? 1 : 0,
+                'gestionar' => isset($acciones['gestionar']) ? 1 : 0,
+            ];
 
-        if ($permiso) {
-            $permiso->update($data);
-        } else {
-            Permiso::create(array_merge([
-                'user_id' => $empleado->id, 
-                'modulo_id' => $moduloId
-            ], $data));
+            if ($permiso) {
+                $permiso->update($data);
+            } else {
+                Permiso::create(array_merge([
+                    'user_id' => $empleado->id, 
+                    'modulo_id' => $moduloId
+                ], $data));
+            }
         }
-    }
 
-    return redirect()->route('admin.empleados.index')
-                     ->with('success', "Permisos de {$empleado->nombre} actualizados correctamente.");
-}
+        return redirect()->route('admin.empleados.index')
+                         ->with('success', "Permisos de {$empleado->nombre} actualizados correctamente.");
+    }
 
     public function destroy($id)
     {
-        $empleado = User::findOrFail($id);
-        if ($empleado->id === auth()->id()) return redirect()->back()->with('error', 'No puedes eliminarte a ti mismo.');
+        // CAMBIO CLAVE: withTrashed() para poder encontrarlo si ya estaba inactivo
+        $empleado = User::withTrashed()->findOrFail($id);
+        
+        if ($empleado->id === auth()->id()) {
+            return redirect()->back()->with('error', 'No puedes eliminarte a ti mismo.');
+        }
+
+        // Lógica de borrado definitivo (ahora sí lo borrará de MySQL)
+        if ($empleado->esta_activo == false) {
+            $empleado->forceDelete(); 
+            return redirect()->back()->with('success', 'El empleado ha sido eliminado permanentemente de la base de datos.');
+        }
+
+        // Baja lógica: Lo marcamos como inactivo y aplicamos el SoftDelete
         $empleado->update(['esta_activo' => false]);
+        $empleado->delete(); 
+        
         return redirect()->back()->with('success', 'Empleado dado de baja.');
     }
 
     public function reactivar($id)
     {
-        User::findOrFail($id)->update(['esta_activo' => true]);
-        return redirect()->back()->with('success', "Empleado reactivado.");
+        //CAMBIO CLAVE: withTrashed() para encontrarlo y restaurarlo
+        $empleado = User::withTrashed()->findOrFail($id);
+        $empleado->restore(); // Le quitamos el SoftDelete
+        $empleado->update(['esta_activo' => true]);
+        
+        return redirect()->back()->with('success', "Empleado reactivado exitosamente.");
     }
 }

@@ -79,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
             Route::post('/api/store', [CajaController::class, 'store'])->name('api.store');
             Route::post('/api/pagar', [CajaController::class, 'pagar'])->name('api.pagar');
-            Route::post('/api/procesar-pago', [CajaController::class, 'procesarPago'])->name('api.procesar-pago');
+            Route::post('/api/procesar-pago', [CajaController::class, 'procesarPago'])->name('procesar.pago.final');
             Route::post('/api/liberar-mesa', [CajaController::class, 'liberarMesa'])->name('api.liberar-mesa');
             Route::post('/api/estado-mesa', [CajaController::class, 'getEstadoMesa'])->name('api.estado-mesa');
             Route::post('/api/abrir-mesa', [CajaController::class, 'abrirMesa'])->name('api.abrir-mesa');

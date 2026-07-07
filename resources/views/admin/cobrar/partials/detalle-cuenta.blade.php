@@ -1,7 +1,8 @@
 {{-- detalle-cuenta.blade.php --}}
 @php
     $esDividida = ($cuentasDivididas ?? false);
-    $totalPartes = $totalCuentasDivision ?? ($orden->numero_cuenta_division ?? 1);
+    // Corrección 1: Usar $ordenes->first() en lugar de $orden
+    $totalPartes = $totalCuentasDivision ?? ($ordenes->first()->numero_cuenta_division ?? 1);
 @endphp
 
 {{-- 1. Cabecera y Lógica de Cuenta --}}
@@ -24,10 +25,11 @@
 </div>
 
 {{-- 2. Selector de Personas (Solo si es dividida) --}}
-@if($esDividida && !empty($cuentasDividadasInfo))
+{{-- Corrección 2: Usar la variable correcta $cuentasDivididas --}}
+@if($esDividida && !empty($cuentasDivididas))
     <div class="px-8 pb-4">
         <div class="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2">
-            @foreach($cuentasDividadasInfo as $index => $cuenta)
+            @foreach($cuentasDivididas as $index => $cuenta)
                 @php 
                     $esPagada = ($cuenta['estado_orden'] ?? '') === 'pagada';
                 @endphp
@@ -47,9 +49,11 @@
 
 {{-- 3. Lista de Productos --}}
 <div class="px-8 pb-8 space-y-4 flex-1 overflow-y-auto" id="productos-container">
-    @if($esDividida && !empty($cuentasDividadasInfo))
+    
+    @if($esDividida && !empty($cuentasDivididas))
+        {{-- Lógica para cuentas divididas --}}
         <div id="cuenta-activa">
-            @forelse(($cuentasDividadasInfo[0]['productos'] ?? []) as $producto)
+            @forelse(($cuentasDivididas[0]['productos'] ?? []) as $producto)
                 <div class="flex items-center justify-between group">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 bg-zinc-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-blue-500 font-black text-xs border border-zinc-200 dark:border-white/5 group-hover:border-blue-500/30 transition-colors">
@@ -58,9 +62,6 @@
                         <div>
                             <p class="text-zinc-900 dark:text-white font-bold text-sm">{{ $producto->nombre }}</p>
                             <p class="text-[10px] text-zinc-500 dark:text-zinc-400">Unit: ${{ number_format($producto->precio_unitario, 2) }}</p>
-                            @if($producto->notas)
-                                <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase italic">{{ $producto->notas }}</p>
-                            @endif
                         </div>
                     </div>
                     <span class="text-zinc-900 dark:text-white font-black text-sm">${{ number_format($producto->precio_unitario * $producto->cantidad, 2) }}</span>
@@ -71,5 +72,28 @@
                 </div>
             @endforelse
         </div>
+        
+    @else
+        {{-- Corrección 3: Lógica para mesas con una cuenta normal (recorriendo $ordenes) --}}
+        @foreach($ordenes as $ordenActual)
+            @foreach($ordenActual->detalles as $detalle)
+                <div class="flex items-center justify-between group mb-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-zinc-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-blue-500 font-black text-xs border border-zinc-200 dark:border-white/5 group-hover:border-blue-500/30 transition-colors">
+                            {{ $detalle->cantidad }}x
+                        </div>
+                        <div>
+                            <p class="text-zinc-900 dark:text-white font-bold text-sm">{{ $detalle->producto->nombre ?? 'Producto sin nombre' }}</p>
+                            <p class="text-[10px] text-zinc-500 dark:text-zinc-400">Unit: ${{ number_format($detalle->precio_unitario, 2) }}</p>
+                            @if($detalle->notas)
+                                <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase italic">{{ $detalle->notas }}</p>
+                            @endif
+                        </div>
+                    </div>
+                    <span class="text-zinc-900 dark:text-white font-black text-sm">${{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}</span>
+                </div>
+            @endforeach
+        @endforeach
     @endif
+
 </div>

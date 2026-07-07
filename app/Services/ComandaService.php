@@ -87,12 +87,19 @@ class ComandaService
                 $producto = Producto::with(['insumos', 'categoria'])->find($platillo['id']);
                 if ($producto) {
                     
+                    // FILTRO DE SEGURIDAD: Si el área no es Barra, forzamos que sea Cocina 
+                    // (Esto reasigna automáticamente cualquier producto viejo de Parrilla)
+                    $areaAsignada = $producto->categoria->area_impresion ?? 'Cocina';
+                    if ($areaAsignada !== 'Barra') {
+                        $areaAsignada = 'Cocina';
+                    }
+
                     // Almacenamos en nuestro array lo necesario para imprimir
                     $productosParaTicket[] = [
                         'nombre'    => $producto->nombre,
                         'cantidad'  => $platillo['cantidad'],
                         'notas'     => $notasFinales,
-                        'area'      => $producto->categoria->area_impresion ?? 'Cocina',
+                        'area'      => $areaAsignada,
                         'tiempo'    => $platillo['tiempo'] ?? null
                     ];
 
@@ -140,11 +147,10 @@ class ComandaService
      */
     private function enviarImpresionRed(array $productos, $nombreMesa, $nombreMesero)
     {
-        // ASIGNA AQUÍ LAS DIRECCIONES IP REALES DE TU RESTAURANTE
+        // ASIGNA AQUÍ LAS DIRECCIONES IP REALES DE TU RESTAURANTE (Parrilla eliminada)
         $impresorasIps = [
             'Cocina'   => '192.168.1.200',
             'Barra'    => '192.168.1.201',
-            'Parrilla' => '192.168.1.202',
         ];
 
         // Agrupamos el array de productos por su área asignada automáticamente

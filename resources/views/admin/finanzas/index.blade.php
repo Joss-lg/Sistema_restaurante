@@ -294,6 +294,14 @@
 
 </div>
 
+@if(auth()->user()->tienePermiso('finanzas.crear'))
+    @include('admin.finanzas.modal-crear-gasto')
+@endif
+
+@if(auth()->user()->tienePermiso('finanzas.editar'))
+    @include('admin.finanzas.modal-crear-nomina')
+@endif
+
 <script>
     function openTailwindModal(modalId, containerId) {
         const modal = document.getElementById(modalId);
@@ -351,11 +359,3 @@
     });
 </script>
 @endsection
-
-@if(auth()->user()->tienePermiso('finanzas.crear'))
-    @include('admin.finanzas.modal-crear-gasto')
-@endif
-
-@if(auth()->user()->tienePermiso('finanzas.editar'))
-    @include('admin.finanzas.modal-crear-nomina')
-@endif

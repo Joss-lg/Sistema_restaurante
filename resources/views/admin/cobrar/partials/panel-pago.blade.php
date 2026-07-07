@@ -3,8 +3,8 @@
     <div class="max-w-xl mx-auto h-full flex flex-col">
 
         {{-- Inputs de Estado Ocultos --}}
-        <input id="mesa-id" type="hidden" value="{{ $mesa->id ?? '' }}">
-        <input id="orden-id" type="hidden" value="{{ $orden->id ?? '' }}">
+        <input id="mesa-id" type="hidden" value="{{ $mesa->id }}">
+        <input id="orden-id" type="hidden" value="{{ $ordenes->first()->id ?? '' }}">
         <input id="metodo-pago" type="hidden" value="Efectivo">
 
         <div class="flex-1 space-y-6 overflow-y-auto pr-2">

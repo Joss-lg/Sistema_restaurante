@@ -14,10 +14,11 @@ class CategoriaController extends Controller
      */
     public function index()
     {
-        // Traemos todas las categorías ordenadas por el campo 'orden_visualizacion' y luego por 'nombre'
-        $categorias = Categoria::orderBy('orden_visualizacion')
-                               ->orderBy('nombre')
-                               ->get();
+        // Traemos todas las categorías ordenadas por 'nombre'
+        // y contamos solo los productos activos (disponibles)
+        $categorias = Categoria::withCount(['productos as productos_count' => function ($query) {
+            $query->where('esta_disponible', true);
+        }])->orderBy('nombre')->get();
 
         return view('admin.categorias.index', compact('categorias'));
     }
@@ -33,7 +34,6 @@ class CategoriaController extends Controller
         $request->validate([
             'nombre'              => 'required|string|max:255|unique:categorias,nombre',
             'color'               => 'nullable|string|max:20',
-            'orden_visualizacion' => 'nullable|integer|min:0',
             'area_impresion'      => 'required|string|in:Cocina,Barra,Parrilla' // <-- Validación agregada
         ]);
 
@@ -42,7 +42,6 @@ class CategoriaController extends Controller
             'nombre'              => $request->nombre,
             'slug'                => Str::slug($request->nombre),
             'color'               => $request->color ?? '#3B82F6', // Azul por defecto
-            'orden_visualizacion' => $request->orden_visualizacion ?? 0,
             'area_impresion'      => $request->area_impresion // <-- Guardado agregado
         ]);
 
@@ -63,7 +62,6 @@ class CategoriaController extends Controller
         $request->validate([
             'nombre'              => 'required|string|max:255|unique:categorias,nombre,' . $id,
             'color'               => 'nullable|string|max:20',
-            'orden_visualizacion' => 'nullable|integer|min:0',
             'area_impresion'      => 'required|string|in:Cocina,Barra,Parrilla' // <-- Validación agregada
         ]);
 
@@ -71,7 +69,6 @@ class CategoriaController extends Controller
             'nombre'              => $request->nombre,
             'slug'                => Str::slug($request->nombre),
             'color'               => $request->color ?? $categoria->color,
-            'orden_visualizacion' => $request->orden_visualizacion ?? 0,
             'area_impresion'      => $request->area_impresion // <-- Actualización agregada
         ]);
 
@@ -80,21 +77,24 @@ class CategoriaController extends Controller
     }
 
     /**
-     * Borrado lógico (SoftDelete) de una categoría.
+     * Borrado FÍSICO (Permanente) de una categoría.
      */
     public function destroy($id)
     {
         $categoria = Categoria::findOrFail($id);
         
-        // Verificación de seguridad usando la relación (se asume que existe el método 'productos' en el modelo)
+        // ==============================================================================
+        // ESTO ES LO QUE ESTABA BLOQUEANDO EL BORRADO SI LA CATEGORÍA TIENE PLATILLOS
+        // ==============================================================================
         if ($categoria->productos()->exists()) {
             return redirect()->back()
                              ->with('error', 'No puedes eliminar esta categoría porque aún tiene platillos asignados.');
         }
 
-        $categoria->delete();
+        // SE CAMBIÓ 'delete()' POR 'forceDelete()' PARA ELIMINARLO DE LA BASE DE DATOS REAL
+        $categoria->forceDelete();
 
         return redirect()->route('admin.categorias.index')
-                         ->with('success', 'Categoría eliminada del menú.');
+                         ->with('success', 'Categoría eliminada permanentemente del sistema.');
     }
 }

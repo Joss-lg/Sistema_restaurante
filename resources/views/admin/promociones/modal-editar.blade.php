@@ -1,40 +1,30 @@
-<div id="modalEditar" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto p-4">
-    <div class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-8 unique-scrollbar max-h-[90vh] overflow-y-auto">
-        
+<div id="modalEditar" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto overflow-x-hidden p-4">
+    <div class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-8 unique-scrollbar max-h-[90vh] overflow-y-auto overflow-x-hidden">
+
         {{-- Resplandor decorativo de fondo --}}
         <div class="absolute -top-32 -right-32 w-64 h-64 bg-amber-500/10 dark:bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
         {{-- Cabecera del Modal --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-6 relative z-10">
-            <div class="flex items-center gap-4">
-                <div class="!bg-amber-50 dark:!bg-amber-500/20 w-12 h-12 rounded-2xl flex items-center justify-center !text-amber-600 dark:!text-amber-500 text-xl font-black shadow-inner border !border-amber-100 dark:!border-transparent">
-                    <i class="fas fa-pen"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-black !text-gray-900 dark:!text-white tracking-tight">Modificar Promoción</h2>
-                    <p class="text-xs font-medium !text-gray-500 dark:!text-gray-400 tracking-wide mt-0.5">Modifica los parámetros y restricciones de la oferta.</p>
-                </div>
+        <div class="flex items-center gap-4 mb-8 relative z-10">
+            <div class="!bg-amber-50 dark:!bg-amber-500/20 w-12 h-12 rounded-2xl flex items-center justify-center !text-amber-600 dark:!text-amber-500 text-xl font-black shadow-inner border !border-amber-100 dark:!border-transparent">
+                <i class="fas fa-pen"></i>
             </div>
-            
-            {{-- Interruptor de Estado Premium (iOS) --}}
-            <div class="flex flex-col items-end gap-1.5 !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 px-4 py-2 rounded-2xl transition-colors">
-                <span class="text-[9px] font-black uppercase tracking-widest !text-gray-500 dark:!text-gray-400">Estado actual</span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="esta_activa" value="1" id="edit_esta_activa" class="sr-only peer" form="formEditarPromocion">
-                    <div class="w-10 h-5 rounded-full !bg-gray-300 dark:!bg-zinc-700 border !border-gray-300 dark:!border-zinc-600 peer-checked:!border-emerald-500 peer-checked:!bg-emerald-500 transition-all duration-300 relative shadow-inner">
-                        <span class="absolute left-[2px] top-[1px] h-4 w-4 rounded-full !bg-white transition-all duration-300 peer-checked:left-[1.35rem] shadow-sm"></span>
-                    </div>
-                </label>
+            <div>
+                <h2 class="text-2xl font-black !text-gray-900 dark:!text-white tracking-tight">Modificar Promoción</h2>
+                <p class="text-xs font-medium !text-gray-500 dark:!text-gray-400 tracking-wide mt-0.5">Modifica los parámetros y restricciones de la oferta.</p>
             </div>
         </div>
+
+        {{-- El campo esta_activa sigue enviándose, oculto, para no perder el dato al guardar --}}
+        <input type="checkbox" name="esta_activa" value="1" id="edit_esta_activa" class="hidden" form="formEditarPromocion">
 
         {{-- Formulario de Edición --}}
         <form action="" method="POST" id="formEditarPromocion" class="relative z-10">
             @csrf
             @method('PUT')
-            
+
             <div class="space-y-6">
-                
+
                 {{-- Nombre de la Promo --}}
                 <div class="group">
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Nombre de la Promoción</label>
@@ -71,11 +61,17 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Fecha Inicio Vigencia</label>
-                        <input type="date" name="fecha_inicio" id="edit_fecha_inicio" required class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner cursor-pointer">
+                        <div class="relative">
+                            <input type="date" name="fecha_inicio" id="edit_fecha_inicio" required class="date-input-icon w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 pl-4 pr-10 text-sm font-bold !text-gray-900 dark:!text-white focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner cursor-pointer">
+                            <i onclick="abrirCalendario('edit_fecha_inicio')" class="fas fa-calendar-days absolute right-4 top-1/2 -translate-y-1/2 !text-amber-500 dark:!text-amber-400 cursor-pointer text-sm z-10"></i>
+                        </div>
                     </div>
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Fecha Fin Vigencia</label>
-                        <input type="date" name="fecha_fin" id="edit_fecha_fin" required class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner cursor-pointer">
+                        <div class="relative">
+                            <input type="date" name="fecha_fin" id="edit_fecha_fin" required class="date-input-icon w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 pl-4 pr-10 text-sm font-bold !text-gray-900 dark:!text-white focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner cursor-pointer">
+                            <i onclick="abrirCalendario('edit_fecha_fin')" class="fas fa-calendar-days absolute right-4 top-1/2 -translate-y-1/2 !text-amber-500 dark:!text-amber-400 cursor-pointer text-sm z-10"></i>
+                        </div>
                     </div>
                 </div>
 
@@ -83,13 +79,13 @@
                 <div>
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-3">Días de Aplicación Semanal</label>
                     <div class="grid grid-cols-4 sm:flex gap-2 flex-wrap">
-                        @php 
+                        @php
                             $mapeoDiasEdit = [
                                 ['L' => 1], ['M' => 2], ['M' => 3], ['J' => 4], ['V' => 5], ['S' => 6], ['D' => 7]
                             ];
                         @endphp
                         @foreach($mapeoDiasEdit as $diaData)
-                            @php 
+                            @php
                                 $letra = key($diaData);
                                 $num = $diaData[$letra];
                             @endphp
@@ -129,20 +125,53 @@
                         Actualizar Promoción
                     </button>
                 </div>
+
             </div>
         </form>
     </div>
 </div>
 
+<style>
+    /* Oculta el ícono nativo del navegador para los inputs de fecha y deja solo nuestro ícono personalizado.
+       Esto evita que en modo oscuro el ícono nativo se pierda por contraste. */
+    .date-input-icon::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        width: 2.5rem;
+        height: 100%;
+        cursor: pointer;
+    }
+</style>
+
 <script>
     /**
-     * Carga de forma asíncrona los datos de la promoción y abre el modal
+     * Abre el selector de fecha nativo al hacer clic en el ícono de calendario personalizado.
+     * (Si esta función ya fue declarada por modal-crear.blade.php en la misma página, no hay conflicto:
+     * JavaScript permite redeclarar funciones con "function" sin generar error.)
      */
-   public function edit(Promocion $promocion)
-{
-    return response()->json([
-        'success' => true,
-        'promocion' => $promocion->load('productos') // Importante cargar productos
-    ]);
-}
+    function abrirCalendario(inputId) {
+        const input = document.getElementById(inputId);
+        if (input && typeof input.showPicker === 'function') {
+            input.showPicker();
+        } else if (input) {
+            input.focus();
+        }
+    }
 </script>
+
+{{--
+    NOTA: El bloque de abajo era código PHP de un controlador Laravel
+    (function edit(Promocion $promocion) {...}) pegado por error dentro
+    de un <script> JS, lo cual no es válido y nunca se ejecutará en el
+    navegador. Debe vivir en tu controlador, por ejemplo:
+
+    // app/Http/Controllers/PromocionController.php
+    public function edit(Promocion $promocion)
+    {
+        return response()->json([
+            'success' => true,
+            'promocion' => $promocion->load('productos'),
+        ]);
+    }
+--}}

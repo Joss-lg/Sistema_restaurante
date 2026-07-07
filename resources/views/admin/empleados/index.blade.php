@@ -24,7 +24,7 @@
         @endif
     </div>
 
-    {{-- LÓGICA DE ESTADÍSTICAS --}}
+    {{-- LÓGICA DE ESTADÍSTICAS CON CONTORNOS DINÁMICOS --}}
     @php
         $totalAdmin = 0; $totalCapitan = 0; $totalMesero = 0; $totalCocinero = 0; $totalCajero = 0;
         
@@ -39,18 +39,43 @@
         }
 
         $tarjetasStats = [
-            ['titulo' => 'Administradores', 'valor' => $totalAdmin, 'bgIcono' => 'bg-rose-50 text-rose-600 border border-rose-100 dark:border-transparent dark:bg-rose-500/10 dark:text-rose-400', 'bgGlow' => 'bg-rose-500/[0.03] dark:bg-rose-500/5', 'icono' => 'user-shield'],
-            ['titulo' => 'Capitanes', 'valor' => $totalCapitan, 'bgIcono' => 'bg-blue-50 text-blue-600 border border-blue-100 dark:border-transparent dark:bg-blue-500/10 dark:text-blue-400', 'bgGlow' => 'bg-blue-500/[0.03] dark:bg-blue-500/5', 'icono' => 'clipboard-list'],
-            ['titulo' => 'Meseros', 'valor' => $totalMesero, 'bgIcono' => 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:border-transparent dark:bg-emerald-500/10 dark:text-emerald-400', 'bgGlow' => 'bg-emerald-500/[0.03] dark:bg-emerald-500/5', 'icono' => 'concierge-bell'],
-            ['titulo' => 'Cocineros', 'valor' => $totalCocinero, 'bgIcono' => 'bg-orange-50 text-orange-600 border border-orange-100 dark:border-transparent dark:bg-orange-500/10 dark:text-orange-400', 'bgGlow' => 'bg-orange-500/[0.03] dark:bg-orange-500/5', 'icono' => 'fire'],
-            ['titulo' => 'Cajeros', 'valor' => $totalCajero, 'bgIcono' => 'bg-purple-50 text-purple-600 border border-purple-100 dark:border-transparent dark:bg-purple-500/10 dark:text-purple-400', 'bgGlow' => 'bg-purple-500/[0.03] dark:bg-purple-500/5', 'icono' => 'cash-register'],
+            [
+                'titulo' => 'Administradores', 'valor' => $totalAdmin, 'icono' => 'user-shield',
+                'bgIcono' => 'bg-rose-50 text-rose-600 border border-rose-100 dark:border-transparent dark:bg-rose-500/10 dark:text-rose-400', 
+                'bgGlow' => 'bg-rose-500/[0.03] dark:bg-rose-500/5', 
+                'bordeClases' => 'border border-rose-200 dark:border-rose-500/30 hover:border-rose-400 dark:hover:border-rose-500/60 hover:shadow-[0_0_15px_rgba(244,63,94,0.15)]'
+            ],
+            [
+                'titulo' => 'Capitanes', 'valor' => $totalCapitan, 'icono' => 'clipboard-list',
+                'bgIcono' => 'bg-blue-50 text-blue-600 border border-blue-100 dark:border-transparent dark:bg-blue-500/10 dark:text-blue-400', 
+                'bgGlow' => 'bg-blue-500/[0.03] dark:bg-blue-500/5', 
+                'bordeClases' => 'border border-blue-200 dark:border-blue-500/30 hover:border-blue-400 dark:hover:border-blue-500/60 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]'
+            ],
+            [
+                'titulo' => 'Meseros', 'valor' => $totalMesero, 'icono' => 'concierge-bell',
+                'bgIcono' => 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:border-transparent dark:bg-emerald-500/10 dark:text-emerald-400', 
+                'bgGlow' => 'bg-emerald-500/[0.03] dark:bg-emerald-500/5', 
+                'bordeClases' => 'border border-emerald-200 dark:border-emerald-500/30 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+            ],
+            [
+                'titulo' => 'Cocineros', 'valor' => $totalCocinero, 'icono' => 'fire',
+                'bgIcono' => 'bg-orange-50 text-orange-600 border border-orange-100 dark:border-transparent dark:bg-orange-500/10 dark:text-orange-400', 
+                'bgGlow' => 'bg-orange-500/[0.03] dark:bg-orange-500/5', 
+                'bordeClases' => 'border border-orange-200 dark:border-orange-500/30 hover:border-orange-400 dark:hover:border-orange-500/60 hover:shadow-[0_0_15px_rgba(249,115,22,0.15)]'
+            ],
+            [
+                'titulo' => 'Cajeros', 'valor' => $totalCajero, 'icono' => 'cash-register',
+                'bgIcono' => 'bg-purple-50 text-purple-600 border border-purple-100 dark:border-transparent dark:bg-purple-500/10 dark:text-purple-400', 
+                'bgGlow' => 'bg-purple-500/[0.03] dark:bg-purple-500/5', 
+                'bordeClases' => 'border border-purple-200 dark:border-purple-500/30 hover:border-purple-400 dark:hover:border-purple-500/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]'
+            ],
         ];
     @endphp
 
     {{-- GRID DE ESTADÍSTICAS --}}
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 relative z-10">
         @foreach($tarjetasStats as $stat)
-        <div class="bg-white dark:bg-[#121318] border border-gray-200/70 dark:border-white/5 rounded-2xl md:rounded-[1.5rem] p-4 md:p-6 flex flex-col justify-between h-28 md:h-36 relative group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="bg-white dark:bg-[#121318] {{ $stat['bordeClases'] }} rounded-2xl md:rounded-[1.5rem] p-4 md:p-6 flex flex-col justify-between h-28 md:h-36 relative group overflow-hidden transition-all duration-300">
             <div class="flex justify-between items-start w-full relative z-10">
                 <h3 class="text-[9px] md:text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest truncate pr-2">{{ $stat['titulo'] }}</h3>
                 <div class="w-8 h-8 md:w-10 md:h-10 rounded-xl {{ $stat['bgIcono'] }} flex items-center justify-center flex-shrink-0">
@@ -148,30 +173,41 @@
                         
                         {{-- COLUMNA ACCIONES --}}
                         <td class="py-5 px-4 align-middle text-center">
-                            <div class="flex items-center justify-center gap-2 md:opacity-40 group-hover:opacity-100 transition-opacity duration-200 relative z-30">
+                            <div class="flex items-center justify-center gap-2.5 relative z-30">
                                 @if($empleado->esta_activo)
-                                    <button type="button" 
+                                    <button type="button" title="Editar"
                                         onclick="window.ejecutarEditar(this)"
-                                        class="cursor-pointer relative z-50 w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 dark:hover:text-white bg-gray-50 hover:bg-blue-50 border border-gray-200/50 dark:bg-zinc-800 dark:border-white/5 dark:hover:bg-blue-600 transition-all flex-shrink-0"
+                                        class="cursor-pointer relative z-50 h-9 w-9 rounded-xl flex items-center justify-center border border-blue-300 dark:border-blue-500/50 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all shadow-sm outline-none flex-shrink-0"
                                         data-id="{{ $empleado->id }}" 
                                         data-nombre="{{ $empleado->nombre }}" 
                                         data-codigo="{{ $empleado->codigo_empleado }}" 
                                         data-rol-id="{{ $empleado->rol_id }}" 
                                         data-rol-nombre="{{ $empleado->rol?->nombre ?? 'Seleccionar...' }}"
                                         data-acceso="{{ $empleado->puede_acceder_pos ? 1 : 0 }}">
-                                        <i class="fas fa-edit text-xs pointer-events-none"></i>
+                                        <i class="fas fa-pen text-[13px] pointer-events-none"></i>
                                     </button>
-                                    <form action="{{ route('admin.empleados.destroy', $empleado->id) }}" method="POST" class="inline-flex items-center justify-center m-0 p-0">
+                                    
+                                    {{-- Botón Desactivar (Icono cambiado a fa-user-slash en color Ámbar) --}}
+                                    <form id="form-delete-{{ $empleado->id }}" action="{{ route('admin.empleados.destroy', $empleado->id) }}" method="POST" class="inline-flex items-center justify-center m-0 p-0">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-rose-600 bg-gray-50 hover:bg-rose-50 border border-gray-200/50 dark:bg-zinc-800 dark:border-white/5 dark:hover:bg-rose-600 transition-all flex-shrink-0">
-                                            <i class="fas fa-trash text-xs pointer-events-none"></i>
+                                        <button type="button" onclick="abrirConfirmacionEliminar('form-delete-{{ $empleado->id }}', false)" title="Desactivar Empleado" class="h-9 w-9 rounded-xl flex items-center justify-center border border-amber-300 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all shadow-sm outline-none flex-shrink-0">
+                                            <i class="fas fa-user-slash text-[13px] pointer-events-none"></i>
                                         </button>
                                     </form>
                                 @else
+                                    {{-- Reactivar (Inactivos) --}}
                                     <form action="{{ route('admin.empleados.reactivar', $empleado->id) }}" method="POST" class="inline-flex items-center justify-center m-0 p-0">
                                         @csrf @method('PATCH')
-                                        <button type="submit" class="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-emerald-600 bg-gray-50 hover:bg-emerald-50 border border-gray-200/50 dark:bg-zinc-800 dark:border-white/5 dark:hover:bg-emerald-600 transition-all flex-shrink-0">
-                                            <i class="fas fa-user-check text-xs pointer-events-none"></i>
+                                        <button type="submit" title="Reactivar" class="h-9 w-9 rounded-xl flex items-center justify-center border border-emerald-300 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all shadow-sm outline-none flex-shrink-0">
+                                            <i class="fas fa-user-check text-[13px] pointer-events-none"></i>
+                                        </button>
+                                    </form>
+                                    
+                                    {{-- Eliminar Permanentemente (Inactivos - Bote de Basura Rojo) --}}
+                                    <form id="form-delete-{{ $empleado->id }}" action="{{ route('admin.empleados.destroy', $empleado->id) }}" method="POST" class="inline-flex items-center justify-center m-0 p-0">
+                                        @csrf @method('DELETE')
+                                        <button type="button" onclick="abrirConfirmacionEliminar('form-delete-{{ $empleado->id }}', true)" title="Eliminar Permanentemente" class="h-9 w-9 rounded-xl flex items-center justify-center border border-red-300 dark:border-red-500/50 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all shadow-sm outline-none flex-shrink-0">
+                                            <i class="fas fa-trash-alt text-[13px] pointer-events-none"></i>
                                         </button>
                                     </form>
                                 @endif
@@ -198,8 +234,85 @@
 @include('admin.empleados.modal-editar')
 @include('admin.empleados.modal-crear')
 
-{{-- SCRIPTS MOVIDOS DENTRO DE LA SECCIÓN PARA ASEGURAR QUE SE EJECUTEN --}}
+{{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
+<div id="modal-confirmacion-eliminar" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 transition-all duration-300">
+    <div class="relative !bg-white dark:!bg-[#1c1c1e] border !border-gray-200 dark:!border-white/5 rounded-[2rem] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden text-center">
+        
+        {{-- Resplandor decorativo que cambia dinámicamente con JS --}}
+        <div id="glow-modal" class="absolute -top-24 -left-24 w-48 h-48 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex justify-center mb-5 relative z-10">
+            <div id="wrapper-icono" class="flex h-16 w-16 items-center justify-center rounded-2xl border">
+                <i id="icono-modal" class="fas text-3xl"></i>
+            </div>
+        </div>
+        
+        <h2 id="titulo-confirmacion" class="text-xl font-black !text-gray-900 dark:!text-white mb-2 tracking-tight relative z-10">¿Desactivar Empleado?</h2>
+        <p id="texto-confirmacion" class="!text-gray-500 dark:!text-gray-400 text-sm mb-6 font-medium relative z-10">
+            El empleado no podrá acceder al sistema, pero sus registros se mantendrán.
+        </p>
+        
+        <div class="flex gap-3 relative z-10">
+            <button type="button" onclick="cerrarConfirmacionEliminar()" class="flex-1 py-4 px-4 !bg-gray-100 dark:!bg-white/5 hover:!bg-gray-200 dark:hover:!bg-white/10 !text-gray-500 dark:!text-white/60 hover:!text-gray-900 dark:hover:!text-white font-black text-xs uppercase tracking-widest rounded-2xl border !border-gray-200 dark:!border-white/5 transition-all outline-none">
+                Cancelar
+            </button>
+            <button type="button" id="btn-ejecutar-eliminar" class="flex-1 py-4 px-4 !text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all outline-none">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- SCRIPTS --}}
 <script>
+    let formularioEliminarSeleccionado = null;
+
+    // Abrir Modal de Confirmación Adaptado
+    window.abrirConfirmacionEliminar = function(formId, esPermanente) {
+        formularioEliminarSeleccionado = formId;
+        const modal = document.getElementById('modal-confirmacion-eliminar');
+        const titulo = document.getElementById('titulo-confirmacion');
+        const texto = document.getElementById('texto-confirmacion');
+        const glow = document.getElementById('glow-modal');
+        const wrapperIcono = document.getElementById('wrapper-icono');
+        const icono = document.getElementById('icono-modal');
+        const btnConfirmar = document.getElementById('btn-ejecutar-eliminar');
+
+        if (esPermanente) {
+            titulo.innerText = '¿Eliminar Permanentemente?';
+            texto.innerText = 'Esta acción no se puede deshacer. Se borrarán todos los datos de este empleado de la base de datos de manera definitiva.';
+            
+            // Estilos Rojos de Peligro Total
+            glow.className = "absolute -top-24 -left-24 w-48 h-48 bg-red-500/10 dark:bg-red-500/20 rounded-full blur-3xl pointer-events-none";
+            wrapperIcono.className = "flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20";
+            icono.className = "fas fa-exclamation-triangle text-3xl text-red-500 dark:text-red-400";
+            btnConfirmar.className = "flex-1 py-4 px-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-[0_8px_20px_rgba(239,68,68,0.2)] hover:shadow-[0_8px_25px_rgba(239,68,68,0.4)] outline-none";
+        } else {
+            titulo.innerText = '¿Desactivar Empleado?';
+            texto.innerText = 'El empleado será movido a la lista de inactivos, perderá el acceso al POS y al panel administrativo, pero sus registros históricos se conservarán.';
+            
+            // Estilos Ámbar de Advertencia Suave
+            glow.className = "absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 dark:bg-amber-500/20 rounded-full blur-3xl pointer-events-none";
+            wrapperIcono.className = "flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20";
+            icono.className = "fas fa-user-slash text-3xl text-amber-500 dark:text-amber-400";
+            btnConfirmar.className = "flex-1 py-4 px-4 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-[0_8px_20px_rgba(245,158,11,0.2)] hover:shadow-[0_8px_25px_rgba(245,158,11,0.4)] outline-none";
+        }
+
+        modal.classList.remove('hidden');
+    };
+
+    window.cerrarConfirmacionEliminar = function() {
+        const modal = document.getElementById('modal-confirmacion-eliminar');
+        modal.classList.add('hidden');
+        formularioEliminarSeleccionado = null;
+    };
+
+    document.getElementById('btn-ejecutar-eliminar').addEventListener('click', function() {
+        if (formularioEliminarSeleccionado) {
+            document.getElementById(formularioEliminarSeleccionado).submit();
+        }
+    });
+
     // Script para preparar y abrir el modal de editar
     window.ejecutarEditar = function(btn) {
         if (typeof window.prepararModalEditar === 'function') {
@@ -229,7 +342,6 @@
     // Script para la búsqueda en tiempo real
     document.addEventListener('DOMContentLoaded', () => {
         const buscador = document.getElementById('buscadorEmpleados');
-        // Aquí tomamos todas las filas que tienen la clase 'fila-empleado'
         const filasEmpleados = document.querySelectorAll('.fila-empleado');
 
         if (buscador) {
@@ -238,12 +350,9 @@
                 
                 filasEmpleados.forEach(fila => {
                     const textoFila = fila.textContent.toLowerCase();
-                    // Buscamos si el texto de la fila contiene lo que se escribió
                     if (textoFila.includes(terminoBusqueda)) {
-                        // Restaura el display original
                         fila.style.display = '';
                     } else {
-                        // Oculta la fila por completo de la tabla
                         fila.style.display = 'none';
                     }
                 });
