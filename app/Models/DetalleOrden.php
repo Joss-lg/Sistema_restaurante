@@ -19,6 +19,7 @@ class DetalleOrden extends Model
         'estado',
         'notas',
         'gramaje',
+        'transaccion_id', // <--- Agregar este
     ];
 
     protected $casts = [
@@ -30,6 +31,11 @@ class DetalleOrden extends Model
     public function orden()
     {
         return $this->belongsTo(Orden::class);
+    }
+
+    public function transaccion()
+    {
+        return $this->belongsTo(Transaccion::class, 'transaccion_id');
     }
 
     // Relación con Producto

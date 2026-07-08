@@ -31,18 +31,47 @@ Route::middleware(['auth'])->group(function () {
     });
     
     // --- MÓDULOS ADMINISTRATIVOS ---
-    Route::name('admin.')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::name('admin.')->group(function () {
+    // Bloqueo total: Requiere que la columna 'mostrar' del módulo 'Dashboard' esté en 1
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard')
+        ->middleware('permiso:Dashboard,mostrar');
+// ==========================================
+        // MÓDULO: EMPLEADOS
+        // ==========================================
+        Route::prefix('admin/empleados')->name('empleados.')->group(function () {
+            // Ver el listado de empleados
+            Route::get('/', [EmpleadoController::class, 'index'])
+                ->name('index')
+                ->middleware('permiso:Empleados,mostrar');
 
-        // Empleados
-        Route::middleware(['role:Empleados'])->prefix('admin/empleados')->name('empleados.')->group(function () {
-            Route::get('/', [EmpleadoController::class, 'index'])->name('index');
-            Route::post('/store', [EmpleadoController::class, 'store'])->name('store');
-            Route::delete('/{id}', [EmpleadoController::class, 'destroy'])->name('destroy');
-            Route::put('/{id}', [EmpleadoController::class, 'update'])->name('update');
-            Route::get('/{id}/permisos', [EmpleadoController::class, 'permisos'])->name('permisos');
-            Route::post('/{id}/permisos', [EmpleadoController::class, 'actualizarPermisos'])->name('permisos.update');
-            Route::patch('/{id}/reactivar', [EmpleadoController::class, 'reactivar'])->name('reactivar');
+            // Crear un nuevo empleado
+            Route::post('/store', [EmpleadoController::class, 'store'])
+                ->name('store')
+                ->middleware('permiso:Empleados,crear');
+
+            // Editar/Actualizar datos de un empleado
+            Route::put('/{id}', [EmpleadoController::class, 'update'])
+                ->name('update')
+                ->middleware('permiso:Empleados,editar');
+
+            // Dar de baja/Eliminar un empleado
+            Route::delete('/{id}', [EmpleadoController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('permiso:Empleados,eliminar');
+            
+            // Gestión avanzada de permisos y reactivación de personal dado de baja
+            Route::get('/{id}/permisos', [EmpleadoController::class, 'permisos'])
+                ->name('permisos')
+                ->middleware('permiso:Empleados,gestionar');
+
+            Route::post('/{id}/permisos', [EmpleadoController::class, 'actualizarPermisos'])
+                ->name('permisos.update')
+                ->middleware('permiso:Empleados,gestionar');
+
+            Route::patch('/{id}/reactivar', [EmpleadoController::class, 'reactivar'])
+                ->name('reactivar')
+                ->middleware('permiso:Empleados,gestionar');
         });
 
         // Inventario
@@ -70,6 +99,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Caja
         Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function () {
+            
             Route::get('/', [CajaController::class, 'index'])->name('index');
             Route::post('/abrir', [CajaController::class, 'abrir'])->name('abrir');
             Route::post('/cerrar', [CajaController::class, 'cerrar'])->name('cerrar');

@@ -90,7 +90,6 @@
 
         @foreach($menu as $titulo => $items)
             @php
-                // Verificamos si al menos un item de esta sección tiene permiso para mostrarse
                 $mostrarSeccion = collect($items)->contains(fn($item) => auth()->user()->tienePermiso($item['modulo_id'], 'mostrar'));
             @endphp
 
@@ -153,22 +152,43 @@
     </div>
 </aside>
 
-{{-- SCRIPT ULTRA LIMPIO PARA LA MEMORIA LOCAL --}}
+{{-- SCRIPT ACTUALIZADO: CIERRE AUTOMÁTICO, SCROLL Y ESTADO --}}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleSidebar');
+        const navContainer = document.getElementById('nav-container');
         
-        // 1. Revisar qué dice la memoria
+        // 1. Revisar qué dice la memoria sobre el estado de colapso
         if (localStorage.getItem('sidebarState') === 'collapsed') {
             sidebar.classList.add('colapsado');
         }
 
-        // 2. Click en el botón de hamburguesa
+        // 2. Revisar posición guardada del scroll en el menú
+        if (navContainer) {
+            const savedScrollPos = localStorage.getItem('sidebarScrollPosition');
+            if (savedScrollPos) {
+                navContainer.scrollTop = savedScrollPos;
+            }
+
+            navContainer.addEventListener('scroll', () => {
+                localStorage.setItem('sidebarScrollPosition', navContainer.scrollTop);
+            });
+        }
+
+        // 3. NUEVO: Al hacer clic en cualquier opción del menú, cerrar automáticamente la barra
+        const menuLinks = document.querySelectorAll('.menu-link');
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                sidebar.classList.add('colapsado');
+                localStorage.setItem('sidebarState', 'collapsed');
+            });
+        });
+
+        // 4. Click manual en el botón de hamburguesa (Colapsar / Expandir)
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('colapsado');
             
-            // Guardar en memoria inmediatamente
             if (sidebar.classList.contains('colapsado')) {
                 localStorage.setItem('sidebarState', 'collapsed');
             } else {

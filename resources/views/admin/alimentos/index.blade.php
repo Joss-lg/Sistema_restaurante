@@ -17,7 +17,7 @@
         @endif
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm shadow-blue-500/20 border border-blue-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-blue-500/40">
             <div class="flex items-center justify-between mb-4">
                 <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Total Platillos</span>
                 <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
@@ -26,7 +26,7 @@
             </div>
             <span class="text-3xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-total">0</span>
         </div>
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md">
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm shadow-green-500/20 border border-green-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-green-500/40">
             <div class="flex items-center justify-between mb-4">
                 <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Disponibles</span>
                 <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
@@ -35,7 +35,7 @@
             </div>
             <span class="text-3xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-disponibles">0</span>
         </div>
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm border border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md col-span-1 sm:col-span-2 md:col-span-1">
+        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm shadow-purple-500/20 border border-purple-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-purple-500/40 col-span-1 sm:col-span-2 md:col-span-1">
             <div class="flex items-center justify-between mb-4">
                 <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Categorías</span>
                 <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">

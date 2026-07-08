@@ -536,6 +536,23 @@
             .then(res => res.json()).then(data => {
                 if (data.success) {
                     mostrarExito("¡Enviado a cocina!");
+
+                    // Reflejamos de inmediato lo recién enviado en el historial local,
+                    // para que "Total" ya sume ese monto sin esperar el redirect.
+                    platillosData.forEach(p => {
+                        platillosEnviadosDB.push({
+                            nombre: p.nombre,
+                            cantidad: p.cantidad,
+                            precio: p.precio,
+                            estado: 'enviado'
+                        });
+                    });
+
+                    // Vaciamos el carrito YA, no hasta que llegue el redirect. Así la
+                    // pestaña "Orden" queda en $0 de verdad sin importar a qué pestaña
+                    // se cambie mientras se completa la navegación de vuelta a Mesas.
+                    limpiarTicket();
+
                     setTimeout(() => window.location.href = (config.rutas && config.rutas.dashboard) || '/', 1000);
                 }
                 else throw new Error(data.message);

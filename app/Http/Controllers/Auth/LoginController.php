@@ -114,25 +114,32 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        // Cargar el rol si no está cargado
-        if (!$user->relationLoaded('rol')) {
-            $user->load('rol');
+        // 1. Si es el Administrador Supremo (ID 1), va directo al Dashboard Administrativo
+        if ($user->id === 1) {
+            return redirect()->route('admin.dashboard');
         }
 
-        // Usar el slug del rol (esto es más flexible que el nombre)
-        $rolSlug = strtolower(trim($user->rol?->slug ?? 'default'));
+        // 2. Evaluamos los permisos del usuario en la base de datos de manera jerárquica:
+        
+        // ¿Tiene acceso a la administración / métricas?
+        if ($user->tienePermiso('Dashboard', 'mostrar')) {
+            return redirect()->route('admin.dashboard');
+        }
 
-        // Las rutas se basan en el slug del rol
-        return match($rolSlug) {
-            'admin', 'administrador'  => redirect()->route('admin.dashboard'),
-            'mesero'                  => redirect()->route('mesero.dashboard'),
-            'capitan'                 => redirect()->route('mesero.dashboard'),
-            'cajero'                  => redirect()->route('admin.caja.index'),
-            'cocinero'                => redirect()->route('admin.cocina.index'),
-            default                   => redirect()->route('admin.dashboard'),
-        };
+        // ¿Tiene acceso al módulo de Cocina? (Para los cocineros)
+        if ($user->tienePermiso('Cocina', 'mostrar')) {
+            return redirect()->route('admin.cocina.index');
+        }
+
+        // ¿Tiene acceso al módulo de Caja? (Para los cajeros)
+        if ($user->tienePermiso('Caja', 'mostrar')) {
+            return redirect()->route('admin.caja.index');
+        }
+
+        // 3. Si no cumple ninguna de las anteriores (como un Mesero), 
+        // va directo a su panel operativo de mesas que está libre de permisos modulares
+        return redirect()->route('mesero.dashboard');
     }
-
     /**
      * Credenciales para el login estándar.
      */

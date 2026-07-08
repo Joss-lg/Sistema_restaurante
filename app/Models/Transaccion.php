@@ -19,6 +19,7 @@ class Transaccion extends Model
         'cajero_id',
         'metodo_pago',
         'monto',
+        'tipo_division', // <--- Nuevo campo
     ];
 
     protected $casts = [
@@ -30,6 +31,11 @@ class Transaccion extends Model
     public function orden(): BelongsTo
     {
         return $this->belongsTo(Orden::class);
+    }
+
+    public function detalles()
+    {
+        return $this->hasMany(DetalleOrden::class, 'transaccion_id');
     }
 
     public function turno(): BelongsTo
