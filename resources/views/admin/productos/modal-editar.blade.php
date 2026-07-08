@@ -14,7 +14,7 @@
                     </button>
                 </div>
 
-                <form id="formulario-editar-alimento" onsubmit="actualizarAlimento(event)">
+                <form id="formulario-editar-alimento" onsubmit="actualizarProducto(event)">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {{-- Nombre --}}
                         <div class="col-span-1 sm:col-span-2">
@@ -40,17 +40,18 @@
                             </datalist>
                         </div>
 
+                        <div class="col-span-1">
+                            <label class="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Tiempo (min)</label>
+                            <input type="number" id="edit-tiempo_preparacion" name="tiempo_preparacion" min="1" placeholder="Ej: 15" 
+                                class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-4 mt-2 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
+                        </div>
+
                         {{-- Descripción --}}
                         <div class="col-span-1 sm:col-span-2">
                             <label class="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Descripción</label>
                             <textarea id="edit-descripcion" name="descripcion" rows="3" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-4 mt-2 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none"></textarea>
                         </div>
 
-                        {{-- Modificadores --}}
-                        <div class="col-span-1 sm:col-span-2">
-                            <label class="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Modificadores actuales</label>
-                            <input type="text" id="edit-modificadores_input" name="modificadores_input" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-4 mt-2 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="Modificadores cargados de la base de datos">
-                        </div>
 
                         {{-- Ingredientes --}}
                         <div class="col-span-1 sm:col-span-2">
@@ -75,3 +76,44 @@
         </div>
     </div>
 </div>
+<script>
+    // ─── Cerrar modal editar ─────────────────────────────────────────────────
+    function closeModalEditar() {
+        _cerrarModal('modal-editar-alimento', 'modal-editar-panel');
+    }
+ 
+    // ─── Abrir modal con datos del producto (trigger desde la tarjeta) ─────
+    function editarProducto(id) {
+        if (!tienePermisoEditar) { mostrarNotificacion('Sin permisos para editar', 'error'); return; }
+        const producto = estadoGlobal.productosMap[id];
+        if (!producto) return;
+        estadoGlobal.editandoId = id;
+        document.getElementById('edit-nombre').value           = producto.nombre              ?? '';
+        document.getElementById('edit-precio').value           = producto.precio              ?? '';
+        document.getElementById('edit-descripcion').value      = producto.descripcion         ?? '';
+        document.getElementById('edit-categoria_nombre').value = producto.categoria?.nombre   ?? '';
+        document.getElementById('edit-categoria_id').value     = producto.categoria?.id       ?? '';
+        llenarIngredientesEdicion(producto);
+        _abrirModal('modal-editar-alimento', 'modal-editar-panel');
+    }
+ 
+    // ─── Actualizar producto (submit del formulario de edición) ────────────
+    function actualizarProducto(event) {
+        event.preventDefault();
+        if (!tienePermisoEditar) { mostrarNotificacion('Sin autorización para editar', 'error'); return; }
+        const btn = document.getElementById('btn-actualizar');
+        if (!btn || btn.disabled) return;
+        const original = btn.textContent;
+        btn.textContent = 'ACTUALIZANDO...';
+        btn.disabled    = true;
+        const data            = _serializarFormulario('formulario-editar-alimento');
+        data.categoria_nombre = document.getElementById('edit-categoria_nombre').value;
+        data.categoria_id     = obtenerCategoriaIdPorNombre(data.categoria_nombre);
+        data._method          = 'PUT';
+        if (!data.categoria_id) {
+            mostrarNotificacion('Selecciona una categoría válida', 'error');
+            btn.textContent = original; btn.disabled = false; return;
+        }
+        ejecutarPeticion(RUTA_API_BASE + estadoGlobal.editandoId, data, btn, original, closeModalEditar);
+    }
+</script>

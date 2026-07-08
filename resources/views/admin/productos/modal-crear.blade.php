@@ -14,7 +14,7 @@
             </button>
         </div>
 
-        <form id="formulario-crear-alimento" onsubmit="guardarAlimento(event)" class="overflow-y-auto flex-1 p-5 sm:p-10 pt-4 sm:pt-6">
+        <form id="formulario-crear-producto" onsubmit="guardarProducto(event)" class="overflow-y-auto flex-1 p-5 sm:p-10 pt-4 sm:pt-6">
             <div class="grid grid-cols-2 gap-4 sm:gap-6">
 
                 {{-- Nombre --}}
@@ -27,6 +27,11 @@
                 <div class="col-span-2 sm:col-span-1">
                     <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Precio</label>
                     <input type="number" id="precio" name="precio" step="0.01" min="0" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm sm:text-base" placeholder="0.00" required>
+                </div>
+
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Tiempo de Prep. (min)</label>
+                    <input type="number" id="tiempo_preparacion" name="tiempo_preparacion" min="0" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm sm:text-base" placeholder="Ej: 20" required>
                 </div>
 
                 {{-- Categoría HÍBRIDA --}}
@@ -74,3 +79,30 @@
         </form>
     </div>
 </div>
+
+<<script>
+    // ─── Cerrar modal crear ──────────────────────────────────────────────────
+    function closeModalCrear() {
+        _cerrarModal('modal-crear-alimento', 'modal-crear-panel');
+    }
+ 
+    // ─── Guardar producto (submit del formulario de creación) ──────────────
+    function guardarProducto(event) {
+        event.preventDefault();
+        const btn = document.getElementById('btn-guardar');
+        if (!btn || btn.disabled) return;
+        const original = btn.textContent;
+        btn.textContent = 'GUARDANDO...';
+        btn.disabled    = true;
+        const data          = _serializarFormulario('formulario-crear-producto');
+        const catNombre     = document.getElementById('categoria_nombre').value;
+        data.categoria_nombre = catNombre;
+        data.categoria_id     = obtenerCategoriaIdPorNombre(catNombre);
+        if (!data.categoria_id) {
+            mostrarNotificacion('Selecciona una categoría válida', 'error');
+            btn.textContent = original; btn.disabled = false; return;
+        }
+        ejecutarPeticion(RUTA_STORE, data, btn, original, closeModalCrear);
+    }
+</script>
+ 

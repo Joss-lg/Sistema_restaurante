@@ -7,7 +7,7 @@ use App\Http\Controllers\HistorialCajaController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\{
     Auth\LoginController, DashboardController, PermisoController, EmpleadoController,
-    AlimentoController, InventarioController, CategoriaController,
+    ProductoController, InventarioController, CategoriaController,
     CocinaController, MesaController, ComandaController,
     PromocionController, RolController, FinanzasController
 };
@@ -84,15 +84,16 @@ Route::name('admin.')->group(function () {
             Route::delete('/{id}', [InventarioController::class, 'destroy'])->name('destroy');
         });
 
-        // Alimentos
-        Route::middleware(['role:Alimentos'])->prefix('alimentos')->name('productos.')->group(function () {
-            Route::get('/', [AlimentoController::class, 'index'])->name('index');
-            Route::get('/api/productos', [AlimentoController::class, 'getProductos'])->name('api.productos');
-            Route::get('/api/estadisticas', [AlimentoController::class, 'getEstadisticas'])->name('api.estadisticas');
-            Route::post('/api/store', [AlimentoController::class, 'store'])->name('api.store');
-            Route::put('/api/{id}', [AlimentoController::class, 'update'])->name('api.update');
-            Route::delete('/api/{id}', [AlimentoController::class, 'destroy'])->name('api.destroy');
-            Route::patch('/api/{id}/toggle-disponibilidad', [AlimentoController::class, 'toggleDisponibilidad'])->name('api.toggle');
+        Route::middleware(['role:Alimentos'])->prefix('productos')->name('productos.')->group(function () {
+            Route::get('/', [ProductoController::class, 'index'])->name('index');
+            
+            // API Endpoints
+            Route::get('/api/productos', [ProductoController::class, 'getProductos'])->name('api.productos');
+            Route::get('/api/estadisticas', [ProductoController::class, 'getEstadisticas'])->name('api.estadisticas');
+            Route::post('/api/store', [ProductoController::class, 'store'])->name('api.store');
+            Route::put('/api/{id}', [ProductoController::class, 'update'])->name('api.update');
+            Route::delete('/api/{id}', [ProductoController::class, 'destroy'])->name('api.destroy');
+            Route::patch('/api/{id}/toggle-disponibilidad', [ProductoController::class, 'toggleDisponibilidad'])->name('api.toggle');
         });
 
         Route::middleware(['role:Categorias'])->resource('categorias', CategoriaController::class);

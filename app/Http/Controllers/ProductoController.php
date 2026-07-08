@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\Insumo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Http\JsonResponse;
 class ProductoController extends Controller
 {
     /**
@@ -31,7 +30,7 @@ class ProductoController extends Controller
                                     ->select(['id', 'nombre', 'unidad_medida'])
                                     ->get();
 
-        return view('admin.alimentos.index', compact('productos', 'categorias', 'insumosDisponibles'));
+        return view('admin.productos.index', compact('productos', 'categorias'), ['insumos' => $insumosDisponibles]);
     }
 
     /**
@@ -83,15 +82,12 @@ class ProductoController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('admin.productos.index')
-                             ->with('success', 'Platillo y receta guardados correctamente.');
+            return response()->json(['message' => 'Producto guardado correctamente.'], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error en ProductoController@store: ' . $e->getMessage());
-            return redirect()->back()
-                             ->withInput()
-                             ->with('error', 'Ocurrió un error inesperado al guardar el platillo.');
+            return response()->json(['message' => 'Error inesperado al guardar el producto.'], 500);
         }
     }
 
@@ -145,15 +141,12 @@ class ProductoController extends Controller
             $producto->insumos()->sync($receta);
 
             DB::commit();
-            return redirect()->route('admin.productos.index')
-                             ->with('success', 'Platillo y estructura de receta actualizados.');
+            return response()->json(['message' => 'Producto actualizado correctamente.']);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error en ProductoController@update: ' . $e->getMessage());
-            return redirect()->back()
-                             ->withInput()
-                             ->with('error', 'Ocurrió un error inesperado al modificar el platillo.');
+            return response()->json(['message' => 'Error inesperado al actualizar el producto.'], 500);
         }
     }
 
@@ -163,10 +156,10 @@ class ProductoController extends Controller
     public function destroy($id)
     {
         $producto = Producto::findOrFail($id);
-        $producto->delete(); 
-        
-        return redirect()->route('admin.productos.index')
-                         ->with('success', "El platillo ({$producto->nombre}) fue dado de baja del menú.");
+        $nombre = $producto->nombre;
+        $producto->delete();
+
+        return response()->json(['message' => "El producto ({$nombre}) fue eliminado correctamente."]);
     }
 
     /**
@@ -180,7 +173,26 @@ class ProductoController extends Controller
 
         $estadoStr = $producto->esta_disponible ? 'habilitado' : 'deshabilitado';
 
-        return redirect()->back()
-                         ->with('success', "El platillo ({$producto->nombre}) ha sido {$estadoStr} en el menú.");
+        return response()->json([
+            'message'         => "El producto ({$producto->nombre}) ha sido {$estadoStr}.",
+            'esta_disponible' => $producto->esta_disponible,
+        ]);
+    }
+    public function getProductos(): JsonResponse
+    {
+        $productos = Producto::with(['categoria', 'insumos', 'modificadores'])
+            ->get()
+            ->groupBy('categoria.nombre');
+        
+        return response()->json($productos);
+    }
+
+    public function getEstadisticas(): JsonResponse
+    {
+        return response()->json([
+            'total' => Producto::count(),
+            'disponibles' => Producto::where('esta_disponible', true)->count(),
+            'categorias' => Categoria::count(),
+        ]);
     }
 }

@@ -12,7 +12,7 @@
 
     <script>
         tailwind.config = {
-            darkMode: 'class', // Necesario para que Tailwind use la clase 'dark'
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
@@ -63,19 +63,15 @@
         }
 
         body { background-color: var(--bg-color); font-family: 'Inter', sans-serif; color: var(--text-color); overflow-x: hidden; margin: 0; padding: 0; transition: background-color 0.4s ease, color 0.4s ease; }
-        
         .glass-card { backdrop-filter: blur(20px); border: 1px solid var(--border-color); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background-color: var(--glass-bg); }
         body:not(.modo-crema) .glass-card { background-color: var(--glass-bg); box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
         body.modo-crema .glass-card { background-color: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005); }
-        
         ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
     </style>
 </head>
-
 <body class="selection:bg-[#3B82F6]/30 selection:text-[var(--text-color)]">
 
     <script>
-        // Sincronización inicial antes de que cargue el contenido
         const temaGuardado = localStorage.getItem('tema-ollintem');
         if (temaGuardado === 'crema') {
             document.body.classList.add('modo-crema');
@@ -97,7 +93,8 @@
         <div class="flex h-screen overflow-hidden relative z-10">
             @include('layouts.sidebar')
 
-            <main class="flex-1 overflow-y-auto relative z-10 flex flex-col">
+            {{-- MODIFICADO AQUÍ: Se añadió 'min-w-0' para salvaguardar el Sidebar --}}
+            <main class="flex-1 overflow-y-auto min-w-0 relative z-10 flex flex-col">
                 <header class="backdrop-blur-2xl border-b sticky top-0 z-30 px-10 py-5 flex justify-between items-center bg-[var(--header-bg)] border-[var(--border-color)]">
                     <div class="flex flex-col">
                         <h1 class="text-[22px] font-black text-[var(--text-color)] tracking-tight">@yield('header-title', 'Gestión de Personal')</h1>
@@ -124,11 +121,8 @@
         function toggleTheme() {
             const body = document.body;
             const html = document.documentElement;
-            
             body.classList.toggle('modo-crema');
             const esCrema = body.classList.contains('modo-crema');
-            
-            // Sincronizar Tailwind y localStorage
             if (esCrema) {
                 html.classList.remove('dark');
                 localStorage.setItem('tema-ollintem', 'crema');

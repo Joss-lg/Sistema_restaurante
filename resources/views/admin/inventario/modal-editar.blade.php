@@ -34,7 +34,7 @@
                 </label>
                 <input type="text" name="nombre" value="{{ $item->nombre }}" required
                     class="w-full h-11 sm:h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl sm:rounded-2xl px-4 sm:px-5 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600">
-            </div>
+            </div> 
 
             {{-- Unidad de Medida --}}
             <div class="space-y-2">

@@ -33,42 +33,42 @@
 <script>
     // Variable global para almacenar el ID del producto a eliminar
     let idProductoAEliminar = null;
-
+ 
     // Abrir modal de eliminación
     function abrirModalEliminar(id, nombreProducto) {
         idProductoAEliminar = id;
         document.getElementById('nombre-platillo-eliminar').textContent = nombreProducto;
-
+ 
         const modal = document.getElementById('modal-eliminar-alimento');
         const panel = document.getElementById('modal-eliminar-panel');
-
+ 
         modal.classList.remove('hidden');
         modal.classList.add('opacity-100');
-
+ 
         setTimeout(() => {
             panel.classList.add('opacity-100', 'scale-100');
         }, 10);
     }
-
+ 
     // Cerrar modal de eliminación
     function cerrarModalEliminar() {
         const modal = document.getElementById('modal-eliminar-alimento');
         const panel = document.getElementById('modal-eliminar-panel');
-
+ 
         panel.classList.remove('opacity-100', 'scale-100');
-
+ 
         setTimeout(() => {
             modal.classList.add('hidden');
             modal.classList.remove('opacity-100');
             idProductoAEliminar = null;
         }, 300);
     }
-
+ 
     // Confirmar y ejecutar eliminación
     function confirmarEliminacion() {
         if (!idProductoAEliminar) return;
-
-        fetch(`/alimentos/api/${idProductoAEliminar}`, {
+ 
+        fetch(RUTA_API_BASE + idProductoAEliminar, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
