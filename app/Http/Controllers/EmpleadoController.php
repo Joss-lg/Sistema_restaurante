@@ -12,20 +12,38 @@ use Illuminate\Support\Facades\Hash;
 class EmpleadoController extends Controller
 {
     /**
+     * ID del administrador principal, intocable para cualquier otro usuario.
+     */
+    private const ADMIN_ID = 1;
+
+    /**
+     * Verifica si el empleado objetivo es el admin principal.
+     * Si lo es, bloquea la acción con un mensaje claro (redirige al listado de empleados).
+     * Devuelve null si se puede continuar, o un redirect si se debe bloquear.
+     */
+    private function bloquearSiEsAdmin(User $empleado)
+    {
+        if ($empleado->id === self::ADMIN_ID) {
+            return redirect()->route('admin.empleados.index')
+                ->with('error', 'El administrador principal no puede ser modificado, eliminado ni gestionado.');
+        }
+
+        return null;
+    }
+
+    /**
      * Muestra la lista de empleados.
      */
     public function index(Request $request)
     {
-        // CAMBIO CLAVE: Usamos withTrashed() para que Laravel no nos oculte a los inactivos
         $query = User::withTrashed();
 
         if (!$request->has('ver_inactivos')) {
-            // Si NO queremos ver inactivos, filtramos solo los activos y que no estén borrados
             $query->where('esta_activo', true)->whereNull('deleted_at');
         }
 
         $empleados = $query->with(['permisos', 'rol:id,nombre'])->get();
-        $roles = Rol::orderBy('nombre')->get(); 
+        $roles = Rol::orderBy('nombre')->get();
 
         return view('admin.empleados.index', compact('empleados', 'roles'));
     }
@@ -44,7 +62,6 @@ class EmpleadoController extends Controller
 
         $esPOS = $request->boolean('puede_acceder_pos');
 
-        // CAMBIO CLAVE: Generamos un correo único agregando un número aleatorio si no se proporciona uno
         $correoGenerado = strtolower(str_replace(' ', '', $request->nombre)) . rand(100, 999) . '@empresa.com';
 
         User::create([
@@ -65,9 +82,13 @@ class EmpleadoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Usamos withTrashed por si acaso estamos editando a alguien inactivo
         $empleado = User::withTrashed()->findOrFail($id);
-        
+
+        // El admin principal es intocable, incluso si el usuario tiene permiso de "editar".
+        if ($bloqueo = $this->bloquearSiEsAdmin($empleado)) {
+            return $bloqueo;
+        }
+
         $esMismoUsuario = ($empleado->id === auth()->id());
 
         $reglas = [
@@ -84,7 +105,7 @@ class EmpleadoController extends Controller
 
         $esPOS = $esMismoUsuario ? $empleado->puede_acceder_pos : $request->boolean('puede_acceder_pos');
         $rolId = $esMismoUsuario ? $empleado->rol_id : $request->rol_id;
-        
+
         $data = [
             'nombre'            => trim($request->nombre),
             'rol_id'            => $rolId,
@@ -107,10 +128,14 @@ class EmpleadoController extends Controller
     public function permisos($id)
     {
         $empleado = User::withTrashed()->with('permisos')->findOrFail($id);
-        
-        // Se envían los módulos a la vista para que el formulario pueda iterar sobre ellos y armar la matriz
-        $modulos = Modulo::orderBy('nombre')->get(); 
-        
+
+        // El admin principal no necesita (ni permite) gestión de permisos por nadie más.
+        if ($bloqueo = $this->bloquearSiEsAdmin($empleado)) {
+            return $bloqueo;
+        }
+
+        $modulos = Modulo::orderBy('nombre')->get();
+
         return view('admin.empleados.permisos', compact('empleado', 'modulos'));
     }
 
@@ -120,13 +145,18 @@ class EmpleadoController extends Controller
     public function actualizarPermisos(Request $request, $id)
     {
         $empleado = User::withTrashed()->findOrFail($id);
-        $todosLosModulos = Modulo::pluck('id'); 
+
+        // Nadie puede modificar los permisos del admin principal.
+        if ($bloqueo = $this->bloquearSiEsAdmin($empleado)) {
+            return $bloqueo;
+        }
+
+        $todosLosModulos = Modulo::pluck('id');
         $permisosEnviados = $request->input('permisos', []);
 
         foreach ($todosLosModulos as $moduloId) {
             $acciones = $permisosEnviados[$moduloId] ?? [];
 
-            // MEJORA: updateOrCreate reduce la lógica de if/else y hace exactamente lo mismo de forma más limpia
             Permiso::updateOrCreate(
                 [
                     'user_id'   => $empleado->id,
@@ -151,26 +181,27 @@ class EmpleadoController extends Controller
      */
     public function destroy($id)
     {
-        // CAMBIO CLAVE: withTrashed() para poder encontrarlo si ya estaba inactivo
         $empleado = User::withTrashed()->findOrFail($id);
-        
+
+        // El admin principal jamás puede ser dado de baja ni eliminado, por nadie.
+        if ($bloqueo = $this->bloquearSiEsAdmin($empleado)) {
+            return $bloqueo;
+        }
+
         if ($empleado->id === auth()->id()) {
             return redirect()->back()->with('error', 'No puedes eliminarte a ti mismo.');
         }
 
-        // Lógica de borrado definitivo (ahora sí lo borrará de MySQL)
         if ($empleado->esta_activo == false) {
-            // Eliminar dependencias primero (permisos) para evitar errores de llave foránea si no hay onDelete('cascade')
-            $empleado->permisos()->delete(); 
-            $empleado->forceDelete(); 
-            
+            $empleado->permisos()->delete();
+            $empleado->forceDelete();
+
             return redirect()->back()->with('success', 'El empleado ha sido eliminado permanentemente de la base de datos.');
         }
 
-        // Baja lógica: Lo marcamos como inactivo y aplicamos el SoftDelete
         $empleado->update(['esta_activo' => false]);
-        $empleado->delete(); 
-        
+        $empleado->delete();
+
         return redirect()->back()->with('success', 'Empleado dado de baja.');
     }
 
@@ -179,11 +210,10 @@ class EmpleadoController extends Controller
      */
     public function reactivar($id)
     {
-        // CAMBIO CLAVE: withTrashed() para encontrarlo y restaurarlo
         $empleado = User::withTrashed()->findOrFail($id);
-        $empleado->restore(); // Le quitamos el SoftDelete
+        $empleado->restore();
         $empleado->update(['esta_activo' => true]);
-        
+
         return redirect()->back()->with('success', "Empleado reactivado exitosamente.");
     }
 }

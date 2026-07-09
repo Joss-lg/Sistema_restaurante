@@ -215,6 +215,9 @@ class CajaController extends Controller
                     'fecha'              => Carbon::now(),
                 ]);
 
+
+                $mesa->ordenesActivas()->update(['estado' => 'pagada']);
+                
                 // 2. Liberar mesa (usando tu servicio existente)
                 $this->cajaService->liberarMesa($mesa);
 

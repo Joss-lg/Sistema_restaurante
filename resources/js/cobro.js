@@ -3,12 +3,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayCambio = document.getElementById('display-cambio');
     const btnPagar = document.getElementById('btn-procesar-pago');
     const teclas = document.querySelectorAll('.btn-tecla');
+    const btnTicket = document.getElementById('btn-ticket');
     
     // 1. Validación de seguridad para el total
     const totalElement = document.getElementById('total-pagar-derecha');
     if (!totalElement) {
         console.warn("Elemento 'total-pagar-derecha' no encontrado. Script de cobro detenido.");
-        return; // Salimos del script para no romper otras funciones
+        return; 
     }
 
     const totalPagar = parseFloat(totalElement.innerText.replace(/[^0-9.]/g, '')) || 0;
@@ -50,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const inputMesa = document.getElementById('mesa-id');
             const inputMetodo = document.getElementById('metodo-pago');
 
-            // Verificamos que los inputs existan antes de leer su valor
             if (!inputMesa || !inputMetodo) {
                 alert('Faltan datos de la mesa o el método de pago.');
                 return;
@@ -59,14 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const mesaId = inputMesa.value;
             const metodo = inputMetodo.value;
             
-            // Validar CSRF
             const csrfMeta = document.querySelector('meta[name="csrf-token"]');
             if (!csrfMeta) {
                 alert('Error de seguridad: Falta el token CSRF en el documento.');
                 return;
             }
 
-            // Deshabilitar botón para evitar doble cobro
             btnPagar.disabled = true;
             btnPagar.innerText = 'Procesando...';
 
@@ -76,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfMeta.content,
-                        'Accept': 'application/json' // Importante para que Laravel devuelva JSON en errores
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ mesa_id: mesaId, monto_pagado: montoRaw, metodo_pago: metodo })
                 });
@@ -84,7 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 
                 if (data.success) {
-                    window.location.href = '/admin/caja';
+                    // Redirección corregida sin el prefijo /admin
+                    window.location.href = '/caja';
                 } else {
                     alert('Error: ' + data.message);
                     btnPagar.disabled = false;
@@ -98,4 +97,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
+
+    // 4. Lógica para el botón de Ticket (Ahora correctamente dentro del DOMContentLoaded)
+    if (btnTicket) {
+        btnTicket.addEventListener('click', () => {
+            const inputOrden = document.getElementById('orden-id');
+
+            if (!inputOrden || !inputOrden.value) {
+                alert('No se encontró una orden activa para generar el ticket.');
+                return;
+            }
+
+            const ordenId = inputOrden.value;
+            
+            // Abre el ticket en una pestaña nueva
+            window.open(`/caja/ticket/${ordenId}`, '_blank');
+        });
+    }
+}); // <-- El cierre del DOMContentLoaded va al mero final del archivo

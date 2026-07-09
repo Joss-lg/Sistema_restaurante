@@ -52,6 +52,8 @@
             urlPago: "{{ route('admin.caja.procesar.pago.final') }}"
         };
     });
+
+    
 </script>
 @endpush
 

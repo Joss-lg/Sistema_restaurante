@@ -67,6 +67,15 @@
         body:not(.modo-crema) .glass-card { background-color: var(--glass-bg); box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
         body.modo-crema .glass-card { background-color: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005); }
         ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        /* ===== ESTILOS DEL TOAST GLOBAL ===== */
+        @keyframes shrink-bar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        .animate-shrink {
+            animation: shrink-bar 3s linear forwards;
+        }
     </style>
 </head>
 <body class="selection:bg-[#3B82F6]/30 selection:text-[var(--text-color)]">
@@ -92,6 +101,53 @@
 
     <div class="fixed top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/5 blur-[150px] pointer-events-none z-0 modo-crema:hidden"></div>
     <div class="fixed bottom-[-20%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-orange-600/5 blur-[150px] pointer-events-none z-0 modo-crema:hidden"></div>
+
+    {{-- ===== TOAST GLOBAL DE ALERTAS (Éxito / Error) =====
+         Se muestra en TODAS las vistas que usan este layout,
+         sin necesidad de repetirlo en cada vista individual. ===== --}}
+    <div class="fixed top-6 right-6 z-[100] flex flex-col gap-4">
+        @if(session('success'))
+            <div id="toast-exito" class="relative overflow-hidden bg-white dark:bg-[#0f1015] border border-gray-100 dark:border-white/5 rounded-2xl shadow-2xl p-4 flex gap-3.5 items-start w-[320px] transition-all duration-300 transform translate-x-0 opacity-100">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-cyan-400"></div>
+
+                <div class="flex items-center justify-center w-8 h-8 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)] flex-shrink-0 mt-1">
+                    <i class="fas fa-check text-[11px]"></i>
+                </div>
+
+                <div class="flex-1 pr-3">
+                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400 mb-1">Operación Exitosa</p>
+                    <p class="text-[13px] font-bold text-gray-900 dark:text-white leading-tight">{{ session('success') }}</p>
+                </div>
+
+                <button onclick="cerrarToast('toast-exito')" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors outline-none">
+                    <i class="fas fa-times text-[10px]"></i>
+                </button>
+
+                <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-emerald-400 to-cyan-400 animate-shrink"></div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div id="toast-error" class="relative overflow-hidden bg-white dark:bg-[#0f1015] border border-gray-100 dark:border-white/5 rounded-2xl shadow-2xl p-4 flex gap-3.5 items-start w-[320px] transition-all duration-300 transform translate-x-0 opacity-100">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-red-500"></div>
+
+                <div class="flex items-center justify-center w-8 h-8 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-500 dark:text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.15)] flex-shrink-0 mt-1">
+                    <i class="fas fa-exclamation text-[11px]"></i>
+                </div>
+
+                <div class="flex-1 pr-3">
+                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400 mb-1">Atención</p>
+                    <p class="text-[13px] font-bold text-gray-900 dark:text-white leading-tight">{{ session('error') }}</p>
+                </div>
+
+                <button onclick="cerrarToast('toast-error')" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors outline-none">
+                    <i class="fas fa-times text-[10px]"></i>
+                </button>
+
+                <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-rose-400 to-red-500 animate-shrink"></div>
+            </div>
+        @endif
+    </div>
 
     @hasSection('no-sidebar')
         <main class="flex-1 relative z-10 flex flex-col min-h-screen">
@@ -176,6 +232,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             const esCrema = document.body.classList.contains('modo-crema');
             actualizarIcono(esCrema);
+        });
+
+        // --- GESTIÓN DEL TOAST GLOBAL ---
+        function cerrarToast(id) {
+            const toast = document.getElementById(id);
+            if (toast) {
+                toast.classList.remove('translate-x-0', 'opacity-100');
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (document.getElementById('toast-exito')) cerrarToast('toast-exito');
+                if (document.getElementById('toast-error')) cerrarToast('toast-error');
+            }, 3000);
         });
     </script>
     @stack('scripts')

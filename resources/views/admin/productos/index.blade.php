@@ -376,13 +376,59 @@
         });
         return data;
     }
- 
+
+    // ===== NOTIFICACIÓN TOAST (mismo diseño visual que el toast global de session) =====
+    let contadorToast = 0;
+
     function mostrarNotificacion(mensaje, tipo) {
-        const n = document.createElement('div');
-        n.className   = `fixed top-4 right-4 px-6 py-3 rounded-lg font-bold text-white z-[200] shadow-xl ${tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
-        n.textContent = mensaje;
-        document.body.appendChild(n);
-        setTimeout(() => n.remove(), 3000);
+        contadorToast++;
+        const id = `toast-ajax-${contadorToast}`;
+        const esExito = tipo === 'success';
+
+        // Contenedor fijo (se crea una sola vez, se reutiliza para apilar varios toasts)
+        let contenedor = document.getElementById('toast-ajax-container');
+        if (!contenedor) {
+            contenedor = document.createElement('div');
+            contenedor.id = 'toast-ajax-container';
+            contenedor.className = 'fixed top-6 right-6 z-[200] flex flex-col gap-4';
+            document.body.appendChild(contenedor);
+        }
+
+        const colorBarra   = esExito ? 'from-emerald-400 to-cyan-400' : 'from-rose-400 to-red-500';
+        const colorIcono   = esExito ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-rose-500/30 bg-rose-500/10 text-rose-500 dark:text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.15)]';
+        const colorTitulo  = esExito ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400';
+        const icono        = esExito ? 'fa-check' : 'fa-exclamation';
+        const titulo       = esExito ? 'Operación Exitosa' : 'Atención';
+
+        const toast = document.createElement('div');
+        toast.id = id;
+        toast.className = 'relative overflow-hidden bg-white dark:bg-[#0f1015] border border-gray-100 dark:border-white/5 rounded-2xl shadow-2xl p-4 flex gap-3.5 items-start w-[320px] transition-all duration-300 transform translate-x-0 opacity-100';
+        toast.innerHTML = `
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colorBarra}"></div>
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border ${colorIcono} flex-shrink-0 mt-1">
+                <i class="fas ${icono} text-[11px]"></i>
+            </div>
+            <div class="flex-1 pr-3">
+                <p class="text-[9px] font-black uppercase tracking-[0.2em] ${colorTitulo} mb-1">${titulo}</p>
+                <p class="text-[13px] font-bold text-gray-900 dark:text-white leading-tight">${mensaje}</p>
+            </div>
+            <button onclick="cerrarToastAjax('${id}')" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors outline-none">
+                <i class="fas fa-times text-[10px]"></i>
+            </button>
+            <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r ${colorBarra} animate-shrink"></div>
+        `;
+
+        contenedor.appendChild(toast);
+        setTimeout(() => cerrarToastAjax(id), 3000);
+    }
+
+    function cerrarToastAjax(id) {
+        const toast = document.getElementById(id);
+        if (toast) {
+            toast.classList.remove('translate-x-0', 'opacity-100');
+            toast.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }
     }
 </script>
 @endsection

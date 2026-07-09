@@ -136,7 +136,7 @@ class ComandaService
 
             // 5. ¡DISPARAR LA IMPRESIÓN POR RED AUTOMÁTICA!
             // Lo ejecutamos de forma segura para que si falla una impresora, no arruine el guardado del pedido
-            $this->enviarImpresionRed($productosParaTicket, $mesa->nombre ?? $mesa->id, $usuario->name ?? 'Mesero');
+            //$this->enviarImpresionRed($productosParaTicket, $mesa->nombre ?? $mesa->id, $usuario->name ?? 'Mesero');
 
             return $orden;
         });

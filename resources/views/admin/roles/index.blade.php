@@ -1,4 +1,3 @@
-{{-- resources/views/admin/roles/index.blade.php --}}
 @extends('layouts.admin')
 
 @section('title', 'Roles y Puestos | Ollintem Pro')
@@ -6,6 +5,7 @@
 @section('header-subtitle', 'Administra el catálogo de puestos disponibles')
 
 @section('content')
+
 <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto space-y-8">
     
     {{-- HEADER --}}
@@ -29,29 +29,8 @@
         @endif
     </div>
 
-    {{-- ALERTAS --}}
-    @if(session('success'))
-        <div class="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl shadow-sm">
-            <i class="fas fa-check-circle text-emerald-600 dark:text-emerald-400 text-lg"></i>
-            <div>
-                <p class="text-sm font-bold text-emerald-800 dark:text-emerald-300">¡Éxito!</p>
-                <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400/80">{{ session('success') }}</p>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl shadow-sm">
-            <i class="fas fa-exclamation-circle text-red-600 dark:text-red-400 text-lg"></i>
-            <div>
-                <p class="text-sm font-bold text-red-800 dark:text-red-300">Atención</p>
-                <p class="text-xs font-medium text-red-600 dark:text-red-400/80">{{ session('error') }}</p>
-            </div>
-        </div>
-    @endif
-
     {{-- TABLA --}}
-    <div class="bg-white dark:bg-[#15151a] border border-slate-100 dark:border-slate-800/60 rounded-[2rem] p-8 shadow-xl dark:shadow-none transition-all duration-300">
+    <div class="bg-white dark:bg-[#15151a] border border-slate-100 dark:border-slate-800/60 rounded-[2rem] p-8 shadow-xl dark:shadow-none transition-all duration-300 relative z-10">
         <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-6">Puestos Activos</h3>
         
         <div class="overflow-x-auto">
@@ -97,7 +76,7 @@
     </div>
 </div>
 
-{{-- MODALES (Fuera del contenedor principal pero dentro de la sección) --}}
+{{-- MODALES --}}
 @if(auth()->user()->tienePermiso('roles.agregar')) @include('admin.roles.modal-crear') @endif
 @if(auth()->user()->tienePermiso('roles.editar')) @include('admin.roles.modal-editar') @endif
 @if(auth()->user()->tienePermiso('roles.eliminar')) @include('admin.roles.modal-eliminar') @endif

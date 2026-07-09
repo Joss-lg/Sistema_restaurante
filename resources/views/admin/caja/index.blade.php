@@ -9,7 +9,7 @@
 
 <div id="toastContainer" class="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3" aria-live="polite" aria-atomic="true"></div>
 
-{{-- Contenedor principal 100% adaptativo con Tailwind --}}
+{{-- Contenedor principal --}}
 <div class="px-4 py-6 sm:p-6 lg:p-8 w-full max-w-[1600px] mx-auto space-y-6 sm:space-y-8 relative z-10 font-sans overflow-x-hidden min-h-screen bg-white dark:bg-[#15171c] transition-colors duration-300">
     
     {{-- ALERTAS DE SESIÓN --}}
@@ -44,7 +44,7 @@
             </div>
         </div>
         
-        {{-- TARJETAS ESTADÍSTICAS (Actualizadas para modo claro y oscuro dinámico) --}}
+        {{-- TARJETAS ESTADÍSTICAS --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full xl:w-auto">
             <div class="p-5 sm:p-6 rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
                 <p class="text-gray-500 dark:text-slate-400 text-[11px] sm:text-xs font-bold uppercase tracking-widest">Total abierto</p>
@@ -65,42 +65,57 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 pt-2 sm:pt-4 w-full" id="mesas-container">
         @forelse ($mesas as $mesa)
             @php
-                $cuenta = $mesa->cuentaActiva ?? null; 
-                $theme = [
-                    'disponible' => ['text' => 'group-hover:text-emerald-500'],
-                    'ocupada'    => ['text' => 'group-hover:text-blue-500'],
-                    'mantenimiento' => ['text' => 'group-hover:text-amber-500'],
-                ][$mesa->estado] ?? ['text' => 'group-hover:text-gray-500'];
+                // 🔥 CORRECCIÓN 1: Usamos ordenesActivas (la relación real que viene del controlador)
+                $cuenta = $mesa->ordenesActivas->first() ?? null; 
             @endphp
 
-            <a href="{{ route('admin.caja.cobrar', $mesa->id) }}" 
-               data-mesa-status="{{ $mesa->estado }}"
-               class="group relative flex flex-col w-full rounded-3xl border border-gray-200/60 dark:border-slate-700/60 bg-slate-50/50 dark:bg-[#1e2026]/70 shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 hover:-translate-y-1 overflow-hidden p-5 sm:p-6">
-                <div class="relative z-10 flex-1 flex flex-col w-full">
-                    <div class="flex justify-between items-start mb-5 sm:mb-6 w-full">
-                        <div class="w-full">
-                           <h3 class="text-xl sm:text-2xl font-black tracking-tight text-gray-900 dark:text-slate-100 transition-colors {{ $theme['text'] }}">{{ $mesa->numero }}</h3>
-                            <p class="text-gray-500 dark:text-slate-400 text-xs font-semibold">Capacidad {{ $mesa->capacidad }} p.</p>
+            @if($cuenta)
+                {{-- 🟢 MESA CON ORDEN ACTIVA: COLOR VERDE Y CLICKABLE --}}
+                <a href="{{ route('admin.caja.cobrar', $mesa->id) }}" 
+                   data-mesa-status="{{ $mesa->estado }}"
+                   class="group relative flex flex-col w-full rounded-3xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/10 dark:bg-emerald-950/10 shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 hover:-translate-y-1 overflow-hidden p-5 sm:p-6">
+                    <div class="relative z-10 flex-1 flex flex-col w-full">
+                        <div class="flex justify-between items-start mb-5 sm:mb-6 w-full">
+                            <div class="w-full">
+                               <h3 class="text-xl sm:text-2xl font-black tracking-tight text-gray-900 dark:text-slate-100 transition-colors group-hover:text-emerald-500">{{ $mesa->numero }}</h3>
+                                <p class="text-gray-500 dark:text-slate-400 text-xs font-semibold">Capacidad {{ $mesa->capacidad }} p.</p>
+                            </div>
+                        </div>
+                        <div class="mt-auto w-full space-y-3">
+                            <div class="rounded-2xl p-4 flex justify-between items-center w-full border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-[#15171c]">
+                                {{-- 🔥 CORRECCIÓN 2: Jalamos el total_consumo directo de la mesa para asegurar que muestre el monto real --}}
+                                <p class="text-xl font-black text-emerald-600 dark:text-emerald-400">${{ number_format($mesa->total_consumo ?? 0, 2) }}</p>
+                            </div>
+                            <div class="w-full py-3.5 flex items-center justify-center rounded-2xl font-bold bg-emerald-600 dark:bg-emerald-600 text-white shadow-sm transition-all duration-200 group-hover:bg-emerald-700">
+                                💰 Cobrar
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-auto w-full">
-                        @if($cuenta)
-                            <div class="rounded-2xl p-4 flex justify-between items-center w-full border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-[#15171c]">
-                                <p class="text-xl font-black text-gray-900 dark:text-slate-100">${{ number_format($cuenta->total ?? 0, 2) }}</p>
+                </a>
+            @else
+                {{-- 🔴 MESA SIN ORDEN: COLOR ROJO Y BLOQUEADA --}}
+                <div data-mesa-status="{{ $mesa->estado }}"
+                   class="relative flex flex-col w-full rounded-3xl border border-red-200/50 dark:border-red-950/60 bg-red-50/5 dark:bg-red-950/5 shadow-sm overflow-hidden p-5 sm:p-6">
+                    <div class="relative z-10 flex-1 flex flex-col w-full">
+                        <div class="flex justify-between items-start mb-5 sm:mb-6 w-full">
+                            <div class="w-full">
+                               <h3 class="text-xl sm:text-2xl font-black tracking-tight text-gray-400 dark:text-slate-500">{{ $mesa->numero }}</h3>
+                                <p class="text-gray-400 dark:text-slate-500 text-xs font-semibold">Capacidad {{ $mesa->capacidad }} p.</p>
                             </div>
-                        @else
-                            <div class="w-full py-3.5 flex items-center justify-center rounded-2xl font-bold border border-gray-200 dark:border-slate-700 bg-slate-50 dark:bg-[#15171c] text-gray-500 dark:text-slate-400 group-hover:bg-emerald-600 dark:group-hover:bg-emerald-600 group-hover:text-white dark:group-hover:text-white group-hover:border-emerald-600 dark:group-hover:border-emerald-600 transition-all duration-200">
-                                Mesa Libre
+                        </div>
+                        <div class="mt-auto w-full">
+                            <div class="w-full py-3.5 flex items-center justify-center rounded-2xl font-bold border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 text-red-500 dark:text-red-400 cursor-not-allowed select-none">
+                                ❌ Mesa sin orden
                             </div>
-                        @endif
+                        </div>
                     </div>
                 </div>
-            </a>
+            @if(false) {{-- Tag auxiliar de cierre condicional --}} @endif
+            @endif
         @empty
             <p class="text-center w-full py-10 text-gray-500 dark:text-slate-400 font-semibold">No hay mesas configuradas</p>
         @endforelse
     </div>
-</div>
 
 {{-- MODAL DE CIERRE DE CAJA --}}
 <div id="modalCierreCaja" class="fixed inset-0 z-50 hidden overflow-y-auto">
@@ -157,7 +172,6 @@
 </div>
 
 <script>
-    // Forzamos que las funciones sean accesibles globalmente asignándolas explícitamente a window
     window.toggleModalCierre = function(show) {
         const modal = document.getElementById('modalCierreCaja');
         if (!modal) return;
@@ -217,38 +231,6 @@
                 });
             });
         });
-
-        const botonesAbrirMesa = document.querySelectorAll('.btn-abrir-mesa');
-        const modalAbrirMesa = document.getElementById('modal-abrir-mesa');
-        const btnConfirmarAbrir = document.getElementById('btn-confirmar-abrir-mesa');
-        const capacidadInput = document.getElementById('capacidad-personas');
-        let mesaSeleccionada = null;
-
-        botonesAbrirMesa.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                if (e.target.closest('[data-mesa-delete="true"]')) return;
-                mesaSeleccionada = { id: this.dataset.mesaId, numero: this.dataset.mesaNumero };
-                if (modalAbrirMesa) modalAbrirMesa.classList.remove('hidden');
-            });
-        });
-
-        if (btnConfirmarAbrir) {
-            btnConfirmarAbrir.addEventListener('click', async () => {
-                if (!mesaSeleccionada) return;
-                const response = await fetch('{{ route("admin.caja.api.abrir-mesa") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ mesa_id: mesaSeleccionada.id, capacidad: capacidadInput.value })
-                });
-                const data = await response.json();
-                if (data.success) location.reload();
-                else alert(data.message);
-            });
-        }
     });
 </script>
-
 @endsection
