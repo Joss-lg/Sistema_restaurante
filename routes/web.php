@@ -1,25 +1,43 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PermisoController;
+use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\InventarioController;
+use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\CocinaController;
+use App\Http\Controllers\MesaController;
+use App\Http\Controllers\ComandaController;
+use App\Http\Controllers\PromocionController;
+use App\Http\Controllers\RolController;
+use App\Http\Controllers\FinanzasController;
 use App\Http\Controllers\PlanoEspacialController;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\HistorialCajaController; 
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\{
-    Auth\LoginController, DashboardController, PermisoController, EmpleadoController,
-    ProductoController, InventarioController, CategoriaController,
-    CocinaController, MesaController, ComandaController,
-    PromocionController, RolController, FinanzasController
-};
 
+// ==========================================
 // --- AUTENTICACIÓN ---
-Route::get('/', function () { return view('auth.login'); })->name('login');
+// ==========================================
+Route::get('/', function () { 
+    return view('auth.login'); 
+})->name('login');
+
 Route::post('/login-pin', [LoginController::class, 'loginConPin'])->name('login.pin');
 Auth::routes();
 
+// ==========================================
+// --- RUTAS PROTEGIDAS (AUTH) ---
+// ==========================================
 Route::middleware(['auth'])->group(function () {
 
-    // --- MÓDULO MESERO ---
+    // ------------------------------------------
+    // MÓDULO MESERO
+    // ------------------------------------------
     Route::prefix('mesero')->name('mesero.')->group(function () {
         Route::get('/dashboard', [MesaController::class, 'index'])->name('dashboard');
         Route::get('/comanda/{mesa}', [MesaController::class, 'show'])->name('comanda.show');
@@ -30,37 +48,35 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/mesa/reabrir', [ComandaController::class, 'reabrir'])->name('mesa.reabrir');
     });
     
-    // --- MÓDULOS ADMINISTRATIVOS ---
-Route::name('admin.')->group(function () {
-    // Bloqueo total: Requiere que la columna 'mostrar' del módulo 'Dashboard' esté en 1
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard')
-        ->middleware('permiso:Dashboard,mostrar');
-// ==========================================
-        // MÓDULO: EMPLEADOS
-        // ==========================================
+    // ------------------------------------------
+    // MÓDULOS ADMINISTRATIVOS
+    // ------------------------------------------
+    Route::name('admin.')->group(function () {
+        
+        // Bloqueo total: Requiere que la columna 'mostrar' del módulo 'Dashboard' esté en 1
+        Route::get('/dashboard', [DashboardController::class, 'index'])
+            ->name('dashboard')
+            ->middleware('permiso:Dashboard,mostrar');
+
+        // --- EMPLEADOS ---
         Route::prefix('admin/empleados')->name('empleados.')->group(function () {
-            // Ver el listado de empleados
             Route::get('/', [EmpleadoController::class, 'index'])
                 ->name('index')
                 ->middleware('permiso:Empleados,mostrar');
 
-            // Crear un nuevo empleado
             Route::post('/store', [EmpleadoController::class, 'store'])
                 ->name('store')
                 ->middleware('permiso:Empleados,crear');
 
-            // Editar/Actualizar datos de un empleado
             Route::put('/{id}', [EmpleadoController::class, 'update'])
                 ->name('update')
                 ->middleware('permiso:Empleados,editar');
 
-            // Dar de baja/Eliminar un empleado
             Route::delete('/{id}', [EmpleadoController::class, 'destroy'])
                 ->name('destroy')
                 ->middleware('permiso:Empleados,eliminar');
             
-            // Gestión avanzada de permisos y reactivación de personal dado de baja
+            // Gestión avanzada de permisos y reactivación
             Route::get('/{id}/permisos', [EmpleadoController::class, 'permisos'])
                 ->name('permisos')
                 ->middleware('permiso:Empleados,gestionar');
@@ -74,7 +90,7 @@ Route::name('admin.')->group(function () {
                 ->middleware('permiso:Empleados,gestionar');
         });
 
-        // Inventario
+        // --- INVENTARIO ---
         Route::middleware(['role:Inventario'])->prefix('/admin/inventario')->name('inventario.')->group(function () {
             Route::get('/bajo-stock-pdf', [InventarioController::class, 'exportarPdfBajoStock'])->name('exportar_pdf_bajo_stock');
             Route::get('/', [InventarioController::class, 'index'])->name('index');
@@ -84,6 +100,7 @@ Route::name('admin.')->group(function () {
             Route::delete('/{id}', [InventarioController::class, 'destroy'])->name('destroy');
         });
 
+        // --- PRODUCTOS (ALIMENTOS) ---
         Route::middleware(['role:Alimentos'])->prefix('productos')->name('productos.')->group(function () {
             Route::get('/', [ProductoController::class, 'index'])->name('index');
             
@@ -96,15 +113,17 @@ Route::name('admin.')->group(function () {
             Route::patch('/api/{id}/toggle-disponibilidad', [ProductoController::class, 'toggleDisponibilidad'])->name('api.toggle');
         });
 
+        // --- CATEGORÍAS ---
         Route::middleware(['role:Categorias'])->resource('categorias', CategoriaController::class);
 
-        // Caja
+        // --- CAJA ---
         Route::middleware(['role:Caja'])->prefix('caja')->name('caja.')->group(function () {
-            
             Route::get('/', [CajaController::class, 'index'])->name('index');
             Route::post('/abrir', [CajaController::class, 'abrir'])->name('abrir');
             Route::post('/cerrar', [CajaController::class, 'cerrar'])->name('cerrar');
             Route::get('/cobrar/{id}', [CajaController::class, 'cobrar'])->name('cobrar');
+            
+            // API Endpoints
             Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
             Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
             Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
@@ -117,7 +136,7 @@ Route::name('admin.')->group(function () {
             Route::delete('/{id}', [CajaController::class, 'destroy'])->name('destroy');
         });
 
-    // Mesas
+        // --- MESAS ---
         Route::middleware(['role:Mesas'])->prefix('mesas')->name('mesas.')->group(function () {
             Route::get('/', [MesaController::class, 'index'])->name('index');
             Route::get('/api/mesas', [MesaController::class, 'getMesas'])->name('api.mesas');
@@ -129,7 +148,8 @@ Route::name('admin.')->group(function () {
             Route::put('/api/{id}', [MesaController::class, 'update'])->name('api.update');
             Route::delete('/api/{id}', [MesaController::class, 'destroy'])->name('api.destroy');
         });
-        // Plano Espacial
+
+        // --- PLANO ESPACIAL ---
         Route::middleware(['role:Mesas'])->prefix('plano-espacial')->name('plano-espacial.')->group(function () {
             Route::get('/', [PlanoEspacialController::class, 'index'])->name('index');
             Route::get('/api/mesas', [PlanoEspacialController::class, 'getMesas'])->name('api.mesas');
@@ -140,13 +160,13 @@ Route::name('admin.')->group(function () {
             Route::delete('/api/eliminar/{id}', [PlanoEspacialController::class, 'eliminarDelPlano'])->name('api.eliminar');
         });
 
-        // Cocina
+        // --- COCINA ---
         Route::middleware(['role:Cocina'])->prefix('cocina')->name('cocina.')->group(function () {
             Route::get('/', [CocinaController::class, 'index'])->name('index');
             Route::patch('/orden/{id}/estado', [CocinaController::class, 'actualizarEstado'])->name('orden.estado');
         });
 
-        // Promociones
+        // --- PROMOCIONES ---
         Route::middleware(['role:Promociones'])->prefix('promociones')->name('promociones.')->group(function () {
             Route::get('/', [PromocionController::class, 'index'])->name('index');
             Route::post('/store', [PromocionController::class, 'store'])->name('store');
@@ -155,7 +175,7 @@ Route::name('admin.')->group(function () {
             Route::delete('/{promocion}', [PromocionController::class, 'destroy'])->name('destroy');
         }); 
 
-        // Roles
+        // --- ROLES ---
         Route::middleware(['role:Roles'])->prefix('roles')->name('roles.')->group(function () {
             Route::get('/', [RolController::class, 'index'])->name('index');
             Route::post('/', [RolController::class, 'store'])->name('store');
@@ -163,13 +183,14 @@ Route::name('admin.')->group(function () {
             Route::delete('/{id}', [RolController::class, 'destroy'])->name('destroy');
         });
 
-        // Finanzas
+        // --- FINANZAS ---
         Route::middleware(['role:Finanzas'])->prefix('finanzas')->name('finanzas.')->group(function () {
             Route::get('/', [FinanzasController::class, 'index'])->name('index');
             Route::get('/exportar-csv', [FinanzasController::class, 'exportarCSV'])->name('exportar');
             Route::post('/estadisticas-periodo', [FinanzasController::class, 'estadisticasPeriodo'])->name('estadisticas.periodo');
         });
 
+        // --- GASTOS Y NÓMINA ---
         Route::prefix('gastos')->name('gastos.')->group(function () {
             Route::post('/', [FinanzasController::class, 'guardarGasto'])->name('store');
         });
@@ -180,14 +201,19 @@ Route::name('admin.')->group(function () {
 
         Route::post('/permisos/store', [PermisoController::class, 'store'])->name('permisos.store');
 
-    }); // 🌟 Cierre correcto de 'admin.'
+    }); // Cierre del grupo 'admin.'
 
-    // 🌟 SE MOVIÓ AQUÍ FUERA: Módulo Historial Cajas independiente para mantener URLs cortas
+    // ------------------------------------------
+    // HISTORIAL CAJAS (Independiente)
+    // ------------------------------------------
     Route::middleware(['role:Historial de Cajas'])->prefix('historial-cajas')->name('historial.')->group(function () {
         Route::get('/', [HistorialCajaController::class, 'index'])->name('index');
         Route::get('/{id}', [HistorialCajaController::class, 'show'])->name('show');
     });
 
+    // ------------------------------------------
+    // LOGOUT
+    // ------------------------------------------
     Route::post('/logout', function () { 
         Auth::logout(); 
         return redirect()->route('login'); 

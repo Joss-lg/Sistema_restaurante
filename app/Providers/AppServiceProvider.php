@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-// IMPORTANTE: Añadir estas dos líneas
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
+use App\Models\Modulo;
 use App\Models\Transaccion;
 use App\Models\Gasto;
 use App\Models\PagoNomina;
@@ -33,20 +33,47 @@ class AppServiceProvider extends ServiceProvider
         /**
          * LÓGICA DE ADMINISTRADOR GLOBAL (OLLINTEM PRO)
          * El Gate::before se ejecuta antes de cualquier otra validación de permisos.
-         * Si el usuario tiene el rol 'admin', le permite el paso a todo automáticamente.
-         * Ahora compara el slug del rol de forma dinámica.
+         * Le da acceso total al Super Admin (ID 1) o a quien tenga el rol de 'admin'.
          */
         Gate::before(function (User $user, string $ability) {
+            // Bypass para el usuario raíz
+            if ($user->id === 1 || $user->rol_id === 1) {
+                return true;
+            }
+
             // Cargar la relación de rol si no está cargada
             if (!$user->relationLoaded('rol')) {
                 $user->load('rol');
             }
             
-            // Comparar el slug del rol, no el enum estático
+            // Comparar el slug del rol
             if ($user->rol && ($user->rol->slug === 'admin' || $user->rol->slug === 'administrador')) {
                 return true;
             }
         });
+
+        /**
+         * REGISTRO DINÁMICO DE GATES (PERMISOS)
+         * Registra cada combinación de "Módulo.Acción" para poder usar directivas
+         * como @can('Empleados.crear') directamente en las vistas Blade.
+         */
+        try {
+            $acciones = ['mostrar', 'crear', 'editar', 'eliminar', 'gestionar'];
+            
+            foreach (Modulo::all() as $modulo) {
+                foreach ($acciones as $accion) {
+                    // Crea nombres de Gate como "Empleados.crear"
+                    $gateName = $modulo->nombre . '.' . $accion;
+                    
+                    Gate::define($gateName, function (User $user) use ($modulo, $accion) {
+                        return $user->tienePermiso($modulo->id, $accion);
+                    });
+                }
+            }
+        } catch (\Exception $e) {
+            // Se silencia la excepción para que no falle al ejecutar migraciones 
+            // por primera vez cuando la tabla 'modulos' aún no existe.
+        }
 
         // ==========================================
         // REGISTRO DE OBSERVERS PARA FLUJO DE CAJA

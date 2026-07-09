@@ -8,12 +8,13 @@
     <div class="bg-zinc-900 border border-zinc-800 rounded-[3rem] shadow-2xl overflow-hidden modo-crema:bg-white modo-crema:border-zinc-200">
         <form action="{{ route('admin.empleados.permisos.update', $empleado->id) }}" method="POST" id="permisosForm">
             @csrf
+            
             <div class="overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 modo-crema:[&::-webkit-scrollbar-thumb]:bg-zinc-300 [&::-webkit-scrollbar-thumb]:rounded-full">
                 <table class="w-full border-collapse">
                     <thead>
                         <tr class="bg-black/20 border-b border-zinc-800 modo-crema:bg-zinc-50/80 modo-crema:border-zinc-200">
                             <th class="py-10 px-10 text-[11px] font-black text-zinc-100 modo-crema:text-zinc-800 uppercase tracking-[0.4em] text-left">Módulos</th>
-                            @php $permisosHeader = ['Ver', 'Crear', 'Editar', 'Borrar', 'Gestión']; @endphp
+                            @php $permisosHeader = ['Mostrar', 'Crear', 'Editar', 'Eliminar', 'Gestionar']; @endphp
                             @foreach($permisosHeader as $p)
                             <th class="py-10 px-4 text-[11px] font-black text-zinc-100 modo-crema:text-zinc-800 uppercase tracking-[0.4em] text-center">{{ $p }}</th>
                             @endforeach
@@ -22,44 +23,51 @@
                     </thead>
                     <tbody class="divide-y divide-zinc-800 modo-crema:divide-zinc-200">
                         @php
-                            // Catálogo de módulos con sus IDs correspondientes a tu tabla 'modulos'
-                            $items = [
-                                ['id' => 1,  'n' => 'Dashboard',   'i' => 'fa-th-large'],
-                                ['id' => 2,  'n' => 'Inventario',  'i' => 'fa-cube'],
-                                ['id' => 3,  'n' => 'Empleados',   'i' => 'fa-users'],
-                                ['id' => 4,  'n' => 'Productos',   'i' => 'fa-utensils'],
-                                ['id' => 5,  'n' => 'Categorías',  'i' => 'fa-layer-group'],
-                                ['id' => 6,  'n' => 'Mesas',       'i' => 'fa-chair'],
-                                ['id' => 7,  'n' => 'Promociones', 'i' => 'fa-tags'],
-                                ['id' => 8,  'n' => 'Cocina',      'i' => 'fa-fire-burner'],
-                                ['id' => 9,  'n' => 'Caja',        'i' => 'fa-cash-register'],
-                                ['id' => 10, 'n' => 'Finanzas',    'i' => 'fa-chart-line'],
-                                ['id' => 11, 'n' => 'Roles', 'i' => 'fas fa-id-badge'],
-                                ['id' => 12, 'n' => 'Historial de Cajas', 'i' => 'fas fa-history']
+                            // Mapeo dinámico de iconos basado en el nombre del módulo (en minúsculas)
+                            $iconos = [
+                                'dashboard'          => 'fa-th-large',
+                                'inventario'         => 'fa-cube',
+                                'empleados'          => 'fa-users',
+                                'productos'          => 'fa-utensils',
+                                'categorías'         => 'fa-layer-group',
+                                'categorias'         => 'fa-layer-group',
+                                'mesas'              => 'fa-chair',
+                                'promociones'        => 'fa-tags',
+                                'cocina'             => 'fa-fire-burner',
+                                'caja'               => 'fa-cash-register',
+                                'finanzas'           => 'fa-chart-line',
+                                'roles'              => 'fa-id-badge',
+                                'historial de cajas' => 'fa-history'
                             ];
                         @endphp
 
-                        @foreach($items as $item)
+                        {{-- Iteramos sobre los módulos pasados desde el EmpleadoController --}}
+                        @foreach($modulos as $modulo)
+                            @php
+                                $nombreModulo = strtolower($modulo->nombre);
+                                $icono = $iconos[$nombreModulo] ?? 'fa-circle'; // Fallback a fa-circle si no encuentra el icono
+                            @endphp
+
                             <tr class="modulo-row group hover:bg-blue-500/[0.03] transition-all duration-300">
                                 <td class="py-8 px-10">
                                     <div class="flex items-center gap-6">
                                         <div class="w-12 h-12 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-blue-500 group-hover:border-blue-500/40 group-hover:shadow-lg modo-crema:bg-zinc-50 modo-crema:border-zinc-200 modo-crema:text-zinc-500 transition-all duration-500">
-                                            <i class="fas {{ $item['i'] }} text-lg"></i>
+                                            <i class="fas {{ $icono }} text-lg"></i>
                                         </div>
-                                        <span class="text-[13px] font-black text-zinc-200 modo-crema:text-zinc-700 uppercase tracking-widest">{{ $item['n'] }}</span>
+                                        <span class="text-[13px] font-black text-zinc-200 modo-crema:text-zinc-700 uppercase tracking-widest">{{ $modulo->nombre }}</span>
                                     </div>
                                 </td>
 
                                 @php
                                     // Validamos qué permisos tiene ya guardados este usuario para el módulo actual
-                                    $permisoActual = $empleado->permisos->where('modulo_id', $item['id'])->first();
+                                    $permisoActual = $empleado->permisos->where('modulo_id', $modulo->id)->first();
                                 @endphp
 
                                 @foreach(['mostrar', 'crear', 'editar', 'eliminar', 'gestionar'] as $accion)
                                     <td class="py-8 px-4">
                                         <label class="relative flex items-center justify-center cursor-pointer group/check">
                                             <input type="checkbox" 
-                                                name="permisos[{{ $item['id'] }}][{{ $accion }}]" 
+                                                name="permisos[{{ $modulo->id }}][{{ $accion }}]" 
                                                 value="1"
                                                 class="permiso-checkbox peer sr-only"
                                                 {{ ($permisoActual && $permisoActual->$accion) ? 'checked' : '' }}>

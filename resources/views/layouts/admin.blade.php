@@ -72,6 +72,7 @@
 <body class="selection:bg-[#3B82F6]/30 selection:text-[var(--text-color)]">
 
     <script>
+        // 1. Recuperar estado del Tema
         const temaGuardado = localStorage.getItem('tema-ollintem');
         if (temaGuardado === 'crema') {
             document.body.classList.add('modo-crema');
@@ -79,6 +80,13 @@
         } else {
             document.body.classList.remove('modo-crema');
             document.documentElement.classList.add('dark');
+        }
+
+        // 2. NUEVO: Recuperar estado del Sidebar inmediatamente para evitar parpadeos
+        const sidebarGuardado = localStorage.getItem('sidebar-ollintem');
+        if (sidebarGuardado === 'expandido') {
+            // Añadimos una clase global al body que podrás usar en tu sidebar.blade.php
+            document.body.classList.add('sidebar-expandido');
         }
     </script>
 
@@ -93,7 +101,6 @@
         <div class="flex h-screen overflow-hidden relative z-10">
             @include('layouts.sidebar')
 
-            {{-- MODIFICADO AQUÍ: Se añadió 'min-w-0' para salvaguardar el Sidebar --}}
             <main class="flex-1 overflow-y-auto min-w-0 relative z-10 flex flex-col">
                 <header class="backdrop-blur-2xl border-b sticky top-0 z-30 px-10 py-5 flex justify-between items-center bg-[var(--header-bg)] border-[var(--border-color)]">
                     <div class="flex flex-col">
@@ -118,6 +125,7 @@
     @yield('modals')
 
     <script>
+        // --- GESTIÓN DEL TEMA ---
         function toggleTheme() {
             const body = document.body;
             const html = document.documentElement;
@@ -145,6 +153,23 @@
                     icon.classList.add('text-yellow-400');
                     icon.classList.remove('text-blue-500');
                 }
+            }
+        }
+
+        // --- GESTIÓN DEL SIDEBAR (NUEVO) ---
+        // Llama a esta función desde el botón que expande/contrae tu sidebar
+        // Ejemplo: <button onclick="toggleSidebar()">Menú</button>
+        function toggleSidebar() {
+            const body = document.body;
+            
+            // Alternamos la clase global en el body
+            body.classList.toggle('sidebar-expandido');
+            
+            // Verificamos el estado actual y lo guardamos en localStorage
+            if (body.classList.contains('sidebar-expandido')) {
+                localStorage.setItem('sidebar-ollintem', 'expandido');
+            } else {
+                localStorage.setItem('sidebar-ollintem', 'minimizado');
             }
         }
 

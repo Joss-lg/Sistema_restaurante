@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Hash;
 
 class EmpleadoController extends Controller
 {
+    /**
+     * Muestra la lista de empleados.
+     */
     public function index(Request $request)
     {
         // CAMBIO CLAVE: Usamos withTrashed() para que Laravel no nos oculte a los inactivos
@@ -27,6 +30,9 @@ class EmpleadoController extends Controller
         return view('admin.empleados.index', compact('empleados', 'roles'));
     }
 
+    /**
+     * Almacena un nuevo empleado en la base de datos.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -54,6 +60,9 @@ class EmpleadoController extends Controller
         return redirect()->route('admin.empleados.index')->with('success', 'Empleado registrado exitosamente.');
     }
 
+    /**
+     * Actualiza los datos de un empleado existente.
+     */
     public function update(Request $request, $id)
     {
         // Usamos withTrashed por si acaso estamos editando a alguien inactivo
@@ -92,47 +101,54 @@ class EmpleadoController extends Controller
         return redirect()->route('admin.empleados.index')->with('success', 'Datos actualizados.');
     }
 
+    /**
+     * Muestra el formulario para configurar los permisos del empleado por módulo.
+     */
     public function permisos($id)
     {
         $empleado = User::withTrashed()->with('permisos')->findOrFail($id);
-        return view('admin.empleados.permisos', compact('empleado'));
+        
+        // Se envían los módulos a la vista para que el formulario pueda iterar sobre ellos y armar la matriz
+        $modulos = Modulo::orderBy('nombre')->get(); 
+        
+        return view('admin.empleados.permisos', compact('empleado', 'modulos'));
     }
 
+    /**
+     * Procesa y sincroniza los permisos asignados al empleado.
+     */
     public function actualizarPermisos(Request $request, $id)
     {
         $empleado = User::withTrashed()->findOrFail($id);
-        $todosLosModulos = \App\Models\Modulo::pluck('id'); 
+        $todosLosModulos = Modulo::pluck('id'); 
         $permisosEnviados = $request->input('permisos', []);
 
         foreach ($todosLosModulos as $moduloId) {
             $acciones = $permisosEnviados[$moduloId] ?? [];
 
-            $permiso = Permiso::where('user_id', $empleado->id)
-                              ->where('modulo_id', $moduloId)
-                              ->first();
-
-            $data = [
-                'mostrar'   => isset($acciones['mostrar']) ? 1 : 0,
-                'crear'     => isset($acciones['crear']) ? 1 : 0,
-                'editar'    => isset($acciones['editar']) ? 1 : 0,
-                'eliminar'  => isset($acciones['eliminar']) ? 1 : 0,
-                'gestionar' => isset($acciones['gestionar']) ? 1 : 0,
-            ];
-
-            if ($permiso) {
-                $permiso->update($data);
-            } else {
-                Permiso::create(array_merge([
-                    'user_id' => $empleado->id, 
+            // MEJORA: updateOrCreate reduce la lógica de if/else y hace exactamente lo mismo de forma más limpia
+            Permiso::updateOrCreate(
+                [
+                    'user_id'   => $empleado->id,
                     'modulo_id' => $moduloId
-                ], $data));
-            }
+                ],
+                [
+                    'mostrar'   => isset($acciones['mostrar']) ? 1 : 0,
+                    'crear'     => isset($acciones['crear']) ? 1 : 0,
+                    'editar'    => isset($acciones['editar']) ? 1 : 0,
+                    'eliminar'  => isset($acciones['eliminar']) ? 1 : 0,
+                    'gestionar' => isset($acciones['gestionar']) ? 1 : 0,
+                ]
+            );
         }
 
         return redirect()->route('admin.empleados.index')
                          ->with('success', "Permisos de {$empleado->nombre} actualizados correctamente.");
     }
 
+    /**
+     * Aplica la baja lógica (SoftDelete) o eliminación definitiva de un empleado.
+     */
     public function destroy($id)
     {
         // CAMBIO CLAVE: withTrashed() para poder encontrarlo si ya estaba inactivo
@@ -144,7 +160,10 @@ class EmpleadoController extends Controller
 
         // Lógica de borrado definitivo (ahora sí lo borrará de MySQL)
         if ($empleado->esta_activo == false) {
+            // Eliminar dependencias primero (permisos) para evitar errores de llave foránea si no hay onDelete('cascade')
+            $empleado->permisos()->delete(); 
             $empleado->forceDelete(); 
+            
             return redirect()->back()->with('success', 'El empleado ha sido eliminado permanentemente de la base de datos.');
         }
 
@@ -155,9 +174,12 @@ class EmpleadoController extends Controller
         return redirect()->back()->with('success', 'Empleado dado de baja.');
     }
 
+    /**
+     * Restaura un empleado dado de baja lógica.
+     */
     public function reactivar($id)
     {
-        //CAMBIO CLAVE: withTrashed() para encontrarlo y restaurarlo
+        // CAMBIO CLAVE: withTrashed() para encontrarlo y restaurarlo
         $empleado = User::withTrashed()->findOrFail($id);
         $empleado->restore(); // Le quitamos el SoftDelete
         $empleado->update(['esta_activo' => true]);

@@ -14,9 +14,9 @@
         /* 2. Menú de navegación: Centramos los iconos perfectos */
         #sidebar.colapsado .menu-link { padding-left: 0 !important; padding-right: 0 !important; justify-content: center !important; }
         
-        /* 3. Header: Ocultamos el logo suavemente y centramos la hamburguesa */
+        /* 3. Header: Ocultamos el logo suavemente y centramos la hamburguesa vertical y horizontalmente */
         #sidebar.colapsado .logo-wrapper { opacity: 0; pointer-events: none; position: absolute; }
-        #sidebar.colapsado #toggleSidebar { right: 0; left: 0; margin: 0 auto; }
+        #sidebar.colapsado #toggleSidebar { right: 0; left: 0; margin: 0 auto; top: 50%; transform: translateY(-50%); }
         
         /* 4. Footer: Modo mini y transparente */
         #sidebar.colapsado .user-footer { padding-left: 0; padding-right: 0; background: transparent; border-color: transparent; box-shadow: none; align-items: center; margin-bottom: 1rem; }
@@ -37,6 +37,15 @@
         body.modo-crema .btn-logout:hover { background: #e2e8f0; color: #b91c1c; }
     </style>
 
+    {{-- Script en línea para aplicar el estado ANTES de que renderice la página (evita parpadeo) --}}
+    <script>
+        (function() {
+            if (localStorage.getItem('sidebarState') === 'collapsed') {
+                document.getElementById('sidebar').classList.add('colapsado');
+            }
+        })();
+    </script>
+
     {{-- Header del Logo --}}
     <div class="h-24 flex items-center px-5 relative shrink-0 w-full transition-all">
         <div class="absolute top-1/2 left-10 -translate-y-1/2 w-20 h-20 bg-blue-500/10 blur-[30px] rounded-full pointer-events-none"></div>
@@ -55,7 +64,8 @@
             </div>
         </div>
         
-        <button id="toggleSidebar" class="absolute right-4 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all cursor-pointer z-50 shrink-0">
+        {{-- SE AGREGÓ top-7 AQUÍ PARA ALINEAR CON EL TÍTULO --}}
+        <button id="toggleSidebar" class="absolute right-4 top-7 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all cursor-pointer z-50 shrink-0">
             <i class="fas fa-bars text-sm"></i>
         </button>
     </div>
@@ -152,19 +162,13 @@
     </div>
 </aside>
 
-{{-- SCRIPT ACTUALIZADO: CIERRE AUTOMÁTICO, SCROLL Y ESTADO --}}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleSidebar');
         const navContainer = document.getElementById('nav-container');
         
-        // 1. Revisar qué dice la memoria sobre el estado de colapso
-        if (localStorage.getItem('sidebarState') === 'collapsed') {
-            sidebar.classList.add('colapsado');
-        }
-
-        // 2. Revisar posición guardada del scroll en el menú
+        // 1. Revisar posición guardada del scroll en el menú
         if (navContainer) {
             const savedScrollPos = localStorage.getItem('sidebarScrollPosition');
             if (savedScrollPos) {
@@ -176,24 +180,17 @@
             });
         }
 
-        // 3. NUEVO: Al hacer clic en cualquier opción del menú, cerrar automáticamente la barra
-        const menuLinks = document.querySelectorAll('.menu-link');
-        menuLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                sidebar.classList.add('colapsado');
-                localStorage.setItem('sidebarState', 'collapsed');
+        // 2. Click manual en el botón de hamburguesa (Colapsar / Expandir)
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('colapsado');
+                
+                if (sidebar.classList.contains('colapsado')) {
+                    localStorage.setItem('sidebarState', 'collapsed');
+                } else {
+                    localStorage.setItem('sidebarState', 'expanded');
+                }
             });
-        });
-
-        // 4. Click manual en el botón de hamburguesa (Colapsar / Expandir)
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('colapsado');
-            
-            if (sidebar.classList.contains('colapsado')) {
-                localStorage.setItem('sidebarState', 'collapsed');
-            } else {
-                localStorage.setItem('sidebarState', 'expanded');
-            }
-        });
+        }
     });
 </script>
