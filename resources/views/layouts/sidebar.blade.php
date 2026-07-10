@@ -35,12 +35,51 @@
         body.modo-crema .user-footer { background: #ffffff; border-color: rgba(15, 23, 42, 0.08); box-shadow: 0 25px 50px rgba(15, 23, 42, 0.06); }
         body.modo-crema .btn-logout { background: #f8fafc; border-color: rgba(15, 23, 42, 0.08); color: #374151; }
         body.modo-crema .btn-logout:hover { background: #e2e8f0; color: #b91c1c; }
+
+        /* =========================================================
+           MODO MÓVIL: el sidebar se convierte en un drawer que se
+           desliza y se oculta, en vez de empujar/tapar el contenido.
+           Solo aplica debajo de 1024px; en desktop no cambia nada.
+        ========================================================= */
+        @media (max-width: 1023.98px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 84vw;
+                max-width: 300px;
+                transform: translateX(-100%);
+                transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            }
+            /* En móvil ignoramos el estado "colapsado" de desktop (88px) */
+            #sidebar.colapsado { width: 84vw; max-width: 300px; }
+            #sidebar.colapsado .sidebar-text { width: auto !important; opacity: 1 !important; margin: 0 0 0 0.75rem !important; pointer-events: auto; }
+            #sidebar.colapsado .logo-wrapper { opacity: 1; pointer-events: auto; position: relative; }
+            #sidebar.colapsado .menu-link { padding-left: 0.75rem !important; padding-right: 0.75rem !important; justify-content: flex-start !important; }
+
+            /* Estado abierto del drawer */
+            #sidebar.abierto { transform: translateX(0); }
+
+            #sidebarOverlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            #sidebarOverlay.visible { display: block; opacity: 1; }
+        }
     </style>
 
     {{-- Script en línea para aplicar el estado ANTES de que renderice la página (evita parpadeo) --}}
     <script>
         (function() {
-            if (localStorage.getItem('sidebarState') === 'collapsed') {
+            // El estado "colapsado" (ancho 88px) solo debe recordarse/aplicarse en desktop.
+            // En móvil el sidebar siempre arranca oculto (drawer cerrado).
+            if (window.matchMedia('(min-width: 1024px)').matches && localStorage.getItem('sidebarState') === 'collapsed') {
                 document.getElementById('sidebar').classList.add('colapsado');
             }
         })();
@@ -65,6 +104,7 @@
         </div>
         
         {{-- SE AGREGÓ top-7 AQUÍ PARA ALINEAR CON EL TÍTULO --}}
+        {{-- En desktop: colapsa/expande. En móvil: cierra el drawer. --}}
         <button id="toggleSidebar" class="absolute right-4 top-7 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all cursor-pointer z-50 shrink-0">
             <i class="fas fa-bars text-sm"></i>
         </button>
@@ -94,6 +134,7 @@
                 ],
                 'Caja' => [
                     ['route' => 'admin.caja.index', 'icon' => 'fas fa-cash-register', 'label' => 'Caja', 'modulo_id' => 9],
+                    ['route' => 'admin.caja.flujo', 'icon' => 'fas fa-money-bill-wave', 'label' => 'Flujo de Caja', 'modulo_id' => 9],
                 ]
             ];
         @endphp
@@ -162,12 +203,21 @@
     </div>
 </aside>
 
+{{-- Fondo oscuro detrás del drawer en móvil. Tocarlo lo cierra. --}}
+<div id="sidebarOverlay"></div>
+
+{{-- Nota: el botón de menú (#mobileMenuBtn) ahora vive dentro del header
+     en layouts/admin.blade.php, junto al botón de tema (sol/luna). --}}
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleSidebar');
         const navContainer = document.getElementById('nav-container');
-        
+        const overlay = document.getElementById('sidebarOverlay');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const esMovil = () => window.matchMedia('(max-width: 1023.98px)').matches;
+
         // 1. Revisar posición guardada del scroll en el menú
         if (navContainer) {
             const savedScrollPos = localStorage.getItem('sidebarScrollPosition');
@@ -180,9 +230,40 @@
             });
         }
 
-        // 2. Click manual en el botón de hamburguesa (Colapsar / Expandir)
+        function abrirDrawerMovil() {
+            sidebar.classList.add('abierto');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function cerrarDrawerMovil() {
+            sidebar.classList.remove('abierto');
+            overlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+
+        // 2. Botón flotante: abre el drawer en móvil
+        mobileMenuBtn?.addEventListener('click', abrirDrawerMovil);
+
+        // 3. Tocar el fondo oscuro cierra el drawer
+        overlay?.addEventListener('click', cerrarDrawerMovil);
+
+        // 4. Elegir una ruta del menú cierra el drawer automáticamente en móvil
+        document.querySelectorAll('#nav-container .menu-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (esMovil()) cerrarDrawerMovil();
+            });
+        });
+
+        // 5. Click en el botón de hamburguesa (dentro del sidebar)
+        //    - En desktop: colapsa/expande (comportamiento original).
+        //    - En móvil: cierra el drawer.
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => {
+                if (esMovil()) {
+                    cerrarDrawerMovil();
+                    return;
+                }
                 sidebar.classList.toggle('colapsado');
                 
                 if (sidebar.classList.contains('colapsado')) {
@@ -192,5 +273,13 @@
                 }
             });
         }
+
+        // 6. Si el usuario rota el dispositivo o cambia de tamaño de ventana
+        //    y cruza el breakpoint, aseguramos un estado limpio.
+        window.addEventListener('resize', () => {
+            if (!esMovil()) {
+                cerrarDrawerMovil();
+            }
+        });
     });
 </script>

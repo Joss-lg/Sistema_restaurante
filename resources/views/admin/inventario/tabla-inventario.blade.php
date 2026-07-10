@@ -3,7 +3,7 @@
 @section('title', 'Inventario | Ollintem Pro')
 
 @section('content')
-{{-- Ajustamos los paddings iniciales para que en móvil no desperdicien espacio (p-4 en móvil, p-8+ en pantallas grandes) --}}
+{{-- Ajustamos los paddings iniciales para que en móvil no desperdicien espacio --}}
 <div class="p-4 sm:p-8 lg:p-10 xl:p-12 max-w-[1800px] mx-auto w-full space-y-6 sm:space-y-8 flex-1 flex flex-col">
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 mb-2">
@@ -36,8 +36,8 @@
         </div>
     </div>
 
-    {{-- Contenedor principal: Ajuste de padding en móvil (p-4) para aprovechar la pantalla --}}
-    <div class="bg-[var(--card-color)] border border-zinc-200/60 dark:border-zinc-800/60 rounded-[2.5rem] shadow-sm p-5 sm:p-6 lg:p-8 w-full">
+    {{-- Contenedor principal: Ajuste de bordes redondeados y padding en móvil para aprovechar la pantalla --}}
+    <div class="bg-[var(--card-color)] border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl sm:rounded-[2.5rem] shadow-sm p-4 sm:p-6 lg:p-8 w-full">
         
         <div class="mb-6 flex items-center gap-3">
             <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-500/5 dark:border-blue-500/10">
@@ -46,7 +46,7 @@
             <h2 class="text-lg sm:text-xl font-black text-[var(--text-color)] dark:text-zinc-100 uppercase tracking-tight">Existencias | <span class="text-[var(--text-muted)] dark:text-zinc-500 font-bold text-xs sm:text-sm normal-case tracking-normal">{{ count($insumos ?? []) }} registrados</span></h2>
         </div>
 
-        {{-- ================= VISTA PARA ESCRITORIO (Se oculta en móviles: hidden md:block) ================= --}}
+        {{-- ================= VISTA PARA ESCRITORIO ================= --}}
         <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -141,7 +141,7 @@
             </table>
         </div>
 
-        {{-- ================= VISTA COMODA PARA CELULARES (Se activa en móviles: block md:hidden) ================= --}}
+        {{-- ================= VISTA COMODA PARA CELULARES ================= --}}
         <div class="block md:hidden space-y-4">
             @forelse($insumos ?? [] as $item)
                 @php
@@ -159,7 +159,7 @@
                     }
                 @endphp
 
-                <div class="fila-articulo bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/60 dark:border-zinc-800/60 p-5 rounded-2xl space-y-3 transition-all shadow-sm">
+                <div class="fila-articulo bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/60 dark:border-zinc-800/60 p-4 rounded-2xl space-y-3 transition-all shadow-sm">
                     
                     {{-- Fila Superior: Código y Estado --}}
                     <div class="flex justify-between items-center text-[11px]">
@@ -169,12 +169,12 @@
                         </span>
                     </div>
 
-                    {{-- Nombre del producto (La clase "nombre-celda" mapea con tu buscador JS) --}}
+                    {{-- Nombre del producto --}}
                     <h3 class="text-base font-black text-[var(--text-color)] dark:text-zinc-100 nombre-celda leading-tight uppercase tracking-tight">
                         {{ $item->nombre }}
                     </h3>
 
-                    {{-- Cuadrícula de Stocks (Limpia y espaciada para el dedo) --}}
+                    {{-- Cuadrícula de Stocks --}}
                     <div class="grid grid-cols-2 gap-2 pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50 text-xs">
                         <div>
                             <span class="block text-[9px] uppercase font-black tracking-[0.15em] text-[var(--text-muted)] dark:text-zinc-500 mb-0.5">Stock Actual</span>
@@ -191,7 +191,7 @@
                         </div>
                     </div>
 
-                    {{-- Botones de Acción de tamaño grande (Fáciles de presionar en pantallas touch) --}}
+                    {{-- Botones de Acción de tamaño grande --}}
                     <div class="flex items-center gap-2 pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50">
                         @if(auth()->user()->tienePermiso('inventario.editar'))
                             <button type="button" 
@@ -216,8 +216,8 @@
                     </div>
                 </div>
                 
-                {{-- Mantenemos el include del modal de edición aquí adentro también --}}
-                @if(!auth()->user()->tienePermiso('inventario.editar'))
+                {{-- Corregido: El modal de edición móvil debe incluirse siempre si se tiene el permiso de editar --}}
+                @if(auth()->user()->tienePermiso('inventario.editar'))
                     @include('admin.inventario.modal-editar', ['item' => $item])
                 @endif
 
@@ -230,8 +230,17 @@
 </div>
 
 <script>
-    // BUSCADOR EN TIEMPO REAL (Tu script intacto, ahora lee automáticamente filas y tarjetas móviles)
     document.addEventListener('DOMContentLoaded', function() {
+        // --- APÉNDICE DE MODALES AL BODY (Arreglo del Sidebar en Móviles) ---
+        // Toma dinámicamente todos los modales existentes y los pasa a la raíz del body
+        const modales = document.querySelectorAll('#modalCrear, #modalEliminar, #modalMovimiento, [id^="modalEditar-"], [id^="modalMovimiento-"]');
+        modales.forEach(modal => {
+            if(modal) {
+                document.body.appendChild(modal);
+            }
+        });
+
+        // --- BUSCADOR EN TIEMPO REAL ---
         const buscador = document.getElementById('buscadorInventario');
         const filas = document.querySelectorAll('.fila-articulo');
         if (buscador) {
@@ -259,6 +268,7 @@
         }, 10);
     }
 
+    // El nombre de esta función coincide con tu disparador onclick
     function closeCreateModal() {
         const modal = document.getElementById('modalCrear');
         const container = document.getElementById('createContainer');

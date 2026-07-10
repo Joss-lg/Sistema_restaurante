@@ -4,25 +4,25 @@
 @section('no-sidebar', 'true')
 
 @section('content')
-<div class="flex flex-col lg:flex-row h-screen overflow-hidden bg-[#0f0f12]">
+<div class="flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden bg-[#0f0f12]">
     
     {{-- IZQUIERDA: Detalle --}}
-    <div class="w-full lg:w-2/5 border-r border-white/5 bg-[#141417] flex flex-col border-b lg:border-b-0 overflow-hidden">
-            <div class="p-8">
+    <div class="w-full lg:w-2/5 border-r border-white/5 bg-[#141417] flex flex-col border-b lg:border-b-0 lg:overflow-hidden">
+            <div class="p-5 sm:p-8">
                 <a href="{{ route('admin.caja.index') }}" class="text-gray-500 hover:text-white text-[10px] font-black flex items-center gap-2 mb-2 transition-all hover:translate-x-1">
                     <i class="fas fa-arrow-left"></i> VOLVER A CAJA
                 </a>
                 
                 {{-- Texto agrandado aquí --}}
-                <h1 class="text-5xl font-black text-white italic tracking-tighter uppercase">Mesa {{ $mesa->numero }}</h1>
+                <h1 class="text-3xl sm:text-5xl font-black text-white italic tracking-tighter uppercase break-words">Mesa {{ $mesa->numero }}</h1>
                 
                 {{-- Texto agrandado y más visible aquí --}}
-                <p class="text-lg font-bold text-gray-400 uppercase tracking-wide mt-2">
+                <p class="text-sm sm:text-lg font-bold text-gray-400 uppercase tracking-wide mt-2">
                     {{ $orden->numero_orden ?? 'ORDEN SIN NÚMERO' }} • {{ $orden->mesero->nombre ?? 'MESERO NO ASIGNADO' }}
                 </p>
             </div>
 
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
+        <div class="flex-1 lg:overflow-y-auto custom-scrollbar p-5 sm:p-8">
             {{-- Cambiado a la ruta de administración corregida --}}
             @include('admin.cobrar.partials.detalle-cuenta')
         </div>
@@ -56,5 +56,3 @@
     
 </script>
 @endpush
-
-

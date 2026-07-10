@@ -9,7 +9,7 @@
                 <h2 class="text-xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight" id="modal-title">Nuevo Platillo</h2>
                 <p class="text-[10px] sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1" id="modal-subtitle">Configuración estética del menú</p>
             </div>
-            <button onclick="closeModalCrear()" class="text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition p-1">
+            <button onclick="closeModalCrear()" class="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition rounded-full active:scale-95 shrink-0">
                 <i class="fas fa-times text-lg sm:text-2xl"></i>
             </button>
         </div>
@@ -20,24 +20,24 @@
                 {{-- Nombre --}}
                 <div class="col-span-2">
                     <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Nombre del Platillo</label>
-                    <input type="text" id="nombre" name="nombre" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm sm:text-base" placeholder="Ej: Lasagna de la Casa" required>
+                    <input type="text" id="nombre" name="nombre" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-base" placeholder="Ej: Lasagna de la Casa" required>
                 </div>
 
                 {{-- Precio --}}
                 <div class="col-span-2 sm:col-span-1">
                     <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Precio</label>
-                    <input type="number" id="precio" name="precio" step="0.01" min="0" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm sm:text-base" placeholder="0.00" required>
+                    <input type="number" id="precio" name="precio" step="0.01" min="0" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-base" placeholder="0.00" required>
                 </div>
 
                 <div class="col-span-2 sm:col-span-1">
                     <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Tiempo de Prep. (min)</label>
-                    <input type="number" id="tiempo_preparacion" name="tiempo_preparacion" min="0" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm sm:text-base" placeholder="Ej: 20" required>
+                    <input type="number" id="tiempo_preparacion" name="tiempo_preparacion" min="0" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-base" placeholder="Ej: 20" required>
                 </div>
 
                 {{-- Categoría HÍBRIDA --}}
                 <div class="col-span-2 sm:col-span-1 relative">
                     <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Categoría</label>
-                    <input type="text" id="categoria_nombre" name="categoria_nombre" list="lista-categorias" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm sm:text-base" placeholder="Escribe o selecciona..." autocomplete="off" required>
+                    <input type="text" id="categoria_nombre" name="categoria_nombre" list="lista-categorias" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-base" placeholder="Escribe o selecciona..." autocomplete="off" required>
                     <input type="hidden" id="categoria_id" name="categoria_id">
                     <datalist id="lista-categorias">
                         @foreach($categorias as $categoria)
@@ -49,7 +49,7 @@
                 {{-- Descripción del Platillo --}}
                 <div class="col-span-2">
                     <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Descripción</label>
-                    <textarea id="descripcion" name="descripcion" rows="2" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none text-sm sm:text-base" placeholder="Describe qué lleva este platillo..."></textarea>
+                    <textarea id="descripcion" name="descripcion" rows="2" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none text-base" placeholder="Describe qué lleva este platillo..."></textarea>
                 </div>
 
                 {{-- Ingredientes del Platillo --}}
@@ -61,7 +61,7 @@
                                 <i class="fas fa-info-circle mr-1"></i> Selecciona los ingredientes y la cantidad.
                             </p>
                         </div>
-                        <button type="button" onclick="agregarIngrediente('crear')" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-black transition text-[11px] sm:text-xs tracking-wider shadow-sm mt-1 sm:mt-0">
+                        <button type="button" onclick="agregarIngrediente('crear')" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-4 py-2.5 rounded-xl font-black transition text-[11px] sm:text-xs tracking-wider shadow-sm mt-1 sm:mt-0">
                             <i class="fas fa-plus"></i> AGREGAR INGREDIENTE
                         </button>
                     </div>
@@ -73,14 +73,14 @@
 
             {{-- Botones de Acción inferiores --}}
             <div class="mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-700/30 flex flex-col-reverse sm:flex-row gap-3">
-                <button type="button" onclick="closeModalCrear()" class="w-full sm:flex-1 bg-zinc-100 dark:bg-zinc-700/50 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400 font-black py-3 sm:py-4 rounded-xl transition text-xs sm:text-sm tracking-widest">CANCELAR</button>
-                <button type="submit" class="w-full sm:flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black py-3 sm:py-4 rounded-xl transition shadow-lg shadow-blue-900/20 dark:shadow-blue-900/40 text-xs sm:text-sm tracking-widest" id="btn-guardar">GUARDAR CAMBIOS</button>
+                <button type="button" onclick="closeModalCrear()" class="w-full sm:flex-1 bg-zinc-100 dark:bg-zinc-700/50 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 text-zinc-500 dark:text-zinc-400 font-black py-3 sm:py-4 rounded-xl transition text-xs sm:text-sm tracking-widest">CANCELAR</button>
+                <button type="submit" class="w-full sm:flex-1 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black py-3 sm:py-4 rounded-xl transition shadow-lg shadow-blue-900/20 dark:shadow-blue-900/40 text-xs sm:text-sm tracking-widest" id="btn-guardar">GUARDAR CAMBIOS</button>
             </div>
         </form>
     </div>
 </div>
 
-<<script>
+<script>
     // ─── Cerrar modal crear ──────────────────────────────────────────────────
     function closeModalCrear() {
         _cerrarModal('modal-crear-alimento', 'modal-crear-panel');
@@ -105,4 +105,3 @@
         ejecutarPeticion(RUTA_STORE, data, btn, original, closeModalCrear);
     }
 </script>
- 

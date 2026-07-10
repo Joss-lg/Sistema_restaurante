@@ -15,7 +15,7 @@
         <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none"></div>
 
         {{-- KPI Principal --}}
-        <div class="bg-[var(--bg-color)] rounded-[16px] sm:rounded-[24px] p-5 sm:p-8 xl:w-1/3 flex flex-col justify-center relative border border-[var(--border-color)] shadow-inner">
+        <div class="bg-[var(--bg-color)] rounded-[16px] sm:rounded-[24px] p-4 sm:p-8 xl:w-1/3 flex flex-col justify-center relative border border-[var(--border-color)] shadow-inner">
             <div class="flex items-center gap-2.5 mb-2">
                 <span class="relative flex h-3 w-3 sm:h-4 sm:w-4 shrink-0">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -23,26 +23,26 @@
                 </span>
                 <h2 class="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Fuego Abierto</h2>
             </div>
-            <p class="text-4xl sm:text-6xl font-black text-[var(--text-color)] tracking-tighter mt-1 flex items-baseline">
-                {{ $ordenes->count() }} 
-                <span class="text-xs sm:text-base text-[var(--text-muted)] font-bold uppercase tracking-widest ml-3">Órdenes activas</span>
+            <p class="text-3xl sm:text-6xl font-black text-[var(--text-color)] tracking-tighter mt-1 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                <span>{{ $ordenes->count() }}</span>
+                <span class="text-xs sm:text-base text-[var(--text-muted)] font-bold uppercase tracking-widest">Órdenes activas</span>
             </p>
         </div>
 
         {{-- KPIs Secundarios --}}
-        <div class="flex-1 grid grid-cols-3 gap-2 sm:gap-4">
+        <div class="flex-1 grid grid-cols-3 gap-1.5 sm:gap-4">
             {{-- Tarjetas de estado (Pendientes, En Proceso, Listas) --}}
             @foreach(['pendientes' => ['text' => 'En Cola', 'val' => $pendientes, 'border' => 'orange', 'icon' => 'fa-receipt'], 
                       'enProceso' => ['text' => 'Proceso', 'val' => $enProceso, 'border' => 'blue', 'icon' => 'fa-fire-burner'], 
                       'servidas' => ['text' => 'Listas', 'val' => $servidas, 'border' => 'emerald', 'icon' => 'fa-bell-concierge']] as $key => $kpi)
-            <div class="bg-[var(--bg-color)] rounded-[16px] sm:rounded-[24px] p-4 sm:p-6 border border-{{$kpi['border']}}-500/30 flex flex-col items-center sm:items-start justify-center relative overflow-hidden group hover:border-{{$kpi['border']}}-500/60 transition-colors">
+            <div class="bg-[var(--bg-color)] rounded-[14px] sm:rounded-[24px] p-2.5 sm:p-6 border border-{{$kpi['border']}}-500/30 flex flex-col items-center sm:items-start justify-center relative overflow-hidden group hover:border-{{$kpi['border']}}-500/60 transition-colors min-w-0">
                 <div class="absolute inset-0 bg-gradient-to-b from-{{$kpi['border']}}-500/10 to-transparent opacity-50"></div>
-                <div class="relative z-10 flex flex-col items-center sm:items-start w-full">
+                <div class="relative z-10 flex flex-col items-center sm:items-start w-full min-w-0">
                     <div class="flex justify-center sm:justify-between items-center w-full mb-1 sm:mb-2">
-                        <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest text-{{$kpi['border']}}-500 drop-shadow-sm">{{$kpi['text']}}</span>
-                        <i class="fas {{$kpi['icon']}} text-{{$kpi['border']}}-500/40 text-lg hidden sm:block"></i>
+                        <span class="text-[8px] sm:text-xs font-black uppercase tracking-widest text-{{$kpi['border']}}-500 drop-shadow-sm text-center sm:text-left leading-tight truncate">{{$kpi['text']}}</span>
+                        <i class="fas {{$kpi['icon']}} text-{{$kpi['border']}}-500/40 text-lg hidden sm:block shrink-0"></i>
                     </div>
-                    <p class="text-3xl sm:text-5xl font-black text-[var(--text-color)] drop-shadow-md">{{$kpi['val']}}</p>
+                    <p class="text-xl sm:text-5xl font-black text-[var(--text-color)] drop-shadow-md">{{$kpi['val']}}</p>
                 </div>
             </div>
             @endforeach
@@ -53,10 +53,10 @@
     @if($ordenes->isEmpty())
         <div class="glass-card rounded-[24px] px-6 py-16 sm:py-24 text-center border border-[var(--border-color)] shadow-xl mt-6 sm:mt-8 bg-[var(--card-color)]">
             <i class="fas fa-check-double text-5xl text-emerald-500 mb-4"></i>
-            <h2 class="text-2xl font-black text-[var(--text-color)]">¡Cocina Despejada!</h2>
+            <h2 class="text-xl sm:text-2xl font-black text-[var(--text-color)]">¡Cocina Despejada!</h2>
         </div>
     @else
-        <div class="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 mt-6 sm:mt-8 items-start w-full">
+        <div class="grid gap-3 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 mt-4 sm:mt-8 items-start w-full">
             @foreach($ordenes as $orden)
                 @php
                     $config = [
@@ -68,21 +68,21 @@
 
                 <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] {{ $config['border'] }} shadow-lg flex flex-col h-full overflow-hidden relative">
                    {{-- CABECERA DEL TICKET --}}
-                    <div class="p-4 border-b border-[var(--border-color)]">
-                        <h3 class="font-black text-lg">Mesa {{ $orden->mesa->numero }}</h3>
-                        <p class="text-xs text-[var(--text-muted)]">Mesero: {{ $orden->mesero->nombre ?? 'N/A' }}</p>
+                    <div class="p-4 border-b border-[var(--border-color)] min-w-0">
+                        <h3 class="font-black text-lg truncate">Mesa {{ $orden->mesa->numero }}</h3>
+                        <p class="text-xs text-[var(--text-muted)] truncate">Mesero: {{ $orden->mesero->nombre ?? 'N/A' }}</p>
                     </div>
 
                     {{-- LISTA DE PRODUCTOS --}}
-                    <div class="p-4 flex-1">
+                    <div class="p-4 flex-1 min-w-0">
                         <ul class="space-y-2">
                             @foreach($orden->detalles as $detalle)
-                                <li class="flex justify-between items-center text-sm">
-                                    <span class="font-bold text-[var(--text-color)]">
+                                <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-0.5">
+                                    <span class="font-bold text-[var(--text-color)] break-words">
                                         {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
                                     </span>
                                     @if($detalle->notas)
-                                        <span class="block text-[10px] text-red-400 italic">{{ $detalle->notas }}</span>
+                                        <span class="block text-[10px] text-red-400 italic break-words">{{ $detalle->notas }}</span>
                                     @endif
                                 </li>
                             @endforeach
@@ -94,7 +94,7 @@
                             @csrf @method('PATCH')
                             <input type="hidden" name="estado" value="{{ $orden->estado === 'pendiente' ? 'en proceso' : 'servida' }}">
                             <button type="submit" {{ $orden->estado === 'servida' ? 'disabled' : '' }} 
-                                class="w-full py-3.5 rounded-xl font-black uppercase text-[12px] tracking-[0.1em] transition-all {{ $config['btn'] }}">
+                                class="w-full py-3.5 rounded-xl font-black uppercase text-[12px] tracking-[0.1em] transition-all active:scale-95 {{ $config['btn'] }}">
                                 {{ $orden->estado === 'pendiente' ? 'Iniciar Preparación' : ($orden->estado === 'en proceso' ? 'Marcar como Lista' : 'Entregada') }}
                             </button>
                         </form>

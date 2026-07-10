@@ -30,7 +30,7 @@
                     </span>
                 @else
                     <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700/60">
-                        🔒 Turno Cerrado
+                         Turno Cerrado
                     </span>
                 @endif
             </div>

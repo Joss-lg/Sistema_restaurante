@@ -158,13 +158,19 @@
             @include('layouts.sidebar')
 
             <main class="flex-1 overflow-y-auto min-w-0 relative z-10 flex flex-col">
-                <header class="backdrop-blur-2xl border-b sticky top-0 z-30 px-10 py-5 flex justify-between items-center bg-[var(--header-bg)] border-[var(--border-color)]">
-                    <div class="flex flex-col">
-                        <h1 class="text-[22px] font-black text-[var(--text-color)] tracking-tight">@yield('header-title', 'Gestión de Personal')</h1>
-                        <p class="text-[11px] text-[var(--text-muted)] font-medium mt-1 opacity-80">@yield('header-subtitle', 'Administra tu sistema')</p>
+                <header class="backdrop-blur-2xl border-b sticky top-0 z-30 px-4 sm:px-6 lg:px-10 py-4 lg:py-5 flex justify-between items-center gap-3 bg-[var(--header-bg)] border-[var(--border-color)]">
+                    <div class="flex items-center gap-3 min-w-0">
+                        {{-- Botón de menú: solo visible en móvil/tablet (<1024px). Abre el drawer del sidebar. --}}
+                        <button id="mobileMenuBtn" type="button" aria-label="Abrir menú" class="lg:hidden shrink-0 w-9 h-9 rounded-full bg-[var(--sidebar-bg)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-color)] transition-all shadow-inner">
+                            <i class="fas fa-bars text-sm"></i>
+                        </button>
+                        <div class="flex flex-col min-w-0">
+                            <h1 class="text-lg sm:text-xl lg:text-[22px] font-black text-[var(--text-color)] tracking-tight truncate">@yield('header-title', 'Gestión de Personal')</h1>
+                            <p class="text-[11px] text-[var(--text-muted)] font-medium mt-1 opacity-80 truncate hidden sm:block">@yield('header-subtitle', 'Administra tu sistema')</p>
+                        </div>
                     </div>
                     
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-4 shrink-0">
                         @hasSection('header-actions')
                             <div class="hidden md:flex items-center gap-3">@yield('header-actions')</div>
                         @endif

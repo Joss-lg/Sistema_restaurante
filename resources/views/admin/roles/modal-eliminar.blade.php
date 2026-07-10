@@ -4,26 +4,26 @@
     {{-- Capa de cierre al hacer clic fuera --}}
     <div class="absolute inset-0" onclick="cerrarModalEliminar()"></div>
 
-    <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform scale-95 opacity-0 transition-all duration-300 dynamic-modal-content z-10">
+    <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform scale-95 opacity-0 transition-all duration-300 dynamic-modal-content z-10 max-h-[92vh] flex flex-col">
         
         {{-- Header con aviso de peligro --}}
-        <div class="p-6 sm:p-8 border-b border-rose-100 dark:border-rose-900/20 bg-rose-50/50 dark:bg-rose-500/5">
-            <div class="flex items-start gap-4">
-                <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center flex-shrink-0 text-rose-600 dark:text-rose-400">
-                    <i class="fas fa-exclamation-triangle text-lg"></i>
+        <div class="p-5 sm:p-8 border-b border-rose-100 dark:border-rose-900/20 bg-rose-50/50 dark:bg-rose-500/5 shrink-0">
+            <div class="flex items-start gap-3 sm:gap-4">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center flex-shrink-0 text-rose-600 dark:text-rose-400">
+                    <i class="fas fa-exclamation-triangle text-base sm:text-lg"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl font-black text-gray-900 dark:text-white tracking-tight">¿Eliminar Puesto?</h2>
+                    <h2 class="text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight">¿Eliminar Puesto?</h2>
                     <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 font-semibold">Esta acción es irreversible</p>
                 </div>
             </div>
         </div>
 
         {{-- Cuerpo --}}
-        <div class="p-6 sm:p-8 space-y-5">
+        <div class="p-5 sm:p-8 space-y-4 sm:space-y-5 overflow-y-auto">
             <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                 Estás a punto de eliminar el puesto 
-                <span class="font-bold text-gray-900 dark:text-white px-2 py-0.5 rounded bg-gray-100 dark:bg-zinc-800" id="nombreRolEliminar"></span>.
+                <span class="font-bold text-gray-900 dark:text-white px-2 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 break-words" id="nombreRolEliminar"></span>.
             </p>
             
             <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/50 dark:border-amber-500/20">
@@ -35,17 +35,17 @@
         </div>
 
         {{-- Footer con acciones --}}
-        <div class="p-6 sm:p-8 border-t border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 flex justify-end gap-3">
+        <div class="p-5 sm:p-8 border-t border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 shrink-0">
             <button type="button" onclick="cerrarModalEliminar()" 
-                    class="px-5 py-2.5 rounded-full text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors">
+                    class="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-full text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-800 active:scale-95 transition-colors">
                 Cancelar
             </button>
             
-            <form id="formEliminarRol" method="POST" class="inline">
+            <form id="formEliminarRol" method="POST" class="w-full sm:w-auto sm:inline">
                 @csrf
                 @method('DELETE')
                 <button type="submit" 
-                        class="px-6 py-2.5 bg-rose-600 text-white rounded-full text-xs font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-500/20 flex items-center gap-2 active:scale-[0.98]">
+                        class="w-full sm:w-auto px-6 py-3 sm:py-2.5 bg-rose-600 text-white rounded-full text-xs font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-500/20 flex items-center justify-center gap-2 active:scale-[0.98]">
                     <i class="fas fa-trash-alt"></i> Confirmar Eliminación
                 </button>
             </form>

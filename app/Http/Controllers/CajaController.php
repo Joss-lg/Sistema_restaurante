@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CajaController extends Controller
 {
@@ -139,6 +140,55 @@ class CajaController extends Controller
         ]);
     }
 
+
+    public function flujoDeCaja()
+    {
+        // 1. Validamos si hay una sesión de caja activa
+        $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
+
+        // Si no hay caja abierta, bloqueamos el panel y mostramos la vista de apertura
+        if (!$cajaActiva) {
+            return view('admin.caja.apertura');
+        }
+
+        // 2. Obtener todas las ventas (Ingresos bajo la categoría 'Ventas') de este turno
+        $totalVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                ->where('tipo', 'ingreso')
+                                ->where('categoria', 'Ventas')
+                                ->sum('monto');
+
+        // 3. Obtener todos los gastos/salidas (Egresos) de este turno
+        $totalGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                ->where('tipo', 'egreso')
+                                ->sum('monto');
+
+        // 4. Calcular el Saldo Actual Estimado (Sin considerar la categoría anticipos)
+        $saldoEstimado = $cajaActiva->monto_inicial + $totalVentas - $totalGastos;
+
+        // 5. Traer las colecciones detalladas para los listados de la derecha
+        $historicoVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                    ->where('tipo', 'ingreso')
+                                    ->where('categoria', 'Ventas')
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+        $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                    ->where('tipo', 'egreso')
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+        // Retornamos la vista enviando exactamente lo que tu interfaz requiere
+        return view('admin.caja.flujo', compact(
+            'cajaActiva',
+            'totalVentas',
+            'totalGastos',
+            'saldoEstimado',
+            'historicoVentas',
+            'historicoGastos'
+        ));
+    }
+
+
     public function pagar(Request $request): JsonResponse
     {
         try {
@@ -234,5 +284,47 @@ class CajaController extends Controller
                 'message' => 'Error al procesar el pago: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function generarReportePdf($id)
+    {
+        // 1. Obtener los datos del turno solicitado
+        $cajaActiva = CajaMovimiento::with('user')->findOrFail($id);
+
+        // 2. Recopilar datos financieros tal como lo haces en la vista de flujo
+        $totalVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                ->where('tipo', 'ingreso')
+                                ->where('categoria', 'Ventas')
+                                ->sum('monto');
+
+        $totalGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                ->where('tipo', 'egreso')
+                                ->sum('monto');
+
+        $saldoEstimado = $cajaActiva->monto_inicial + $totalVentas - $totalGastos;
+
+        $historicoVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                    ->where('tipo', 'ingreso')
+                                    ->where('categoria', 'Ventas')
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+        $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                    ->where('tipo', 'egreso')
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+        // 3. Cargar la vista específica del PDF y pasarle las variables
+        $pdf = Pdf::loadView('admin.caja.reporte_pdf', compact(
+            'cajaActiva',
+            'totalVentas',
+            'totalGastos',
+            'saldoEstimado',
+            'historicoVentas',
+            'historicoGastos'
+        ));
+
+        // 4. Retornar el PDF para abrir en el navegador (stream) o descargar (download)
+        return $pdf->stream('reporte-caja-turno-' . $cajaActiva->id . '.pdf');
     }
 }

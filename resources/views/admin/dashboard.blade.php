@@ -8,72 +8,73 @@
 {{-- CORRECCIÓN AQUÍ: Cambiamos p-8 por p-4 sm:p-8 para celulares --}}
 <div class="p-4 sm:p-8 lg:p-10 xl:p-12 max-w-[1800px] mx-auto w-full space-y-8 flex-1 flex flex-col overflow-x-hidden">
     
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+    {{-- 2 columnas desde móvil (antes era 1 sola columna hasta md), así se llega más rápido a la gráfica --}}
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
         
-        <div class="glass-card rounded-[1.5rem] p-6 sm:p-7 flex flex-col justify-between h-40 sm:h-44 group">
+        <div class="glass-card rounded-[1.2rem] sm:rounded-[1.5rem] p-4 sm:p-7 flex flex-col justify-between h-32 sm:h-44 group">
             <div class="flex justify-between items-start">
-                <h3 class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Ingresos Brutos</h3>
-                <div class="w-9 h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper group-hover:border-emerald-500/40 transition-all duration-300">
-                    <i class="fas fa-wallet text-[var(--text-muted)] text-sm group-hover:text-emerald-400 group-hover:scale-110 transition-all duration-300"></i>
+                <h3 class="text-[8px] sm:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.15em] sm:tracking-[0.2em] leading-tight">Ingresos Brutos</h3>
+                <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper shrink-0 group-hover:border-emerald-500/40 transition-all duration-300">
+                    <i class="fas fa-wallet text-[var(--text-muted)] text-xs sm:text-sm group-hover:text-emerald-400 group-hover:scale-110 transition-all duration-300"></i>
                 </div>
             </div>
-            <div class="mt-4">
-                <p class="text-3xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter">${{ number_format($stats['ventas_dia'] ?? 0, 2) }}</p>
-                <p class="text-[11px] font-bold text-emerald-400 mt-2 sm:mt-3 flex items-center gap-1.5 opacity-90 tracking-wide">
+            <div class="mt-2 sm:mt-4">
+                <p class="text-xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter truncate">${{ number_format($stats['ventas_dia'] ?? 0, 2) }}</p>
+                <p class="text-[9px] sm:text-[11px] font-bold text-emerald-400 mt-1.5 sm:mt-3 flex items-center gap-1 sm:gap-1.5 opacity-90 tracking-wide">
                     <i class="fas fa-arrow-trend-up"></i> +4.2% vs ayer
                 </p>
             </div>
         </div>
 
-        <div class="glass-card rounded-[1.5rem] p-6 sm:p-7 flex flex-col justify-between h-40 sm:h-44 group">
+        <div class="glass-card rounded-[1.2rem] sm:rounded-[1.5rem] p-4 sm:p-7 flex flex-col justify-between h-32 sm:h-44 group">
             <div class="flex justify-between items-start">
-                <h3 class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Volumen de Órdenes</h3>
-                <div class="w-9 h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper group-hover:border-[#3B82F6]/40 transition-all duration-300">
-                    <i class="fas fa-receipt text-[var(--text-muted)] text-sm group-hover:text-[#3B82F6] group-hover:scale-110 transition-all duration-300"></i>
+                <h3 class="text-[8px] sm:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.15em] sm:tracking-[0.2em] leading-tight">Volumen de Órdenes</h3>
+                <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper shrink-0 group-hover:border-[#3B82F6]/40 transition-all duration-300">
+                    <i class="fas fa-receipt text-[var(--text-muted)] text-xs sm:text-sm group-hover:text-[#3B82F6] group-hover:scale-110 transition-all duration-300"></i>
                 </div>
             </div>
-            <div class="mt-4">
-                <p class="text-3xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter">{{ $stats['ordenes_dia'] ?? 0 }}</p>
-                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-2 sm:mt-3 uppercase tracking-wide">Transacciones</p>
+            <div class="mt-2 sm:mt-4">
+                <p class="text-xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter truncate">{{ $stats['ordenes_dia'] ?? 0 }}</p>
+                <p class="text-[8px] sm:text-[10px] font-semibold text-[var(--text-muted)] mt-1.5 sm:mt-3 uppercase tracking-wide">Transacciones</p>
             </div>
         </div>
 
-        <div class="glass-card rounded-[1.5rem] p-6 sm:p-7 flex flex-col justify-between h-40 sm:h-44 group">
+        <div class="glass-card rounded-[1.2rem] sm:rounded-[1.5rem] p-4 sm:p-7 flex flex-col justify-between h-32 sm:h-44 group">
             <div class="flex justify-between items-start">
-                <h3 class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Ticket Promedio</h3>
-                <div class="w-9 h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper group-hover:border-indigo-400/40 transition-all duration-300">
-                    <i class="fas fa-tag text-[var(--text-muted)] text-sm group-hover:text-indigo-400 group-hover:scale-110 transition-all duration-300"></i>
+                <h3 class="text-[8px] sm:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.15em] sm:tracking-[0.2em] leading-tight">Ticket Promedio</h3>
+                <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper shrink-0 group-hover:border-indigo-400/40 transition-all duration-300">
+                    <i class="fas fa-tag text-[var(--text-muted)] text-xs sm:text-sm group-hover:text-indigo-400 group-hover:scale-110 transition-all duration-300"></i>
                 </div>
             </div>
-            <div class="mt-4">
-                <p class="text-3xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter">${{ number_format($stats['ticket_promedio'] ?? 0, 2) }}</p>
-                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-2 sm:mt-3 uppercase tracking-wide">Por Comensal</p>
+            <div class="mt-2 sm:mt-4">
+                <p class="text-xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter truncate">${{ number_format($stats['ticket_promedio'] ?? 0, 2) }}</p>
+                <p class="text-[8px] sm:text-[10px] font-semibold text-[var(--text-muted)] mt-1.5 sm:mt-3 uppercase tracking-wide">Por Comensal</p>
             </div>
         </div>
 
-        <div class="glass-card rounded-[1.5rem] p-6 sm:p-7 flex flex-col justify-between h-40 sm:h-44 group">
+        <div class="glass-card rounded-[1.2rem] sm:rounded-[1.5rem] p-4 sm:p-7 flex flex-col justify-between h-32 sm:h-44 group">
             <div class="flex justify-between items-start">
-                <h3 class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Afluencia Total</h3>
-                <div class="w-9 h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper group-hover:border-orange-400/40 transition-all duration-300">
-                    <i class="fas fa-user-friends text-[var(--text-muted)] text-sm group-hover:text-orange-400 group-hover:scale-110 transition-all duration-300"></i>
+                <h3 class="text-[8px] sm:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.15em] sm:tracking-[0.2em] leading-tight">Afluencia Total</h3>
+                <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl border border-[var(--border-color)] flex items-center justify-center icon-wrapper shrink-0 group-hover:border-orange-400/40 transition-all duration-300">
+                    <i class="fas fa-user-friends text-[var(--text-muted)] text-xs sm:text-sm group-hover:text-orange-400 group-hover:scale-110 transition-all duration-300"></i>
                 </div>
             </div>
-            <div class="mt-4">
-                <p class="text-3xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter">{{ number_format($stats['clientes'] ?? 0, 0) }}</p>
-                <p class="text-[10px] font-semibold text-[var(--text-muted)] mt-2 sm:mt-3 uppercase tracking-wide">Registros</p>
+            <div class="mt-2 sm:mt-4">
+                <p class="text-xl sm:text-[2.5rem] leading-none font-black text-metallic tracking-tighter truncate">{{ number_format($stats['clientes'] ?? 0, 0) }}</p>
+                <p class="text-[8px] sm:text-[10px] font-semibold text-[var(--text-muted)] mt-1.5 sm:mt-3 uppercase tracking-wide">Registros</p>
             </div>
         </div>
     </div>
 
-    <div class="glass-card rounded-[2rem] p-5 sm:p-8 lg:p-10 w-full flex-1 flex flex-col min-h-[400px] sm:min-h-[450px]">
-        <div class="flex justify-between items-start mb-6 sm:mb-8">
+    <div class="glass-card rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 lg:p-10 w-full flex-1 flex flex-col min-h-[380px] sm:min-h-[450px]">
+        <div class="flex justify-between items-start mb-5 sm:mb-8">
             <div>
-                <h2 class="text-lg sm:text-xl font-black tracking-tight text-[var(--text-color)]">Análisis de Flujo</h2>
-                <p class="text-[10px] sm:text-xs text-[var(--text-muted)] font-medium mt-1.5">Métricas de rendimiento a lo largo de la jornada</p>
+                <h2 class="text-base sm:text-xl font-black tracking-tight text-[var(--text-color)]">Análisis de Flujo</h2>
+                <p class="text-[9px] sm:text-xs text-[var(--text-muted)] font-medium mt-1.5">Métricas de rendimiento a lo largo de la jornada</p>
             </div>
         </div>
         
-        <div class="w-full relative flex-1 min-h-[250px] sm:min-h-[300px]">
+        <div class="w-full relative flex-1 min-h-[230px] sm:min-h-[300px]">
             <canvas id="salesChart"></canvas>
         </div>
     </div>
@@ -166,9 +167,17 @@
     });
     observer.observe(document.body, { attributes: true });
 
-    // Recargar gráfica al girar el celular
+    // Recargar gráfica al girar el celular o cambiar tamaño de ventana.
+    // Con "debounce": en móvil el navegador dispara resize varias veces
+    // al hacer scroll (la barra de direcciones se esconde/aparece), así
+    // que esperamos a que el usuario termine de mover/rotar la pantalla
+    // antes de reconstruir el chart, para evitar parpadeos.
+    let resizeTimeout;
     window.addEventListener('resize', () => {
-        if(myChart) initChart();
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (myChart) initChart();
+        }, 250);
     });
 
     document.addEventListener('DOMContentLoaded', () => {

@@ -85,6 +85,11 @@ class Orden extends Model
         return $this->total + ($this->propina ?? 0);
     }
 
+    public function transacciones()
+    {
+        return $this->hasMany(Transaccion::class, 'orden_id');
+    }
+
     public function getMontoPorPersonaAttribute()
     {
         if ($this->cuenta_dividida && $this->numero_cuenta_division > 1) {

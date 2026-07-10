@@ -1,8 +1,8 @@
 @extends('layouts.admin') {{-- Reemplaza con tu layout base si es necesario --}}
 
 @section('content')
-<div class="flex items-center justify-center min-h-[80vh] bg-gray-100 dark:bg-gray-900 px-4">
-    <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+<div class="flex items-center justify-center min-h-[80vh] bg-gray-100 dark:bg-gray-900 px-4 py-8">
+    <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 border border-gray-200 dark:border-gray-700">
         
         <div class="text-center mb-6">
             <div class="inline-flex p-3 bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300 rounded-full mb-3">
@@ -10,7 +10,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Apertura de Caja</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Apertura de Caja</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Para comenzar a gestionar mesas y registrar cobros, es necesario iniciar un turno operativo.
             </p>
@@ -34,7 +34,7 @@
             <div>
                 <label for="turno" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Seleccionar Turno</label>
                 <select name="turno" id="turno" required 
-                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('turno') border-red-500 @enderror">
+                    class="w-full h-12 text-base rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('turno') border-red-500 @enderror">
                     <option value="" disabled selected>-- Elige el turno actual --</option>
                     <option value="Matutino" {{ old('turno') == 'Matutino' ? 'selected' : '' }}>☀️ Matutino</option>
                     <option value="Vespertino" {{ old('turno') == 'Vespertino' ? 'selected' : '' }}>🌙 Vespertino</option>
@@ -52,7 +52,7 @@
                     </div>
                     <input type="number" name="monto_inicial" id="monto_inicial" step="0.01" min="0" required
                         value="{{ old('monto_inicial', '0.00') }}"
-                        class="w-full pl-7 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-blue-500 @error('monto_inicial') border-red-500 @enderror"
+                        class="w-full h-12 pl-7 text-base rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-blue-500 @error('monto_inicial') border-red-500 @enderror"
                         placeholder="0.00"
                         onfocus="this.select()">
                 </div>
@@ -62,7 +62,7 @@
             </div>
 
             <button type="submit" 
-                class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 font-semibold">
+                class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 font-semibold">
                 Iniciar Turno e Ir a Mesas
             </button>
         </form>

@@ -116,7 +116,7 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['permiso:Categorías,mostrar'])->resource('categorias', CategoriaController::class);
 
         // --- CAJA ---
-        Route::middleware(['permiso:Caja,mostrar'])->prefix('caja')->name('caja.')->group(function () {
+       Route::middleware(['permiso:Caja,mostrar'])->prefix('caja')->name('caja.')->group(function () {
             Route::get('/', [CajaController::class, 'index'])->name('index');
             Route::get('/cobrar/{id}', [CajaController::class, 'cobrar'])->name('cobrar');
             Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
@@ -124,7 +124,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
             Route::post('/api/estado-mesa', [CajaController::class, 'getEstadoMesa'])->name('api.estado-mesa');
             Route::get('/ticket/{id}', [CajaController::class, 'imprimirTicket'])->name('ticket.imprimir');
+            Route::get('/reporte-pdf/{id}', [App\Http\Controllers\CajaController::class, 'generarReportePdf'])
+                ->name('reporte.pdf');
             
+            // CORREGIDO: Ahora mapeará limpio a /caja/flujo y su name será caja.flujo
+            Route::get('/flujo', [CajaController::class, 'flujoDeCaja'])->name('flujo');
+
             // Acciones protegidas
             Route::post('/abrir', [CajaController::class, 'abrir'])->name('abrir')->middleware('permiso:Caja,gestionar');
             Route::post('/cerrar', [CajaController::class, 'cerrar'])->name('cerrar')->middleware('permiso:Caja,gestionar');

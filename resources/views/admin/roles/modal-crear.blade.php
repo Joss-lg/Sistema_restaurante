@@ -4,34 +4,34 @@
     {{-- Capa de cierre al hacer clic fuera --}}
     <div class="absolute inset-0" onclick="cerrarModalCrear()"></div>
 
-    <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[2rem] w-full max-w-lg p-8 shadow-2xl relative overflow-hidden transform scale-95 opacity-0 transition-all duration-300 dynamic-modal-content z-10">
+    <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-[1.5rem] sm:rounded-[2rem] w-full max-w-lg p-6 sm:p-8 shadow-2xl relative overflow-hidden transform scale-95 opacity-0 transition-all duration-300 dynamic-modal-content z-10 max-h-[92vh] overflow-y-auto">
         
         <div class="absolute top-[-10%] left-[-10%] w-32 h-32 rounded-full bg-blue-600/10 blur-[60px] pointer-events-none"></div>
 
-        <div class="flex justify-between items-center mb-6 relative">
-            <h2 class="text-xl font-black text-[var(--text-color)] tracking-tight">Crear Puesto Nuevo</h2>
-            <button type="button" onclick="cerrarModalCrear()" class="text-[var(--text-muted)] hover:text-[var(--text-color)] transition-colors p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full">
+        <div class="flex justify-between items-center mb-5 sm:mb-6 relative">
+            <h2 class="text-lg sm:text-xl font-black text-[var(--text-color)] tracking-tight">Crear Puesto Nuevo</h2>
+            <button type="button" onclick="cerrarModalCrear()" class="w-9 h-9 flex items-center justify-center shrink-0 text-[var(--text-muted)] hover:text-[var(--text-color)] active:scale-95 transition-colors hover:bg-black/5 dark:hover:bg-white/5 rounded-full">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <form action="{{ route('admin.roles.store') }}" method="POST" class="space-y-6 relative">
+        <form action="{{ route('admin.roles.store') }}" method="POST" class="space-y-5 sm:space-y-6 relative">
             @csrf
             
             <div>
                 <label for="nombre" class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em] mb-3 block">Nombre del Puesto</label>
                 <input type="text" id="nombre" name="nombre" placeholder="Ej: Guardia Nocturno" required 
-                       class="w-full h-12 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl px-5 text-sm text-[var(--text-color)] outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                       class="w-full h-12 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl px-5 text-base text-[var(--text-color)] outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 @error('nombre') <span class="text-xs text-rose-500 mt-2 block font-bold">{{ $message }}</span> @enderror
             </div>
 
-            <div class="pt-4 border-t border-[var(--border-color)] flex justify-end gap-3">
+            <div class="pt-4 border-t border-[var(--border-color)] flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                 <button type="button" onclick="cerrarModalCrear()" 
-                        class="px-5 py-3 rounded-xl text-xs font-bold uppercase text-[var(--text-muted)] hover:bg-black/5 dark:hover:bg-white/5 transition-all">
+                        class="w-full sm:w-auto px-5 py-3 rounded-xl text-xs font-bold uppercase text-[var(--text-muted)] hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all">
                     Cancelar
                 </button>
                 <button type="submit" 
-                        class="px-6 py-3 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
+                        class="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
                     <i class="fas fa-save mr-2"></i> Guardar Puesto
                 </button>
             </div>

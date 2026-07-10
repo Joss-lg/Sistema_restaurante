@@ -1,4 +1,4 @@
-<div id="modalCrear" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto overflow-x-hidden p-4">
+<div id="modalCrear" class="fixed inset-0 z-[999] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto overflow-x-hidden p-4">
     <div class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-8 unique-scrollbar max-h-[90vh] overflow-y-auto overflow-x-hidden">
 
         {{-- Resplandor decorativo de fondo --}}

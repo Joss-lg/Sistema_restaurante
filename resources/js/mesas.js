@@ -87,6 +87,9 @@ function renderizarMapaMesas() {
         div.style.top = (mesa.posicion_y || 50) + 'px';
         div.style.width = (mesa.ancho || 80) + 'px';
         div.style.height = (mesa.alto || 80) + 'px';
+        // En móvil, evita que el navegador interprete el arrastre de la mesa
+        // como un gesto de scroll del contenedor (touch vs. drag competían).
+        div.style.touchAction = 'none';
         div.innerHTML = mesa.numero;
 
         // --- CORRECCIÓN AQUÍ ---

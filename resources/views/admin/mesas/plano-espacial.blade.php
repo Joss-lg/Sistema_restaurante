@@ -3,26 +3,26 @@
         <div class="max-w-full px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-[var(--text-color)]">Plano Espacial de Mesas</h1>
-                    <p class="text-[var(--text-muted)] mt-1">Gestiona el layout y posición de mesas interactivamente</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-color)]">Plano Espacial de Mesas</h1>
+                    <p class="text-sm sm:text-base text-[var(--text-muted)] mt-1">Gestiona el layout y posición de mesas interactivamente</p>
                 </div>
 
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" id="btnEditar" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2 shadow-sm">
+                    <button type="button" id="btnEditar" class="flex-1 sm:flex-none justify-center px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm sm:text-base font-semibold transition flex items-center gap-2 shadow-sm">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                         </svg>
                         Editar
                     </button>
 
-                    <button type="button" id="btnGuardar" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition flex items-center gap-2 hidden shadow-sm">
+                    <button type="button" id="btnGuardar" class="flex-1 sm:flex-none justify-center px-4 sm:px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm sm:text-base font-semibold transition flex items-center gap-2 hidden shadow-sm">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M7.707 9.293a1 1 0 010 1.414L4.414 14h11.172a1 1 0 110 2H4.414l3.293 3.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z"></path>
                         </svg>
                         Guardar
                     </button>
 
-                    <button type="button" id="btnCancelar" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition hidden shadow-sm">
+                    <button type="button" id="btnCancelar" class="flex-1 sm:flex-none justify-center px-4 sm:px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm sm:text-base font-semibold transition hidden shadow-sm flex items-center gap-2">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
@@ -46,8 +46,8 @@
                     <span id="totalMesas" class="text-sm font-semibold text-[var(--text-color)] bg-[var(--input-bg)] border border-[var(--border-color)] px-3 py-2 rounded-lg shadow-sm">Mesas: 0</span>
                 </div>
 
-                <div id="modosEdicion" class="hidden flex gap-2 ml-auto">
-                    <button type="button" id="btnAgregarMesa" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition flex items-center gap-1 shadow-sm">
+                <div id="modosEdicion" class="hidden flex gap-2 w-full sm:w-auto sm:ml-auto">
+                    <button type="button" id="btnAgregarMesa" class="w-full sm:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition flex items-center gap-1 shadow-sm">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                         </svg>
@@ -58,33 +58,35 @@
         </div>
     </div>
 
-    <div class="p-4 sm:p-6 lg:p-8">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div class="p-3 sm:p-6 lg:p-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
             <div class="lg:col-span-3">
                 <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-lg">
                     {{-- El canvas ahora usa un color de fondo para inputs que simula un "lienzo" hundido, compatible con ambos modos --}}
-                    <div id="planoContenedor" class="relative w-full bg-[var(--input-bg)] overflow-auto shadow-inner border-b border-[var(--border-color)]" style="height: 600px; cursor: default;">
+                    {{-- Altura reducida en móvil para que no ocupe toda la pantalla y sea fácil llegar al panel de propiedades --}}
+                    <div id="planoContenedor" class="relative w-full h-[380px] sm:h-[480px] lg:h-[600px] bg-[var(--input-bg)] overflow-auto shadow-inner border-b border-[var(--border-color)]" style="cursor: default;">
                         </div>
                 </div>
 
-                <div class="mt-4 flex flex-wrap gap-4 text-sm bg-[var(--card-color)] p-4 rounded-xl border border-[var(--border-color)] shadow-sm">
+                <div class="mt-4 flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm bg-[var(--card-color)] p-3 sm:p-4 rounded-xl border border-[var(--border-color)] shadow-sm">
                     <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-blue-500 rounded-full shadow-sm"></div>
+                        <div class="w-4 h-4 bg-blue-500 rounded-full shadow-sm shrink-0"></div>
                         <span class="text-[var(--text-color)] font-medium">Disponible / Normal</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-yellow-500 rounded-full shadow-sm"></div>
+                        <div class="w-4 h-4 bg-yellow-500 rounded-full shadow-sm shrink-0"></div>
                         <span class="text-[var(--text-color)] font-medium">Precaución (30-60 min)</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-red-500 rounded-full shadow-sm"></div>
-                        <span class="text-[var(--text-color)] font-medium">Crítico (>60 min)</span>
+                        <div class="w-4 h-4 bg-red-500 rounded-full shadow-sm shrink-0"></div>
+                        <span class="text-[var(--text-color)] font-medium">Crítico (&gt;60 min)</span>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-1">
-                <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl p-5 shadow-lg sticky top-28">
+                {{-- Sticky solo en pantallas grandes: en móvil el panel va apilado debajo del canvas, no fijo --}}
+                <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl p-5 shadow-lg lg:sticky lg:top-28">
                     <h3 class="text-lg font-bold text-[var(--text-color)] mb-4 border-b border-[var(--border-color)] pb-2">Propiedades</h3>
 
                     <div id="panelVacio" class="text-center py-8">
@@ -122,7 +124,7 @@
 
     {{-- MODAL CREAR MESA --}}
     <div id="modalCrearMesa" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-[var(--card-color)] rounded-xl shadow-2xl max-w-md w-full border border-[var(--border-color)] overflow-hidden">
+        <div class="bg-[var(--card-color)] rounded-xl shadow-2xl max-w-md w-full border border-[var(--border-color)] overflow-hidden max-h-[90vh] overflow-y-auto">
             <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-color)]/50">
                 <h2 class="text-xl font-bold text-[var(--text-color)]">Crear Nueva Mesa</h2>
                 <button type="button" class="btnCerrarModal text-[var(--text-muted)] hover:text-red-500 transition-colors">

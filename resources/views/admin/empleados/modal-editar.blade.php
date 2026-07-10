@@ -1,12 +1,12 @@
-<div id="editEmpleadoModal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden opacity-0 transition-all duration-500">
+<div id="editEmpleadoModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-[99999] flex items-center justify-center p-4 hidden opacity-0 transition-all duration-500">
     
     {{-- Contenedor principal sin !bg-white que bloqueaba el tema --}}
-    <div class="relative bg-white dark:bg-[#121318] border border-gray-100 dark:border-white/5 rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 md:p-10 w-full max-w-[480px] transform scale-95 transition-all duration-500 shadow-2xl flex flex-col max-h-[90vh]" id="editModalContent">
+    <div class="relative bg-white dark:bg-[#121318] border border-gray-100 dark:border-white/5 rounded-[2rem] p-6 sm:p-8 md:p-10 w-full max-w-[480px] transform scale-95 transition-all duration-500 shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[90vh]" id="editModalContent">
         
         <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
         {{-- BOTÓN CERRAR (X) CORREGIDO --}}
-        <button type="button" onclick="window.cerrarEditModal()" class="absolute top-5 right-5 sm:top-8 sm:right-8 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:rotate-90 transition-all duration-300 outline-none z-50 bg-gray-100 dark:bg-zinc-800 sm:bg-transparent rounded-full w-8 h-8 flex items-center justify-center cursor-pointer">
+        <button type="button" onclick="window.cerrarEditModal()" class="absolute top-5 right-5 sm:top-8 sm:right-8 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:rotate-90 transition-all duration-300 outline-none z-50 bg-gray-100 dark:bg-zinc-800 sm:bg-transparent rounded-full w-9 h-9 flex items-center justify-center cursor-pointer">
             <i class="fas fa-times text-lg sm:text-xl pointer-events-none"></i>
         </button>
 
@@ -15,7 +15,7 @@
             <p class="text-[9px] sm:text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mt-1 sm:mt-2">Actualización de credenciales</p>
         </div>
 
-        <form id="formEditar" action="#" method="POST" class="space-y-5 sm:space-y-6 overflow-y-auto flex-1 pb-2">
+        <form id="formEditar" action="#" method="POST" class="space-y-5 sm:space-y-6 overflow-y-auto flex-1 pb-2 overscroll-contain scrollbar-thin" style="-webkit-overflow-scrolling: touch;">
             @csrf
             @method('PUT')
             
@@ -97,7 +97,7 @@
             </div>
 
             {{-- Botones Inferiores --}}
-            <div class="flex justify-between items-center mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-100 dark:border-white/5">
+            <div class="flex justify-between items-center mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-100 dark:border-white/5 flex-shrink-0">
                 <button type="button" onclick="window.cerrarEditModal()" class="px-2 py-3 sm:py-4 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors outline-none">
                     Cancelar
                 </button>

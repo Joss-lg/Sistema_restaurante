@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ollintem Pro - Acceso</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -39,14 +39,23 @@
             --border-color: rgba(0, 0, 0, 0.1);
         }
 
+        html, body {
+            height: 100%;
+        }
+
         body { 
             background-color: var(--bg-color); 
             color: var(--text-color); 
             font-family: 'Inter', sans-serif; 
-            overflow: hidden; 
             margin: 0; 
             padding: 0; 
             transition: all 0.4s ease; 
+            /* Antes: overflow:hidden + h-screen podía cortar contenido en pantallas bajas. 
+               Ahora permitimos scroll de respaldo sin que se note en pantallas normales. */
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .logo-claro { display: none; }
@@ -94,9 +103,21 @@
 
         .cursor-blink { animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Pantallas bajitas (ej. iPhone SE, Android en landscape): compactamos aire vertical
+           para que el teclado completo siga siendo visible sin necesidad de scroll. */
+        @media (max-height: 700px) {
+            .compact-header { margin-bottom: 0.5rem !important; }
+            .compact-header img { width: 3rem !important; height: 3rem !important; margin-bottom: 0.25rem !important; }
+            .compact-header h1 { font-size: 1.25rem !important; }
+            .compact-header p { margin-top: 0.25rem !important; }
+            .compact-visor { height: 3rem !important; margin-bottom: 0.75rem !important; }
+            .compact-visor span:first-child { font-size: 1.5rem !important; }
+            .keypad-grid { gap: 0.5rem !important; }
+        }
     </style>
 </head>
-<body class="h-screen w-full flex flex-col items-center justify-center relative p-4">
+<body class="w-full flex flex-col items-center justify-center relative p-4" style="padding-top: max(1rem, env(safe-area-inset-top)); padding-bottom: max(1rem, env(safe-area-inset-bottom));">
 
     <script>
         if (localStorage.getItem('tema-ollintem') === 'crema') {
@@ -104,7 +125,7 @@
         }
     </script>
 
-    <div class="absolute top-4 right-4 z-50">
+    <div class="absolute z-50" style="top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right));">
         <button onclick="toggleTheme()" class="theme-toggle px-4 py-2 rounded-full flex items-center gap-2 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-lg">
             <i id="themeIcon" class="fas fa-moon text-ol-blue"></i>
             <span id="themeText" class="hidden sm:inline">Modo Claro</span>
@@ -112,10 +133,10 @@
     </div>
 
     {{-- Contenedor principal con ancho máximo súper controlado --}}
-    <div class="w-full max-w-[320px] sm:max-w-[360px] flex flex-col items-center">
+    <div class="w-full max-w-[320px] sm:max-w-[360px] flex flex-col items-center my-auto py-2">
         
         {{-- Cabecera más compacta --}}
-        <div class="flex flex-col items-center mb-4 sm:mb-6">
+        <div class="compact-header flex flex-col items-center mb-4 sm:mb-6">
             <img src="{{ asset('images/logo.png') }}" alt="Logo Ollintem" class="logo-oscuro mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-2 object-contain">
             <img src="{{ asset('images/logo2.png') }}" alt="Logo Ollintem" class="logo-claro mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-2 object-contain">
             
@@ -137,13 +158,13 @@
         </form>
 
         {{-- Visor más chaparrito --}}
-        <div class="w-full h-14 sm:h-16 visor-screen rounded-2xl mb-5 sm:mb-6 flex items-center justify-center gap-2 relative overflow-hidden">
+        <div class="compact-visor w-full h-14 sm:h-16 visor-screen rounded-2xl mb-5 sm:mb-6 flex items-center justify-center gap-2 relative overflow-hidden">
             <span id="pinDisplay" class="text-3xl sm:text-4xl font-black tracking-[0.4em] mt-1"></span>
             <span class="cursor-blink w-[2px] h-8 bg-ol-blue rounded-full"></span>
         </div>
 
         {{-- GRID PERFECTO: Usa aspect-square para mantener proporción siempre --}}
-        <div class="grid grid-cols-4 gap-3 sm:gap-4 w-full">
+        <div class="keypad-grid grid grid-cols-4 gap-3 sm:gap-4 w-full">
             <button type="button" onclick="appendNumber('1')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">1</button>
             <button type="button" onclick="appendNumber('2')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">2</button>
             <button type="button" onclick="appendNumber('3')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">3</button>

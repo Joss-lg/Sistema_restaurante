@@ -5,56 +5,56 @@
 @section('content')
 
 {{-- MODIFICADO AQUÍ: Contenedor optimizado libre de flex-1 directo --}}
-<div class="p-4 sm:p-6 lg:p-8 xl:p-10 max-w-[1400px] mx-auto w-full space-y-6 sm:space-y-8 bg-[var(--bg-color)] text-[var(--text-color)]">
+<div class="p-3 sm:p-6 lg:p-8 xl:p-10 max-w-[1400px] mx-auto w-full space-y-5 sm:space-y-8 bg-[var(--bg-color)] text-[var(--text-color)]">
 
     {{-- Encabezado --}}
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+    <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-end gap-3 sm:gap-4">
         <div>
-            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-color)]">Menú de Productos</h1>
+            <h1 class="text-xl sm:text-3xl font-black tracking-tight text-[var(--text-color)]">Menú de Productos</h1>
             <p class="text-xs sm:text-sm font-medium text-[var(--text-muted)] mt-1">Gestiona los productos del restaurante</p>
         </div>
-        <button onclick="openModalProducto()" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
+        <button onclick="openModalProducto()" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-3 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-[0.98]">
             <i class="fas fa-plus text-[12px]"></i>
             <span>Agregar Producto</span>
         </button>
     </div>
 
     {{-- Estadísticas --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm shadow-blue-500/20 border border-blue-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-blue-500/40">
-            <div class="flex items-center justify-between mb-4">
-                <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Total Productos</span>
-                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                    <i class="fas fa-utensils text-sm"></i>
+    <div class="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+        <div class="bg-[var(--bg-panel)] rounded-[18px] sm:rounded-[20px] p-4 sm:p-6 shadow-sm shadow-blue-500/20 border border-blue-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-blue-500/40">
+            <div class="flex items-center justify-between mb-3 sm:mb-4">
+                <span class="text-[10px] sm:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Total Productos</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
+                    <i class="fas fa-utensils text-xs sm:text-sm"></i>
                 </div>
             </div>
-            <span class="text-3xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-total">0</span>
+            <span class="text-2xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-total">0</span>
         </div>
 
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm shadow-green-500/20 border border-green-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-green-500/40">
-            <div class="flex items-center justify-between mb-4">
-                <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Disponibles</span>
-                <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
-                    <i class="fas fa-check text-sm"></i>
+        <div class="bg-[var(--bg-panel)] rounded-[18px] sm:rounded-[20px] p-4 sm:p-6 shadow-sm shadow-green-500/20 border border-green-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-green-500/40">
+            <div class="flex items-center justify-between mb-3 sm:mb-4">
+                <span class="text-[10px] sm:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Disponibles</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500 shrink-0">
+                    <i class="fas fa-check text-xs sm:text-sm"></i>
                 </div>
             </div>
-            <span class="text-3xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-disponibles">0</span>
+            <span class="text-2xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-disponibles">0</span>
         </div>
 
-        <div class="bg-[var(--bg-panel)] rounded-[20px] p-5 sm:p-6 shadow-sm shadow-purple-500/20 border border-purple-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-purple-500/40 col-span-1 sm:col-span-2 md:col-span-1">
-            <div class="flex items-center justify-between mb-4">
-                <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Categorías</span>
-                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-                    <i class="fas fa-tags text-sm"></i>
+        <div class="bg-[var(--bg-panel)] rounded-[18px] sm:rounded-[20px] p-4 sm:p-6 shadow-sm shadow-purple-500/20 border border-purple-500/40 flex flex-col justify-between relative overflow-hidden transition-all hover:shadow-md hover:shadow-purple-500/40 col-span-1 min-[420px]:col-span-2 md:col-span-1">
+            <div class="flex items-center justify-between mb-3 sm:mb-4">
+                <span class="text-[10px] sm:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Categorías</span>
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500 shrink-0">
+                    <i class="fas fa-tags text-xs sm:text-sm"></i>
                 </div>
             </div>
-            <span class="text-3xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-categorias">0</span>
+            <span class="text-2xl sm:text-4xl font-black text-[var(--text-color)] tracking-tight" id="stat-categorias">0</span>
         </div>
     </div>
 
     {{-- Contenedor de productos por categoría --}}
-    <div class="bg-[var(--bg-panel)] rounded-[24px] p-3 sm:p-6 shadow-sm border border-[var(--border-color)] min-h-[420px]">
-        <div id="categorias-container" class="space-y-6"
+    <div class="bg-[var(--bg-panel)] rounded-[18px] sm:rounded-[24px] p-2.5 sm:p-6 shadow-sm border border-[var(--border-color)] min-h-[420px]">
+        <div id="categorias-container" class="space-y-5 sm:space-y-6"
              data-permiso-editar="{{ auth()->user()->tienePermiso('Alimentos', 'editar') ? 'true' : 'false' }}"
              data-permiso-eliminar="{{ auth()->user()->tienePermiso('Alimentos', 'eliminar') ? 'true' : 'false' }}"
              data-permiso-gestionar="{{ auth()->user()->tienePermiso('Alimentos', 'mostrar') ? 'true' : 'false' }}">
@@ -124,25 +124,25 @@
         const container = document.getElementById('categorias-container');
         container.innerHTML = '';
         if (Object.keys(estadoGlobal.productos).length === 0) {
-            container.innerHTML = '<p class="text-center text-[var(--text-muted)] py-12 font-bold text-sm">No hay productos registrados aún.</p>';
+            container.innerHTML = '<p class="text-center text-[var(--text-muted)] py-10 sm:py-12 font-bold text-sm px-4">No hay productos registrados aún.</p>';
             return;
         }
         Object.keys(estadoGlobal.productos).forEach(catNombre => {
             const productos = estadoGlobal.productos[catNombre];
             const gridId    = 'grid-' + catNombre.replace(/\s+/g, '-');
             const seccion   = document.createElement('div');
-            seccion.className = 'mb-8 bg-[var(--bg-color)] rounded-[20px] p-3 sm:p-4 border border-[var(--border-color)]';
+            seccion.className = 'mb-6 sm:mb-8 bg-[var(--bg-color)] rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-4 border border-[var(--border-color)]';
             seccion.innerHTML = `
-                <div class="flex items-center gap-4 mb-5 border-b border-[var(--border-color)] pb-4 px-2">
-                    <div class="w-10 h-10 shrink-0 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl flex items-center justify-center text-[var(--text-color)] shadow-sm">
-                        <i class="${obtenerIconoCategoria(catNombre)} text-sm"></i>
+                <div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5 border-b border-[var(--border-color)] pb-3 sm:pb-4 px-1.5 sm:px-2">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl flex items-center justify-center text-[var(--text-color)] shadow-sm">
+                        <i class="${obtenerIconoCategoria(catNombre)} text-xs sm:text-sm"></i>
                     </div>
-                    <div>
-                        <h2 class="text-base sm:text-lg font-black text-[var(--text-color)] tracking-tight uppercase">${catNombre}</h2>
-                        <p class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">${productos.length} Producto${productos.length !== 1 ? 's' : ''}</p>
+                    <div class="min-w-0">
+                        <h2 class="text-sm sm:text-lg font-black text-[var(--text-color)] tracking-tight uppercase truncate">${catNombre}</h2>
+                        <p class="text-[9px] sm:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">${productos.length} Producto${productos.length !== 1 ? 's' : ''}</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" id="${gridId}"></div>
+                <div class="grid grid-cols-1 min-[480px]:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4" id="${gridId}"></div>
             `;
             container.appendChild(seccion);
             const grid = seccion.querySelector(`#${gridId}`);
@@ -152,36 +152,36 @@
  
     function crearCardProducto(producto) {
         const card = document.createElement('div');
-        card.className = 'bg-[var(--bg-panel)] rounded-[16px] p-4 sm:p-5 border border-[var(--border-color)] shadow-sm group flex flex-col relative';
+        card.className = 'bg-[var(--bg-panel)] rounded-[14px] sm:rounded-[16px] p-3.5 sm:p-5 border border-[var(--border-color)] shadow-sm group flex flex-col relative';
  
         const mods = producto.modificadores?.length
             ? `<p class="text-[10px] text-[var(--text-muted)] mt-1.5 truncate"><i class="fas fa-list-ul mr-1 opacity-70"></i> ${producto.modificadores.map(m => m.nombre).join(', ')}</p>`
             : '';
  
         const botonesHTML = [
-            tienePermisoEditar   ? `<button class="w-8 h-8 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-color)] flex items-center justify-center transition" onclick="editarProducto(${producto.id})" title="Editar"><i class="fas fa-pen text-[11px]"></i></button>` : '',
-            tienePermisoEliminar ? `<button class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition" onclick="eliminarProducto(${producto.id})" title="Eliminar"><i class="fas fa-trash text-[11px]"></i></button>` : '',
+            tienePermisoEditar   ? `<button class="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-color)] flex items-center justify-center transition active:scale-95" onclick="editarProducto(${producto.id})" title="Editar"><i class="fas fa-pen text-[11px]"></i></button>` : '',
+            tienePermisoEliminar ? `<button class="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition active:scale-95" onclick="eliminarProducto(${producto.id})" title="Eliminar"><i class="fas fa-trash text-[11px]"></i></button>` : '',
         ].join('');
  
         const toggleHTML = tienePermisoEditar
-            ? `<button class="w-9 h-5 rounded-full transition-colors duration-200 relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'}" onclick="toggleDisponibilidad(this, ${producto.id})" title="Cambiar disponibilidad"><div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 transition-transform duration-200 ${producto.esta_disponible ? 'translate-x-[18px]' : 'translate-x-0.5'}"></div></button>`
-            : `<div class="w-9 h-5 rounded-full relative ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'} opacity-50 cursor-not-allowed" title="Sin permisos"><div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 ${producto.esta_disponible ? 'translate-x-[18px]' : 'translate-x-0.5'}"></div></div>`;
+            ? `<button class="w-9 h-5 rounded-full transition-colors duration-200 relative shrink-0 ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'}" onclick="toggleDisponibilidad(this, ${producto.id})" title="Cambiar disponibilidad"><div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 transition-transform duration-200 ${producto.esta_disponible ? 'translate-x-[18px]' : 'translate-x-0.5'}"></div></button>`
+            : `<div class="w-9 h-5 rounded-full relative shrink-0 ${producto.esta_disponible ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-700'} opacity-50 cursor-not-allowed" title="Sin permisos"><div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-0.5 ${producto.esta_disponible ? 'translate-x-[18px]' : 'translate-x-0.5'}"></div></div>`;
  
         card.innerHTML = `
-            <div class="flex justify-between items-start mb-4 gap-2">
-                <div class="overflow-hidden">
-                    <h3 class="text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
-                    <p class="text-[12px] text-[var(--text-muted)] mt-1 line-clamp-2">${producto.descripcion ?? 'Sin descripción'}</p>
+            <div class="flex justify-between items-start mb-3 sm:mb-4 gap-2">
+                <div class="overflow-hidden min-w-0">
+                    <h3 class="text-sm sm:text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
+                    <p class="text-[11px] sm:text-[12px] text-[var(--text-muted)] mt-1 line-clamp-2">${producto.descripcion ?? 'Sin descripción'}</p>
                     ${mods}
                 </div>
                 <div class="flex items-center gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">${botonesHTML}</div>
             </div>
-            <div class="flex justify-between items-center mt-auto pt-4 border-t border-[var(--border-color)]">
-                <div class="flex items-center gap-3">
+            <div class="flex flex-wrap justify-between items-center gap-2 mt-auto pt-3 sm:pt-4 border-t border-[var(--border-color)]">
+                <div class="flex items-center gap-2.5 sm:gap-3">
                     ${toggleHTML}
                     <span class="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest texto-estado">${producto.esta_disponible ? 'Disponible' : 'Agotado'}</span>
                 </div>
-                <span class="text-[16px] font-black text-[var(--text-color)] tracking-tight">$${parseFloat(producto.precio).toFixed(2)}</span>
+                <span class="text-sm sm:text-[16px] font-black text-[var(--text-color)] tracking-tight">$${parseFloat(producto.precio).toFixed(2)}</span>
             </div>
         `;
         return card;
@@ -275,7 +275,7 @@
                     <input type="text" value="${unidadValue}" class="w-full bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 mt-1 text-[var(--text-color)] text-center font-medium" disabled>
                 </div>
                 <div class="col-span-3 flex flex-col items-center justify-end h-full">
-                    <button type="button" class="w-full md:w-10 h-12 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition flex items-center justify-center" onclick="eliminarIngredienteRow(this)">
+                    <button type="button" class="w-full md:w-10 h-12 rounded-xl bg-red-900/10 border border-red-900/20 text-red-500 hover:bg-red-900/40 transition flex items-center justify-center active:scale-95" onclick="eliminarIngredienteRow(this)">
                         <i class="fas fa-trash-alt text-sm"></i>
                     </button>
                 </div>
@@ -386,11 +386,13 @@
         const esExito = tipo === 'success';
 
         // Contenedor fijo (se crea una sola vez, se reutiliza para apilar varios toasts)
+        // En móvil: ocupa el ancho completo con márgenes laterales.
+        // En sm+: se comporta como antes, flotando arriba a la derecha con ancho fijo.
         let contenedor = document.getElementById('toast-ajax-container');
         if (!contenedor) {
             contenedor = document.createElement('div');
             contenedor.id = 'toast-ajax-container';
-            contenedor.className = 'fixed top-6 right-6 z-[200] flex flex-col gap-4';
+            contenedor.className = 'fixed top-4 left-4 right-4 sm:left-auto sm:top-6 sm:right-6 z-[200] flex flex-col gap-3 sm:gap-4 items-stretch sm:items-end';
             document.body.appendChild(contenedor);
         }
 
@@ -402,15 +404,15 @@
 
         const toast = document.createElement('div');
         toast.id = id;
-        toast.className = 'relative overflow-hidden bg-white dark:bg-[#0f1015] border border-gray-100 dark:border-white/5 rounded-2xl shadow-2xl p-4 flex gap-3.5 items-start w-[320px] transition-all duration-300 transform translate-x-0 opacity-100';
+        toast.className = 'relative overflow-hidden bg-white dark:bg-[#0f1015] border border-gray-100 dark:border-white/5 rounded-2xl shadow-2xl p-4 flex gap-3.5 items-start w-full sm:w-[320px] transition-all duration-300 transform translate-x-0 opacity-100';
         toast.innerHTML = `
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colorBarra}"></div>
             <div class="flex items-center justify-center w-8 h-8 rounded-full border ${colorIcono} flex-shrink-0 mt-1">
                 <i class="fas ${icono} text-[11px]"></i>
             </div>
-            <div class="flex-1 pr-3">
+            <div class="flex-1 pr-3 min-w-0">
                 <p class="text-[9px] font-black uppercase tracking-[0.2em] ${colorTitulo} mb-1">${titulo}</p>
-                <p class="text-[13px] font-bold text-gray-900 dark:text-white leading-tight">${mensaje}</p>
+                <p class="text-[13px] font-bold text-gray-900 dark:text-white leading-tight break-words">${mensaje}</p>
             </div>
             <button onclick="cerrarToastAjax('${id}')" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors outline-none">
                 <i class="fas fa-times text-[10px]"></i>
