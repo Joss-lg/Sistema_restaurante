@@ -436,36 +436,108 @@
     let mesaDestinoSeleccionada = null;
     let mesaDestinoSeleccionadaNumero = null;
 
-    window.llamarCapitan = async function () {
-        const nip = prompt("NIP Capitán:"); if (!nip) return;
+    // Abre el modal para capturar el NIP del capitán (reemplaza al antiguo prompt()).
+    window.llamarCapitan = function () {
+        const input = document.getElementById('nipInput');
+        if (input) input.value = '';
+        const modal = document.getElementById('modalNip');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        // Pequeño delay ayuda a que el teclado virtual (móvil) tome el foco correctamente.
+        setTimeout(() => { if (input) input.focus(); }, 100);
+    };
+
+    // Permite confirmar con la tecla Enter dentro del input del NIP.
+    document.addEventListener('DOMContentLoaded', () => {
+        const nipInput = document.getElementById('nipInput');
+        if (nipInput) {
+            nipInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    confirmarNipCapitan();
+                }
+            });
+        }
+    });
+
+    // Se ejecuta al presionar "Aceptar" en el modal del NIP. Antes esta lógica
+    // vivía dentro de llamarCapitan() y usaba el valor devuelto por prompt().
+    window.confirmarNipCapitan = async function () {
+        const input = document.getElementById('nipInput');
+        const nip = input ? input.value.trim() : '';
+
+        if (!nip) { mostrarError('Ingresa tu NIP.'); return; }
+
+        // Cerramos el modal del NIP antes de hacer la petición.
+        const modalNip = document.getElementById('modalNip');
+        if (modalNip) {
+            modalNip.classList.add('hidden');
+            modalNip.classList.remove('flex');
+        }
+
         try {
             const res = await fetch(config.rutas.capitanVerify, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
-                body: JSON.stringify({ nip: nip.trim() })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ nip: nip })
             });
+
             const data = await res.json().catch(() => null);
-            if (!res.ok) throw new Error(data?.message || 'Error');
+            if (!res.ok) throw new Error(data?.message || 'Error de autenticación');
+
             if (data.success) {
                 capitanAutorizado = true;
                 mostrarExito('Capitán autorizado.');
+
+                // PROTECCIÓN: Verificar si existen los elementos antes de manipularlos
                 const container = document.getElementById('capitanMesasContainer');
-                container.innerHTML = '';
-                if (Array.isArray(data.mesas) && data.mesas.length > 0) {
-                    data.mesas.forEach(m => {
-                        const btn = document.createElement('button');
-                        btn.type = 'button'; btn.dataset.mesaId = m.id;
-                        btn.className = 'w-full text-left rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] px-4 py-4 hover:border-[#3B82F6]/50 transition-all flex items-center justify-between gap-4';
-                        btn.innerHTML = `<div><p class="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] font-bold">Mesa abierta</p><h3 class="text-lg font-black text-[var(--text-main)]">${m.numero}</h3></div><span class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400"><i class="fas fa-circle text-[6px]"></i> ${m.estado ? m.estado.charAt(0).toUpperCase() + m.estado.slice(1) : ''}</span>`;
-                        btn.addEventListener('click', () => seleccionarMesaDestino(m.id, m.numero));
-                        container.appendChild(btn);
-                    });
-                } else {
-                    container.innerHTML = `<div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] p-6 text-center text-[var(--text-muted)]"><p class="font-bold text-sm mb-2">No hay mesas abiertas disponibles.</p></div>`;
+                const modal = document.getElementById('modalCapitan');
+
+                if (container) {
+                    container.innerHTML = '';
+                    if (Array.isArray(data.mesas) && data.mesas.length > 0) {
+                        data.mesas.forEach(m => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.dataset.mesaId = m.id;
+
+                            // Clases de Tailwind para que el botón sea visible y elegante
+                            btn.className = 'w-full text-left rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] px-4 py-4 hover:border-[#3B82F6]/50 transition-all flex items-center justify-between gap-4';
+
+                            // Aseguramos el contenido del botón
+                            btn.innerHTML = `
+    <div>
+        <p class="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] font-bold">Mesa abierta</p>
+        <h3 class="text-lg font-black text-[var(--text-main)]">${m.numero}</h3>
+    </div>
+    <span class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+        <i class="fas fa-circle text-[6px]"></i> Activa
+    </span>`;
+
+                            btn.addEventListener('click', () => {
+                                // Asegúrate de que esta función exista
+                                seleccionarMesaDestino(m.id, m.numero);
+                            });
+                            container.appendChild(btn);
+                        });
+                    } else {
+                        container.innerHTML = `<div class="text-xs text-[var(--text-muted)] text-center py-6">No hay mesas abiertas.</div>`;
+                    }
                 }
-                document.getElementById('modalCapitan').classList.remove('hidden');
+
+                if (modal) {
+                    modal.classList.remove('hidden');
+                }
             }
-        } catch (err) { mostrarError(err.message); }
+        } catch (err) {
+            mostrarError(err.message);
+        }
     };
 
     function seleccionarMesaDestino(mesaId, mesaNumero) {

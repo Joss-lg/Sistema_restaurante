@@ -1,22 +1,37 @@
-{{-- MODAL CAPITÁN --}}
-@if($esCapitan ?? false)
-    <div id="modalCapitan" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-        @php $mesasAbiertas = $mesasAbiertas ?? collect(); @endphp
-        <div class="w-full max-w-md rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-[var(--card-shadow)]">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest text-indigo-500 font-bold">Autorización</p>
-                    <h2 class="text-xl font-semibold text-[var(--text-main)] mt-1">Selecciona mesa destino</h2>
-                </div>
-                <button type="button" onclick="cerrarModal('modalCapitan')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"><i class="fas fa-times text-lg"></i></button>
-            </div>
-            <div id="capitanMesasContainer" class="grid gap-2 max-h-[300px] overflow-y-auto hide-scroll pb-2"></div>
-            <div class="mt-5 text-right">
-                <button type="button" onclick="cerrarModal('modalCapitan')" class="px-5 py-2.5 rounded-xl border border-[var(--border-color)] text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">Cancelar</button>
-            </div>
+{{-- MODAL NIP CAPITÁN --}}
+<div id="modalNip" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-[24px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-[var(--card-shadow)]">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-[var(--text-main)]">NIP Capitán</h2>
+            <button type="button" onclick="cerrarModal('modalNip')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <input type="password" id="nipInput" inputmode="numeric" autocomplete="off"
+               class="w-full rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] p-4 text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-[#3b82f6] transition-colors"
+               placeholder="••••">
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" onclick="cerrarModal('modalNip')" class="px-6 py-2.5 rounded-xl border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] text-xs font-bold transition-all">Cancelar</button>
+            <button type="button" onclick="confirmarNipCapitan()" class="px-6 py-2.5 rounded-xl bg-[#3b82f6] text-white text-xs font-bold transition-all hover:opacity-90">Aceptar</button>
         </div>
     </div>
-@endif
+</div>
+
+{{-- MODAL CAPITÁN --}}
+<div id="modalCapitan" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    @php $mesasAbiertas = $mesasAbiertas ?? collect(); @endphp
+    <div class="w-full max-w-md rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-6 shadow-[var(--card-shadow)]">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <p class="text-[10px] uppercase tracking-widest text-indigo-500 font-bold">Autorización</p>
+                <h2 class="text-xl font-semibold text-[var(--text-main)] mt-1">Selecciona mesa destino</h2>
+            </div>
+            <button type="button" onclick="cerrarModal('modalCapitan')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div id="capitanMesasContainer" class="grid gap-2 max-h-[300px] overflow-y-auto hide-scroll pb-2"></div>
+        <div class="mt-5 text-right">
+            <button type="button" onclick="cerrarModal('modalCapitan')" class="px-5 py-2.5 rounded-xl border border-[var(--border-color)] text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">Cancelar</button>
+        </div>
+    </div>
+</div>
 
 {{-- MODAL NOTAS --}}
 <div id="modalNota" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">

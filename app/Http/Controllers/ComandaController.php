@@ -35,9 +35,8 @@ class ComandaController extends Controller
         $productos = Producto::with(['categoria', 'modificadores'])->orderBy('nombre', 'asc')->get();
         $mesasAbiertas = $esCapitan ? Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get() : collect();
 
-        // ADAPTACIÓN FRONTIER: Tu sidebar de Blade busca 'comandaActiva' y 'platillosEnviados'
         $comandaActiva = Orden::where('mesa_id', $mesa->id)->where('estado', '!=', 'pagada')->latest()->first();
-       $platillosEnviados = $comandaActiva
+        $platillosEnviados = $comandaActiva
         ? $comandaActiva->detalles()->with('producto')->get()->map(function ($detalle) {
             return (object) [
                 'id'       => $detalle->id,
@@ -48,13 +47,12 @@ class ComandaController extends Controller
             ];
         })
         : collect();
-        // Nota: Asegúrate de que el nombre del archivo blade coincida ('mesero.comanda' o 'mesero.comanda.index')
+
         return view('mesero.index', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan', 'comandaActiva', 'platillosEnviados'));
     }
 
     public function enviar(Request $request)
     {
-        // ADAPTACIÓN: Validamos los nuevos parámetros que calcula matemáticamente el Javascript limpio
         $request->validate([
             'mesa_id' => 'required|exists:mesas,id',
             'platillos' => 'required|array|min:1',
@@ -73,20 +71,18 @@ class ComandaController extends Controller
             $mesa = Mesa::findOrFail($request->mesa_id);
             $usuario = auth()->user();
 
-            // Validación de permisos
             if ($usuario->rol?->slug !== 'capitan') {
                 if (Schema::hasColumn('mesas', 'mesero_id') && $mesa->mesero_id !== $usuario->id) {
                     return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
                 }
             }
 
-            // ADAPTACIÓN: Le pasamos al Service el paquete de datos financieros y de comensales completo
             $orden = $this->comandaService->procesarEnvio(
-                $mesa, 
-                $request->platillos, 
-                $usuario, 
-                $request->total, 
-                $request->personas, 
+                $mesa,
+                $request->platillos,
+                $usuario,
+                $request->total,
+                $request->personas,
                 $request->descuento_porcentaje
             );
 
@@ -104,18 +100,46 @@ class ComandaController extends Controller
     public function verificarCapitan(Request $request)
     {
         $request->validate(['nip' => 'required|string']);
-        
-        // CORRECCIÓN FRONTIER: Ajustamos para buscar por 'codigo_empleado' como tenías, 
-        // pero cargando la relación del rol para mitigar errores de lectura de slug
-        $usuario = User::with('rol')->where('codigo_empleado', $request->nip)->first();
 
-        if (!$usuario || strtolower($usuario->rol?->slug ?? '') !== 'capitan') {
-            return response()->json(['success' => false, 'message' => 'NIP inválido o usuario no es Capitán.'], 403);
+        $usuario = User::where('codigo_empleado', $request->nip)->first();
+
+        if (!$usuario || $usuario->rol_id !== 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'NIP inválido o el usuario no tiene permisos de Capitán.'
+            ], 403);
         }
 
-        // El Javascript espera las mesas abiertas para que el capitán elija el destino alterno del plato
-        $mesas = Mesa::where('estado', 'ocupada')->get(['id', 'numero', 'estado']);
+        // CAMBIO: ahora regresamos TODAS las mesas (ocupadas y disponibles),
+        // ya que el capitán debe poder traspasar tanto a mesas con pedido
+        // abierto como a mesas libres (que se abrirán automáticamente al
+        // recibir el traspaso). El frontend distingue el estado con un badge.
+        $mesas = Mesa::orderBy('numero', 'asc')
+                     ->get(['id', 'numero', 'estado']);
+
         return response()->json(['success' => true, 'mesas' => $mesas]);
+    }
+
+    /**
+     * PENDIENTE DE COMPLETAR: necesito ver ComandaService.php, Orden.php y
+     * DetalleOrden.php para implementar esto correctamente sin adivinar
+     * nombres de columnas/relaciones. Este stub documenta el contrato
+     * esperado desde el frontend.
+     *
+     * Espera un JSON:
+     * {
+     *   mesa_origen_id: number,
+     *   mesa_destino_id: number,
+     *   productos_nuevos: [ { id, nombre, cantidad, precio, notas, modificadores, gramaje, tiempo } ],   // del ticket aún no enviado
+     *   productos_enviados_ids: [ number, ... ]  // ids de DetalleOrden ya enviados a transferir
+     * }
+     */
+    public function transferirProductos(Request $request)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Endpoint aún no implementado. Pendiente de ComandaService/Orden/DetalleOrden.'
+        ], 501);
     }
 
     public function apiMesasAbiertas()
@@ -131,13 +155,13 @@ class ComandaController extends Controller
     public function storeMesa(Request $request)
     {
         $request->validate(['numero' => 'required', 'capacidad' => 'required|integer']);
-        
+
         $mesa = Mesa::updateOrCreate(['numero' => $request->numero], [
             'estado' => 'ocupada',
             'capacidad' => $request->capacidad,
             'mesero_id' => auth()->user()->id
         ]);
-        
+
         return response()->json(['success' => true, 'mesa' => $mesa]);
     }
 
@@ -145,7 +169,7 @@ class ComandaController extends Controller
     {
         $mesa = Mesa::findOrFail($request->mesa_id);
         $mesa->update(['estado' => 'ocupada', 'mesero_id' => auth()->user()->id]);
-        
+
         return response()->json(['success' => true]);
     }
 }
