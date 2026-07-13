@@ -22,10 +22,35 @@
                             <input type="text" id="edit-nombre" name="nombre" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
                         </div>
 
-                        {{-- Precio --}}
-                        <div class="col-span-1">
+                        {{-- Toggle: Se vende por peso --}}
+                        <div class="col-span-1 sm:col-span-2">
+                            <label class="flex items-center justify-between gap-3 bg-orange-500/5 border border-orange-500/20 rounded-2xl p-3.5 sm:p-4 cursor-pointer select-none">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fas fa-weight-hanging text-orange-500 text-sm"></i>
+                                    <span class="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white">Se vende por peso</span>
+                                </span>
+                                <span class="relative inline-flex items-center">
+                                    <input type="checkbox" id="edit-se_vende_por_peso" name="se_vende_por_peso" class="peer sr-only" onchange="toggleModoVentaPeso('editar')">
+                                    <span class="w-11 h-6 rounded-full bg-zinc-300 dark:bg-zinc-600 peer-checked:bg-orange-500 transition-colors"></span>
+                                    <span class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-5"></span>
+                                </span>
+                            </label>
+                        </div>
+
+                        {{-- Precio fijo (se oculta si es por peso) --}}
+                        <div class="col-span-1" id="grupo-precio-fijo-editar">
                             <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Precio</label>
                             <input type="number" id="edit-precio" name="precio" step="0.01" min="0" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
+                        </div>
+
+                        {{-- Precio por 100g (solo visible si es por peso) --}}
+                        <div class="col-span-1 hidden" id="grupo-precio-peso-editar">
+                            <label class="text-[11px] sm:text-xs font-black text-orange-500 uppercase tracking-widest ml-1">Precio por cada 100g</label>
+                            <div class="flex items-center bg-zinc-50 dark:bg-zinc-900/50 border border-orange-500/30 rounded-2xl mt-1.5 sm:mt-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 transition">
+                                <span class="pl-4 pr-1.5 text-zinc-400 text-base font-bold select-none">$</span>
+                                <input type="number" id="edit-precio_por_100g" name="precio_por_100g" step="0.01" min="0" autocomplete="off" class="flex-1 min-w-0 bg-transparent p-3 sm:p-4 pl-0 text-base text-zinc-900 dark:text-white placeholder:text-zinc-400 outline-none transition" placeholder="50.00">
+                            </div>
+                            <p class="text-[9px] text-zinc-400 mt-1 ml-1">Ej: $50 por 100g → 700g = $350</p>
                         </div>
 
                         {{-- Categoría --}}
@@ -90,9 +115,12 @@
         estadoGlobal.editandoId = id;
         document.getElementById('edit-nombre').value           = producto.nombre              ?? '';
         document.getElementById('edit-precio').value           = producto.precio              ?? '';
+        document.getElementById('edit-precio_por_100g').value  = producto.precio_por_100g      ?? '';
+        document.getElementById('edit-se_vende_por_peso').checked = !!producto.se_vende_por_peso;
         document.getElementById('edit-descripcion').value      = producto.descripcion         ?? '';
         document.getElementById('edit-categoria_nombre').value = producto.categoria?.nombre   ?? '';
         document.getElementById('edit-categoria_id').value     = producto.categoria?.id       ?? '';
+        toggleModoVentaPeso('editar');
         llenarIngredientesEdicion(producto);
         _abrirModal('modal-editar-alimento', 'modal-editar-panel');
     }
@@ -109,6 +137,7 @@
         const data            = _serializarFormulario('formulario-editar-alimento');
         data.categoria_nombre = document.getElementById('edit-categoria_nombre').value;
         data.categoria_id     = obtenerCategoriaIdPorNombre(data.categoria_nombre);
+        data.se_vende_por_peso = document.getElementById('edit-se_vende_por_peso').checked ? 1 : 0;
         data._method          = 'PUT';
         if (!data.categoria_id) {
             mostrarNotificacion('Selecciona una categoría válida', 'error');

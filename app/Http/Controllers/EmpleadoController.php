@@ -173,7 +173,7 @@ class EmpleadoController extends Controller
         }
 
         return redirect()->route('admin.empleados.index')
-                         ->with('success', "Permisos de {$empleado->nombre} actualizados correctamente.");
+                            ->with('success', "Permisos de {$empleado->nombre} actualizados correctamente.");
     }
 
     /**

@@ -54,10 +54,15 @@ class PromocionController extends Controller
     public function index()
     {
         $promociones = Promocion::with('productos:id,nombre,precio')->get();
-        
+
+        // FIX: faltaba traer se_vende_por_peso y precio_por_100g. Sin esas
+        // columnas, la vista (modal-crear/modal-editar) no podía distinguir
+        // los productos por peso y siempre mostraba $0.00 (el campo `precio`
+        // real de esos productos, que a propósito se guarda en 0 porque su
+        // precio vive en precio_por_100g).
         $productos = Producto::where('esta_disponible', true)
                              ->orderBy('nombre')
-                             ->select(['id', 'nombre', 'precio'])
+                             ->select(['id', 'nombre', 'precio', 'se_vende_por_peso', 'precio_por_100g'])
                              ->get();
         
         return view('admin.promociones.index', compact('promociones', 'productos'));

@@ -14,6 +14,8 @@ class Producto extends Model
         'categoria_id',
         'nombre',
         'precio',
+        'se_vende_por_peso',
+        'precio_por_100g',
         'tiempo_preparacion',
         'descripcion',
         'esta_disponible'
@@ -21,6 +23,8 @@ class Producto extends Model
 
     protected $casts = [
         'precio' => 'decimal:2',
+        'se_vende_por_peso' => 'boolean',
+        'precio_por_100g' => 'decimal:2',
         'tiempo_preparacion' => 'integer',
         'esta_disponible' => 'boolean',
     ];

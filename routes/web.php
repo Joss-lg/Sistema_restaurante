@@ -46,7 +46,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/mesas/abiertas', [ComandaController::class, 'apiMesasAbiertas'])->name('mesas.abiertas');
         Route::post('/mesa/store', [MesaController::class, 'store'])->name('mesa.store');
         Route::post('/mesa/reabrir', [ComandaController::class, 'reabrir'])->name('mesa.reabrir');
-    });
+        Route::post('/comanda/transferir', [ComandaController::class, 'transferirProductos'])->name('comanda.transferir');
+        Route::patch('/comanda/{mesa}/personas', [MesaController::class, 'actualizarPersonas'])->name('comanda.personas'); 
+        Route::get('/comanda/promociones/activas', [MesaController::class, 'promocionesActivas'])->name('comanda.promociones.activas');
+        // NUEVO: pre-cuenta imprimible (ticket informativo) de una mesa.
+        Route::get('/comanda/{mesa}/precuenta', [ComandaController::class, 'precuenta'])->name('comanda.precuenta');
+        });
     
     // ------------------------------------------
     // MÓDULOS ADMINISTRATIVOS

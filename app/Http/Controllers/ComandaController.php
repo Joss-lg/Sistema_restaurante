@@ -134,12 +134,48 @@ class ComandaController extends Controller
      *   productos_enviados_ids: [ number, ... ]  // ids de DetalleOrden ya enviados a transferir
      * }
      */
-    public function transferirProductos(Request $request)
+public function transferirProductos(Request $request)
     {
-        return response()->json([
-            'success' => false,
-            'message' => 'Endpoint aún no implementado. Pendiente de ComandaService/Orden/DetalleOrden.'
-        ], 501);
+        $request->validate([
+            'mesa_origen_id'  => 'required|exists:mesas,id',
+            'mesa_destino_id' => 'required|exists:mesas,id|different:mesa_origen_id',
+            'productos_nuevos' => 'nullable|array',
+            'productos_nuevos.*.id' => 'required_with:productos_nuevos|exists:productos,id',
+            'productos_nuevos.*.cantidad' => 'required_with:productos_nuevos|integer|min:1',
+            'productos_nuevos.*.precio' => 'required_with:productos_nuevos|numeric',
+            'productos_enviados_ids' => 'nullable|array',
+            'productos_enviados_ids.*' => 'integer|exists:detalles_orden,id',
+        ]);
+
+        if (empty($request->productos_nuevos) && empty($request->productos_enviados_ids)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No seleccionaste ningún producto para traspasar.'
+            ], 422);
+        }
+
+        try {
+            $mesaOrigen  = Mesa::findOrFail($request->mesa_origen_id);
+            $mesaDestino = Mesa::findOrFail($request->mesa_destino_id);
+            $usuario = auth()->user();
+
+            $resultado = $this->comandaService->transferirProductos(
+                $mesaOrigen,
+                $mesaDestino,
+                $request->productos_nuevos ?? [],
+                $request->productos_enviados_ids ?? [],
+                $usuario
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Productos traspasados correctamente a Mesa ' . $mesaDestino->numero . '.',
+                'orden_destino_id' => $resultado['orden_destino']->id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al transferir productos: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function apiMesasAbiertas()
@@ -171,5 +207,47 @@ class ComandaController extends Controller
         $mesa->update(['estado' => 'ocupada', 'mesero_id' => auth()->user()->id]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Pre-cuenta imprimible (ticket informativo, NO fiscal) con todo lo
+     * que la mesa ya tiene enviado a cocina. Se abre en una pestaña nueva
+     * desde el botón "Pre Cuenta" del POS del mesero y dispara el diálogo
+     * de impresión del navegador (donde se puede elegir "Guardar como PDF").
+     */
+    public function precuenta($mesaId)
+    {
+        $mesa = Mesa::findOrFail($mesaId);
+
+        $orden = Orden::where('mesa_id', $mesa->id)
+            ->where('estado', '!=', 'pagada')
+            ->with(['detalles.producto', 'mesero:id,nombre'])
+            ->latest()
+            ->first();
+
+        $detalles = $orden ? $orden->detalles : collect();
+
+        $subtotal = $detalles->sum(fn ($d) => $d->cantidad * $d->precio_unitario);
+
+        $descuentoPorcentaje = 0;
+        if ($orden && Schema::hasColumn('ordenes', 'descuento_porcentaje')) {
+            $descuentoPorcentaje = (float) ($orden->descuento_porcentaje ?? 0);
+        }
+
+        $descuento = $subtotal * ($descuentoPorcentaje / 100);
+        $subtotalConDescuento = max(0, $subtotal - $descuento);
+        $iva = $subtotalConDescuento * 0.16;
+        $total = $subtotalConDescuento + $iva;
+
+        return view('mesero.precuenta', [
+            'mesa'      => $mesa,
+            'orden'     => $orden,
+            'detalles'  => $detalles,
+            'subtotal'  => $subtotal,
+            'descuento' => $descuento,
+            'iva'       => $iva,
+            'total'     => $total,
+            'fecha'     => now(),
+        ]);
     }
 }

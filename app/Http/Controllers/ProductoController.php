@@ -46,6 +46,9 @@ class ProductoController extends Controller
             'nombre'             => 'required|string|max:255',
             'categoria_id'       => 'required|exists:categorias,id',
             'precio'             => 'required|numeric|min:0',
+            'se_vende_por_peso'  => 'sometimes|boolean',
+            // Solo es obligatorio si el producto se vende por peso.
+            'precio_por_100g'    => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
             'tiempo_preparacion' => 'required|integer|min:0',
             'insumos'            => 'nullable|array',
             'insumos.*'          => 'exists:insumos,id',
@@ -56,11 +59,17 @@ class ProductoController extends Controller
         try {
             DB::beginTransaction();
 
+            $sePorPeso = $request->boolean('se_vende_por_peso');
+
             // 1. Creamos el Platillo principal
             $producto = Producto::create([
                 'nombre'             => $request->nombre,
                 'categoria_id'       => $request->categoria_id,
-                'precio'             => $request->precio,
+                // Si se vende por peso, el precio fijo no aplica: se calcula
+                // en el POS a partir de precio_por_100g y el gramaje elegido.
+                'precio'             => $sePorPeso ? 0 : $request->precio,
+                'se_vende_por_peso'  => $sePorPeso,
+                'precio_por_100g'    => $sePorPeso ? $request->precio_por_100g : null,
                 'tiempo_preparacion' => $request->tiempo_preparacion,
                 'esta_disponible'    => $request->boolean('esta_disponible'), // Evalúa "on", 1 o true
             ]);
@@ -104,6 +113,8 @@ class ProductoController extends Controller
             'nombre'             => 'required|string|max:255',
             'categoria_id'       => 'required|exists:categorias,id',
             'precio'             => 'required|numeric|min:0',
+            'se_vende_por_peso'  => 'sometimes|boolean',
+            'precio_por_100g'    => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
             'tiempo_preparacion' => 'required|integer|min:0',
             'insumos'            => 'nullable|array',
             'insumos.*'          => 'exists:insumos,id',
@@ -115,12 +126,15 @@ class ProductoController extends Controller
             DB::beginTransaction();
 
             $producto = Producto::findOrFail($id);
+            $sePorPeso = $request->boolean('se_vende_por_peso');
 
             // 1. Actualización del modelo principal
             $producto->update([
                 'nombre'             => $request->nombre,
                 'categoria_id'       => $request->categoria_id,
-                'precio'             => $request->precio,
+                'precio'             => $sePorPeso ? 0 : $request->precio,
+                'se_vende_por_peso'  => $sePorPeso,
+                'precio_por_100g'    => $sePorPeso ? $request->precio_por_100g : null,
                 'tiempo_preparacion' => $request->tiempo_preparacion,
                 'esta_disponible'    => $request->boolean('esta_disponible'),
             ]);

@@ -105,8 +105,17 @@
                             <label class="flex items-center gap-4 p-3 rounded-xl hover:!bg-gray-200 dark:hover:!bg-white/5 cursor-pointer transition-colors select-none group/prod">
                                 <input type="checkbox" name="productos[]" value="{{ $producto->id }}" class="w-5 h-5 rounded-lg !border-gray-300 dark:!border-gray-600 text-blue-600 focus:ring-blue-500/20 cursor-pointer accent-blue-500 bg-white dark:bg-zinc-800">
                                 <div class="flex-1">
-                                    <p class="text-[13px] font-bold !text-gray-900 dark:!text-white group-hover/prod:!text-blue-600 dark:group-hover/prod:!text-blue-400 transition-colors leading-snug">{{ $producto->nombre }}</p>
-                                    <p class="!text-gray-500 dark:!text-gray-400 text-[11px] font-medium mt-0.5">${{ number_format($producto->precio, 2) }} MXN</p>
+                                    <p class="text-[13px] font-bold !text-gray-900 dark:!text-white group-hover/prod:!text-blue-600 dark:group-hover/prod:!text-blue-400 transition-colors leading-snug flex items-center gap-2">
+                                        {{ $producto->nombre }}
+                                        @if($producto->se_vende_por_peso)
+                                            <span class="text-[8px] font-black uppercase tracking-widest !text-orange-500 !bg-orange-500/10 border !border-orange-500/20 px-1.5 py-0.5 rounded-md">Por peso</span>
+                                        @endif
+                                    </p>
+                                    @if($producto->se_vende_por_peso)
+                                        <p class="!text-gray-500 dark:!text-gray-400 text-[11px] font-medium mt-0.5">${{ number_format($producto->precio_por_100g ?? 0, 2) }} MXN /100g</p>
+                                    @else
+                                        <p class="!text-gray-500 dark:!text-gray-400 text-[11px] font-medium mt-0.5">${{ number_format($producto->precio, 2) }} MXN</p>
+                                    @endif
                                 </div>
                             </label>
                         @endforeach

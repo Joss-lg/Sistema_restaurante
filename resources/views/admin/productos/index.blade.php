@@ -157,6 +157,15 @@
         const mods = producto.modificadores?.length
             ? `<p class="text-[10px] text-[var(--text-muted)] mt-1.5 truncate"><i class="fas fa-list-ul mr-1 opacity-70"></i> ${producto.modificadores.map(m => m.nombre).join(', ')}</p>`
             : '';
+
+        const esPorPeso = !!producto.se_vende_por_peso;
+        const badgePorPeso = esPorPeso
+            ? `<span class="text-[8px] font-black text-orange-500 bg-orange-500/10 border border-orange-500/20 px-1.5 py-0.5 rounded-md uppercase tracking-widest inline-flex items-center gap-1 mt-1.5"><i class="fas fa-weight-hanging"></i> Por peso</span>`
+            : '';
+
+        const precioMostrado = esPorPeso
+            ? `$${parseFloat(producto.precio_por_100g ?? 0).toFixed(2)} <span class="text-[10px] sm:text-[11px] font-bold text-[var(--text-muted)]">/100g</span>`
+            : `$${parseFloat(producto.precio).toFixed(2)}`;
  
         const botonesHTML = [
             tienePermisoEditar   ? `<button class="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-color)] flex items-center justify-center transition active:scale-95" onclick="editarProducto(${producto.id})" title="Editar"><i class="fas fa-pen text-[11px]"></i></button>` : '',
@@ -173,6 +182,7 @@
                     <h3 class="text-sm sm:text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
                     <p class="text-[11px] sm:text-[12px] text-[var(--text-muted)] mt-1 line-clamp-2">${producto.descripcion ?? 'Sin descripción'}</p>
                     ${mods}
+                    ${badgePorPeso}
                 </div>
                 <div class="flex items-center gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">${botonesHTML}</div>
             </div>
@@ -181,7 +191,7 @@
                     ${toggleHTML}
                     <span class="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest texto-estado">${producto.esta_disponible ? 'Disponible' : 'Agotado'}</span>
                 </div>
-                <span class="text-sm sm:text-[16px] font-black text-[var(--text-color)] tracking-tight">$${parseFloat(producto.precio).toFixed(2)}</span>
+                <span class="text-sm sm:text-[16px] font-black text-[var(--text-color)] tracking-tight">${precioMostrado}</span>
             </div>
         `;
         return card;
@@ -208,6 +218,8 @@
         document.getElementById('categoria_nombre').value = '';
         document.getElementById('categoria_id').value     = '';
         document.getElementById('descripcion').value      = '';
+        document.getElementById('se_vende_por_peso').checked = false;
+        toggleModoVentaPeso('crear');
         limpiarIngredientesContainer('crear');
         agregarIngrediente('crear');
         _abrirModal('modal-crear-alimento', 'modal-crear-panel');

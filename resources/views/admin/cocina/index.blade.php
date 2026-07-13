@@ -78,8 +78,20 @@
                         <ul class="space-y-2">
                             @foreach($orden->detalles as $detalle)
                                 <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-0.5">
-                                    <span class="font-bold text-[var(--text-color)] break-words">
+                                    <span class="font-bold text-[var(--text-color)] break-words flex flex-wrap items-center gap-1.5">
                                         {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
+                                        @if($detalle->gramaje)
+                                            @php
+                                                // El gramaje viene de una columna DECIMAL, así que MySQL
+                                                // siempre regresa los 2 decimales (ej. "650.00"). Aquí se
+                                                // quitan los ceros sobrantes para mostrar "650g" en vez de
+                                                // "650.00g", conservando decimales reales si los hay (ej. 650.5g).
+                                                $gramajeLimpio = rtrim(rtrim(number_format((float) $detalle->gramaje, 2, '.', ''), '0'), '.');
+                                            @endphp
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-orange-400 bg-orange-500/10 border border-orange-500/30 px-1.5 py-0.5 rounded-md">
+                                                <i class="fas fa-weight-hanging"></i>{{ $gramajeLimpio }}g
+                                            </span>
+                                        @endif
                                     </span>
                                     @if($detalle->notas)
                                         <span class="block text-[10px] text-red-400 italic break-words">{{ $detalle->notas }}</span>

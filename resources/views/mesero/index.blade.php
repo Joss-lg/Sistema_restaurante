@@ -77,14 +77,14 @@
 
     @php
         $platillosEnviadosParaJs = ($platillosEnviados ?? collect())->map(function ($item) {
-            return [
-                'nombre'   => $item->nombre ?? 'Platillo',
-                'cantidad' => $item->cantidad ?? 1,
-                'precio'   => $item->precio ?? 0,
-                'estado'   => $item->estado ?? 'enviado',
-            ];
-        })->values();
-
+    return [
+        'id'       => $item->id ?? null,
+        'nombre'   => $item->nombre ?? 'Platillo',
+        'cantidad' => $item->cantidad ?? 1,
+        'precio'   => $item->precio ?? 0,
+        'estado'   => $item->estado ?? 'enviado',
+    ];
+})->values();
         $rutaPromociones = \Illuminate\Support\Facades\Route::has('admin.promociones.index')
             ? route('admin.promociones.index')
             : '#';
@@ -95,7 +95,8 @@
             mesa: {
                 id: {{ $mesa->id ?? 1 }},
                 numero: @json($mesa->numero ?? '12M'),
-                capacidad: {{ $mesa->capacidad ?? 4 }}
+                capacidad: {{ $mesa->capacidad ?? 4 }},
+                personas: {{ $ordenActiva->personas ?? $mesa->capacidad ?? 4 }}
             },
             esCapitan: @json($esCapitan ?? false),
             categorias: @json($categorias ?? []),
@@ -106,9 +107,23 @@
                 promociones: @json($rutaPromociones),
                 capitanVerify: '/mesero/capitan/verify',
                 comandaEnviar: '/mesero/comanda/enviar',
-            }
+                comandaTransferir: '/mesero/comanda/transferir',
+                comandaPersonas: @json(route('mesero.comanda.personas', $mesa->id ?? 1)),
+                comandaPromociones: @json(route('mesero.comanda.promociones.activas')),
+                // NUEVO: ruta del ticket imprimible de pre-cuenta (se abre en pestaña nueva).
+                comandaPrecuenta: @json(route('mesero.comanda.precuenta', $mesa->id ?? 1))
+}
         };
     </script>
-    <script src="{{ asset('js/comanda-pos.js') }}"></script>
+    {{-- Módulos del POS de comanda, en orden de dependencia:
+            comanda-core.js debe ir SIEMPRE primero (declara el estado
+            compartido que usan los demás). --}}
+    <script src="{{ asset('js/comanda-core.js') }}"></script>
+    <script src="{{ asset('js/comanda-catalogo.js') }}"></script>
+    <script src="{{ asset('js/comanda-ticket.js') }}"></script>
+    <script src="{{ asset('js/comanda-gramaje.js') }}"></script>
+    <script src="{{ asset('js/comanda-promociones.js') }}"></script>
+    <script src="{{ asset('js/comanda-capitan-traspaso.js') }}"></script>
+    <script src="{{ asset('js/comanda-envio.js') }}"></script>
 </body>
 </html>

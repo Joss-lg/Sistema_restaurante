@@ -58,14 +58,11 @@
             <span class="text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Traspaso</span>
         </button>
 
-        <button type="button" onclick="mostrarPromociones()" class="flex flex-col items-center justify-center p-3 rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-[var(--border-highlight)] transition-all active:scale-95 group shadow-sm">
+        {{-- Marchar se eliminó (ya no se usa). Promos ahora ocupa las 2
+             columnas de esta fila para no dejar un hueco vacío. --}}
+        <button type="button" onclick="mostrarPromociones()" class="col-span-2 flex flex-col items-center justify-center p-3 rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-[var(--border-highlight)] transition-all active:scale-95 group shadow-sm">
             <i class="fas fa-tag text-[var(--text-muted)] group-hover:text-[var(--text-main)] mb-2 text-sm transition-colors"></i>
             <span class="text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Promos</span>
-        </button>
-
-        <button type="button" onclick="marcharTiempos()" class="flex flex-col items-center justify-center p-3 rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-[var(--border-highlight)] transition-all active:scale-95 group shadow-sm">
-            <i class="fas fa-fire-burner text-[var(--text-muted)] group-hover:text-[var(--text-main)] mb-2 text-sm transition-colors"></i>
-            <span class="text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Marchar</span>
         </button>
 
         @if($esCapitan ?? false)

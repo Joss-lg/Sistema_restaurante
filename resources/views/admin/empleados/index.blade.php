@@ -29,10 +29,11 @@
         $totalAdmin = 0; $totalCapitan = 0; $totalMesero = 0; $totalCocinero = 0; $totalCajero = 0;
         
         foreach($empleados ?? [] as $emp) {
-            $rolStr = strtolower($emp->rol?->nombre ?? '');
+            // Usamos mb_strtolower para leer correctamente los acentos (UTF-8)
+            $rolStr = mb_strtolower($emp->rol?->nombre ?? '', 'UTF-8');
             
             if(str_contains($rolStr, 'admin')) $totalAdmin++;
-            elseif(str_contains($rolStr, 'capitan')) $totalCapitan++;
+            elseif(str_contains($rolStr, 'capitan') || str_contains($rolStr, 'capitán')) $totalCapitan++;
             elseif(str_contains($rolStr, 'mesero')) $totalMesero++;
             elseif(str_contains($rolStr, 'cocinero')) $totalCocinero++;
             elseif(str_contains($rolStr, 'cajero')) $totalCajero++;
@@ -115,12 +116,12 @@
         <div id="listaEmpleadosMovil" class="flex flex-col gap-3 sm:hidden relative z-20">
             @forelse($empleados ?? [] as $empleado)
                 @php
-                    $rolStr = strtolower($empleado->rol?->nombre ?? '');
+                    $rolStr = mb_strtolower($empleado->rol?->nombre ?? '', 'UTF-8');
                     $colorClass = 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300';
                     if (str_contains($rolStr, 'admin')) $colorClass = 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400';
                     elseif (str_contains($rolStr, 'cajero')) $colorClass = 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400';
                     elseif (str_contains($rolStr, 'mesero')) $colorClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400';
-                    elseif (str_contains($rolStr, 'capitan')) $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400';
+                    elseif (str_contains($rolStr, 'capitan') || str_contains($rolStr, 'capitán')) $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400';
                     elseif (str_contains($rolStr, 'cocinero')) $colorClass = 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400';
                 @endphp
                 <div class="fila-empleado-movil border border-gray-100 dark:border-white/5 rounded-2xl p-3.5 bg-gray-50/50 dark:bg-white/[0.02] {{ !$empleado->esta_activo ? 'opacity-40 grayscale' : '' }}">
@@ -204,12 +205,12 @@
                     @forelse($empleados ?? [] as $empleado)
                     
                     @php
-                        $rolStr = strtolower($empleado->rol?->nombre ?? '');
+                        $rolStr = mb_strtolower($empleado->rol?->nombre ?? '', 'UTF-8');
                         $colorClass = 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'; 
                         if (str_contains($rolStr, 'admin')) $colorClass = 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'; 
                         elseif (str_contains($rolStr, 'cajero')) $colorClass = 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'; 
                         elseif (str_contains($rolStr, 'mesero')) $colorClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'; 
-                        elseif (str_contains($rolStr, 'capitan')) $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'; 
+                        elseif (str_contains($rolStr, 'capitan') || str_contains($rolStr, 'capitán')) $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'; 
                         elseif (str_contains($rolStr, 'cocinero')) $colorClass = 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400';
                     @endphp
 

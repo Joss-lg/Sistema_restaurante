@@ -45,6 +45,8 @@ class Orden extends Model
         'cuenta_dividida',
         'numero_cuenta_division',
         'total_cuentas_division',
+        'personas',
+        'descuento_porcentaje',
     ];
 
     protected $casts = [
@@ -54,6 +56,8 @@ class Orden extends Model
         'numero_cuenta_division' => 'integer',
         'abierta_el' => 'datetime',
         'cerrada_el' => 'datetime',
+        'personas' => 'integer',
+        'descuento_porcentaje' => 'decimal:2',
     ];
 
     // --- RELACIONES ---
