@@ -49,17 +49,37 @@
                 </div>
 
                 {{-- Bloque de Contabilidad Flujo Matemático --}}
+               {{-- Bloque de Contabilidad Flujo Matemático Desglosado --}}
                 <div class="bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4 space-y-2.5 sm:space-y-3 shadow-inner">
                     <div class="flex justify-between items-center text-xs sm:text-sm">
                         <span class="text-[var(--text-muted)] font-medium">Saldo Inicial:</span>
                         <span class="font-bold text-[var(--text-color)]">${{ number_format($cajaActiva->monto_inicial, 2) }}</span>
                     </div>
-                    <div class="flex justify-between items-center text-xs sm:text-sm">
-                        <span class="text-[var(--text-muted)] font-medium">+ Ventas (Efectivo):</span>
-                        <span class="font-bold text-emerald-500">+${{ number_format($totalVentas, 2) }}</span>
+                    
+                    {{-- Desglose Real por Método de Pago --}}
+                    <div class="flex justify-between items-center text-xs sm:text-sm border-t border-[var(--border-color)]/30 pt-2">
+                        <span class="text-[var(--text-muted)] font-medium flex items-center">
+                            <i class="fas fa-money-bill-wave text-emerald-500 mr-1.5 w-4"></i> + Ventas (Efectivo):
+                        </span>
+                        <span class="font-bold text-emerald-500">+${{ number_format($ventasEfectivo, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center text-xs sm:text-sm">
-                        <span class="text-[var(--text-muted)] font-medium">- Salidas / Gastos:</span>
+                        <span class="text-[var(--text-muted)] font-medium flex items-center">
+                            <i class="fas fa-credit-card text-sky-500 mr-1.5 w-4"></i> + Ventas (Tarjeta):
+                        </span>
+                        <span class="font-bold text-sky-500">+${{ number_format($ventasTarjeta, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs sm:text-sm pb-2 border-b border-[var(--border-color)]/30">
+                        <span class="text-[var(--text-muted)] font-medium flex items-center">
+                            <i class="fas fa-university text-indigo-500 mr-1.5 w-4"></i> + Ventas (Transf.):
+                        </span>
+                        <span class="font-bold text-indigo-500">+${{ number_format($ventasTransferencia, 2) }}</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs sm:text-sm">
+                        <span class="text-[var(--text-muted)] font-medium flex items-center">
+                            <i class="fas fa-minus-circle text-rose-500 mr-1.5 w-4"></i> - Salidas / Gastos:
+                        </span>
                         <span class="font-bold text-rose-500">-${{ number_format($totalGastos, 2) }}</span>
                     </div>
                     

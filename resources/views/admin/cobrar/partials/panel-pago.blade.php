@@ -19,33 +19,7 @@
                     </button>
                 </div>
             </div>
-
-            {{-- 2. Sección Promociones --}}
-            <div class="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 p-6 rounded-[2rem]">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <p class="text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.35em] text-[10px] font-black mb-2">Promociones</p>
-                        <span id="promo-label" class="inline-flex items-center gap-2 rounded-full bg-purple-500/10 px-4 py-2 text-purple-600 dark:text-purple-400 font-black uppercase text-xs">
-                            <i class="fas fa-tag"></i> Sin promoción
-                        </span>
-                    </div>
-                    <button id="btn-agregar-promo" type="button" class="bg-purple-500 hover:bg-purple-400 text-white font-black py-3 px-4 rounded-2xl uppercase text-xs transition-all">
-                        Aplicar
-                    </button>
-                </div>
-                {{-- Contenedor Promo Aplicada --}}
-                <div id="promo-aplicada" class="hidden rounded-2xl bg-purple-500/10 border border-purple-500/30 p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-purple-700 dark:text-purple-300 text-sm font-bold" id="promo-nombre"></p>
-                            <span id="promo-descuento" class="text-purple-600 dark:text-purple-400 font-black"></span>
-                        </div>
-                        <button id="btn-limpiar-promo" class="text-red-500 dark:text-red-400 text-xs font-bold">Quitar</button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- 3. Display de Montos --}}
+            {{-- 2. Display de Montos --}}
             <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 p-8 rounded-[2.5rem] text-center shadow-sm dark:shadow-2xl">
                 <p class="text-zinc-400 dark:text-zinc-500 text-[10px] font-black uppercase mb-4 italic">Monto a cobrar</p>
                 {{-- ID monto-input para JS --}}
@@ -56,7 +30,7 @@
                 </div>
             </div>
 
-            {{-- 4. Teclado Numérico --}}
+            {{-- 3. Teclado Numérico --}}
             <div id="cash-section" class="grid grid-cols-4 gap-3">
                 @foreach(['1','2','3','4','5','6','7','8','9','.','0','00'] as $key)
                     <button type="button" class="btn-tecla h-16 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl font-black text-zinc-900 dark:text-white transition-all active:bg-blue-600/20" data-value="{{ $key }}">{{ $key }}</button>

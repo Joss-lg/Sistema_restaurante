@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cDisplayStatus.textContent = '$' + diferencia.toLocaleString('en-US', {minimumFractionDigits: 2});
             cDisplayStatus.className = 'text-xl font-black text-emerald-500';
 
-            // Habilitar botón de confirmación con estilo activo
+            // Habilitar botón de confirmation con estilo activo
             btnConfirmarCombinado.disabled = false;
             btnConfirmarCombinado.className = "w-full py-4 px-4 bg-emerald-600 dark:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider rounded-2xl border border-emerald-500 hover:bg-emerald-500 transition-all cursor-pointer";
         } else {
@@ -246,8 +246,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Validación defensiva por si la variable global no se declaró en la vista
+        const urlEnvio = (window.COBRO_CONFIG && window.COBRO_CONFIG.urlPago) 
+            ? window.COBRO_CONFIG.urlPago 
+            : '/caja/procesar-pago';
+
         try {
-            const response = await fetch(window.COBRO_CONFIG.urlPago, {
+            const response = await fetch(urlEnvio, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

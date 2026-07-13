@@ -16,7 +16,7 @@
         @if(auth()->user()->tienePermiso('empleados.agregar'))
             <div class="relative group w-full sm:w-auto">
                 <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500 pointer-events-none"></div>
-                <button type="button" onclick="abrirModalCrear()" class="relative flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 outline-none w-full sm:w-auto shadow-md hover:shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
+                <button type="button" onclick="abrirModalCrear()" class="relative flex items-center justify-center gap-2.5 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 outline-none w-full sm:w-auto shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
                     <i class="fas fa-plus"></i> 
                     <span>Agregar Empleado</span>
                 </button>
@@ -42,33 +42,38 @@
         $tarjetasStats = [
             [
                 'titulo' => 'Administradores', 'valor' => $totalAdmin, 'icono' => 'user-shield',
-                'bgIcono' => 'bg-rose-50 text-rose-600 border border-rose-100 dark:border-transparent dark:bg-rose-500/10 dark:text-rose-400', 
-                'bgGlow' => 'bg-rose-500/[0.03] dark:bg-rose-500/5', 
-                'bordeClases' => 'border border-rose-200 dark:border-rose-500/30 hover:border-rose-400 dark:hover:border-rose-500/60 hover:shadow-[0_0_15px_rgba(244,63,94,0.15)]'
+                'bgIcono' => 'bg-rose-50 text-rose-600 border border-rose-100 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400',
+                'bgGlow' => 'bg-rose-500/[0.04] dark:bg-rose-500/10',
+                'barra' => 'bg-rose-500',
+                'bordeClases' => 'border border-gray-200/70 dark:border-white/5 hover:border-rose-300 dark:hover:border-rose-500/40 hover:shadow-[0_8px_30px_-8px_rgba(244,63,94,0.25)]'
             ],
             [
                 'titulo' => 'Capitanes', 'valor' => $totalCapitan, 'icono' => 'clipboard-list',
-                'bgIcono' => 'bg-blue-50 text-blue-600 border border-blue-100 dark:border-transparent dark:bg-blue-500/10 dark:text-blue-400', 
-                'bgGlow' => 'bg-blue-500/[0.03] dark:bg-blue-500/5', 
-                'bordeClases' => 'border border-blue-200 dark:border-blue-500/30 hover:border-blue-400 dark:hover:border-blue-500/60 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]'
+                'bgIcono' => 'bg-blue-50 text-blue-600 border border-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400',
+                'bgGlow' => 'bg-blue-500/[0.04] dark:bg-blue-500/10',
+                'barra' => 'bg-blue-500',
+                'bordeClases' => 'border border-gray-200/70 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-500/40 hover:shadow-[0_8px_30px_-8px_rgba(59,130,246,0.25)]'
             ],
             [
                 'titulo' => 'Meseros', 'valor' => $totalMesero, 'icono' => 'concierge-bell',
-                'bgIcono' => 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:border-transparent dark:bg-emerald-500/10 dark:text-emerald-400', 
-                'bgGlow' => 'bg-emerald-500/[0.03] dark:bg-emerald-500/5', 
-                'bordeClases' => 'border border-emerald-200 dark:border-emerald-500/30 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                'bgIcono' => 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400',
+                'bgGlow' => 'bg-emerald-500/[0.04] dark:bg-emerald-500/10',
+                'barra' => 'bg-emerald-500',
+                'bordeClases' => 'border border-gray-200/70 dark:border-white/5 hover:border-emerald-300 dark:hover:border-emerald-500/40 hover:shadow-[0_8px_30px_-8px_rgba(16,185,129,0.25)]'
             ],
             [
                 'titulo' => 'Cocineros', 'valor' => $totalCocinero, 'icono' => 'fire',
-                'bgIcono' => 'bg-orange-50 text-orange-600 border border-orange-100 dark:border-transparent dark:bg-orange-500/10 dark:text-orange-400', 
-                'bgGlow' => 'bg-orange-500/[0.03] dark:bg-orange-500/5', 
-                'bordeClases' => 'border border-orange-200 dark:border-orange-500/30 hover:border-orange-400 dark:hover:border-orange-500/60 hover:shadow-[0_0_15px_rgba(249,115,22,0.15)]'
+                'bgIcono' => 'bg-orange-50 text-orange-600 border border-orange-100 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-400',
+                'bgGlow' => 'bg-orange-500/[0.04] dark:bg-orange-500/10',
+                'barra' => 'bg-orange-500',
+                'bordeClases' => 'border border-gray-200/70 dark:border-white/5 hover:border-orange-300 dark:hover:border-orange-500/40 hover:shadow-[0_8px_30px_-8px_rgba(249,115,22,0.25)]'
             ],
             [
                 'titulo' => 'Cajeros', 'valor' => $totalCajero, 'icono' => 'cash-register',
-                'bgIcono' => 'bg-purple-50 text-purple-600 border border-purple-100 dark:border-transparent dark:bg-purple-500/10 dark:text-purple-400', 
-                'bgGlow' => 'bg-purple-500/[0.03] dark:bg-purple-500/5', 
-                'bordeClases' => 'border border-purple-200 dark:border-purple-500/30 hover:border-purple-400 dark:hover:border-purple-500/60 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]'
+                'bgIcono' => 'bg-purple-50 text-purple-600 border border-purple-100 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-400',
+                'bgGlow' => 'bg-purple-500/[0.04] dark:bg-purple-500/10',
+                'barra' => 'bg-purple-500',
+                'bordeClases' => 'border border-gray-200/70 dark:border-white/5 hover:border-purple-300 dark:hover:border-purple-500/40 hover:shadow-[0_8px_30px_-8px_rgba(168,85,247,0.25)]'
             ],
         ];
     @endphp
@@ -77,23 +82,26 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-5 relative z-10">
         @foreach($tarjetasStats as $stat)
         <div class="bg-white dark:bg-[#121318] {{ $stat['bordeClases'] }} rounded-xl md:rounded-[1.5rem] p-3 md:p-6 flex flex-col justify-between h-20 sm:h-24 md:h-36 relative group overflow-hidden transition-all duration-300 last:col-span-2 sm:last:col-span-1">
+            {{-- Barra de acento superior --}}
+            <span class="absolute top-0 left-0 right-0 h-[3px] {{ $stat['barra'] }} opacity-70 group-hover:opacity-100 transition-opacity"></span>
+
             <div class="flex justify-between items-start w-full relative z-10">
                 <h3 class="text-[8px] sm:text-[9px] md:text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest truncate pr-2">{{ $stat['titulo'] }}</h3>
-                <div class="w-6 h-6 sm:w-7 sm:h-7 md:w-10 md:h-10 rounded-[0.5rem] md:rounded-xl {{ $stat['bgIcono'] }} flex items-center justify-center flex-shrink-0">
+                <div class="w-6 h-6 sm:w-7 sm:h-7 md:w-10 md:h-10 rounded-[0.5rem] md:rounded-xl {{ $stat['bgIcono'] }} flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-105">
                     <i class="fas fa-{{ $stat['icono'] }} text-[9px] sm:text-[10px] md:text-base"></i>
                 </div>
             </div>
-            <p class="text-xl sm:text-2xl md:text-5xl font-black text-gray-900 dark:text-white relative z-10 mt-1 md:mt-0">{{ $stat['valor'] }}</p>
+            <p class="text-xl sm:text-2xl md:text-5xl font-black text-gray-900 dark:text-white relative z-10 mt-1 md:mt-0 tabular-nums">{{ $stat['valor'] }}</p>
             <div class="absolute -bottom-4 -right-4 w-16 h-16 md:w-24 md:h-24 {{ $stat['bgGlow'] }} blur-2xl pointer-events-none"></div>
         </div>
         @endforeach
     </div>
 
     {{-- CONTENEDOR PRINCIPAL DE EMPLEADOS --}}
-    <div class="bg-white dark:bg-[#121318] border border-gray-200/70 dark:border-white/5 rounded-2xl md:rounded-3xl p-3 sm:p-4 md:p-8 w-full flex-1 flex flex-col shadow-sm dark:shadow-xl relative z-20">
+    <div class="bg-white dark:bg-[#121318] border border-gray-200/70 dark:border-white/5 rounded-2xl md:rounded-3xl p-3 sm:p-4 md:p-8 w-full flex-1 flex flex-col shadow-sm dark:shadow-2xl dark:shadow-black/40 relative z-20">
         
         {{-- Cabecera de Tabla y Buscador Adaptado --}}
-        <div class="mb-4 md:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 relative z-30">
+        <div class="mb-4 md:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 relative z-30 pb-4 md:pb-6 border-b border-gray-100 dark:border-white/5">
             <div>
                 <h2 class="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white tracking-tight">Lista de Empleados</h2>
                 <p class="text-[10px] md:text-xs font-medium text-gray-400 dark:text-gray-500 mt-1">{{ count($empleados ?? []) }} registrados en el sistema</p>
@@ -106,7 +114,8 @@
                 </div>
                 
                 <a href="{{ request()->has('ver_inactivos') ? route('admin.empleados.index') : route('admin.empleados.index', ['ver_inactivos' => 1]) }}" 
-                    class="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-full border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors {{ request()->has('ver_inactivos') ? 'text-rose-500' : 'text-gray-400' }}">
+                    title="{{ request()->has('ver_inactivos') ? 'Ver solo activos' : 'Ver inactivos' }}"
+                    class="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-full border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-all hover:-translate-y-0.5 {{ request()->has('ver_inactivos') ? 'text-rose-500' : 'text-gray-400' }}">
                     <i class="fas fa-{{ request()->has('ver_inactivos') ? 'eye-slash' : 'eye' }} text-sm"></i> 
                 </a>
             </div>
@@ -118,16 +127,17 @@
                 @php
                     $rolStr = mb_strtolower($empleado->rol?->nombre ?? '', 'UTF-8');
                     $colorClass = 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300';
-                    if (str_contains($rolStr, 'admin')) $colorClass = 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400';
-                    elseif (str_contains($rolStr, 'cajero')) $colorClass = 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400';
-                    elseif (str_contains($rolStr, 'mesero')) $colorClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400';
-                    elseif (str_contains($rolStr, 'capitan') || str_contains($rolStr, 'capitán')) $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400';
-                    elseif (str_contains($rolStr, 'cocinero')) $colorClass = 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400';
+                    $dotClass = 'bg-gray-400';
+                    if (str_contains($rolStr, 'admin')) { $colorClass = 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'; $dotClass = 'bg-rose-500'; }
+                    elseif (str_contains($rolStr, 'cajero')) { $colorClass = 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'; $dotClass = 'bg-purple-500'; }
+                    elseif (str_contains($rolStr, 'mesero')) { $colorClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'; $dotClass = 'bg-emerald-500'; }
+                    elseif (str_contains($rolStr, 'capitan') || str_contains($rolStr, 'capitán')) { $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'; $dotClass = 'bg-blue-500'; }
+                    elseif (str_contains($rolStr, 'cocinero')) { $colorClass = 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400'; $dotClass = 'bg-orange-500'; }
                 @endphp
-                <div class="fila-empleado-movil border border-gray-100 dark:border-white/5 rounded-2xl p-3.5 bg-gray-50/50 dark:bg-white/[0.02] {{ !$empleado->esta_activo ? 'opacity-40 grayscale' : '' }}">
+                <div class="fila-empleado-movil border border-gray-100 dark:border-white/5 rounded-2xl p-3.5 bg-gray-50/60 dark:bg-white/[0.025] transition-all {{ !$empleado->esta_activo ? 'opacity-40 grayscale' : 'hover:border-gray-200 dark:hover:border-white/10' }}">
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/60 dark:from-[#1e2028] dark:to-[#15171e] dark:border-white/10 flex items-center justify-center text-blue-600 dark:text-blue-400 font-black text-sm flex-shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/60 dark:from-[#1e2028] dark:to-[#15171e] dark:border-white/10 flex items-center justify-center text-blue-600 dark:text-blue-400 font-black text-sm flex-shrink-0 ring-2 ring-white dark:ring-[#121318]">
                                 {{ strtoupper(substr($empleado->nombre, 0, 1)) }}
                             </div>
                             <div class="flex flex-col min-w-0">
@@ -135,14 +145,15 @@
                                 <span class="text-[10px] font-bold text-gray-400 dark:text-gray-600 mt-0.5">ID: EMP-{{ str_pad($empleado->id, 3, '0', STR_PAD_LEFT) }} · PIN {{ $empleado->codigo_empleado ?? '----' }}</span>
                             </div>
                         </div>
-                        <span class="shrink-0 inline-block px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest {{ $colorClass }}">
+                        <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest {{ $colorClass }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
                             {{ $empleado->rol?->nombre ?? 'Sin rol' }}
                         </span>
                     </div>
 
                     <div class="flex items-center gap-2 mt-3.5 pt-3 border-t border-gray-100 dark:border-white/5">
                         <a href="{{ route('admin.empleados.permisos', $empleado->id) }}" 
-                            class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[10px] font-black uppercase text-gray-600 dark:bg-black/20 dark:border-white/5 dark:text-gray-400 transition-all">
+                            class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[10px] font-black uppercase text-gray-600 dark:bg-black/20 dark:border-white/5 dark:text-gray-400 dark:hover:bg-white/5 transition-all">
                             <i class="fas fa-shield-alt text-blue-500 text-[11px]"></i> Permisos
                         </a>
 
@@ -183,7 +194,9 @@
                 </div>
             @empty
                 <div class="flex flex-col items-center justify-center py-14">
-                    <i class="fas fa-users-slash text-3xl text-gray-300 mb-4"></i>
+                    <div class="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center mb-4">
+                        <i class="fas fa-users-slash text-xl text-gray-300 dark:text-gray-600"></i>
+                    </div>
                     <span class="text-sm font-bold text-gray-400">No hay empleados registrados</span>
                 </div>
             @endforelse
@@ -206,20 +219,21 @@
                     
                     @php
                         $rolStr = mb_strtolower($empleado->rol?->nombre ?? '', 'UTF-8');
-                        $colorClass = 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300'; 
-                        if (str_contains($rolStr, 'admin')) $colorClass = 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'; 
-                        elseif (str_contains($rolStr, 'cajero')) $colorClass = 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'; 
-                        elseif (str_contains($rolStr, 'mesero')) $colorClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'; 
-                        elseif (str_contains($rolStr, 'capitan') || str_contains($rolStr, 'capitán')) $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'; 
-                        elseif (str_contains($rolStr, 'cocinero')) $colorClass = 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400';
+                        $colorClass = 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300';
+                        $dotClass = 'bg-gray-400';
+                        if (str_contains($rolStr, 'admin')) { $colorClass = 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'; $dotClass = 'bg-rose-500'; }
+                        elseif (str_contains($rolStr, 'cajero')) { $colorClass = 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'; $dotClass = 'bg-purple-500'; }
+                        elseif (str_contains($rolStr, 'mesero')) { $colorClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'; $dotClass = 'bg-emerald-500'; }
+                        elseif (str_contains($rolStr, 'capitan') || str_contains($rolStr, 'capitán')) { $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'; $dotClass = 'bg-blue-500'; }
+                        elseif (str_contains($rolStr, 'cocinero')) { $colorClass = 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400'; $dotClass = 'bg-orange-500'; }
                     @endphp
 
-                    <tr class="fila-empleado group hover:bg-gray-50/70 dark:hover:bg-white/[0.01] transition-all duration-200 {{ !$empleado->esta_activo ? 'opacity-40 grayscale' : '' }}">
+                    <tr class="fila-empleado group hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-all duration-200 {{ !$empleado->esta_activo ? 'opacity-40 grayscale' : '' }}">
                         
                         {{-- COLUMNA NOMBRE --}}
                         <td class="py-4 px-2 md:px-4 align-middle">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/60 dark:from-[#1e2028] dark:to-[#15171e] dark:border-white/10 flex items-center justify-center text-blue-600 dark:text-blue-400 font-black text-sm flex-shrink-0">
+                                <div class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/60 dark:from-[#1e2028] dark:to-[#15171e] dark:border-white/10 flex items-center justify-center text-blue-600 dark:text-blue-400 font-black text-sm flex-shrink-0 ring-2 ring-white dark:ring-[#121318]">
                                     {{ strtoupper(substr($empleado->nombre, 0, 1)) }}
                                 </div>
                                 <div class="flex flex-col min-w-0 truncate">
@@ -230,13 +244,14 @@
                         </td>
 
                         {{-- COLUMNA PIN --}}
-                        <td class="py-4 px-2 md:px-4 align-middle font-black text-xs text-gray-600 dark:text-gray-400 tracking-[0.2em] text-center">
-                            {{ $empleado->codigo_empleado ?? '----' }}
+                        <td class="py-4 px-2 md:px-4 align-middle text-center">
+                            <span class="inline-block font-black text-xs text-gray-600 dark:text-gray-400 tracking-[0.2em] bg-gray-50 dark:bg-black/30 px-2.5 py-1 rounded-md">{{ $empleado->codigo_empleado ?? '----' }}</span>
                         </td>
                         
                         {{-- COLUMNA ROL --}}
                         <td class="py-4 px-2 md:px-4 align-middle text-center">
-                            <span class="inline-block px-2.5 py-1 rounded-md text-[9px] md:text-[10px] font-black uppercase tracking-widest {{ $colorClass }}">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest {{ $colorClass }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
                                 {{ $empleado->rol?->nombre ?? 'Sin rol' }}
                             </span>
                         </td>
@@ -244,7 +259,7 @@
                         {{-- COLUMNA PERMISOS --}}
                         <td class="py-4 px-2 md:px-4 align-middle text-center">
                             <a href="{{ route('admin.empleados.permisos', $empleado->id) }}" 
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[9px] md:text-[10px] font-black uppercase text-gray-600 dark:bg-black/20 dark:border-white/5 dark:text-gray-400 dark:hover:text-blue-400 transition-all">
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[9px] md:text-[10px] font-black uppercase text-gray-600 dark:bg-black/20 dark:border-white/5 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-blue-400 transition-all">
                                 <i class="fas fa-shield-alt text-blue-500 text-[10px]"></i> Configurar
                             </a>
                         </td>
@@ -293,7 +308,9 @@
                     <tr>
                         <td colspan="5" class="py-16 text-center">
                             <div class="flex flex-col items-center justify-center">
-                                <i class="fas fa-users-slash text-3xl text-gray-300 mb-4"></i>
+                                <div class="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center mb-4">
+                                    <i class="fas fa-users-slash text-xl text-gray-300 dark:text-gray-600"></i>
+                                </div>
                                 <span class="text-sm font-bold text-gray-400">No hay empleados registrados</span>
                             </div>
                         </td>

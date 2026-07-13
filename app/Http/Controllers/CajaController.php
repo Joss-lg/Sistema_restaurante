@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Mesa;
 use App\Models\Orden;
 use App\Models\CajaMovimiento;
-use App\Models\FlujoCaja; // Añadido para los registros individuales de venta
+use App\Models\FlujoCaja; 
 use App\Services\CajaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -140,32 +140,51 @@ class CajaController extends Controller
         ]);
     }
 
-
+    // ==========================================================================
+    // MÉTODO OPTIMIZADO: FLUJO DE CAJA CON DESGLOSE POR MÉTODO
+    // ==========================================================================
     public function flujoDeCaja()
     {
-        // 1. Validamos si hay una sesión de caja activa
         $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
 
-        // Si no hay caja abierta, bloqueamos el panel y mostramos la vista de apertura
         if (!$cajaActiva) {
             return view('admin.caja.apertura');
         }
 
-        // 2. Obtener todas las ventas (Ingresos bajo la categoría 'Ventas') de este turno
+        // 1. Gran total de todas las ventas de la sesión
         $totalVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
                                 ->where('tipo', 'ingreso')
                                 ->where('categoria', 'Ventas')
                                 ->sum('monto');
+
+        // 2. DESGLOSE INDIVIDUAL POR MÉTODO DE PAGO (Aquí estaba el error)
+        $ventasEfectivo = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                    ->where('tipo', 'ingreso')
+                                    ->where('categoria', 'Ventas')
+                                    ->where('metodo_pago', 'Efectivo')
+                                    ->sum('monto');
+
+        $ventasTarjeta = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                   ->where('tipo', 'ingreso')
+                                   ->where('categoria', 'Ventas')
+                                   ->where('metodo_pago', 'Tarjeta')
+                                   ->sum('monto');
+
+        $ventasTransferencia = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+                                         ->where('tipo', 'ingreso')
+                                         ->where('categoria', 'Ventas')
+                                         ->where('metodo_pago', 'Transferencia')
+                                         ->sum('monto');
 
         // 3. Obtener todos los gastos/salidas (Egresos) de este turno
         $totalGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
                                 ->where('tipo', 'egreso')
                                 ->sum('monto');
 
-        // 4. Calcular el Saldo Actual Estimado (Sin considerar la categoría anticipos)
+        // 4. Calcular el Saldo Actual Estimado en Caja
         $saldoEstimado = $cajaActiva->monto_inicial + $totalVentas - $totalGastos;
 
-        // 5. Traer las colecciones detalladas para los listados de la derecha
+        // 5. Historiales detallados para las tablas informativas
         $historicoVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
                                     ->where('tipo', 'ingreso')
                                     ->where('categoria', 'Ventas')
@@ -177,10 +196,13 @@ class CajaController extends Controller
                                     ->orderBy('created_at', 'desc')
                                     ->get();
 
-        // Retornamos la vista enviando exactamente lo que tu interfaz requiere
+        // Enviamos las nuevas variables desglosadas a la vista blade
         return view('admin.caja.flujo', compact(
             'cajaActiva',
             'totalVentas',
+            'ventasEfectivo',
+            'ventasTarjeta',
+            'ventasTransferencia',
             'totalGastos',
             'saldoEstimado',
             'historicoVentas',
@@ -188,13 +210,11 @@ class CajaController extends Controller
         ));
     }
 
-
     public function pagar(Request $request): JsonResponse
     {
         try {
             return DB::transaction(function () use ($request) {
                 $mesa = Mesa::where('id', $request->mesa_id)->lockForUpdate()->firstOrFail();
-                // ... aplicar pago
                 return response()->json(['success' => true, 'message' => 'Pago registrado.']);
             });
         } catch (\Exception $e) {
@@ -242,33 +262,36 @@ class CajaController extends Controller
     public function procesarPago(Request $request): JsonResponse
     {
         $request->validate([
-            'mesa_id'      => 'required|exists:mesas,id',
-            'monto_pagado' => 'required|numeric|min:0',
-            'metodo_pago'  => 'required|string',
+            'mesa_id' => 'required|exists:mesas,id',
+            'pagos'   => 'required|array|min:1',
+            'pagos.*.metodo' => 'required|string',
+            'pagos.*.monto'  => 'required|numeric|min:0',
         ]);
 
         try {
             return DB::transaction(function () use ($request) {
                 $mesa = Mesa::findOrFail($request->mesa_id);
-                
-                // Buscamos la sesión activa obligatoria para incrustar el cobro
                 $cajaActiva = CajaMovimiento::where('estado', 'abierta')->firstOrFail();
                 
-                // 1. Cambiado quirúrgicamente: Ahora impacta en la tabla de detalle 'flujo_caja'
-                FlujoCaja::create([
-                    'caja_movimiento_id' => $cajaActiva->id, // Amarrado al turno actual
-                    'tipo'               => 'ingreso',
-                    'categoria'          => 'Ventas',
-                    'concepto'           => 'Pago Mesa #' . $mesa->numero,
-                    'monto'              => $request->monto_pagado,
-                    'metodo_pago'        => $request->metodo_pago,
-                    'fecha'              => Carbon::now(),
-                ]);
+                foreach ($request->pagos as $pago) {
+                    $montoIndividual = floatval($pago['monto']);
 
+                    if ($montoIndividual <= 0) {
+                        continue;
+                    }
+
+                    FlujoCaja::create([
+                        'caja_movimiento_id' => $cajaActiva->id,
+                        'tipo'               => 'ingreso',
+                        'categoria'          => 'Ventas',
+                        'concepto'           => 'Pago Mesa #' . $mesa->numero,
+                        'monto'              => $montoIndividual,
+                        'metodo_pago'        => ucfirst($pago['metodo']), // Guarda perfectamente 'Efectivo', 'Tarjeta', etc.
+                        'fecha'              => \Carbon\Carbon::now(),
+                    ]);
+                }
 
                 $mesa->ordenesActivas()->update(['estado' => 'pagada']);
-                
-                // 2. Liberar mesa (usando tu servicio existente)
                 $this->cajaService->liberarMesa($mesa);
 
                 return response()->json([
@@ -276,7 +299,7 @@ class CajaController extends Controller
                     'message' => 'Pago realizado con éxito',
                     'redirect_url' => url('/caja')
                 ]);
-            });
+        });
         } catch (\Exception $e) {
             Log::error("Error procesando pago: " . $e->getMessage());
             return response()->json([
@@ -288,10 +311,8 @@ class CajaController extends Controller
 
     public function generarReportePdf($id)
     {
-        // 1. Obtener los datos del turno solicitado
         $cajaActiva = CajaMovimiento::with('user')->findOrFail($id);
 
-        // 2. Recopilar datos financieros tal como lo haces en la vista de flujo
         $totalVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
                                 ->where('tipo', 'ingreso')
                                 ->where('categoria', 'Ventas')
@@ -314,7 +335,6 @@ class CajaController extends Controller
                                     ->orderBy('created_at', 'desc')
                                     ->get();
 
-        // 3. Cargar la vista específica del PDF y pasarle las variables
         $pdf = Pdf::loadView('admin.caja.reporte_pdf', compact(
             'cajaActiva',
             'totalVentas',
@@ -324,7 +344,6 @@ class CajaController extends Controller
             'historicoGastos'
         ));
 
-        // 4. Retornar el PDF para abrir en el navegador (stream) o descargar (download)
         return $pdf->stream('reporte-caja-turno-' . $cajaActiva->id . '.pdf');
     }
 }
