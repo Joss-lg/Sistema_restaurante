@@ -13,13 +13,14 @@ class DetalleOrden extends Model
 
     protected $fillable = [
         'orden_id',
+        'lote_envio', // NUEVO: identifica la "ronda" de envío a cocina dentro de la misma Orden
         'producto_id',
         'cantidad',
         'precio_unitario',
         'estado',
         'notas',
         'gramaje',
-        'transaccion_id', // <--- Agregar este
+        'transaccion_id',
     ];
 
     protected $casts = [

@@ -9,12 +9,10 @@
 @section('content')
 <div class="p-3 sm:p-6 lg:p-8 w-full max-w-[1800px] mx-auto relative z-10 overflow-x-hidden font-sans">
 
-    {{-- PANEL DE ESTADÍSTICAS KDS --}}
     <div class="glass-card rounded-[20px] sm:rounded-[32px] p-3 sm:p-4 flex flex-col xl:flex-row gap-3 shadow-2xl border border-[var(--border-color)] bg-[var(--card-color)] relative overflow-hidden">
         
         <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none"></div>
 
-        {{-- KPI Principal --}}
         <div class="bg-[var(--bg-color)] rounded-[16px] sm:rounded-[24px] p-4 sm:p-8 xl:w-1/3 flex flex-col justify-center relative border border-[var(--border-color)] shadow-inner">
             <div class="flex items-center gap-2.5 mb-2">
                 <span class="relative flex h-3 w-3 sm:h-4 sm:w-4 shrink-0">
@@ -29,9 +27,7 @@
             </p>
         </div>
 
-        {{-- KPIs Secundarios --}}
         <div class="flex-1 grid grid-cols-3 gap-1.5 sm:gap-4">
-            {{-- Tarjetas de estado (Pendientes, En Proceso, Listas) --}}
             @foreach(['pendientes' => ['text' => 'En Cola', 'val' => $pendientes, 'border' => 'orange', 'icon' => 'fa-receipt'], 
                       'enProceso' => ['text' => 'Proceso', 'val' => $enProceso, 'border' => 'blue', 'icon' => 'fa-fire-burner'], 
                       'servidas' => ['text' => 'Listas', 'val' => $servidas, 'border' => 'emerald', 'icon' => 'fa-bell-concierge']] as $key => $kpi)
@@ -49,43 +45,36 @@
         </div>
     </div>
 
-    {{-- TABLERO DE TICKETS --}}
-    @if($ordenes->isEmpty())
+    @if($comandas->isEmpty())
         <div class="glass-card rounded-[24px] px-6 py-16 sm:py-24 text-center border border-[var(--border-color)] shadow-xl mt-6 sm:mt-8 bg-[var(--card-color)]">
             <i class="fas fa-check-double text-5xl text-emerald-500 mb-4"></i>
             <h2 class="text-xl sm:text-2xl font-black text-[var(--text-color)]">¡Cocina Despejada!</h2>
         </div>
     @else
         <div class="grid gap-3 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 mt-4 sm:mt-8 items-start w-full">
-            @foreach($ordenes as $orden)
+            @foreach($comandas as $comanda)
                 @php
                     $config = [
                         'pendiente' => ['border' => 'border-t-orange-500', 'btn' => 'bg-orange-500 hover:bg-orange-400 text-white', 'textColor' => 'text-orange-500', 'badgeBg' => 'bg-orange-500/10 border-orange-500/30'],
                         'en proceso' => ['border' => 'border-t-blue-500', 'btn' => 'bg-emerald-500 hover:bg-emerald-400 text-white', 'textColor' => 'text-blue-500', 'badgeBg' => 'bg-blue-500/10 border-blue-500/30'],
                         'servida' => ['border' => 'border-t-emerald-500', 'btn' => 'bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-color)]', 'textColor' => 'text-emerald-500', 'badgeBg' => 'bg-emerald-500/10 border-emerald-500/30']
-                    ][$orden->estado] ?? ['border' => 'border-t-gray-500', 'btn' => 'bg-gray-500', 'textColor' => 'text-gray-500', 'badgeBg' => 'bg-gray-500/10'];
+                    ][$comanda->estado] ?? ['border' => 'border-t-gray-500', 'btn' => 'bg-gray-500', 'textColor' => 'text-gray-500', 'badgeBg' => 'bg-gray-500/10'];
                 @endphp
 
                 <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] {{ $config['border'] }} shadow-lg flex flex-col h-full overflow-hidden relative">
-                   {{-- CABECERA DEL TICKET --}}
                     <div class="p-4 border-b border-[var(--border-color)] min-w-0">
-                        <h3 class="font-black text-lg truncate">Mesa {{ $orden->mesa->numero }}</h3>
-                        <p class="text-xs text-[var(--text-muted)] truncate">Mesero: {{ $orden->mesero->nombre ?? 'N/A' }}</p>
+                        <h3 class="font-black text-lg truncate">Mesa {{ $comanda->mesa->numero }}</h3>
+                        <p class="text-xs text-[var(--text-muted)] truncate">Mesero: {{ $comanda->mesero->nombre ?? 'N/A' }}</p>
                     </div>
 
-                    {{-- LISTA DE PRODUCTOS --}}
                     <div class="p-4 flex-1 min-w-0">
                         <ul class="space-y-2">
-                            @foreach($orden->detalles as $detalle)
+                            @foreach($comanda->detalles as $detalle)
                                 <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-0.5">
                                     <span class="font-bold text-[var(--text-color)] break-words flex flex-wrap items-center gap-1.5">
                                         {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
                                         @if($detalle->gramaje)
                                             @php
-                                                // El gramaje viene de una columna DECIMAL, así que MySQL
-                                                // siempre regresa los 2 decimales (ej. "650.00"). Aquí se
-                                                // quitan los ceros sobrantes para mostrar "650g" en vez de
-                                                // "650.00g", conservando decimales reales si los hay (ej. 650.5g).
                                                 $gramajeLimpio = rtrim(rtrim(number_format((float) $detalle->gramaje, 2, '.', ''), '0'), '.');
                                             @endphp
                                             <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-orange-400 bg-orange-500/10 border border-orange-500/30 px-1.5 py-0.5 rounded-md">
@@ -102,12 +91,12 @@
                     </div>
                     
                     <div class="p-3 sm:p-4 bg-[var(--bg-color)] border-t border-[var(--border-color)]">
-                        <form action="{{ route('admin.cocina.orden.estado', $orden->id) }}" method="POST">
+                        <form action="{{ route('admin.cocina.orden.estado', $comanda->orden_id) }}" method="POST">
                             @csrf @method('PATCH')
-                            <input type="hidden" name="estado" value="{{ $orden->estado === 'pendiente' ? 'en proceso' : 'servida' }}">
-                            <button type="submit" {{ $orden->estado === 'servida' ? 'disabled' : '' }} 
+                            <input type="hidden" name="estado" value="{{ $comanda->estado === 'pendiente' ? 'en proceso' : 'servida' }}">
+                            <button type="submit" {{ $comanda->estado === 'servida' ? 'disabled' : '' }} 
                                 class="w-full py-3.5 rounded-xl font-black uppercase text-[12px] tracking-[0.1em] transition-all active:scale-95 {{ $config['btn'] }}">
-                                {{ $orden->estado === 'pendiente' ? 'Iniciar Preparación' : ($orden->estado === 'en proceso' ? 'Marcar como Lista' : 'Entregada') }}
+                                {{ $comanda->estado === 'pendiente' ? 'Iniciar Preparación' : ($comanda->estado === 'en proceso' ? 'Marcar como Lista' : 'Entregada') }}
                             </button>
                         </form>
                     </div>
@@ -116,13 +105,9 @@
         </div>
     @endif
 </div>
-@endsection {{-- <--- ESTO ES VITAL QUE ESTÉ AL FINAL --}}
+@endsection
 
 <script>
-    /**
-     * Carga dinámica de mesas para el KDS.
-     * Actualiza la lista cada 5 segundos mediante polling.
-     */
     async function cargarKdsMesas() {
         try {
             const res = await fetch('{{ route("mesero.mesas.abiertas") }}', { 
@@ -186,10 +171,8 @@
         }
     }
 
-    // Inicialización al cargar el DOM
     document.addEventListener('DOMContentLoaded', () => {
         cargarKdsMesas();
-        // Polling de seguridad ajustado a 10 segundos para no saturar el servidor
         setInterval(cargarKdsMesas, 10000);
     });
 </script>

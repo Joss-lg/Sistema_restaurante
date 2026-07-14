@@ -34,6 +34,13 @@ class ComandaService
                 ]
             );
 
+            // NUEVO: identifica esta ronda/lote de envío a cocina. Aunque la
+            // Orden ya exista (se reutiliza para la mesa mientras siga
+            // "pendiente"), cada vez que se presiona "Enviar Orden" se genera
+            // un lote distinto, para que Cocina pueda mostrar tarjetas
+            // separadas por ronda de envío en lugar de mezclarlas todas.
+            $loteEnvio = now()->format('YmdHis') . '-' . rand(1000, 9999);
+
             // Actualizamos los metadatos dinámicos calculados en el POS
             $ordenDataUpdate = [];
             if (Schema::hasColumn('ordenes', 'personas')) $ordenDataUpdate['personas'] = $personas;
@@ -66,6 +73,7 @@ class ComandaService
                 // 2. Crear Registro del Detalle
                 $detalleData = [
                     'orden_id' => $orden->id,
+                    'lote_envio' => $loteEnvio, // NUEVO
                     'producto_id' => $platillo['id'],
                     'cantidad' => $platillo['cantidad'],
                     'precio_unitario' => $platillo['precio'],
@@ -172,6 +180,11 @@ class ComandaService
                 ]);
             }
 
+            // NUEVO: los productos traspasados (tanto los ya enviados como
+            // los nuevos) forman su propia ronda/lote en la orden destino,
+            // para que Cocina los vea como una tarjeta separada.
+            $loteEnvio = now()->format('YmdHis') . '-' . rand(1000, 9999);
+
             $montoTransferido = 0;
 
             // 2. Mover productos ya enviados (sin volver a descontar inventario)
@@ -180,7 +193,10 @@ class ComandaService
                 foreach ($detallesExistentes as $detalle) {
                     $montoTransferido += $detalle->cantidad * $detalle->precio_unitario;
                 }
-                DetalleOrden::whereIn('id', $detalleIds)->update(['orden_id' => $ordenDestino->id]);
+                DetalleOrden::whereIn('id', $detalleIds)->update([
+                    'orden_id' => $ordenDestino->id,
+                    'lote_envio' => $loteEnvio, // NUEVO
+                ]);
             }
 
             // 3. Crear productos nuevos (del ticket) en la orden destino y descontar inventario
@@ -199,6 +215,7 @@ class ComandaService
 
                 $detalleData = [
                     'orden_id'        => $ordenDestino->id,
+                    'lote_envio'      => $loteEnvio, // NUEVO
                     'producto_id'     => $platillo['id'],
                     'cantidad'        => $platillo['cantidad'],
                     'precio_unitario' => $platillo['precio'],
