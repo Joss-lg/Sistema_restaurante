@@ -13,10 +13,10 @@
             <h1 class="text-xl sm:text-3xl font-black tracking-tight text-[var(--text-color)]">Menú de Productos</h1>
             <p class="text-xs sm:text-sm font-medium text-[var(--text-muted)] mt-1">Gestiona los productos del restaurante</p>
         </div>
-        <button onclick="openModalProducto()" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-3 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-[0.98]">
-            <i class="fas fa-plus text-[12px]"></i>
-            <span>Agregar Producto</span>
-        </button>
+<button onclick="abrirModalCrear()" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-3 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-[0.98]">
+    <i class="fas fa-plus text-[12px]"></i>
+    <span>Agregar Producto</span>
+</button>
     </div>
 
     {{-- Estadísticas --}}
@@ -209,20 +209,6 @@
         if (n.includes('sopa'))                                return 'fas fa-bowl-food';
         if (n.includes('abarrote'))                            return 'fas fa-box-open';
         return 'fas fa-concierge-bell';
-    }
- 
-    function openModalProducto() {
-        estadoGlobal.editandoId = null;
-        const form = document.getElementById('formulario-crear-producto');
-        if (form) form.reset();
-        document.getElementById('categoria_nombre').value = '';
-        document.getElementById('categoria_id').value     = '';
-        document.getElementById('descripcion').value      = '';
-        document.getElementById('se_vende_por_peso').checked = false;
-        toggleModoVentaPeso('crear');
-        limpiarIngredientesContainer('crear');
-        agregarIngrediente('crear');
-        _abrirModal('modal-crear-alimento', 'modal-crear-panel');
     }
  
     function eliminarProducto(id) {

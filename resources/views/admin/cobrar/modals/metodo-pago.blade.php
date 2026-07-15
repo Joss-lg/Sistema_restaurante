@@ -46,19 +46,48 @@
                 </div>
             </div>
 
-            <div class="!bg-gray-50 dark:!bg-black/20 p-3 rounded-2xl border !border-gray-200 dark:!border-white/5">
-                <label class="block text-xs font-black uppercase text-emerald-500 mb-1">💵 Monto Efectivo</label>
-                <input type="number" id="comb-input-efectivo" step="0.01" min="0" placeholder="0.00" class="w-full bg-white dark:bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl px-3 py-2 !text-gray-900 dark:!text-white font-mono font-bold focus:outline-none focus:border-emerald-500">
+            {{-- EFECTIVO --}}
+            <div class="!bg-gray-50 dark:!bg-black/20 p-3.5 rounded-2xl border !border-gray-200 dark:!border-white/5">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="min-w-[100px]">
+                        <label class="text-xs font-black uppercase text-emerald-500 select-none">💵 Efectivo</label>
+                    </div>
+                    <div class="flex-1">
+                        <input type="number" id="comb-input-efectivo" step="0.01" min="0" placeholder="0.00" class="w-full text-right bg-white dark:bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl px-3 py-2 !text-gray-900 dark:!text-white font-mono font-bold focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
             </div>
 
-            <div class="!bg-gray-50 dark:!bg-black/20 p-3 rounded-2xl border !border-gray-200 dark:!border-white/5">
-                <label class="block text-xs font-black uppercase text-violet-500 mb-1">💳 Monto Tarjeta</label>
-                <input type="number" id="comb-input-tarjeta" step="0.01" min="0" placeholder="0.00" class="w-full bg-white dark:bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl px-3 py-2 !text-gray-900 dark:!text-white font-mono font-bold focus:outline-none focus:border-violet-500">
+            {{-- TARJETA --}}
+            <div class="!bg-gray-50 dark:!bg-black/20 p-3.5 rounded-2xl border !border-gray-200 dark:!border-white/5 space-y-3">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="min-w-[100px]">
+                        <label class="text-xs font-black uppercase text-violet-500 select-none">💳 Tarjeta</label>
+                    </div>
+                    <div class="flex-1">
+                        <input type="number" id="comb-input-tarjeta" step="0.01" min="0" placeholder="0.00" class="w-full text-right bg-white dark:bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl px-3 py-2 !text-gray-900 dark:!text-white font-mono font-bold focus:outline-none focus:border-violet-500">
+                    </div>
+                </div>
+                {{-- Referencia Tarjeta justo abajo del monto --}}
+                <div class="pl-2">
+                    <input type="text" id="comb-ref-tarjeta" placeholder="N° Referencia / Voucher" class="w-full bg-white dark:bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl px-3 py-2 text-sm !text-gray-900 dark:!text-white font-mono focus:outline-none focus:border-violet-500">
+                </div>
             </div>
 
-            <div class="!bg-gray-50 dark:!bg-black/20 p-3 rounded-2xl border !border-gray-200 dark:!border-white/5">
-                <label class="block text-xs font-black uppercase text-sky-500 mb-1">🏦 Monto Transferencia</label>
-                <input type="number" id="comb-input-transferencia" step="0.01" min="0" placeholder="0.00" class="w-full bg-white dark:bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl px-3 py-2 !text-gray-900 dark:!text-white font-mono font-bold focus:outline-none focus:border-sky-500">
+            {{-- TRANSFERENCIA --}}
+            <div class="!bg-gray-50 dark:!bg-black/20 p-3.5 rounded-2xl border !border-gray-200 dark:!border-white/5 space-y-3">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="min-w-[100px]">
+                        <label class="text-xs font-black uppercase text-sky-500 select-none">🏦 Transf.</label>
+                    </div>
+                    <div class="flex-1">
+                        <input type="number" id="comb-input-transferencia" step="0.01" min="0" placeholder="0.00" class="w-full text-right bg-white dark:bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl px-3 py-2 !text-gray-900 dark:!text-white font-mono font-bold focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+                {{-- Referencia Transferencia justo abajo del monto --}}
+                <div class="pl-2">
+                    <input type="text" id="comb-ref-transferencia" placeholder="Código de Autorización / Clave" class="w-full bg-white dark:bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl px-3 py-2 text-sm !text-gray-900 dark:!text-white font-mono focus:outline-none focus:border-sky-500">
+                </div>
             </div>
 
             <button type="button" id="btn-confirmar-combinado" disabled class="w-full py-4 px-4 !bg-gray-100 dark:!bg-white/5 !text-gray-400 dark:!text-white/30 font-black text-sm uppercase tracking-wider rounded-2xl border !border-gray-200 dark:!border-white/5 cursor-not-allowed transition-all outline-none">

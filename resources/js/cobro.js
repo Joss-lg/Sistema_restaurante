@@ -30,6 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const cDisplayStatus = document.getElementById('comb-monto-status');
     const cLabelStatus = document.getElementById('comb-label-status');
     
+    // ELEMENTOS DE REFERENCIA (Fijos y Directos)
+    const cInputRefTarjeta = document.getElementById('comb-ref-tarjeta');
+    const cInputRefTransferencia = document.getElementById('comb-ref-transferencia');
+    
     // Elementos de estado en el panel derecho
     const inputMetodoOculto = document.getElementById('metodo-pago');
     const labelMetodoVisible = document.getElementById('metodo-pago-label');
@@ -92,20 +96,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCerrarModal && modalMetodo) {
         btnCerrarModal.addEventListener('click', () => {
             if (modoCombinadoActivo) {
-                // Si está en la vista mixta, regresa a la lista de métodos individuales
                 modoCombinadoActivo = false;
                 tituloModal.textContent = "Método de Pago";
                 seccionCombinado.classList.add('hidden');
                 seccionLista.classList.remove('hidden');
                 btnCerrarModal.textContent = "Cancelar";
             } else {
-                // Si ya está en la lista inicial, cierra el modal por completo
                 modalMetodo.classList.add('hidden');
             }
         });
     }
 
-    // SELECCIÓN DE MÉTODO INDIVIDUAL EN LA LISTA (Actualiza panel-pago)
+    // SELECCIÓN DE MÉTODO INDIVIDUAL EN LA LISTA
     document.querySelectorAll('.metodo-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const metodo = this.getAttribute('data-metodo');
@@ -118,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 icon.className = this.querySelector('i').className + " text-lg";
             }
             
-            // Cierra el modal de inmediato tras la selección rápida
             if (modalMetodo) modalMetodo.classList.add('hidden');
         });
     });
@@ -138,16 +139,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 cDisplayTotal.textContent = '$' + totalPagar.toLocaleString('en-US', {minimumFractionDigits: 2});
             }
             
-            // Limpiar inputs al abrir
             if (cInputEfectivo) cInputEfectivo.value = '';
             if (cInputTarjeta) cInputTarjeta.value = '';
             if (cInputTransferencia) cInputTransferencia.value = '';
+            
+            if (cInputRefTarjeta) cInputRefTarjeta.value = '';
+            if (cInputRefTransferencia) cInputRefTransferencia.value = '';
             
             calcularMatematicasCombinado();
         });
     }
 
-    // Monitorear en tiempo real los 3 campos de entrada numéricos
     [cInputEfectivo, cInputTarjeta, cInputTransferencia].forEach(input => {
         if (input) {
             input.addEventListener('input', () => {
@@ -171,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cDisplayStatus.textContent = '$' + diferencia.toLocaleString('en-US', {minimumFractionDigits: 2});
             cDisplayStatus.className = 'text-xl font-black text-emerald-500';
 
-            // Habilitar botón de confirmation con estilo activo
             btnConfirmarCombinado.disabled = false;
             btnConfirmarCombinado.className = "w-full py-4 px-4 bg-emerald-600 dark:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider rounded-2xl border border-emerald-500 hover:bg-emerald-500 transition-all cursor-pointer";
         } else {
@@ -179,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cDisplayStatus.textContent = '$' + Math.abs(diferencia).toLocaleString('en-US', {minimumFractionDigits: 2});
             cDisplayStatus.className = 'text-xl font-black text-red-500';
 
-            // Bloquear botón si falta dinero por cubrir
             btnConfirmarCombinado.disabled = true;
             btnConfirmarCombinado.className = "w-full py-4 px-4 !bg-gray-100 dark:!bg-white/5 !text-gray-400 dark:!text-white/30 font-black text-sm uppercase tracking-wider rounded-2xl border !border-gray-200 dark:!border-white/5 cursor-not-allowed transition-all";
         }
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnPagar.addEventListener('click', async () => {
             const montoRaw = displayMonto.textContent.replace(/[^0-9.]/g, '');
             const inputMesa = document.getElementById('mesa-id');
-            const metodo = inputMetodoOculto ? inputMetodoOculto.value : 'Efectivo';
+            const metodo = inputMetodoOculto ? inputMetodoOculto.value : 'efectivo';
 
             if (!inputMesa) {
                 alert('Faltan datos de la mesa.');
@@ -207,7 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 mesa_id: inputMesa.value,
                 pagos: [
-                    { metodo: metodo.toLowerCase(), monto: parseFloat(montoRaw) || totalPagar }
+                    { 
+                        metodo: metodo.toLowerCase(), 
+                        monto: parseFloat(montoRaw) || totalPagar,
+                        referencia: null 
+                    }
                 ]
             };
 
@@ -224,12 +228,30 @@ document.addEventListener('DOMContentLoaded', () => {
             btnConfirmarCombinado.disabled = true;
             btnConfirmarCombinado.innerText = 'PROCESANDO...';
 
+            const montoEfectivo = parseFloat(cInputEfectivo.value) || 0;
+            const montoTarjeta = parseFloat(cInputTarjeta.value) || 0;
+            const montoTransferencia = parseFloat(cInputTransferencia.value) || 0;
+
             const payload = {
                 mesa_id: inputMesa.value,
                 pagos: [
-                    { metodo: 'efectivo', monto: parseFloat(cInputEfectivo.value) || 0 },
-                    { metodo: 'tarjeta', monto: parseFloat(cInputTarjeta.value) || 0 },
-                    { metodo: 'transferencia', monto: parseFloat(cInputTransferencia.value) || 0 }
+                    { 
+                        metodo: 'efectivo', 
+                        monto: montoEfectivo, 
+                        referencia: null 
+                    },
+                    { 
+                        metodo: 'tarjeta', 
+                        monto: montoTarjeta, 
+                        // Optimizamos: Si el monto es 0, forzamos null ignorando texto huérfano en el input
+                        referencia: (montoTarjeta > 0 && cInputRefTarjeta) ? cInputRefTarjeta.value.trim() : null 
+                    },
+                    { 
+                        metodo: 'transferencia', 
+                        monto: montoTransferencia, 
+                        // Optimizamos: Si el monto es 0, forzamos null ignorando texto huérfano en el input
+                        referencia: (montoTransferencia > 0 && cInputRefTransferencia) ? cInputRefTransferencia.value.trim() : null 
+                    }
                 ]
             };
 
@@ -246,7 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Validación defensiva por si la variable global no se declaró en la vista
         const urlEnvio = (window.COBRO_CONFIG && window.COBRO_CONFIG.urlPago) 
             ? window.COBRO_CONFIG.urlPago 
             : '/caja/procesar-pago';

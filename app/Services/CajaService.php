@@ -14,7 +14,8 @@ class CajaService
      */
     public function obtenerDesgloseMesa(Mesa $mesa): array
     {
-        $ordenesActivas = $mesa->ordenesActivas()->get();
+        // Optimizamos cargando 'detalles' desde el inicio para evitar el problema N+1
+        $ordenesActivas = $mesa->ordenesActivas()->with('detalles')->get();
         
         $subtotal = $ordenesActivas->sum(function ($orden) {
             return $orden->detalles->sum(function ($detalle) {
@@ -23,17 +24,19 @@ class CajaService
         });
 
         $propina = $ordenesActivas->sum('propina');
-        $iva = round($subtotal * 0.16, 2);
+        
+        // NOTA: Cambia esto si tus precios ya incluyen IVA en la base de datos.
+        // Si ya incluyen IVA: $iva = round($subtotal - ($subtotal / 1.16), 2);
+        $iva = round($subtotal * 0.16, 2); 
         $total = round($subtotal + $iva + $propina, 2);
 
         return [
-            'subtotal' => $subtotal,
-            'iva' => $iva,
-            'propina' => $propina,
-            'total' => $total,
-            'ordenes' => $ordenesActivas,
-            // Agregamos estos datos para la vista de cobro
-            'cuentasDivididas' => $mesa->cuenta_dividida ?? false,
+            'subtotal'             => round($subtotal, 2),
+            'iva'                  => $iva,
+            'propina'              => round($propina, 2),
+            'total'                => $total,
+            'ordenes'              => $ordenesActivas,
+            'cuentasDivididas'     => $mesa->cuenta_dividida ?? false,
             'totalCuentasDivision' => $mesa->numero_cuenta_division ?? 1
         ];
     }
@@ -44,12 +47,22 @@ class CajaService
     public function liberarMesa(Mesa $mesa): bool
     {
         return DB::transaction(function () use ($mesa) {
+            // Pasamos a pagadas todas las órdenes que estaban en proceso en la mesa
+            $mesa->ordenes()
+                ->whereIn('estado', Orden::getEstadosActivos())
+                ->update([
+                    'estado'     => Orden::ESTADO_PAGADA,
+                    'cerrada_el' => Carbon::now(),
+                ]);
+
+            // Reseteamos por completo la mesa para dejarla lista para nuevos clientes
             $mesa->update([
-                'estado' => Mesa::ESTADO_DISPONIBLE,
-                'mesero_id' => null,
+                'estado'        => Mesa::ESTADO_DISPONIBLE,
+                'mesero_id'     => null,
                 'total_consumo' => 0,
-                'updated_at' => Carbon::now(),
+                'updated_at'    => Carbon::now(),
             ]);
+
             return true;
         });
     }

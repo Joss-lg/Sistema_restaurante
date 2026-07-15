@@ -10,6 +10,10 @@
         const menuCat = document.getElementById('menuCategorias');
         const gridProd = document.getElementById('gridProductos');
 
+        if (!menuCat || !gridProd) {
+            return; 
+        }
+
         menuCat.innerHTML = `<button type="button" onclick="filtrarCategoria('Todos', this)" class="cat-btn px-6 py-2.5 rounded-full bg-[var(--text-main)] text-[var(--bg-base)] text-[11px] font-bold tracking-wide shadow-sm transition-all outline-none border border-transparent">Todos</button>`;
 
         if (categoriasDB.length > 0) {
@@ -71,6 +75,8 @@
     document.addEventListener('DOMContentLoaded', renderizarMenu);
 
     window.filtrarCategoria = function (nombreCat, btn) {
+        if (!btn) return;
+
         document.querySelectorAll('.cat-btn').forEach(el => el.className = "cat-btn px-6 py-2.5 rounded-full bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-[var(--border-highlight)] text-[11px] font-semibold tracking-wide shadow-sm transition-all outline-none");
         btn.className = "cat-btn px-6 py-2.5 rounded-full bg-[var(--text-main)] text-[var(--bg-base)] text-[11px] font-bold tracking-wide shadow-sm transition-all outline-none border border-transparent";
 

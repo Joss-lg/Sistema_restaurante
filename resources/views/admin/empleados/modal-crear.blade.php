@@ -1,3 +1,20 @@
+<style>
+    /* Solo aplicamos el truco de subir el modal en pantallas grandes (computadoras/punto de venta) */
+    @media (min-width: 768px) {
+        /* 1. Mandamos el modal a la parte de arriba de la pantalla */
+        body.teclado-virtual-abierto #modalCrearEmpleado {
+            align-items: flex-start !important;
+            padding-top: 15px !important;
+        }
+        
+        /* 2. Hacemos que el modal sea más corto para que no choque con el teclado y active el scroll interno */
+        body.teclado-virtual-abierto #modalCrearContent {
+            transform: translateY(0) scale(0.98) !important;
+            max-height: calc(100dvh - 340px) !important; 
+        }
+    }
+</style>
+
 {{-- CONTENEDOR PRINCIPAL DEL MODAL (Fondo oscuro translúcido) --}}
 {{-- Se cambió a z-[99999] para romper el bloqueo del menú lateral en celulares --}}
 <div id="modalCrearEmpleado" class="fixed inset-0 z-[99999] hidden bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 transition-all duration-300">
@@ -24,7 +41,7 @@
                     </button>
                 </div>
 
-                {{-- Campo: Nombre Completo --}}
+                {{-- Campo: Nombre Completo (TECLADO VIRTUAL DE TEXTO) --}}
                 <div class="space-y-2">
                     <label class="block text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Nombre Completo</label>
                     <div class="relative group">
@@ -32,6 +49,7 @@
                             <i class="fas fa-user text-gray-400 dark:text-gray-500 group-focus-within:text-blue-600 transition-colors text-sm"></i>
                         </div>
                         <input type="text" name="nombre" id="crear_nombre" required placeholder="Ej. Juan Pérez" autocomplete="off"
+                            readonly data-teclado="texto"
                             class="w-full h-12 bg-gray-50 dark:bg-[#1a1d20] border border-gray-300 dark:border-gray-700 rounded-xl pl-11 pr-4 text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm">
                     </div>
                 </div>
@@ -68,14 +86,15 @@
                     </label>
                 </div>
 
-                {{-- Contenedor dinámico: PIN --}}
+                {{-- Contenedor dinámico: PIN (TECLADO VIRTUAL NUMÉRICO) --}}
                 <div id="crear_accesoFields" class="hidden transition-all duration-300 space-y-2">
                     <label class="block text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">PIN de Seguridad (4 dígitos)</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="fas fa-lock text-gray-400 dark:text-gray-500 group-focus-within:text-blue-500 transition-colors text-sm"></i>
                         </div>
-                        <input type="password" name="codigo_empleado" id="crear_codigo" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="new-password"
+                        <input type="password" name="codigo_empleado" id="crear_codigo" maxlength="4" pattern="[0-9]*" placeholder="••••" autocomplete="new-password"
+                            readonly data-teclado="numerico" data-teclado-max="4" inputmode="none"
                             class="w-full h-12 bg-gray-50 dark:bg-[#1a1d20] border border-gray-300 dark:border-gray-700 rounded-xl pl-11 pr-4 text-lg tracking-[0.4em] font-black text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm">
                     </div>
                 </div>

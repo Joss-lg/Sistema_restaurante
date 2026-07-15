@@ -18,10 +18,10 @@
         @endif
     </div>
 
-    {{-- Grid Principal: Reajustado a 12 columnas distribuidas para mayor amplitud --}}
+    {{-- Grid Principal --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start w-full">
         
-        {{-- COLUMNA IZQUIERDA: Resumen de Turno (Se mantiene firme en 3 columnas para no estirarse de más) --}}
+        {{-- COLUMNA IZQUIERDA: Resumen de Turno --}}
         <div class="lg:col-span-3 bg-[var(--card-color)] border border-[var(--border-color)] rounded-2xl shadow-xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group lg:min-h-[500px]">
             <div class="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-blue-500 to-indigo-600"></div>
             
@@ -48,15 +48,13 @@
                     </div>
                 </div>
 
-                {{-- Bloque de Contabilidad Flujo Matemático --}}
-               {{-- Bloque de Contabilidad Flujo Matemático Desglosado --}}
+                {{-- Bloque de Contabilidad Flujo Matemático Desglosado --}}
                 <div class="bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4 space-y-2.5 sm:space-y-3 shadow-inner">
                     <div class="flex justify-between items-center text-xs sm:text-sm">
                         <span class="text-[var(--text-muted)] font-medium">Saldo Inicial:</span>
                         <span class="font-bold text-[var(--text-color)]">${{ number_format($cajaActiva->monto_inicial, 2) }}</span>
                     </div>
                     
-                    {{-- Desglose Real por Método de Pago --}}
                     <div class="flex justify-between items-center text-xs sm:text-sm border-t border-[var(--border-color)]/30 pt-2">
                         <span class="text-[var(--text-muted)] font-medium flex items-center">
                             <i class="fas fa-money-bill-wave text-emerald-500 mr-1.5 w-4"></i> + Ventas (Efectivo):
@@ -92,20 +90,18 @@
 
             {{-- Acciones del Turno --}}
             <div class="mt-6 sm:mt-8 space-y-3">
-                {{-- Botón de Exportar Reporte (Convertido a Enlace para Generar PDF) --}}
                 <a href="{{ route('admin.caja.reporte.pdf', $cajaActiva->id) }}" target="_blank"
                     class="w-full flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-color)] hover:bg-blue-500/10 hover:border-blue-500/40 text-[var(--text-color)] font-bold text-[11px] sm:text-xs tracking-widest uppercase py-3 px-4 rounded-xl transition-all duration-300 shadow-md group">
                      <i class="fas fa-file-export mr-2 text-[var(--text-muted)] group-hover:text-blue-500"></i> Exportar Reporte
                 </a>
                 
-                {{-- Botón de Cerrar Caja --}}
                 <button id="btnAbrirCierreCaja" type="button" class="w-full flex items-center justify-center bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500 hover:text-white text-rose-500 font-bold text-[11px] sm:text-xs tracking-widest uppercase py-3 px-4 rounded-xl transition-all duration-300 shadow-md shadow-rose-500/5 cursor-pointer">
                     <i class="fas fa-lock mr-2"></i> Cerrar Caja
                 </button>
             </div>
         </div>
 
-        {{-- COLUMNA DERECHA: Tablas de Historial (Crecieron a 9 de 12 columnas para maximizar el espacio) --}}
+        {{-- COLUMNA DERECHA: Tablas de Historial --}}
         <div class="lg:col-span-9 space-y-4 sm:space-y-6 w-full">
             
             {{-- BLOQUE 1: Ventas del Turno --}}
@@ -134,17 +130,27 @@
                                     <th class="py-2.5 sm:py-3.5 px-3 sm:px-6">Método de Pago</th>
                                     <th class="py-2.5 sm:py-3.5 px-3 sm:px-6">Monto</th>
                                 </tr>
-                            </thead>
+                            </tbody>
                             <tbody class="divide-y divide-[var(--border-color)] text-[var(--text-color)]">
                                 @foreach($historicoVentas as $venta)
                                     <tr class="hover:bg-[var(--input-bg)]/50 transition-colors">
                                         <td class="py-3 sm:py-4 px-3 sm:px-6 text-[10px] sm:text-xs font-medium text-[var(--text-muted)] whitespace-nowrap">{{ \Carbon\Carbon::parse($venta->fecha)->format('H:i') }} hrs</td>
                                         <td class="py-3 sm:py-4 px-3 sm:px-6 font-semibold">{{ $venta->concepto }}</td>
+                                        
+                                        {{-- MODIFICACIÓN EN LA COLUMNA DE MÉTODO DE PAGO PARA INCLUIR LA REFERENCIA --}}
                                         <td class="py-3 sm:py-4 px-3 sm:px-6">
-                                            <span class="px-2 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-black tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 uppercase whitespace-nowrap">
-                                                {{ $venta->metodo_pago }}
-                                            </span>
+                                            <div class="flex flex-col items-center justify-center gap-1.5">
+                                                <span class="px-2 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-black tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 uppercase whitespace-nowrap">
+                                                    {{ $venta->metodo_pago }}
+                                                </span>
+                                                @if(!empty($venta->referencia))
+                                                    <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-500/10 border border-zinc-500/20 text-zinc-400 uppercase tracking-wide whitespace-nowrap shadow-inner">
+                                                        <i class="fas fa-hashtag text-[8px] text-zinc-500 mr-0.5"></i>Ref: {{ $venta->referencia }}
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
+                                        
                                         <td class="py-3 sm:py-4 px-3 sm:px-6 font-black text-emerald-500 whitespace-nowrap">+${{ number_format($venta->monto, 2) }}</td>
                                     </tr>
                                 @endforeach
@@ -180,7 +186,7 @@
                                     <th class="py-2.5 sm:py-3.5 px-3 sm:px-6 text-left">Concepto / Descripción</th>
                                     <th class="py-2.5 sm:py-3.5 px-3 sm:px-6">Monto</th>
                                 </tr>
-                            </thead>
+                            </tbody>
                             <tbody class="divide-y divide-[var(--border-color)] text-[var(--text-color)]">
                                 @foreach($historicoGastos as $gasto)
                                     <tr class="hover:bg-[var(--input-bg)]/50 transition-colors">
@@ -224,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAbrir.addEventListener('click', () => {
             modal.classList.remove('hidden');
             if (inputMonto) {
-                setTimeout(() => inputMonto.focus(), 50); // Pequeño delay para asegurar el enfoque del input
+                setTimeout(() => inputMonto.focus(), 50);
             }
         });
     }

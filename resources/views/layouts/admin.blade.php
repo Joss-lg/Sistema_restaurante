@@ -260,5 +260,10 @@
         });
     </script>
     @stack('scripts')
+
+    <!-- AQUÍ SE AGREGARON LOS ARCHIVOS DEL TECLADO VIRTUAL -->
+    @include('partials.teclado-virtual')
+    <script src="{{ asset('js/teclado-virtual.js') }}"></script>
+
 </body>
 </html>

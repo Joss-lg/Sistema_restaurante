@@ -77,6 +77,9 @@
         </main>
     </div>
     @stack('scripts')
+
+    <!-- Archivos del Teclado Virtual (Con parámetro anti-caché ?v=2) -->
+    @include('partials.teclado-virtual')
+    <script src="{{ asset('js/teclado-virtual.js') }}?v=2"></script>
 </body>
 </html>
-

@@ -1,5 +1,5 @@
 <div id="modalCrear" class="fixed inset-0 z-[999] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto overflow-x-hidden p-4">
-    <div class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-8 unique-scrollbar max-h-[90vh] overflow-y-auto overflow-x-hidden">
+    <div class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-8 unique-scrollbar max-h-[90vh] overflow-y-auto overflow-x-hidden" id="createContainer">
 
         {{-- Resplandor decorativo de fondo --}}
         <div class="absolute -top-32 -right-32 w-64 h-64 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -15,17 +15,17 @@
             </div>
         </div>
 
-        {{-- La promoción siempre se crea activa; se mantiene oculto para no perder el dato al guardar --}}
+        {{-- La promoción siempre se crea activa --}}
         <input type="checkbox" name="esta_activa" value="1" checked class="hidden" form="formCrearPromocion">
 
         <form id="formCrearPromocion" onsubmit="guardarPromocion(event)" class="relative z-10">
             @csrf
             <div class="space-y-6">
 
-                {{-- Nombre de Promoción --}}
+                {{-- Nombre de Promoción (Añadido soporte teclado) --}}
                 <div class="group">
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Nombre de la Promoción</label>
-                    <input type="text" name="nombre" required class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner">
+                    <input type="text" name="nombre" required readonly data-teclado="texto" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner">
                 </div>
 
                 {{-- Fila: Tipo y Valor --}}
@@ -42,9 +42,10 @@
                             <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 !text-gray-400 dark:!text-gray-500 pointer-events-none text-xs"></i>
                         </div>
                     </div>
+                    {{-- Valor Descuento (Añadido soporte teclado) --}}
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Valor Descuento / Cantidad</label>
-                        <input type="number" name="valor_descuento" required step="0.01" min="0" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner" placeholder="Ej: 15.00">
+                        <input type="text" name="valor_descuento" required readonly data-teclado="numerico" data-teclado-decimales="true" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner" placeholder="Ej: 15.00">
                     </div>
                 </div>
 
@@ -71,21 +72,10 @@
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-3">Días de Aplicación Semanal</label>
                     <div class="grid grid-cols-4 sm:flex gap-2 flex-wrap">
                         @php
-                            $mapeoDias = [
-                                ['L' => 1, 'nombre' => 'Lunes'],
-                                ['M' => 2, 'nombre' => 'Martes'],
-                                ['M' => 3, 'nombre' => 'Miércoles'],
-                                ['J' => 4, 'nombre' => 'Jueves'],
-                                ['V' => 5, 'nombre' => 'Viernes'],
-                                ['S' => 6, 'nombre' => 'Sábado'],
-                                ['D' => 7, 'nombre' => 'Domingo']
-                            ];
+                            $mapeoDias = [['L' => 1], ['M' => 2], ['M' => 3], ['J' => 4], ['V' => 5], ['S' => 6], ['D' => 7]];
                         @endphp
                         @foreach($mapeoDias as $diaData)
-                            @php
-                                $letra = key($diaData);
-                                $num = $diaData[$letra];
-                            @endphp
+                            @php $letra = key($diaData); $num = $diaData[$letra]; @endphp
                             <label class="flex-1 min-w-[55px] flex flex-col items-center justify-center p-3 rounded-2xl border !border-gray-200 dark:!border-white/5 !bg-gray-50 dark:!bg-black/40 cursor-pointer hover:!border-blue-500/50 hover:!bg-blue-50 dark:hover:!bg-blue-500/10 transition-colors select-none group/day relative">
                                 <input type="checkbox" name="dias_semana[]" value="{{ $num }}" checked class="peer sr-only">
                                 <div class="w-5 h-5 rounded-lg border-2 !border-gray-300 dark:!border-gray-600 peer-checked:!border-blue-500 peer-checked:!bg-blue-500 flex items-center justify-center transition-all mb-1">
@@ -107,15 +97,7 @@
                                 <div class="flex-1">
                                     <p class="text-[13px] font-bold !text-gray-900 dark:!text-white group-hover/prod:!text-blue-600 dark:group-hover/prod:!text-blue-400 transition-colors leading-snug flex items-center gap-2">
                                         {{ $producto->nombre }}
-                                        @if($producto->se_vende_por_peso)
-                                            <span class="text-[8px] font-black uppercase tracking-widest !text-orange-500 !bg-orange-500/10 border !border-orange-500/20 px-1.5 py-0.5 rounded-md">Por peso</span>
-                                        @endif
                                     </p>
-                                    @if($producto->se_vende_por_peso)
-                                        <p class="!text-gray-500 dark:!text-gray-400 text-[11px] font-medium mt-0.5">${{ number_format($producto->precio_por_100g ?? 0, 2) }} MXN /100g</p>
-                                    @else
-                                        <p class="!text-gray-500 dark:!text-gray-400 text-[11px] font-medium mt-0.5">${{ number_format($producto->precio, 2) }} MXN</p>
-                                    @endif
                                 </div>
                             </label>
                         @endforeach
@@ -127,7 +109,6 @@
                     <button type="button" onclick="closeModal('modalCrear')" class="w-full sm:flex-1 !bg-gray-50 dark:!bg-black/40 hover:!bg-gray-200 dark:hover:!bg-white/10 border !border-gray-200 dark:!border-white/5 !text-gray-600 dark:!text-gray-300 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors outline-none">
                         Cancelar
                     </button>
-
                     <button type="submit" id="btn-guardar-promocion" class="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-[0_10px_25px_-5px_rgba(59,130,246,0.4)] transition-all outline-none">
                         Guardar Promoción
                     </button>
@@ -138,37 +119,26 @@
 </div>
 
 <style>
-    /* Scrollbar estilizado para adaptarse a ambos modos de color */
+    /* Ajuste para que el modal no sea tapado por el teclado */
+    @media (min-width: 768px) {
+        body.teclado-virtual-abierto #modalCrear { align-items: flex-start !important; padding-top: 10px !important; }
+        body.teclado-virtual-abierto #createContainer { max-height: 45dvh !important; }
+    }
     .unique-scrollbar::-webkit-scrollbar { width: 6px; }
-    .unique-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .unique-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-
-    @media (prefers-color-scheme: dark) {
-        .unique-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); }
-        .unique-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
-    }
-
-    /* Oculta el ícono nativo del navegador para los inputs de fecha y deja solo nuestro ícono personalizado */
-    .date-input-icon::-webkit-calendar-picker-indicator {
-        opacity: 0;
-        position: absolute;
-        right: 0;
-        width: 2.5rem;
-        height: 100%;
-        cursor: pointer;
-    }
+    @media (prefers-color-scheme: dark) { .unique-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); } }
+    .date-input-icon::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; right: 0; width: 2.5rem; height: 100%; cursor: pointer; }
 </style>
 
 <script>
-    /**
-     * Abre el selector de fecha nativo al hacer clic en el ícono de calendario personalizado
-     */
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof TecladoVirtual !== 'undefined') {
+            TecladoVirtual.attachAll();
+        }
+    });
     function abrirCalendario(inputId) {
         const input = document.getElementById(inputId);
-        if (input && typeof input.showPicker === 'function') {
-            input.showPicker();
-        } else if (input) {
-            input.focus();
-        }
+        if (input && typeof input.showPicker === 'function') { input.showPicker(); } 
+        else if (input) { input.focus(); }
     }
 </script>
