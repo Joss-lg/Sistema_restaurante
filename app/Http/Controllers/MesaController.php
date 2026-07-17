@@ -37,7 +37,18 @@ class MesaController extends Controller
         $esCapitan = $this->mesaService->esCapitan($usuario);
 
         $categorias = Categoria::all();
-        $productos = Producto::with(['categoria', 'modificadores'])->orderBy('nombre', 'asc')->get();
+
+        // OPTIMIZADO: no cargamos el blob 'imagen' completo, solo verificamos
+        // si existe (selectRaw) para que la tarjeta de comanda pueda mostrar
+        // la miniatura vía la ruta api.imagen sin inflar esta consulta.
+        $productos = Producto::with(['categoria', 'modificadores'])
+            ->select([
+                'id', 'categoria_id', 'nombre', 'descripcion', 'precio',
+                'se_vende_por_peso', 'precio_por_100g', 'esta_disponible',
+            ])
+            ->selectRaw('imagen IS NOT NULL as tiene_imagen')
+            ->orderBy('nombre', 'asc')
+            ->get();
 
         $nombreRol = strtolower(trim($usuario->rol?->nombre ?? ''));
         $esAdmin = $nombreRol === 'administrador';
@@ -271,5 +282,41 @@ class MesaController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    public function actualizarPropina(Request $request, $mesaId)
+    {
+        $request->validate([
+            'propina' => 'required|numeric|min:0'
+        ]);
+
+        $mesa = Mesa::findOrFail($mesaId);
+
+        // Buscamos la orden activa usando tus estados dinámicos de Orden
+        $orden = Orden::where('mesa_id', $mesa->id)
+            ->whereIn('estado', Orden::getEstadosActivos())
+            ->latest()
+            ->first();
+
+        if (!$orden) {
+            // Si no hay orden, la creamos igual que en actualizarPersonas pero con la propina
+            $orden = Orden::create([
+                'numero_orden'   => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                'mesa_id'        => $mesa->id,
+                'mesero_id'      => auth()->id(),
+                'estado'         => Orden::ESTADO_PENDIENTE,
+                'abierta_el'     => now(),
+                'personas'       => $mesa->capacidad ?? 1,
+                'propina'        => $request->propina,
+            ]);
+        } else {
+            // Si ya existe la orden, solo actualizamos la propina
+            $orden->update(['propina' => $request->propina]);
+        }
+
+        return response()->json([
+            'success' => true, 
+            'propina' => $orden->propina
+        ]);
     }
 }

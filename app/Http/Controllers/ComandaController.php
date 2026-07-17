@@ -237,7 +237,15 @@ public function transferirProductos(Request $request)
         $descuento = $subtotal * ($descuentoPorcentaje / 100);
         $subtotalConDescuento = max(0, $subtotal - $descuento);
         $iva = $subtotalConDescuento * 0.16;
-        $total = $subtotalConDescuento + $iva;
+        
+        // --- EXTRAER PROPINA ---
+        $propina = 0;
+        if ($orden && Schema::hasColumn('ordenes', 'propina')) {
+            $propina = (float) ($orden->propina ?? 0);
+        }
+
+        // El total final incluye el subtotal con descuento, el IVA y la propina voluntaria
+        $total = $subtotalConDescuento + $iva + $propina;
 
         return view('mesero.precuenta', [
             'mesa'      => $mesa,
@@ -246,6 +254,7 @@ public function transferirProductos(Request $request)
             'subtotal'  => $subtotal,
             'descuento' => $descuento,
             'iva'       => $iva,
+            'propina'   => $propina, // <-- Pasamos la propina a la vista
             'total'     => $total,
             'fecha'     => now(),
         ]);

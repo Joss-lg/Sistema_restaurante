@@ -33,6 +33,15 @@
 <script>
     // Variable global para almacenar el ID del producto a eliminar
     let idProductoAEliminar = null;
+
+    // ─── Bloqueo/desbloqueo de scroll del fondo (redeclarado por si este
+    // archivo carga antes que modal-crear.blade.php) ─────────────────────────
+    window.bloquearScrollFondo = window.bloquearScrollFondo || function () {
+        document.body.style.overflow = 'hidden';
+    };
+    window.desbloquearScrollFondo = window.desbloquearScrollFondo || function () {
+        document.body.style.overflow = '';
+    };
  
     // Abrir modal de eliminación
     function abrirModalEliminar(id, nombreProducto) {
@@ -41,9 +50,18 @@
  
         const modal = document.getElementById('modal-eliminar-alimento');
         const panel = document.getElementById('modal-eliminar-panel');
+
+        // NUEVO: mismo fix que en crear/editar — el layout tiene
+        // "h-screen overflow-hidden" en el contenedor con sidebar, lo que
+        // recorta cualquier "fixed" anidado dentro de él. Movemos el modal
+        // para que sea hijo directo de <body> y cubra toda la pantalla.
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
  
         modal.classList.remove('hidden');
         modal.classList.add('opacity-100');
+        bloquearScrollFondo();
  
         setTimeout(() => {
             panel.classList.add('opacity-100', 'scale-100');
@@ -56,6 +74,7 @@
         const panel = document.getElementById('modal-eliminar-panel');
  
         panel.classList.remove('opacity-100', 'scale-100');
+        desbloquearScrollFondo();
  
         setTimeout(() => {
             modal.classList.add('hidden');

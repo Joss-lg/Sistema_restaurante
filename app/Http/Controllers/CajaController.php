@@ -6,6 +6,7 @@ use App\Models\CajaMovimiento;
 use App\Models\FlujoCaja;
 use App\Models\Mesa;
 use App\Services\CajaService;
+use App\Services\TicketService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -16,10 +17,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class CajaController extends Controller
 {
     protected $cajaService;
+    protected $ticketService; // <-- nuevo
 
-    public function __construct(CajaService $cajaService)
+    public function __construct(CajaService $cajaService, TicketService $ticketService)
     {
         $this->cajaService = $cajaService;
+        $this->ticketService = $ticketService; // <-- nuevo
     }
 
     public function index()
@@ -132,5 +135,11 @@ class CajaController extends Controller
 
         $pdf = Pdf::loadView('admin.caja.reporte_pdf', compact('cajaActiva', 'totalVentas', 'totalGastos', 'saldoEstimado', 'historicoVentas', 'historicoGastos'));
         return $pdf->stream('reporte-caja-turno-' . $cajaActiva->id . '.pdf');
+    }
+
+   public function imprimirTicket($id)
+    {
+        $datos = $this->ticketService->obtenerDatosTicket((int) $id);
+        return view('admin.caja.ticket', $datos);
     }
 }

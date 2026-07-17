@@ -1,4 +1,18 @@
+{{-- ESTILOS DIRECTOS PARA EL TECLADO VIRTUAL --}}
+<style>
+    body.teclado-virtual-abierto #modalCrearMesa {
+        align-items: flex-start !important;
+        padding-top: 10px !important;
+    }
+
+    body.teclado-virtual-abierto #modalCrearMesaContent {
+        max-height: 45dvh !important;
+        transform: translateY(0) scale(0.95) !important;
+    }
+</style>
+
 <div class="min-h-screen bg-[var(--bg-color)] transition-colors duration-300">
+    {{-- CABECERA Y FILTROS --}}
     <div class="sticky top-0 z-50 bg-[var(--card-color)] border-b border-[var(--border-color)] shadow-sm">
         <div class="max-w-full px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -58,14 +72,14 @@
         </div>
     </div>
 
+    {{-- CONTENEDOR PRINCIPAL: MAPA Y PROPIEDADES --}}
     <div class="p-3 sm:p-6 lg:p-8">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+            {{-- MAPA --}}
             <div class="lg:col-span-3">
                 <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-lg">
-                    {{-- El canvas ahora usa un color de fondo para inputs que simula un "lienzo" hundido, compatible con ambos modos --}}
-                    {{-- Altura reducida en móvil para que no ocupe toda la pantalla y sea fácil llegar al panel de propiedades --}}
                     <div id="planoContenedor" class="relative w-full h-[380px] sm:h-[480px] lg:h-[600px] bg-[var(--input-bg)] overflow-auto shadow-inner border-b border-[var(--border-color)]" style="cursor: default;">
-                        </div>
+                    </div>
                 </div>
 
                 <div class="mt-4 flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm bg-[var(--card-color)] p-3 sm:p-4 rounded-xl border border-[var(--border-color)] shadow-sm">
@@ -84,8 +98,8 @@
                 </div>
             </div>
 
+            {{-- PANEL DE PROPIEDADES --}}
             <div class="lg:col-span-1">
-                {{-- Sticky solo en pantallas grandes: en móvil el panel va apilado debajo del canvas, no fijo --}}
                 <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl p-5 shadow-lg lg:sticky lg:top-28">
                     <h3 class="text-lg font-bold text-[var(--text-color)] mb-4 border-b border-[var(--border-color)] pb-2">Propiedades</h3>
 
@@ -100,12 +114,23 @@
                     <div id="formularioMesa" class="hidden space-y-4 mt-2">
                         <div>
                             <label class="block text-sm font-semibold text-[var(--text-color)] mb-1">Número</label>
-                            <input type="text" id="propNumero" class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner transition-colors">
+                            <input type="text" id="propNumero"
+                                autocomplete="off"
+                                data-teclado="texto"
+                                data-teclado-titulo="Número de Mesa"
+                                data-teclado-max="10"
+                                class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner transition-colors">
                         </div>
 
                         <div>
                             <label class="block text-sm font-semibold text-[var(--text-color)] mb-1">Capacidad</label>
-                            <input type="number" id="propCapacidad" class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner transition-colors" min="1" max="20">
+                            <input type="text" id="propCapacidad"
+                                inputmode="numeric"
+                                autocomplete="off"
+                                data-teclado="numerico"
+                                data-teclado-titulo="Capacidad"
+                                data-teclado-max="2"
+                                class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner transition-colors">
                         </div>
                         
                         <div id="botonesAccion" class="pt-4 flex gap-2 border-t border-[var(--border-color)] mt-2">
@@ -122,32 +147,48 @@
         </div>
     </div>
 
-    {{-- MODAL CREAR MESA --}}
-    <div id="modalCrearMesa" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-[var(--card-color)] rounded-xl shadow-2xl max-w-md w-full border border-[var(--border-color)] overflow-hidden max-h-[90vh] overflow-y-auto">
-            <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-color)]/50">
+    {{-- MODAL CREAR MESA (ACTUALIZADO CON FLEX-COL) --}}
+    <div id="modalCrearMesa" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[60] p-4 backdrop-blur-sm transition-all duration-300">
+        
+        {{-- Contenedor del Modal: flex flex-col para permitir scroll interno --}}
+        <div id="modalCrearMesaContent" class="bg-[var(--card-color)] rounded-xl shadow-2xl max-w-md w-full border border-[var(--border-color)] overflow-hidden max-h-[90vh] flex flex-col transition-all duration-200">
+            
+            {{-- HEADER: shrink-0 --}}
+            <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-color)]/50 shrink-0">
                 <h2 class="text-xl font-bold text-[var(--text-color)]">Crear Nueva Mesa</h2>
-                <button type="button" class="btnCerrarModal text-[var(--text-muted)] hover:text-red-500 transition-colors">
+                <button type="button" class="btnCerrarModal text-[var(--text-muted)] hover:text-red-500 transition-colors outline-none">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                     </svg>
                 </button>
             </div>
 
-            <div class="px-6 py-5 space-y-4">
+            {{-- BODY: overflow-y-auto --}}
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
                 <div>
                     <label class="block text-sm font-semibold text-[var(--text-color)] mb-1">Número de Mesa <span class="text-red-500">*</span></label>
-                    <input type="text" id="newNumero" class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner" placeholder="ej: M1, Mesa-1, Table 1" required>
+                    <input type="text" id="newNumero"
+                        autocomplete="off"
+                        data-teclado="texto"
+                        data-teclado-titulo="Número de Mesa"
+                        data-teclado-max="10"
+                        class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner transition-all" placeholder="ej: M1, Mesa-1, Table 1" required>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-[var(--text-color)] mb-1">Capacidad <span class="text-red-500">*</span></label>
-                    <input type="number" id="newCapacidad" class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner" min="1" max="20" value="4" required>
+                    <input type="text" id="newCapacidad"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        data-teclado="numerico"
+                        data-teclado-titulo="Capacidad"
+                        data-teclado-max="2"
+                        class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner transition-all" placeholder="4" required>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-[var(--text-color)] mb-1">Estado Inicial</label>
-                    <select id="newEstado" class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                    <select id="newEstado" class="w-full px-3 py-2.5 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all">
                         <option value="disponible">Disponible</option>
                         <option value="reservada">Reservada</option>
                         <option value="limpieza">Limpieza</option>
@@ -157,7 +198,8 @@
                 <p class="text-xs text-[var(--text-muted)] mt-3">La mesa aparecerá en el plano lista para ser posicionada.</p>
             </div>
 
-            <div class="px-6 py-4 border-t border-[var(--border-color)] flex gap-3 justify-end bg-[var(--bg-color)]/50">
+            {{-- FOOTER: shrink-0 --}}
+            <div class="px-6 py-4 border-t border-[var(--border-color)] flex gap-3 justify-end bg-[var(--bg-color)]/50 shrink-0">
                 <button type="button" class="btnCerrarModal px-4 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-color)] hover:opacity-80 rounded-lg font-semibold transition shadow-sm">
                     Cancelar
                 </button>
@@ -171,7 +213,14 @@
     <div id="notificacion" class="fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white text-sm font-semibold hidden z-50 transition-all shadow-xl"></div>
 </div>
 
-
+{{-- SCRIPTS --}}
 @push('scripts')
     @vite(['resources/js/mesas.js'])
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof TecladoVirtual !== 'undefined') {
+                TecladoVirtual.attachAll();
+            }
+        });
+    </script>
 @endpush

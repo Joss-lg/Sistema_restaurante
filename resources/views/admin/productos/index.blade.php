@@ -166,6 +166,11 @@
         const precioMostrado = esPorPeso
             ? `$${parseFloat(producto.precio_por_100g ?? 0).toFixed(2)} <span class="text-[10px] sm:text-[11px] font-bold text-[var(--text-muted)]">/100g</span>`
             : `$${parseFloat(producto.precio).toFixed(2)}`;
+
+        // NUEVO: miniatura de la imagen del producto (o ícono placeholder si no tiene)
+        const imagenHTML = producto.imagen_url
+            ? `<img src="${producto.imagen_url}" alt="${producto.nombre}" class="w-full h-full object-cover">`
+            : `<i class="fas fa-utensils text-[var(--text-muted)] text-sm sm:text-base"></i>`;
  
         const botonesHTML = [
             tienePermisoEditar   ? `<button class="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-color)] flex items-center justify-center transition active:scale-95" onclick="editarProducto(${producto.id})" title="Editar"><i class="fas fa-pen text-[11px]"></i></button>` : '',
@@ -178,11 +183,16 @@
  
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3 sm:mb-4 gap-2">
-                <div class="overflow-hidden min-w-0">
-                    <h3 class="text-sm sm:text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
-                    <p class="text-[11px] sm:text-[12px] text-[var(--text-muted)] mt-1 line-clamp-2">${producto.descripcion ?? 'Sin descripción'}</p>
-                    ${mods}
-                    ${badgePorPeso}
+                <div class="flex items-start gap-2.5 sm:gap-3 overflow-hidden min-w-0">
+                    <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-xl overflow-hidden shrink-0 bg-[var(--bg-color)] border border-[var(--border-color)] flex items-center justify-center">
+                        ${imagenHTML}
+                    </div>
+                    <div class="overflow-hidden min-w-0">
+                        <h3 class="text-sm sm:text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
+                        <p class="text-[11px] sm:text-[12px] text-[var(--text-muted)] mt-1 line-clamp-2">${producto.descripcion ?? 'Sin descripción'}</p>
+                        ${mods}
+                        ${badgePorPeso}
+                    </div>
                 </div>
                 <div class="flex items-center gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">${botonesHTML}</div>
             </div>
@@ -383,9 +393,6 @@
         const id = `toast-ajax-${contadorToast}`;
         const esExito = tipo === 'success';
 
-        // Contenedor fijo (se crea una sola vez, se reutiliza para apilar varios toasts)
-        // En móvil: ocupa el ancho completo con márgenes laterales.
-        // En sm+: se comporta como antes, flotando arriba a la derecha con ancho fijo.
         let contenedor = document.getElementById('toast-ajax-container');
         if (!contenedor) {
             contenedor = document.createElement('div');

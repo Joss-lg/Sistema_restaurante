@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
+
 class ProductoController extends Controller
 {
     /**
@@ -16,15 +17,20 @@ class ProductoController extends Controller
      */
     public function index()
     {
-        // 1. Traemos los platillos con su categoría y sus insumos acotando columnas (Evita N+1)
+        // No cargamos el blob 'imagen' completo aquí: solo verificamos si existe con selectRaw
+        // para no inflar la consulta del listado. La imagen real se sirve por la ruta api.imagen.
         $productos = Producto::with(['categoria:id,nombre', 'insumos:id,nombre,unidad_medida'])
+                             ->select([
+                                 'id', 'categoria_id', 'nombre', 'descripcion', 'precio',
+                                 'se_vende_por_peso', 'precio_por_100g', 'esta_disponible',
+                                 'created_at', 'updated_at', 'deleted_at',
+                             ])
+                             ->selectRaw('imagen IS NOT NULL as tiene_imagen')
                              ->orderBy('nombre')
                              ->get();
 
-        // 2. Traemos datos optimizados para los selectores de los modales
         $categorias = Categoria::orderBy('nombre')->select(['id', 'nombre'])->get();
-        
-        // Solo insumos activos para la formulación de nuevas recetas
+
         $insumosDisponibles = Insumo::where('esta_activo', true)
                                     ->orderBy('nombre')
                                     ->select(['id', 'nombre', 'unidad_medida'])
@@ -47,12 +53,12 @@ class ProductoController extends Controller
             'categoria_id'       => 'required|exists:categorias,id',
             'precio'             => 'required|numeric|min:0',
             'se_vende_por_peso'  => 'sometimes|boolean',
-            // Solo es obligatorio si el producto se vende por peso.
             'precio_por_100g'    => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
             'insumos'            => 'nullable|array',
             'insumos.*'          => 'exists:insumos,id',
             'cantidades'         => 'nullable|array',
             'cantidades.*'       => 'required_with:insumos|numeric|min:0.001',
+            'imagen'             => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         try {
@@ -60,19 +66,23 @@ class ProductoController extends Controller
 
             $sePorPeso = $request->boolean('se_vende_por_peso');
 
-            // 1. Creamos el Platillo principal
-            $producto = Producto::create([
+            $producto = new Producto([
                 'nombre'             => $request->nombre,
                 'categoria_id'       => $request->categoria_id,
-                // Si se vende por peso, el precio fijo no aplica: se calcula
-                // en el POS a partir de precio_por_100g y el gramaje elegido.
                 'precio'             => $sePorPeso ? 0 : $request->precio,
                 'se_vende_por_peso'  => $sePorPeso,
                 'precio_por_100g'    => $sePorPeso ? $request->precio_por_100g : null,
-                'esta_disponible'    => $request->boolean('esta_disponible'), // Evalúa "on", 1 o true
+                'esta_disponible'    => $request->boolean('esta_disponible'),
             ]);
 
-            // 2. Mapeo seguro de la receta en base a correspondencia de llaves
+            if ($request->hasFile('imagen')) {
+                $file = $request->file('imagen');
+                $producto->imagen = file_get_contents($file->getRealPath());
+                $producto->imagen_mime_type = $file->getMimeType();
+            }
+
+            $producto->save();
+
             if ($request->filled('insumos') && $request->filled('cantidades')) {
                 $receta = [];
                 foreach ($request->insumos as $index => $insumoId) {
@@ -82,7 +92,7 @@ class ProductoController extends Controller
                         ];
                     }
                 }
-                
+
                 if (!empty($receta)) {
                     $producto->insumos()->sync($receta);
                 }
@@ -117,6 +127,8 @@ class ProductoController extends Controller
             'insumos.*'          => 'exists:insumos,id',
             'cantidades'         => 'nullable|array',
             'cantidades.*'       => 'required_with:insumos|numeric|min:0.001',
+            'imagen'             => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+            'quitar_imagen'      => 'nullable|boolean',
         ]);
 
         try {
@@ -125,7 +137,6 @@ class ProductoController extends Controller
             $producto = Producto::findOrFail($id);
             $sePorPeso = $request->boolean('se_vende_por_peso');
 
-            // 1. Actualización del modelo principal
             $producto->update([
                 'nombre'             => $request->nombre,
                 'categoria_id'       => $request->categoria_id,
@@ -135,7 +146,17 @@ class ProductoController extends Controller
                  'esta_disponible'    => $request->boolean('esta_disponible'),
             ]);
 
-            // 2. Re-sincronización estructural de ingredientes
+            if ($request->boolean('quitar_imagen')) {
+                $producto->imagen = null;
+                $producto->imagen_mime_type = null;
+                $producto->save();
+            } elseif ($request->hasFile('imagen')) {
+                $file = $request->file('imagen');
+                $producto->imagen = file_get_contents($file->getRealPath());
+                $producto->imagen_mime_type = $file->getMimeType();
+                $producto->save();
+            }
+
             $receta = [];
             if ($request->filled('insumos') && $request->filled('cantidades')) {
                 foreach ($request->insumos as $index => $insumoId) {
@@ -146,8 +167,7 @@ class ProductoController extends Controller
                     }
                 }
             }
-            
-            // Sync vacía o sobreescribe la tabla pivote de manera segura
+
             $producto->insumos()->sync($receta);
 
             DB::commit();
@@ -188,12 +208,23 @@ class ProductoController extends Controller
             'esta_disponible' => $producto->esta_disponible,
         ]);
     }
+
+    /**
+     * Devuelve los productos agrupados por categoría, para renderizar las tarjetas.
+     * OPTIMIZADO: no carga el blob 'imagen' completo, solo verifica su existencia
+     * con selectRaw para mantener la respuesta ligera incluso con catálogos grandes.
+     */
     public function getProductos(): JsonResponse
     {
         $productos = Producto::with(['categoria', 'insumos', 'modificadores'])
+            ->select([
+                'id', 'categoria_id', 'nombre', 'descripcion', 'precio',
+                'se_vende_por_peso', 'precio_por_100g', 'esta_disponible',
+            ])
+            ->selectRaw('imagen IS NOT NULL as tiene_imagen')
             ->get()
             ->groupBy('categoria.nombre');
-        
+
         return response()->json($productos);
     }
 
@@ -204,5 +235,19 @@ class ProductoController extends Controller
             'disponibles' => Producto::where('esta_disponible', true)->count(),
             'categorias' => Categoria::count(),
         ]);
+    }
+
+    /**
+     * Sirve el binario de la imagen del producto con su content-type correcto.
+     */
+    public function imagen($id)
+    {
+        $producto = Producto::select('id', 'imagen', 'imagen_mime_type')->findOrFail($id);
+
+        abort_if(!$producto->imagen, 404);
+
+        return response($producto->imagen, 200)
+            ->header('Content-Type', $producto->imagen_mime_type)
+            ->header('Cache-Control', 'public, max-age=86400');
     }
 }

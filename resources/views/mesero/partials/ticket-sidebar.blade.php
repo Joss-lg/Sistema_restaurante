@@ -47,6 +47,7 @@
             <i class="fas fa-percent text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
             <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Descuento</span>
         </button>
+        
 
         <button type="button" id="btn-gramaje" onclick="ajustarGramaje()" class="relative flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-orange-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50">
             <i class="fas fa-weight-scale text-[var(--text-muted)] group-hover:text-orange-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
@@ -64,8 +65,7 @@
             <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Traspaso</span>
         </button>
 
-        {{-- Marchar se eliminó (ya no se usa). Promos ahora ocupa las 2
-             columnas de esta fila para no dejar un hueco vacío. --}}
+        {{-- Le quitamos el col-span-2 a Promos para que quede abajo en su propia fila junto a lo que necesites después --}}
         <button type="button" onclick="mostrarPromociones()" class="col-span-2 flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-blue-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
             <i class="fas fa-tag text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
             <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Promos</span>
@@ -200,15 +200,17 @@
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Subtotal Nuevos</span>
             <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtSubtotal">$0.00</span>
         </div>
-        <div class="flex justify-between items-center mb-4">
+       <div class="flex justify-between items-center mb-2">
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">IVA (16%)</span>
             <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtIva">$0.00</span>
         </div>
-
-        <div class="flex justify-between items-end mb-5 pt-4 border-t border-[var(--border-color)]">
-            <span class="text-sm md:text-[13px] font-bold text-[var(--text-main)]">Total a Pagar</span>
-            <span class="text-4xl md:text-3xl font-black text-[#3b82f6] tracking-tighter" id="txtTotal">$0.00</span>
+        
+        {{-- NUEVA FILA: PROPINA --}}
+        <div class="flex justify-between items-center mb-4">
+            <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Propina</span>
+            <span class="text-[13px] md:text-[12px] font-bold text-emerald-500" id="txtPropina">$0.00</span>
         </div>
+
 
         <button type="button" id="btn-enviar" onclick="enviarACocina()" class="w-full h-13 md:h-12 rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-[13px] md:text-[12px] font-bold tracking-wide transition-all duration-150 shadow-[0_8px_20px_-5px_rgba(59,130,246,0.5)] hover:shadow-[0_10px_28px_-5px_rgba(59,130,246,0.6)] active:scale-95 flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-panel)]">
             <i class="fas fa-paper-plane text-sm"></i>
@@ -218,11 +220,6 @@
     </div>
 </section>
 
-{{-- ========================================== --}}
-{{-- NAV INFERIOR MÓVIL (nuevo, solo <768px)    --}}
-{{-- No reemplaza ni toca tus tabs de Orden/Enviado/Total, --}}
-{{-- solo cambia cuál de las 3 columnas grandes se ve.     --}}
-{{-- ========================================== --}}
 <nav id="mobileNav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 flex bg-[var(--bg-panel)]/95 backdrop-blur-md border-t border-[var(--border-color)] shadow-[0_-8px_24px_rgba(0,0,0,0.15)] ring-1 ring-black/5" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
     <button type="button" id="navbtn-acciones" onclick="mostrarColumnaMobile('acciones')" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center gap-1 py-3 min-h-[52px] text-[var(--text-muted)] transition-colors duration-150 active:scale-95">
         <i class="fas fa-sliders-h text-base"></i>

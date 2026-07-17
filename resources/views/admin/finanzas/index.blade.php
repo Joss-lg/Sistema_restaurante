@@ -152,7 +152,8 @@
             
             <div class="relative w-full sm:w-64">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"></i>
-                <input type="text" id="buscadorFlujo" placeholder="Buscar concepto..." 
+                {{-- AQUÍ ESTÁ EL INPUT CON EL data-teclado="texto" AGREGADO --}}
+                <input type="text" id="buscadorFlujo" data-teclado="texto" placeholder="Buscar concepto..." 
                     class="w-full bg-white dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800 rounded-xl py-3 sm:py-2.5 pl-11 pr-4 text-sm text-zinc-800 dark:text-zinc-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600 shadow-sm">
             </div>
         </div>
@@ -350,6 +351,13 @@
 @if(auth()->user()->tienePermiso('finanzas.editar'))
     @include('admin.finanzas.modal-crear-nomina')
 @endif
+
+{{-- ======================================================== --}}
+{{-- INCLUSIÓN DEL TECLADO VIRTUAL                            --}}
+{{-- ======================================================== --}}
+@include('partials.teclado-virtual')
+
+<script src="{{ asset('js/teclado-virtual.js') }}"></script>
 
 <script>
     function openTailwindModal(modalId, containerId) {

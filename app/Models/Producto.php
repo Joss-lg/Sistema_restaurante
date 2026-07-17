@@ -20,6 +20,9 @@ class Producto extends Model
         'esta_disponible'
     ];
 
+    // 'imagen' e 'imagen_mime_type' NO van en $fillable a propósito:
+    // se asignan manualmente en el controlador porque son binarios, no campos de formulario normales.
+
     protected $casts = [
         'precio' => 'decimal:2',
         'se_vende_por_peso' => 'boolean',
@@ -27,6 +30,12 @@ class Producto extends Model
         'tiempo_preparacion' => 'integer',
         'esta_disponible' => 'boolean',
     ];
+
+    // Oculta el blob binario de cualquier respuesta JSON (rompería el encode si se serializa)
+    protected $hidden = ['imagen'];
+
+    // Agrega automáticamente 'imagen_url' a cada respuesta JSON del modelo
+    protected $appends = ['imagen_url'];
 
     // A qué categoría del menú pertenece (Ej: Postres)
     public function categoria()
@@ -48,8 +57,21 @@ class Producto extends Model
         // Conecta el Producto con los Modificadores pasando por tu tabla pivote 'producto_modificadores'
         return $this->belongsToMany(Modificador::class, 'producto_modificadores');
     }
+
     public function promociones()
     {
         return $this->belongsToMany(Promocion::class, 'promocion_productos');
+    }
+
+    /**
+     * URL para consumir la imagen del producto (o null si no tiene).
+     * Funciona tanto si consultaste con selectRaw('imagen IS NOT NULL as tiene_imagen')
+     * como si cargaste la columna 'imagen' completa.
+     */
+    public function getImagenUrlAttribute(): ?string
+    {
+        $tieneImagen = $this->attributes['tiene_imagen'] ?? (!empty($this->attributes['imagen'] ?? null));
+
+        return $tieneImagen ? route('admin.productos.api.imagen', $this->id) : null;
     }
 }

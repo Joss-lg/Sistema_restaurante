@@ -34,12 +34,12 @@
 
             {{-- Controles (Buscador y Creación) --}}
             <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 relative z-10">
-                {{-- Buscador Premium --}}
+                {{-- Buscador Premium con Activador de Teclado --}}
                 <div class="relative w-full sm:max-w-sm">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-zinc-500">
                         <i class="fas fa-search text-sm"></i>
                     </div>
-                    <input type="text" id="buscadorCategorias" placeholder="Buscar categoría por nombre..."
+                    <input type="text" id="buscadorCategorias" data-teclado="texto" placeholder="Buscar categoría por nombre..."
                         class="w-full h-11 rounded-xl bg-slate-50 dark:bg-[#15171c] border border-slate-200 dark:border-slate-700 pl-10 pr-4 text-sm font-medium text-slate-700 dark:text-zinc-200 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-inner dark:shadow-none" />
                 </div>
                 
@@ -395,5 +395,14 @@
             }, 200);
         }
     </script>
+
+    {{-- ======================================================== --}}
+    {{-- INCLUSIÓN DEL TECLADO VIRTUAL --}}
+    {{-- ======================================================== --}}
+    @include('partials.teclado-virtual')
+
+    {{-- Script de tu teclado --}}
+    <script src="{{ asset('js/teclado-virtual.js') }}"></script>
+
 </div>
 @endsection

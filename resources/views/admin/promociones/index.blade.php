@@ -31,7 +31,8 @@
             <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none !text-gray-400 group-focus-within:!text-blue-500 transition-colors">
                 <i class="fas fa-search text-sm"></i>
             </div>
-            <input type="text" placeholder="Buscar promoción..." class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-sm font-medium !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 transition-all shadow-inner">
+            {{-- AQUÍ AGREGAMOS id="buscadorPromociones" y data-teclado="texto" --}}
+            <input type="text" id="buscadorPromociones" data-teclado="texto" placeholder="Buscar promoción..." class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-sm font-medium !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 transition-all shadow-inner">
         </div>
 
         <div class="flex items-center justify-between sm:justify-end w-full lg:w-auto gap-4 sm:gap-6 sm:px-4">
@@ -69,7 +70,8 @@
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             @foreach($promociones as $promo)
-                <article class="!bg-white dark:!bg-[#121318] border !border-gray-200 dark:!border-white/5 rounded-[24px] p-5 sm:p-6 relative group transition-all duration-300 hover:-translate-y-1 hover:!border-blue-500/30 hover:shadow-xl dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden">
+                {{-- AQUÍ AGREGAMOS LA CLASE fila-promocion --}}
+                <article class="fila-promocion !bg-white dark:!bg-[#121318] border !border-gray-200 dark:!border-white/5 rounded-[24px] p-5 sm:p-6 relative group transition-all duration-300 hover:-translate-y-1 hover:!border-blue-500/30 hover:shadow-xl dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden">
                     
                     <div class="absolute inset-x-0 top-0 h-1 {{ $promo->esta_activa ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : '!bg-gray-200 dark:!bg-white/5' }}"></div>
 
@@ -90,7 +92,8 @@
 
                     {{-- CONTENIDO --}}
                     <div class="mb-5 sm:mb-6 flex-1">
-                        <h3 class="text-lg sm:text-xl font-black !text-gray-900 dark:!text-white tracking-tight leading-tight mb-1">{{ $promo->nombre }}</h3>
+                        {{-- AQUÍ AGREGAMOS LA CLASE nombre-promocion --}}
+                        <h3 class="nombre-promocion text-lg sm:text-xl font-black !text-gray-900 dark:!text-white tracking-tight leading-tight mb-1">{{ $promo->nombre }}</h3>
                         
                         @if($promo->descripcion)
                             <p class="text-[11px] sm:text-xs font-medium !text-gray-500 dark:!text-gray-400 line-clamp-2 mt-1 tracking-wide leading-relaxed">{{ $promo->descripcion }}</p>
@@ -167,6 +170,29 @@
 @include('admin.promociones.modal-eliminar')
 
 <script>
+    // --- NUEVO: CÓDIGO PARA BUSCADOR Y TECLADO VIRTUAL ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const buscador = document.getElementById('buscadorPromociones');
+        const filas = document.querySelectorAll('.fila-promocion');
+        
+        function filtrarPromociones(term) {
+            filas.forEach(fila => {
+                const nombre = fila.querySelector('.nombre-promocion').textContent.toLowerCase();
+                fila.style.display = nombre.includes(term) ? '' : 'none';
+            });
+        }
+
+        if (buscador) {
+            buscador.addEventListener('input', function(e) {
+                filtrarPromociones(e.target.value.toLowerCase().trim());
+            });
+            
+            buscador.addEventListener('virtualKeyboardInput', function(e) {
+                filtrarPromociones(e.target.value.toLowerCase().trim());
+            });
+        }
+    });
+
     function openModal(id) {
         const m = document.getElementById(id);
         m.classList.remove('hidden');
@@ -287,4 +313,7 @@
         } catch (err) { alert('Error al actualizar'); }
     });
 </script>
+
+{{-- AQUÍ INCLUIMOS EL COMPONENTE DEL TECLADO VIRTUAL --}}
+@include('partials.teclado-virtual')
 @endsection

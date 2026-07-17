@@ -286,6 +286,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.success) {
+                const ordenId = document.getElementById('orden-id').value;
+                if (ordenId) {
+                    window.open(`/caja/ticket/${ordenId}`, '_blank', 'width=380,height=600');
+                }
                 window.location.href = data.redirect_url || '/caja';
             } else {
                 alert('Error: ' + data.message);

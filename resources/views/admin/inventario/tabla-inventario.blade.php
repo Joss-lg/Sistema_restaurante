@@ -18,7 +18,8 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500">
                     <i class="fas fa-search text-[var(--text-muted)] dark:text-zinc-500 text-sm"></i>
                 </div>
-                <input type="text" id="buscadorInventario" placeholder="Buscar ingrediente..." class="w-full h-12 bg-black/5 dark:bg-zinc-900/50 modo-crema:bg-black/5 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl pl-11 pr-4 text-xs font-bold text-[var(--text-color)] dark:text-zinc-100 focus:bg-[var(--card-color)] dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all">
+                {{-- AQUÍ AGREGAMOS data-teclado="texto" --}}
+                <input type="text" id="buscadorInventario" data-teclado="texto" placeholder="Buscar ingrediente..." class="w-full h-12 bg-black/5 dark:bg-zinc-900/50 modo-crema:bg-black/5 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl pl-11 pr-4 text-xs font-bold text-[var(--text-color)] dark:text-zinc-100 focus:bg-[var(--card-color)] dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all">
             </div>
 
             @if(auth()->user()->tienePermiso('gestionar.reporte'))
@@ -240,16 +241,25 @@
             }
         });
 
-        // --- BUSCADOR EN TIEMPO REAL ---
+        // --- BUSCADOR EN TIEMPO REAL CON INTEGRACIÓN DE TECLADO VIRTUAL ---
         const buscador = document.getElementById('buscadorInventario');
         const filas = document.querySelectorAll('.fila-articulo');
+        
+        function filtrarInventario(term) {
+            filas.forEach(fila => {
+                const nombre = fila.querySelector('.nombre-celda').textContent.toLowerCase();
+                fila.style.display = nombre.includes(term) ? '' : 'none';
+            });
+        }
+
         if (buscador) {
+            // Escucha tanto el input normal (teclado físico) como los eventos custom (teclado virtual)
             buscador.addEventListener('input', function(e) {
-                const term = e.target.value.toLowerCase().trim();
-                filas.forEach(fila => {
-                    const nombre = fila.querySelector('.nombre-celda').textContent.toLowerCase();
-                    fila.style.display = nombre.includes(term) ? '' : 'none';
-                });
+                filtrarInventario(e.target.value.toLowerCase().trim());
+            });
+            
+            buscador.addEventListener('virtualKeyboardInput', function(e) {
+                filtrarInventario(e.target.value.toLowerCase().trim());
             });
         }
     });
@@ -355,4 +365,7 @@
 @include('admin.inventario.modal-crear')
 @include('admin.inventario.modal-eliminar')
 @include('admin.inventario.modal-movimiento')
+
+{{-- AQUÍ INCLUIMOS EL COMPONENTE DEL TECLADO VIRTUAL --}}
+@include('partials.teclado-virtual')
 @endsection

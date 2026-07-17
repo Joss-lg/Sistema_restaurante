@@ -41,6 +41,11 @@
                     ? `<span class="absolute top-2.5 left-2.5 text-[7px] font-black uppercase tracking-widest text-white bg-orange-500 px-1.5 py-0.5 rounded-md shadow-sm z-10"><i class="fas fa-weight-hanging mr-0.5"></i>Peso</span>`
                     : '';
 
+                // NUEVO: imagen del producto si existe, si no, la inicial de siempre
+                const mediaHTML = prod.imagen_url
+                    ? `<img src="${prod.imagen_url}" alt="${prod.nombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`
+                    : `<span class="text-5xl font-black text-[var(--text-muted)] opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-110 select-none">${letraInicial}</span>`;
+
                 gridProd.innerHTML += `
                     <div data-categoria-item="${catNombre}" onclick='agregarAlTicket(${prod.id}, "${prod.nombre}", ${precioNum}, "${catNombre}", ${modsJSON}, ${sePorPeso ? 'true' : 'false'}, ${precioPor100g}); event.stopPropagation();'
                          class="producto-card rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] shadow-[var(--card-shadow)] overflow-hidden hover:border-[#3b82f6]/50 hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-[150px] xl:h-[170px] outline-none relative">
@@ -48,7 +53,7 @@
                         <div class="h-[50%] bg-[var(--input-bg)] flex items-center justify-center relative overflow-hidden border-b border-[var(--border-color)]">
                             ${badgePorPeso}
                             <span class="absolute top-2.5 right-2.5 text-[8px] font-bold uppercase tracking-widest text-[var(--text-muted)] bg-[var(--bg-panel)] border border-[var(--border-color)] px-2 py-0.5 rounded-md shadow-sm z-10">${catNombre}</span>
-                            <span class="text-5xl font-black text-[var(--text-muted)] opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-110 select-none">${letraInicial}</span>
+                            ${mediaHTML}
                         </div>
 
                         <div class="p-4 flex-1 flex flex-col justify-between">

@@ -39,7 +39,6 @@
 
         el.overlay.style.pointerEvents = 'none';
 
-        // Bloqueo de pérdida de foco solo para los botones del teclado virtual
         var evitarPerdidaFoco = function(e) { 
             e.preventDefault(); 
         };
@@ -64,7 +63,6 @@
         document.addEventListener('mousedown', cerrarSiClickFuera, true);
         document.addEventListener('touchstart', cerrarSiClickFuera, true);
 
-        // Cierra con la tecla Escape del teclado físico
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && estado.target) cerrar();
         });
@@ -90,14 +88,13 @@
         if (campo.dataset.tecladoAtado) return; 
         campo.dataset.tecladoAtado = '1';
 
-        // -------------------------------------------------------------
-        // LA CLAVE: Siempre quitar readonly para liberar el teclado físico
-        // -------------------------------------------------------------
         campo.removeAttribute('readonly');
 
-        var esMovil = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // VALIDACIÓN DE TELÉFONO: Revisa el UserAgent o si la pantalla es menor a 768px
+        var esMovil = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 
         if (esMovil) {
+            // Si es celular, no hacemos nada más para que el teclado del sistema se abra normalmente
             if(campo.getAttribute('inputmode') === 'none') {
                 campo.removeAttribute('inputmode');
             }
@@ -108,12 +105,14 @@
             abrirPara(campo);
         };
         
-        // Al hacer clic o navegar con la tecla TAB (focus), se abre el teclado
         campo.addEventListener('click', abrir);
         campo.addEventListener('focus', abrir);
     }
 
     function abrirPara(campo) {
+        // Doble validación de seguridad por si se redimensionó la ventana
+        if (window.innerWidth < 768) return;
+
         estado.target = campo;
         estado.modo = campo.dataset.teclado === 'numerico' ? 'numerico' : 'texto';
         estado.maxLength = campo.dataset.tecladoMax ? parseInt(campo.dataset.tecladoMax, 10) : null;
@@ -130,13 +129,11 @@
             actualizarBotonMayus();
         }
 
-        // El teclado numérico es más angosto y compacto; el de texto usa el ancho completo
         if (el.sheet) {
             el.sheet.classList.toggle('max-w-[300px]', estado.modo === 'numerico');
-            el.sheet.classList.toggle('max-w-md', estado.modo !== 'numerico');
+            el.sheet.classList.toggle('max-w-2xl', estado.modo !== 'numerico');
         }
 
-        // Botones inferiores más compactos en modo numérico
         [el.btnLimpiar, el.btnEspacio, el.btnBorrar, el.btnListo].forEach(function (btn) {
             if (!btn) return;
             btn.classList.toggle('py-2', estado.modo === 'numerico');
@@ -145,7 +142,6 @@
             btn.classList.toggle('sm:py-3', estado.modo !== 'numerico');
         });
 
-        // En modo numérico "Espacio" no aplica; lo ocultamos y ajustamos las columnas
         if (el.btnEspacio) el.btnEspacio.classList.toggle('hidden', estado.modo === 'numerico');
         if (el.controlesInferiores) {
             el.controlesInferiores.classList.toggle('grid-cols-3', estado.modo === 'numerico');
@@ -184,7 +180,6 @@
     }
 
     function aplicarCaso(caracter) {
-        // Solo transforma letras (a-z, incluyendo Ñ); deja números y símbolos intactos
         if (/[a-zA-ZñÑ]/.test(caracter)) {
             return estado.mayusculas ? caracter.toUpperCase() : caracter.toLowerCase();
         }

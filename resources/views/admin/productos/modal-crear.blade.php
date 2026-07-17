@@ -16,8 +16,8 @@
 </style>
 
 {{-- MODAL CREAR ALIMENTO --}}
-<div id="modal-crear-alimento" class="fixed inset-y-0 right-0 left-[74px] sm:left-0 sm:inset-0 z-[9999] hidden opacity-0 transition-all duration-300 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-    <div class="fixed inset-0 bg-black/60 dark:bg-black/80 -ml-[74px] sm:ml-0" onclick="closeModalCrear()"></div>
+<div id="modal-crear-alimento" class="fixed inset-y-0 right-0 left-[74px] sm:left-0 sm:inset-0 z-[9999] hidden opacity-0 transition-all duration-300 flex items-center justify-center p-3 sm:p-4">
+    <div class="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm -ml-[74px] sm:ml-0" onclick="closeModalCrear()"></div>
 
     <div class="relative bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-700 w-full max-w-xl sm:max-w-2xl max-h-[92vh] flex flex-col rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transform opacity-0 translate-y-8 transition-all duration-300 overflow-hidden" id="modal-crear-panel">
 
@@ -31,7 +31,7 @@
             </button>
         </div>
 
-        <form id="formulario-crear-producto" onsubmit="guardarProducto(event)" class="overflow-y-auto flex-1 p-5 sm:p-10 pt-4 sm:pt-6">
+        <form id="formulario-crear-producto" onsubmit="guardarProducto(event)" enctype="multipart/form-data" class="overflow-y-auto overscroll-contain flex-1 p-5 sm:p-10 pt-4 sm:pt-6">
             <div class="grid grid-cols-2 gap-4 sm:gap-6">
 
                 {{-- Nombre (TECLADO VIRTUAL DE TEXTO) --}}
@@ -71,8 +71,6 @@
                     <p class="text-[9px] text-zinc-400 mt-1 ml-1">Ej: $50 por 100g → 700g = $350</p>
                 </div>
 
-              
-
                 {{-- Categoría HÍBRIDA — TECLADO VIRTUAL DE TEXTO --}}
                 <div class="col-span-2 sm:col-span-1 relative">
                     <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Categoría</label>
@@ -89,6 +87,30 @@
                 <div class="col-span-2">
                     <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Descripción</label>
                     <textarea id="descripcion" name="descripcion" rows="2" readonly data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none text-base" placeholder="Describe qué lleva este platillo..."></textarea>
+                </div>
+
+                {{-- Imagen del Platillo --}}
+                <div class="col-span-2">
+                    <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">
+                        Imagen del Platillo <span class="normal-case font-semibold text-zinc-400">(Opcional)</span>
+                    </label>
+
+                    <div class="mt-1.5 relative w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900/40">
+                        <label for="imagen" class="flex flex-col items-center justify-center w-full aspect-video sm:aspect-[21/9] cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900/70 transition relative">
+                            <div id="imagen-placeholder-crear" class="flex flex-col items-center justify-center text-center px-4">
+                                <i class="fas fa-image text-2xl text-zinc-400 mb-2"></i>
+                                <p class="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300">Haz clic para subir</p>
+                                <p class="text-[10px] text-zinc-400 mt-0.5">PNG, JPG, WEBP hasta 2MB</p>
+                            </div>
+                            <img id="imagen-preview-crear" src="#" alt="Preview" class="hidden absolute inset-0 w-full h-full object-cover">
+                            <input id="imagen" name="imagen" type="file" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="previewImagen(event, 'crear')">
+                        </label>
+
+                        <button type="button" id="btn-quitar-imagen-crear" onclick="quitarImagenCrear()"
+                            class="hidden absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/60 hover:bg-red-500 text-white flex items-center justify-center transition active:scale-90 backdrop-blur-sm z-10 shadow-lg">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 {{-- Ingredientes del Platillo --}}
@@ -120,16 +142,31 @@
 </div>
 
 <script>
-    // ─── Abrir modal crear ───────────────────────────────────────────────────
+    // ─── Bloqueo/desbloqueo de scroll del fondo mientras un modal está abierto ──
+    // Evita que al llegar al tope del scroll interno del modal, el navegador
+    // le "pase" el scroll a la página de atrás (efecto de traslape/salto raro).
+    window.bloquearScrollFondo = function () {
+        document.body.style.overflow = 'hidden';
+    };
+    window.desbloquearScrollFondo = function () {
+        document.body.style.overflow = '';
+    };
+
+   // ─── Abrir modal crear ───────────────────────────────────────────────────
     window.openModalCrear = window.abrirModalCrear = function() {
         const modal = document.getElementById('modal-crear-alimento');
         const panel = document.getElementById('modal-crear-panel');
 
-        if (modal && panel) {
-            // Se quita la clase hidden para que aparezca en la pantalla
-            modal.classList.remove('hidden');
+        // NUEVO: si algún contenedor padre tiene transform/filter, "fixed" deja
+        // de posicionarse contra toda la pantalla. Movemos el modal para que
+        // sea hijo directo de <body> y así siempre cubra la ventana completa.
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
 
-            // Pequeño timeout para que las animaciones de CSS hagan efecto
+        if (modal && panel) {
+            modal.classList.remove('hidden');
+            bloquearScrollFondo();
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 panel.classList.remove('opacity-0', 'translate-y-8');
@@ -152,6 +189,10 @@
                 modal.classList.add('hidden');
             }, 300);
         }
+        desbloquearScrollFondo();
+        const form = document.getElementById('formulario-crear-producto');
+        if (form) form.reset();
+        resetPreviewImagen('crear');
     };
 
     // ─── Muestra/oculta precio fijo vs precio por 100g según el toggle ──────
@@ -173,6 +214,94 @@
         if (esPorPeso) { inputFijo.value = 0; }
     }
 
+    // ─── Preview de imagen (compartido crear/editar) ─────────────────────────
+    function previewImagen(event, tipo) {
+        const input = event.target;
+        const preview     = document.getElementById(tipo === 'crear' ? 'imagen-preview-crear' : 'imagen-preview-editar');
+        const placeholder = document.getElementById(tipo === 'crear' ? 'imagen-placeholder-crear' : 'imagen-placeholder-editar');
+        const btnQuitar   = document.getElementById(tipo === 'crear' ? 'btn-quitar-imagen-crear' : 'btn-quitar-imagen-editar');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                if (btnQuitar) btnQuitar.classList.remove('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+
+            if (tipo === 'editar') {
+                const chkQuitar = document.getElementById('edit-quitar_imagen');
+                if (chkQuitar) chkQuitar.checked = false;
+            }
+        }
+    }
+
+    // ─── Resetea el preview de imagen a su estado vacío ──────────────────────
+    function resetPreviewImagen(tipo) {
+        const preview     = document.getElementById(tipo === 'crear' ? 'imagen-preview-crear' : 'imagen-preview-editar');
+        const placeholder = document.getElementById(tipo === 'crear' ? 'imagen-placeholder-crear' : 'imagen-placeholder-editar');
+        const btnQuitar   = document.getElementById(tipo === 'crear' ? 'btn-quitar-imagen-crear' : 'btn-quitar-imagen-editar');
+        if (preview) { preview.src = '#'; preview.classList.add('hidden'); }
+        if (placeholder) { placeholder.classList.remove('hidden'); }
+        if (btnQuitar) { btnQuitar.classList.add('hidden'); }
+    }
+
+    // ─── Botón ✕ en CREAR: solo limpia el archivo seleccionado ──────────────
+    function quitarImagenCrear() {
+        const inputImagen = document.getElementById('imagen');
+        if (inputImagen) inputImagen.value = '';
+        resetPreviewImagen('crear');
+    }
+
+    // ─── Envío multipart genérico (soporta archivos) ─────────────────────────
+    function enviarFormularioConImagen(url, formData, btn, textoOriginal, onSuccess) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+            body: formData,
+        })
+        .then(async (response) => {
+            const json = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const mensaje = json.message || 'Ocurrió un error al guardar.';
+                if (typeof mostrarNotificacion === 'function') {
+                    mostrarNotificacion(mensaje, 'error');
+                } else {
+                    alert(mensaje);
+                }
+                btn.textContent = textoOriginal;
+                btn.disabled = false;
+                return;
+            }
+
+            if (typeof mostrarNotificacion === 'function') {
+                mostrarNotificacion(json.message || 'Guardado correctamente.', 'success');
+            }
+
+            if (typeof onSuccess === 'function') onSuccess();
+
+            setTimeout(() => location.reload(), 500);
+        })
+        .catch((err) => {
+            console.error(err);
+            if (typeof mostrarNotificacion === 'function') {
+                mostrarNotificacion('Error de conexión al guardar.', 'error');
+            } else {
+                alert('Error de conexión al guardar.');
+            }
+            btn.textContent = textoOriginal;
+            btn.disabled = false;
+        });
+    }
+
     // ─── Guardar producto (submit del formulario de creación) ──────────────
     function guardarProducto(event) {
         event.preventDefault();
@@ -181,15 +310,20 @@
         const original = btn.textContent;
         btn.textContent = 'GUARDANDO...';
         btn.disabled    = true;
-        const data          = _serializarFormulario('formulario-crear-producto');
-        const catNombre     = document.getElementById('categoria_nombre').value;
-        data.categoria_nombre = catNombre;
-        data.categoria_id     = obtenerCategoriaIdPorNombre(catNombre);
-        data.se_vende_por_peso = document.getElementById('se_vende_por_peso').checked ? 1 : 0;
-        if (!data.categoria_id) {
+
+        const catNombre = document.getElementById('categoria_nombre').value;
+        const catId     = obtenerCategoriaIdPorNombre(catNombre);
+        if (!catId) {
             mostrarNotificacion('Selecciona una categoría válida', 'error');
             btn.textContent = original; btn.disabled = false; return;
         }
-        ejecutarPeticion(RUTA_STORE, data, btn, original, closeModalCrear);
+        document.getElementById('categoria_id').value = catId;
+
+        const formEl   = document.getElementById('formulario-crear-producto');
+        const formData = new FormData(formEl);
+        formData.set('categoria_id', catId);
+        formData.set('se_vende_por_peso', document.getElementById('se_vende_por_peso').checked ? '1' : '0');
+
+        enviarFormularioConImagen(RUTA_STORE, formData, btn, original, closeModalCrear);
     }
 </script>
