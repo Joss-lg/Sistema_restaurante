@@ -174,10 +174,13 @@ Route::middleware(['auth'])->group(function () {
 
         // --- FINANZAS ---
         Route::middleware(['permiso:Finanzas,mostrar'])->prefix('finanzas')->name('finanzas.')->group(function () {
-            Route::get('/', [FinanzasController::class, 'index'])->name('index');
-            Route::get('/exportar-csv', [FinanzasController::class, 'exportarCSV'])->name('exportar');
-            Route::post('/estadisticas-periodo', [FinanzasController::class, 'estadisticasPeriodo'])->name('estadisticas.periodo');
-        });
+        Route::get('/', [FinanzasController::class, 'index'])->name('index');
+        Route::get('/exportar-csv', [FinanzasController::class, 'exportarCSV'])->name('exportar');
+        Route::post('/estadisticas-periodo', [FinanzasController::class, 'estadisticasPeriodo'])->name('estadisticas.periodo');
+        Route::get('/corte-mensual', [FinanzasController::class, 'corteMensual'])->name('corte.mensual');
+        Route::get('/corte-mensual/exportar', [FinanzasController::class, 'exportarCorteCSV'])->name('corte.exportar');
+        Route::get('/corte-mensual/pdf', [FinanzasController::class, 'exportarCortePDF'])->name('corte.pdf');
+    });
 
         // --- GASTOS Y NÓMINA ---
         Route::middleware(['permiso:Finanzas,crear'])->group(function () {
