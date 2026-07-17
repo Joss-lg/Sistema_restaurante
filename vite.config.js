@@ -8,6 +8,7 @@ export default defineConfig({
                 'resources/sass/app.scss',
                 'resources/js/app.js',
                 'resources/js/mesas.js', 
+                'resources/js/cobro.js',
             ],
             refresh: true,
         }),

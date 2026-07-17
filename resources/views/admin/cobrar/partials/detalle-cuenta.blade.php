@@ -133,6 +133,16 @@
                     <span>IVA (16%)</span>
                     <span class="font-medium text-white">${{ number_format($iva ?? 0, 2) }}</span>
                 </div>
+
+                {{-- NUEVO: propina, solo se muestra si ya tiene un monto asignado --}}
+                @if(($propina ?? 0) > 0)
+                    <div class="flex justify-between text-amber-400 text-sm">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fas fa-hand-holding-dollar text-[11px]"></i> Propina
+                        </span>
+                        <span class="font-medium">${{ number_format($propina, 2) }}</span>
+                    </div>
+                @endif
             </div>
 
             <div class="border-t border-zinc-800 pt-4 flex justify-between items-center">

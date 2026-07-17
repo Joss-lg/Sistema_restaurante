@@ -38,6 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputMetodoOculto = document.getElementById('metodo-pago');
     const labelMetodoVisible = document.getElementById('metodo-pago-label');
 
+    // NUEVO: sección + input de referencia para pago único (Flujo A)
+    const nonCashSection = document.getElementById('non-cash-section');
+    const inputReferenciaUnica = document.getElementById('referencia');
+
     let modoCombinadoActivo = false;
 
     // ==========================================================================
@@ -107,6 +111,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // NUEVO: Muestra/oculta el campo de referencia según el método elegido.
+    // Efectivo -> oculto. Transferencia / Tarjeta -> visible.
+    function actualizarVisibilidadReferencia(metodo) {
+        if (!nonCashSection) return;
+        const esEfectivo = metodo.toLowerCase() === 'efectivo';
+        nonCashSection.classList.toggle('hidden', esEfectivo);
+        if (esEfectivo && inputReferenciaUnica) {
+            inputReferenciaUnica.value = '';
+        }
+    }
+
     // SELECCIÓN DE MÉTODO INDIVIDUAL EN LA LISTA
     document.querySelectorAll('.metodo-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -119,6 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (icon) {
                 icon.className = this.querySelector('i').className + " text-lg";
             }
+
+            // NUEVO: alterna el campo de referencia según el método elegido
+            actualizarVisibilidadReferencia(metodo);
             
             if (modalMetodo) modalMetodo.classList.add('hidden');
         });
@@ -204,13 +222,17 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPagar.disabled = true;
             btnPagar.innerText = 'PROCESANDO...';
 
+            // NUEVO: si el método no es efectivo, mandamos la referencia capturada
+            const esEfectivo = metodo.toLowerCase() === 'efectivo';
+            const referencia = (!esEfectivo && inputReferenciaUnica) ? inputReferenciaUnica.value.trim() : null;
+
             const payload = {
                 mesa_id: inputMesa.value,
                 pagos: [
                     { 
                         metodo: metodo.toLowerCase(), 
                         monto: parseFloat(montoRaw) || totalPagar,
-                        referencia: null 
+                        referencia: referencia || null
                     }
                 ]
             };
@@ -324,6 +346,76 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             window.open(`/caja/ticket/${inputOrden.value}`, '_blank');
+        });
+    }
+
+    // ==========================================================================
+    // 7. SELECTOR DE PROPINA
+    // ==========================================================================
+    const propinaBotones = document.querySelectorAll('.propina-btn');
+    const propinaManualInput = document.getElementById('propina-manual-input');
+    const btnAplicarPropinaManual = document.getElementById('btn-aplicar-propina-manual');
+
+    async function aplicarPropina(tipo, valor, botonActivo) {
+        const inputOrden = document.getElementById('orden-id');
+        if (!inputOrden || !inputOrden.value) {
+            alert('No se encontró una orden activa para aplicar la propina.');
+            return;
+        }
+
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfMeta) {
+            alert('Error de seguridad: Falta el token CSRF.');
+            return;
+        }
+
+        if (botonActivo) {
+            botonActivo.disabled = true;
+        }
+
+        try {
+            const response = await fetch(`/caja/orden/${inputOrden.value}/propina`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfMeta.content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ tipo, valor })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Recargamos para que el total (monto a cobrar) se recalcule
+                // desde el servidor con la nueva propina ya aplicada.
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'No se pudo aplicar la propina.'));
+                if (botonActivo) botonActivo.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error al aplicar propina:', error);
+            alert('Ocurrió un error al aplicar la propina.');
+            if (botonActivo) botonActivo.disabled = false;
+        }
+    }
+
+    propinaBotones.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const porcentaje = parseFloat(btn.dataset.porcentaje) || 0;
+            aplicarPropina('porcentaje', porcentaje, btn);
+        });
+    });
+
+    if (btnAplicarPropinaManual) {
+        btnAplicarPropinaManual.addEventListener('click', () => {
+            const valor = parseFloat(propinaManualInput.value) || 0;
+            if (valor < 0) {
+                alert('El monto de propina no puede ser negativo.');
+                return;
+            }
+            aplicarPropina('manual', valor, btnAplicarPropinaManual);
         });
     }
 });

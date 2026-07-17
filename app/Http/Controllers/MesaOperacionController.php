@@ -85,9 +85,27 @@ class MesaOperacionController extends Controller
                 // Obtenemos la orden activa asociada para la relación polimórfica
                 $orden = $mesa->ordenesActivas()->first(); 
 
+                // --- NUEVO: preparamos el reparto proporcional de la propina ---
+                // La propina ya viene sumada dentro del total de la orden. Si el pago
+                // se divide entre métodos, la propina se reparte en la misma
+                // proporción en que se dividió el pago (solo cuenta lo pagado con
+                // tarjeta/transferencia; el efectivo nunca se registra como propina
+                // rastreable, ya que el mesero se lo queda directo).
+                $propinaOrden = $orden ? floatval($orden->propina) : 0;
+
+                $sumaTotal = collect($request->pagos)->sum(fn($p) => floatval($p['monto']));
+                $sumaRastreable = collect($request->pagos)
+                    ->whereIn('metodo', ['tarjeta', 'transferencia'])
+                    ->sum(fn($p) => floatval($p['monto']));
+
+                $propinaRastreableTotal = ($sumaTotal > 0)
+                    ? round($propinaOrden * ($sumaRastreable / $sumaTotal), 2)
+                    : 0;
+
                 // Recorremos la lista de pagos del payload del Front-end
                 foreach ($request->pagos as $pago) {
                     $monto = floatval($pago['monto']);
+                    $metodo = strtolower($pago['metodo']);
                     
                     // Solo registramos si el monto ingresado para este método es mayor a 0
                     if ($monto > 0) {
@@ -95,16 +113,31 @@ class MesaOperacionController extends Controller
                             'caja_movimiento_id' => $cajaActiva->id, 
                             'tipo'               => 'ingreso',
                             'categoria'          => 'Ventas',
-                            'concepto'           => "Pago Mesa #M" . $mesa->numero, // Usamos numero de mesa si es más legible
+                            'concepto'           => "Pago Mesa #M" . $mesa->numero,
                             'monto'              => $monto,
-                            'metodo_pago'        => strtolower($pago['metodo']), // Aseguramos minúsculas ('efectivo', 'tarjeta', 'transferencia')
+                            'metodo_pago'        => $metodo,
                             'referencia'         => !empty($pago['referencia']) ? trim($pago['referencia']) : null,
                             'fecha'              => now(),
                             
-                            // GUARDADO POLIMÓRFICO: Vinculamos el flujo directamente al modelo de la Orden
                             'flujoable_id'       => $orden ? $orden->id : null,
                             'flujoable_type'     => $orden ? get_class($orden) : null,
                         ]);
+
+                        // --- NUEVO: registrar la propina rastreable de este pago ---
+                        if ($orden && $orden->mesero_id && $propinaRastreableTotal > 0 && in_array($metodo, ['tarjeta', 'transferencia'])) {
+                            $montoPropina = round($propinaRastreableTotal * ($monto / $sumaRastreable), 2);
+
+                            if ($montoPropina > 0) {
+                                \App\Models\PropinaMesero::create([
+                                    'caja_movimiento_id' => $cajaActiva->id,
+                                    'orden_id'           => $orden->id,
+                                    'mesa_id'            => $mesa->id,
+                                    'mesero_id'          => $orden->mesero_id,
+                                    'metodo_pago'        => $metodo,
+                                    'monto'              => $montoPropina,
+                                ]);
+                            }
+                        }
                     }
                 }
 
@@ -147,6 +180,44 @@ class MesaOperacionController extends Controller
             'estado' => $mesa->estado,
             'ordenes_activas' => $mesa->ordenesActivas()->count(),
             'esta_disponible' => $mesa->estado === Mesa::ESTADO_DISPONIBLE && $mesa->ordenesActivas()->count() === 0,
+        ]);
+    }
+
+
+    public function actualizarPropina(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'tipo'  => 'required|in:porcentaje,manual',
+            'valor' => 'required|numeric|min:0',
+        ]);
+
+        $orden = \App\Models\Orden::findOrFail($id);
+
+        // Recalculamos base (subtotal - descuentos + IVA) desde el servidor,
+        // sin confiar en ningún total que venga del navegador.
+        $orden->load(['detalles', 'promocionesAplicadas']);
+
+        $subtotalBruto = $orden->detalles->sum(fn($d) => $d->cantidad * $d->precio_unitario);
+        $descuentoPromociones = $orden->promocionesAplicadas->sum('monto_descuento');
+        $subtotal = max(0, round($subtotalBruto - $descuentoPromociones, 2));
+        $iva = round($subtotal * 0.16, 2);
+        $base = $subtotal + $iva;
+
+        if ($request->tipo === 'porcentaje') {
+            if ($request->valor > 100) {
+                return response()->json(['success' => false, 'message' => 'El porcentaje no puede ser mayor a 100.'], 422);
+            }
+            $propina = round($base * ($request->valor / 100), 2);
+        } else {
+            $propina = round($request->valor, 2);
+        }
+
+        $orden->update(['propina' => $propina]);
+
+        return response()->json([
+            'success' => true,
+            'propina' => $propina,
+            'total'   => round($base + $propina, 2),
         ]);
     }
 

@@ -1,7 +1,7 @@
 {{-- resources/views/admin/caja/corte.blade.php --}}
 <div id="modalCierreCaja" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" id="backdropCierreCaja"></div>
-    <div class="flex items-center justify-center min-h-screen px-4">
+    <div class="flex items-center justify-center min-h-screen px-4 py-6">
         <div class="inline-block bg-white dark:bg-[#1e2026] rounded-3xl text-left overflow-hidden shadow-xl transform transition-all max-w-lg w-full border border-gray-200 dark:border-slate-700 p-6 z-10">
             <div class="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-slate-700 pb-3">
                 <h3 class="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
@@ -11,6 +11,33 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
+
+            {{-- NUEVO: Desglose de propinas pendientes de entregar en este turno --}}
+            @if(isset($propinasPendientes) && $propinasPendientes->isNotEmpty())
+                <div class="mb-4 rounded-2xl border border-amber-300 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-900/20 overflow-hidden">
+                    <div class="px-4 py-2.5 border-b border-amber-200 dark:border-amber-800/50 flex items-center justify-between">
+                        <span class="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                            <i class="fas fa-hand-holding-dollar"></i> Propinas a entregar
+                        </span>
+                        <span class="text-xs font-bold text-amber-700 dark:text-amber-400">
+                            ${{ number_format($totalPropinasPendientes, 2) }}
+                        </span>
+                    </div>
+
+                    <ul class="divide-y divide-amber-200/60 dark:divide-amber-800/40 max-h-40 overflow-y-auto">
+                        @foreach($propinasPendientes as $fila)
+                            <li class="px-4 py-2 flex items-center justify-between text-sm">
+                                <span class="text-gray-700 dark:text-slate-300 font-medium truncate">{{ $fila->mesero }}</span>
+                                <span class="font-black text-amber-600 dark:text-amber-400 shrink-0 ml-3">${{ number_format($fila->total, 2) }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    <p class="px-4 py-2 text-[10px] text-amber-700/80 dark:text-amber-400/70 bg-amber-100/60 dark:bg-amber-900/30 leading-snug">
+                        Este monto se descontará automáticamente del efectivo esperado al confirmar el cierre.
+                    </p>
+                </div>
+            @endif
 
             <form action="{{ route('admin.caja.cerrar') }}" method="POST" class="space-y-4">
                 @csrf

@@ -19,7 +19,47 @@
         mayusculas: true
     };
 
-    var el = {}; 
+    var el = {};
+
+    /**
+     * Adjunta un "tap" confiable a un botón, funcionando tanto con mouse
+     * como con touch.
+     *
+     * Por qué existe esto: si haces preventDefault() en touchstart (para
+     * evitar el zoom/scroll/ghost-click del navegador), el navegador NO
+     * dispara el evento "click" sintético después -- así que un botón que
+     * solo escucha "click" deja de responder en pantallas touch.
+     * Aquí ejecutamos la acción en touchend (confiable en touch) y dejamos
+     * click como respaldo solo para mouse/trackpad, con una bandera para
+     * que nunca se ejecute doble.
+     */
+    function agregarTap(elemento, callback) {
+        var procesando = false;
+        var marcarProcesando = function () {
+            if (procesando) return false;
+            procesando = true;
+            setTimeout(function () { procesando = false; }, 80);
+            return true;
+        };
+
+        var evitarDefault = function (e) { e.preventDefault(); };
+
+        elemento.addEventListener('touchstart', evitarDefault, { passive: false });
+        elemento.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            if (!marcarProcesando()) return;
+            callback();
+        }, { passive: false });
+        elemento.addEventListener('touchcancel', function () {
+            procesando = false;
+        });
+
+        elemento.addEventListener('mousedown', evitarDefault);
+        elemento.addEventListener('click', function () {
+            if (!marcarProcesando()) return;
+            callback();
+        });
+    }
 
     function init() {
         el.overlay = document.getElementById('tecladoVirtualOverlay');
@@ -35,28 +75,17 @@
         el.btnLimpiar = document.getElementById('tecladoVirtualLimpiar');
         el.controlesInferiores = document.getElementById('tecladoVirtualControles');
 
-        if (!el.overlay) return; 
+        if (!el.overlay) return;
 
         el.overlay.style.pointerEvents = 'none';
 
-        var evitarPerdidaFoco = function(e) { 
-            e.preventDefault(); 
-        };
-
-        [el.btnToggle, el.btnMayus, el.btnEspacio, el.btnBorrar, el.btnLimpiar].forEach(function(btn) {
-            if(btn) {
-                btn.addEventListener('mousedown', evitarPerdidaFoco);
-                btn.addEventListener('touchstart', evitarPerdidaFoco, {passive: false});
-            }
-        });
-
-        el.btnCerrar.addEventListener('click', cerrar);
-        el.btnListo.addEventListener('click', cerrar);
-        el.btnToggle.addEventListener('click', toggleVistaSimbolos);
-        if (el.btnMayus) el.btnMayus.addEventListener('click', toggleMayusculas);
-        el.btnEspacio.addEventListener('click', function () { insertar(' '); });
-        el.btnBorrar.addEventListener('click', borrar);
-        el.btnLimpiar.addEventListener('click', limpiar);
+        if (el.btnCerrar) agregarTap(el.btnCerrar, cerrar);
+        if (el.btnListo) agregarTap(el.btnListo, cerrar);
+        if (el.btnToggle) agregarTap(el.btnToggle, toggleVistaSimbolos);
+        if (el.btnMayus) agregarTap(el.btnMayus, toggleMayusculas);
+        if (el.btnEspacio) agregarTap(el.btnEspacio, function () { insertar(' '); });
+        if (el.btnBorrar) agregarTap(el.btnBorrar, borrar);
+        if (el.btnLimpiar) agregarTap(el.btnLimpiar, limpiar);
 
         attachAll();
 
@@ -65,6 +94,10 @@
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && estado.target) cerrar();
+        });
+
+        window.addEventListener('resize', function () {
+            if (estado.target) cerrar();
         });
     }
 
@@ -84,35 +117,60 @@
         document.querySelectorAll('[data-teclado]').forEach(attach);
     }
 
+    /**
+     * Detecta si es un celular/tablet REAL (donde queremos dejar el teclado
+     * nativo del sistema) en lugar de un monitor/kiosco touch de escritorio
+     * (donde queremos que se abra nuestro teclado virtual).
+     *
+     * Ya NO usamos window.innerWidth como criterio -- un kiosco touch de
+     * escritorio puede tener pantalla chica y antes eso lo hacía pasar
+     * como "celular" por error.
+     */
+    function esCelularReal() {
+        if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+            return navigator.userAgentData.mobile;
+        }
+        return /iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     function attach(campo) {
-        if (campo.dataset.tecladoAtado) return; 
+        if (campo.dataset.tecladoAtado) return;
         campo.dataset.tecladoAtado = '1';
 
-        campo.removeAttribute('readonly');
-
-        // VALIDACIÓN DE TELÉFONO: Revisa el UserAgent o si la pantalla es menor a 768px
-        var esMovil = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-
-        if (esMovil) {
-            // Si es celular, no hacemos nada más para que el teclado del sistema se abra normalmente
-            if(campo.getAttribute('inputmode') === 'none') {
-                campo.removeAttribute('inputmode');
-            }
-            return; 
+        if (esCelularReal()) {
+            // Celular real: nunca mostramos nuestro overlay, dejamos el teclado nativo del sistema.
+            campo.removeAttribute('readonly');
+            campo.removeAttribute('inputmode');
+            return;
         }
 
-        var abrir = function () {
+        // Desktop / kiosco touch (con o sin teclado físico conectado):
+        // NO usamos readonly -- así el teclado FÍSICO escribe normal, siempre.
+        // inputmode="none" bloquea SOLO el teclado táctil nativo del sistema.
+        campo.removeAttribute('readonly');
+        campo.setAttribute('inputmode', 'none');
+        campo.style.cursor = 'pointer';
+        campo.style.touchAction = 'manipulation';
+
+        var abriendo = false;
+
+        var abrirTeclado = function () {
+            if (abriendo) return;
+            abriendo = true;
             abrirPara(campo);
+            campo.focus();
+            setTimeout(function () { abriendo = false; }, 80);
         };
-        
-        campo.addEventListener('click', abrir);
-        campo.addEventListener('focus', abrir);
+
+        campo.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            abrirTeclado();
+        }, { passive: false });
+
+        campo.addEventListener('click', abrirTeclado);
     }
 
     function abrirPara(campo) {
-        // Doble validación de seguridad por si se redimensionó la ventana
-        if (window.innerWidth < 768) return;
-
         estado.target = campo;
         estado.modo = campo.dataset.teclado === 'numerico' ? 'numerico' : 'texto';
         estado.maxLength = campo.dataset.tecladoMax ? parseInt(campo.dataset.tecladoMax, 10) : null;
@@ -150,13 +208,15 @@
 
         renderGrid();
         el.overlay.classList.remove('hidden');
-        el.overlay.style.pointerEvents = 'auto'; 
+        el.overlay.style.pointerEvents = 'auto';
         document.body.classList.add('teclado-virtual-abierto');
+
+        document.body.appendChild(el.overlay);
     }
 
     function cerrar() {
         el.overlay.classList.add('hidden');
-        el.overlay.style.pointerEvents = 'none'; 
+        el.overlay.style.pointerEvents = 'none';
         document.body.classList.remove('teclado-virtual-abierto');
         estado.target = null;
     }
@@ -207,11 +267,9 @@
             btn.className = estado.modo === 'numerico'
                 ? 'min-h-[38px] py-2 rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-blue-500/40 hover:bg-[var(--hover-bg)] active:scale-90 active:bg-blue-500/10 select-none text-[var(--text-main)] text-sm font-bold shadow-sm transition-all duration-100'
                 : 'min-h-[40px] sm:min-h-[44px] py-2.5 rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-blue-500/30 hover:bg-[var(--hover-bg)] active:scale-90 active:bg-blue-500/10 select-none text-[var(--text-main)] text-[11px] sm:text-xs font-bold shadow-sm transition-all duration-100';
-            
-            btn.addEventListener('mousedown', function(e) { e.preventDefault(); });
-            btn.addEventListener('touchstart', function(e) { e.preventDefault(); }, {passive: false});
-            
-            btn.addEventListener('click', function () { insertar(teclaMostrada); });
+
+            agregarTap(btn, function () { insertar(teclaMostrada); });
+
             el.grid.appendChild(btn);
         });
     }
@@ -219,8 +277,8 @@
     function insertar(caracter) {
         var campo = estado.target;
         if (!campo) return;
-        
-        campo.focus(); 
+
+        campo.focus();
         if (estado.maxLength && campo.value.length >= estado.maxLength) return;
 
         var inicio = campo.selectionStart !== null ? campo.selectionStart : campo.value.length;
@@ -233,18 +291,18 @@
             campo.value = valor.slice(0, inicio) + caracter + valor.slice(fin);
             campo.setSelectionRange(inicio + caracter.length, inicio + caracter.length);
         }
-        
+
         disparaInput(campo);
     }
 
     function borrar() {
         var campo = estado.target;
         if (!campo) return;
-        
+
         campo.focus();
         var inicio = campo.selectionStart !== null ? campo.selectionStart : campo.value.length;
         var fin = campo.selectionEnd !== null ? campo.selectionEnd : campo.value.length;
-        
+
         if (inicio === fin && inicio > 0) {
             if (typeof campo.setRangeText === 'function') {
                 campo.setRangeText('', inicio - 1, fin, 'end');
@@ -260,14 +318,14 @@
                 campo.setSelectionRange(inicio, inicio);
             }
         }
-        
+
         disparaInput(campo);
     }
 
     function limpiar() {
         var campo = estado.target;
         if (!campo) return;
-        
+
         campo.focus();
         campo.value = '';
         if (campo.setSelectionRange) {
@@ -279,8 +337,8 @@
     function disparaInput(campo) {
         var posicionCorrecta = campo.selectionStart;
         campo.dispatchEvent(new Event('input', { bubbles: true }));
-        
-        setTimeout(function() {
+
+        setTimeout(function () {
             if (document.activeElement === campo) {
                 campo.setSelectionRange(posicionCorrecta, posicionCorrecta);
             }

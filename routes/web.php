@@ -123,6 +123,7 @@ Route::middleware(['auth'])->group(function () {
             
             // CORRECCIÓN: Quitamos el '/api/' de la URL física y limpiamos el nombre para que machee con cobro.js
             Route::post('/procesar-pago', [MesaOperacionController::class, 'procesarPago'])->name('procesar-pago')->middleware('permiso:Caja,crear');
+            Route::patch('/orden/{id}/propina', [MesaOperacionController::class, 'actualizarPropina'])->name('orden.propina')->middleware('permiso:Caja,crear');
             
             Route::post('/api/liberar-mesa', [MesaOperacionController::class, 'liberarMesa'])->name('api.liberar-mesa')->middleware('permiso:Caja,gestionar');
             Route::post('/api/abrir-mesa', [MesaOperacionController::class, 'abrirMesa'])->name('api.abrir-mesa')->middleware('permiso:Caja,gestionar');
