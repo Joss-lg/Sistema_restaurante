@@ -49,7 +49,6 @@ class ProductoController extends Controller
             'se_vende_por_peso'  => 'sometimes|boolean',
             // Solo es obligatorio si el producto se vende por peso.
             'precio_por_100g'    => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
-            'tiempo_preparacion' => 'required|integer|min:0',
             'insumos'            => 'nullable|array',
             'insumos.*'          => 'exists:insumos,id',
             'cantidades'         => 'nullable|array',
@@ -70,7 +69,6 @@ class ProductoController extends Controller
                 'precio'             => $sePorPeso ? 0 : $request->precio,
                 'se_vende_por_peso'  => $sePorPeso,
                 'precio_por_100g'    => $sePorPeso ? $request->precio_por_100g : null,
-                'tiempo_preparacion' => $request->tiempo_preparacion,
                 'esta_disponible'    => $request->boolean('esta_disponible'), // Evalúa "on", 1 o true
             ]);
 
@@ -115,7 +113,6 @@ class ProductoController extends Controller
             'precio'             => 'required|numeric|min:0',
             'se_vende_por_peso'  => 'sometimes|boolean',
             'precio_por_100g'    => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
-            'tiempo_preparacion' => 'required|integer|min:0',
             'insumos'            => 'nullable|array',
             'insumos.*'          => 'exists:insumos,id',
             'cantidades'         => 'nullable|array',
@@ -135,8 +132,7 @@ class ProductoController extends Controller
                 'precio'             => $sePorPeso ? 0 : $request->precio,
                 'se_vende_por_peso'  => $sePorPeso,
                 'precio_por_100g'    => $sePorPeso ? $request->precio_por_100g : null,
-                'tiempo_preparacion' => $request->tiempo_preparacion,
-                'esta_disponible'    => $request->boolean('esta_disponible'),
+                 'esta_disponible'    => $request->boolean('esta_disponible'),
             ]);
 
             // 2. Re-sincronización estructural de ingredientes

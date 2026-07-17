@@ -1,3 +1,20 @@
+<style>
+    /* Solo aplicamos el truco de subir el modal en pantallas grandes (computadoras/punto de venta) */
+    @media (min-width: 768px) {
+        /* 1. Mandamos el modal a la parte de arriba de la pantalla */
+        body.teclado-virtual-abierto #modalMovimiento {
+            align-items: flex-start !important;
+            padding-top: 15px !important;
+        }
+
+        /* 2. Hacemos que el modal sea más corto para que no choque con el teclado y active el scroll interno */
+        body.teclado-virtual-abierto #movimientoContainer {
+            transform: translateY(0) scale(0.98) !important;
+            max-height: calc(100dvh - 340px) !important;
+        }
+    }
+</style>
+
 <div id="modalMovimiento" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
     
     <div class="bg-[var(--card-color)] border border-zinc-200/60 dark:border-zinc-800/60 w-full max-w-md rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] dark:shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden transform transition-all duration-500 scale-95 opacity-0 modo-crema:bg-white flex flex-col max-h-[95dvh] sm:max-h-[92dvh]" id="movimientoContainer">
@@ -46,7 +63,8 @@
                         <label class="flex items-center gap-2 text-[8px] sm:text-[9px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
                             <i class="fas fa-hashtag opacity-60"></i> Cantidad a mover
                         </label>
-                        <input type="number" step="0.01" name="cantidad" required min="0.01" inputmode="decimal"
+                        {{-- TECLADO VIRTUAL NUMÉRICO: type=text (no number) para que el teclado personalizado pueda escribir el valor --}}
+                        <input type="text" name="cantidad" pattern="[0-9]*\.?[0-9]*" required readonly data-teclado="numerico" inputmode="none"
                             class="w-full h-11 sm:h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl sm:rounded-2xl px-4 sm:px-5 text-base sm:text-xs font-black text-[var(--text-color)] dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                             placeholder="Ej: 50">
                     </div>
@@ -56,7 +74,7 @@
                     <label class="flex items-center gap-2 text-[8px] sm:text-[9px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
                         <i class="fas fa-comment-alt opacity-60"></i> Motivo o Justificación
                     </label>
-                    <input type="text" name="motivo" required
+                    <input type="text" name="motivo" required readonly data-teclado="texto" inputmode="none"
                         class="w-full h-11 sm:h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl sm:rounded-2xl px-4 sm:px-5 text-base sm:text-xs font-bold text-[var(--text-color)] dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                         placeholder="Ej: Factura #1234 / Se rompió">
                 </div>

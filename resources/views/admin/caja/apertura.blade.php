@@ -1,8 +1,25 @@
 @extends('layouts.admin') {{-- Reemplaza con tu layout base si es necesario --}}
 
 @section('content')
-<div class="flex items-center justify-center min-h-[80vh] bg-gray-100 dark:bg-gray-900 px-4 py-8">
-    <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 border border-gray-200 dark:border-gray-700">
+<style>
+    /* Solo aplicamos el truco de subir la tarjeta en pantallas grandes (computadoras/punto de venta) */
+    @media (min-width: 768px) {
+        /* 1. Mandamos la tarjeta a la parte de arriba de la pantalla */
+        body.teclado-virtual-abierto #aperturaCajaWrapper {
+            align-items: flex-start !important;
+            padding-top: 15px !important;
+        }
+
+        /* 2. Hacemos que la tarjeta sea más corta para que no choque con el teclado y active el scroll interno */
+        body.teclado-virtual-abierto #aperturaCajaCard {
+            max-height: calc(100dvh - 340px) !important;
+            overflow-y: auto !important;
+        }
+    }
+</style>
+
+<div id="aperturaCajaWrapper" class="flex items-center justify-center min-h-[80vh] bg-gray-100 dark:bg-gray-900 px-4 py-8">
+    <div id="aperturaCajaCard" class="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 border border-gray-200 dark:border-gray-700 transition-all duration-300">
         
         <div class="text-center mb-6">
             <div class="inline-flex p-3 bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300 rounded-full mb-3">
@@ -50,7 +67,8 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <span class="text-gray-500 dark:text-gray-400 sm:text-sm">$</span>
                     </div>
-                    <input type="number" name="monto_inicial" id="monto_inicial" step="0.01" min="0" required
+                    {{-- TECLADO VIRTUAL NUMÉRICO: type=text (no number) para que el teclado personalizado pueda escribir el valor --}}
+                    <input type="text" name="monto_inicial" id="monto_inicial" pattern="[0-9]*\.?[0-9]*" required readonly data-teclado="numerico" data-teclado-titulo="Monto Inicial" inputmode="none"
                         value="{{ old('monto_inicial', '0.00') }}"
                         class="w-full h-12 pl-7 text-base rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-blue-500 @error('monto_inicial') border-red-500 @enderror"
                         placeholder="0.00"
@@ -69,4 +87,14 @@
 
     </div>
 </div>
+
+<script>
+    // Nos aseguramos de que el teclado virtual detecte el campo numérico de esta vista.
+    // Si tu layout ya llama a esto globalmente, esta llamada es redundante pero inofensiva.
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof TecladoVirtual !== 'undefined') {
+            TecladoVirtual.attachAll();
+        }
+    });
+</script>
 @endsection

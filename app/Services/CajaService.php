@@ -14,30 +14,50 @@ class CajaService
      */
     public function obtenerDesgloseMesa(Mesa $mesa): array
     {
-        // Optimizamos cargando 'detalles' desde el inicio para evitar el problema N+1
-        $ordenesActivas = $mesa->ordenesActivas()->with('detalles')->get();
-        
-        $subtotal = $ordenesActivas->sum(function ($orden) {
-            return $orden->detalles->sum(function ($detalle) {
-                return $detalle->cantidad * $detalle->precio_unitario;
-            });
+        $ordenesActivas = $mesa->ordenesActivas()
+            ->with([
+                'detalles.producto',
+                'detalles.promocionAplicada.promocion',
+                'promocionesAplicadas.promocion',
+                'promocionesAplicadas.detalleOrden.producto',
+            ])
+            ->get();
+
+        $subtotalBruto = $ordenesActivas->sum(function ($orden) {
+            return $orden->detalles->sum(fn($detalle) => $detalle->cantidad * $detalle->precio_unitario);
         });
 
-        $propina = $ordenesActivas->sum('propina');
-        
-        // NOTA: Cambia esto si tus precios ya incluyen IVA en la base de datos.
-        // Si ya incluyen IVA: $iva = round($subtotal - ($subtotal / 1.16), 2);
-        $iva = round($subtotal * 0.16, 2); 
-        $total = round($subtotal + $iva + $propina, 2);
+        $descuentoPromociones = $ordenesActivas->sum(function ($orden) {
+            return $orden->promocionesAplicadas->sum('monto_descuento');
+        });
+
+        // Lista de productos con su descuento, para mostrar en la vista
+        $productosConDescuento = $ordenesActivas->flatMap(function ($orden) {
+            return $orden->promocionesAplicadas->map(function ($op) {
+                return [
+                    'producto'        => $op->detalleOrden->producto->nombre ?? 'Producto',
+                    'promocion'       => $op->promocion->nombre ?? 'Promoción',
+                    'monto_descuento' => (float) $op->monto_descuento,
+                ];
+            });
+        })->values();
+
+        $subtotal = round($subtotalBruto - $descuentoPromociones, 2);
+        $propina  = $ordenesActivas->sum('propina');
+        $iva      = round($subtotal * 0.16, 2);
+        $total    = round($subtotal + $iva + $propina, 2);
 
         return [
-            'subtotal'             => round($subtotal, 2),
-            'iva'                  => $iva,
-            'propina'              => round($propina, 2),
-            'total'                => $total,
-            'ordenes'              => $ordenesActivas,
-            'cuentasDivididas'     => $mesa->cuenta_dividida ?? false,
-            'totalCuentasDivision' => $mesa->numero_cuenta_division ?? 1
+            'subtotal'              => $subtotal,
+            'subtotalBruto'         => round($subtotalBruto, 2),
+            'descuentoPromociones'  => round($descuentoPromociones, 2),
+            'productosConDescuento' => $productosConDescuento,
+            'iva'                   => $iva,
+            'propina'               => round($propina, 2),
+            'total'                 => $total,
+            'ordenes'               => $ordenesActivas,
+            'cuentasDivididas'      => $mesa->cuenta_dividida ?? false,
+            'totalCuentasDivision'  => $mesa->numero_cuenta_division ?? 1,
         ];
     }
 

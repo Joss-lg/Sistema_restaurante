@@ -1,3 +1,20 @@
+<style>
+    /* Solo aplicamos el truco de subir el modal en pantallas grandes (computadoras/punto de venta) */
+    @media (min-width: 768px) {
+        /* 1. Mandamos el modal a la parte de arriba de la pantalla */
+        body.teclado-virtual-abierto #editEmpleadoModal {
+            align-items: flex-start !important;
+            padding-top: 15px !important;
+        }
+        
+        /* 2. Hacemos que el modal sea más corto para que no choque con el teclado y active el scroll interno */
+        body.teclado-virtual-abierto #editModalContent {
+            transform: translateY(0) scale(0.98) !important;
+            max-height: calc(100dvh - 340px) !important; 
+        }
+    }
+</style>
+
 <div id="editEmpleadoModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-[99999] flex items-center justify-center p-4 hidden opacity-0 transition-all duration-500">
     
     {{-- Contenedor principal sin !bg-white que bloqueaba el tema --}}
@@ -28,12 +45,12 @@
                 </div>
             </div>
 
-            {{-- Nombre (Con Icono) --}}
+            {{-- Nombre (Con Icono y Teclado Activado) --}}
             <div class="group">
                 <label for="edit_nombre" class="text-[9px] sm:text-[10px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-[0.2em] mb-2 sm:mb-3 block">Nombre Completo</label>
                 <div class="relative">
                     <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
-                    <input type="text" id="edit_nombre" name="nombre" required 
+                    <input type="text" id="edit_nombre" name="nombre" data-teclado="texto" required 
                         class="w-full h-12 sm:h-14 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/5 rounded-xl sm:rounded-2xl pl-11 pr-4 sm:pr-6 text-sm font-bold text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 hover:border-gray-300 dark:hover:border-white/10 transition-all duration-300">
                 </div>
             </div>
@@ -61,12 +78,12 @@
             {{-- Contenedor Condicional (PIN y ROL) --}}
             <div id="edit_accesoFields" class="hidden space-y-5 sm:space-y-6 transition-all duration-500">
                 
-                {{-- PIN (Con Icono) --}}
+                {{-- PIN (Con Icono y Teclado Numérico Activado) --}}
                 <div class="group">
                     <label for="edit_codigo_empleado" class="text-[9px] sm:text-[10px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-[0.2em] mb-2 sm:mb-3 block">PIN de Seguridad (4 dígitos)</label>
                     <div class="relative">
                         <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
-                        <input type="text" id="edit_codigo_empleado" name="codigo_empleado" maxlength="4" 
+                        <input type="text" id="edit_codigo_empleado" name="codigo_empleado" data-teclado="numerico" maxlength="4" 
                             class="w-full h-12 sm:h-14 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/5 rounded-xl sm:rounded-2xl pl-11 pr-4 sm:pr-6 font-black tracking-[0.8em] text-base sm:text-lg text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 hover:border-gray-300 dark:hover:border-white/10 transition-all duration-300">
                     </div>
                 </div>
@@ -134,7 +151,6 @@
         document.getElementById('editDropdownMenu').classList.add('hidden');
     }
 
-    // Aseguramos que cerrarEditModal esté en el entorno global (window)
     window.cerrarEditModal = function() {
         const modal = document.getElementById('editEmpleadoModal');
         const content = document.getElementById('editModalContent');
@@ -180,7 +196,6 @@
 
         if(modal && content) {
             modal.classList.remove('hidden');
-            // Retraso minúsculo para que la transición CSS funcione al quitar el "hidden"
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 content.classList.remove('scale-95');
@@ -188,7 +203,6 @@
         }
     };
 
-    // Cerramos el menú dropdown si se hace click fuera
     window.addEventListener('click', () => {
         const menu = document.getElementById('editDropdownMenu');
         if (menu && !menu.classList.contains('hidden')) {

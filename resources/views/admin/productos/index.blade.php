@@ -13,7 +13,7 @@
             <h1 class="text-xl sm:text-3xl font-black tracking-tight text-[var(--text-color)]">Menú de Productos</h1>
             <p class="text-xs sm:text-sm font-medium text-[var(--text-muted)] mt-1">Gestiona los productos del restaurante</p>
         </div>
-<button onclick="abrirModalCrear()" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-3 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-[0.98]">
+<button type="button" onclick="abrirModalCrear()" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--text-color)] text-[var(--bg-color)] hover:opacity-80 px-5 py-3 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-[0.98]">
     <i class="fas fa-plus text-[12px]"></i>
     <span>Agregar Producto</span>
 </button>

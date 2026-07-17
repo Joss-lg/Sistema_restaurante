@@ -16,7 +16,6 @@ class Producto extends Model
         'precio',
         'se_vende_por_peso',
         'precio_por_100g',
-        'tiempo_preparacion',
         'descripcion',
         'esta_disponible'
     ];

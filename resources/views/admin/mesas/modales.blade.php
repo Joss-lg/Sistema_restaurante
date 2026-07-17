@@ -11,11 +11,19 @@
         <div class="grid gap-4">
             <label class="block">
                 <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Nombre / Número</span>
-                <input id="nuevaMesaNumero" type="text" class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-emerald-500 transition-colors">
+                <input id="nuevaMesaNumero" type="text"
+                    data-teclado="texto"
+                    data-teclado-titulo="Número de Mesa"
+                    data-teclado-max="10"
+                    class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-emerald-500 transition-colors">
             </label>
             <label class="block">
                 <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Capacidad (Personas)</span>
-                <input id="nuevaMesaCapacidad" type="number" min="1" class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-emerald-500 transition-colors">
+                <input id="nuevaMesaCapacidad" type="text" inputmode="numeric"
+                    data-teclado="numerico"
+                    data-teclado-titulo="Capacidad"
+                    data-teclado-max="3"
+                    class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-emerald-500 transition-colors">
             </label>
         </div>
         <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-[var(--border-color)]">
@@ -39,11 +47,19 @@
         <div class="grid gap-4">
             <label class="block">
                 <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Nombre / Número</span>
-                <input id="editarMesaNumero" type="text" class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-[#3B82F6] transition-colors">
+                <input id="editarMesaNumero" type="text"
+                    data-teclado="texto"
+                    data-teclado-titulo="Número de Mesa"
+                    data-teclado-max="10"
+                    class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-[#3B82F6] transition-colors">
             </label>
             <label class="block">
                 <span class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Capacidad (Personas)</span>
-                <input id="editarMesaCapacidad" type="number" min="1" class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-[#3B82F6] transition-colors">
+                <input id="editarMesaCapacidad" type="text" inputmode="numeric"
+                    data-teclado="numerico"
+                    data-teclado-titulo="Capacidad"
+                    data-teclado-max="3"
+                    class="mt-1.5 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-color)] px-4 py-3 text-sm font-bold text-[var(--text-color)] outline-none focus:border-[#3B82F6] transition-colors">
             </label>
         </div>
         <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-[var(--border-color)]">
@@ -74,3 +90,7 @@
         </div>
     </div>
 </div>
+
+{{-- Teclado virtual: se incluye aquí para que quede junto a los modales que lo usan --}}
+@include('partials.teclado-virtual')
+<script src="{{ asset('js/teclado-virtual.js') }}"></script>

@@ -1,4 +1,18 @@
 {{-- resources/views/admin/roles/modal-editar.blade.php --}}
+<style>
+    /* Efecto para que el teclado no tape el modal en pantallas grandes */
+    @media (min-width: 768px) {
+        body.teclado-virtual-abierto #modalEditarRol {
+            align-items: flex-start !important;
+            padding-top: 15px !important;
+        }
+        body.teclado-virtual-abierto #modalEditarRol .dynamic-modal-content {
+            transform: translateY(0) scale(0.98) !important;
+            max-height: calc(100dvh - 340px) !important; 
+        }
+    }
+</style>
+
 <div id="modalEditarRol" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
     
     {{-- Capa de cierre al hacer clic fuera --}}
@@ -26,7 +40,8 @@
 
             <div>
                 <label for="editNombre" class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 block">Nombre del Puesto</label>
-                <input type="text" id="editNombre" name="nombre" required
+                {{-- AQUÍ SE AGREGÓ data-teclado="texto" --}}
+                <input type="text" id="editNombre" name="nombre" required data-teclado="texto"
                        class="w-full h-12 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl px-4 text-base font-medium text-gray-900 dark:text-white outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
             </div>
 

@@ -45,6 +45,9 @@ class MesaOperacionController extends Controller
             'ordenes' => $ordenes,
             'orden' => $orden, 
             'subtotal' => $desglose['subtotal'],
+            'subtotalBruto' => $desglose['subtotalBruto'],           // NUEVO
+            'descuentoPromociones' => $desglose['descuentoPromociones'], // NUEVO
+            'productosConDescuento' => $desglose['productosConDescuento'], // NUEVO
             'iva' => $desglose['iva'],
             'propina' => $desglose['propina'],
             'totalPagar' => $desglose['total'],

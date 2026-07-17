@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('precio_unitario', 10, 2);
             $table->string('estado'); // Ej: en cocina, entregado
             $table->text('notas')->nullable(); // Para el "Sin cebolla", etc.
+            $table->string('tiempo')->nullable(); // Tiempo de cocina: sin-tiempo, primer-tiempo, segundo-tiempo, tercer-tiempo
             $table->timestamps();
         });
     }

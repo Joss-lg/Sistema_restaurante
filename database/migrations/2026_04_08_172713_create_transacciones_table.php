@@ -17,8 +17,6 @@ return new class extends Migration
         // FK: Conecta con la orden que se está pagando
         $table->foreignId('orden_id')->constrained('ordenes');
 
-        // FK: Conecta con el turno de caja actual
-        $table->foreignId('turno_id')->constrained('turnos');
 
         // FK: Conecta con el usuario que tiene el rol de cajero
         $table->foreignId('cajero_id')->constrained('users');

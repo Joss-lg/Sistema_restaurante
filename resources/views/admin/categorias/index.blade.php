@@ -9,23 +9,6 @@
 <div class="px-4 py-6 sm:p-8 lg:p-10 max-w-[1800px] mx-auto w-full space-y-6 sm:space-y-8 relative z-10 font-sans min-h-screen text-slate-800 dark:text-zinc-100 transition-colors duration-300">
 
     {{-- ======================================================== --}}
-    {{-- ALERTAS DE SESIÓN (ÉXITO Y ERROR) --}}
-    {{-- ======================================================== --}}
-    @if (session('success'))
-        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center gap-3 shadow-sm">
-            <i class="fas fa-check-circle text-lg shrink-0"></i>
-            <span class="text-xs sm:text-sm font-bold">{{ session('success') }}</span>
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 flex items-center gap-3 shadow-sm">
-            <i class="fas fa-exclamation-triangle text-lg shrink-0"></i>
-            <span class="text-xs sm:text-sm font-bold">{{ session('error') }}</span>
-        </div>
-    @endif
-
-    {{-- ======================================================== --}}
     {{-- HEADER & MÉTRICAS (ESTILO DASHBOARD PREMIUM) --}}
     {{-- ======================================================== --}}
     <div class="flex flex-col xl:flex-row gap-4 sm:gap-6">

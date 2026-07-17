@@ -1,5 +1,22 @@
+<style>
+    /* Solo aplicamos el truco de subir el modal en pantallas grandes (computadoras/punto de venta) */
+    @media (min-width: 768px) {
+        /* 1. Mandamos el modal a la parte de arriba de la pantalla */
+        body.teclado-virtual-abierto #modalEditar {
+            align-items: flex-start !important;
+            padding-top: 15px !important;
+        }
+
+        /* 2. Hacemos que el modal sea más corto para que no choque con el teclado y active el scroll interno */
+        body.teclado-virtual-abierto #modalEditarPromocionContent {
+            transform: translateY(0) scale(0.98) !important;
+            max-height: calc(100dvh - 340px) !important;
+        }
+    }
+</style>
+
 <div id="modalEditar" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto overflow-x-hidden p-3 sm:p-4">
-    <div class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[1.5rem] sm:rounded-[2.5rem] p-5 sm:p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-4 sm:my-8 unique-scrollbar max-h-[92vh] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden">
+    <div id="modalEditarPromocionContent" class="relative !bg-white dark:!bg-[#121318] border !border-transparent dark:!border-white/5 w-full max-w-2xl rounded-[1.5rem] sm:rounded-[2.5rem] p-5 sm:p-8 lg:p-10 shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] my-4 sm:my-8 unique-scrollbar max-h-[92vh] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden">
 
         {{-- Resplandor decorativo de fondo --}}
         <div class="absolute -top-32 -right-32 w-64 h-64 bg-amber-500/10 dark:bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -25,16 +42,16 @@
 
             <div class="space-y-5 sm:space-y-6">
 
-                {{-- Nombre de la Promo --}}
+                {{-- Nombre de la Promo (TECLADO VIRTUAL DE TEXTO) --}}
                 <div class="group">
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Nombre de la Promoción</label>
-                    <input type="text" name="nombre" id="edit_nombre" required class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner" placeholder="Ej: Jueves de Alitas 2x1">
+                    <input type="text" name="nombre" id="edit_nombre" required readonly data-teclado="texto" data-teclado-titulo="Nombre de la Promoción" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner" placeholder="Ej: Jueves de Alitas 2x1">
                 </div>
 
-                {{-- Descripción --}}
+                {{-- Descripción (TECLADO VIRTUAL DE TEXTO) --}}
                 <div class="group">
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Descripción de la Oferta</label>
-                    <textarea name="descripcion" id="edit_descripcion" rows="2" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner resize-none" placeholder="Breve nota explicativa para los meseros o clientes..."></textarea>
+                    <textarea name="descripcion" id="edit_descripcion" rows="2" readonly data-teclado="texto" data-teclado-titulo="Descripción" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner resize-none" placeholder="Breve nota explicativa para los meseros o clientes..."></textarea>
                 </div>
 
                 {{-- Fila: Tipo y Valor --}}
@@ -53,11 +70,12 @@
                     </div>
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Valor Descuento / Cantidad</label>
-                        <input type="number" name="valor_descuento" id="edit_valor_descuento" required step="0.01" min="0" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner" placeholder="Ej: 15.00">
+                        {{-- TECLADO VIRTUAL NUMÉRICO: type=text (no number) para que el teclado personalizado pueda escribir el valor --}}
+                        <input type="text" name="valor_descuento" id="edit_valor_descuento" required pattern="[0-9]*\.?[0-9]*" readonly data-teclado="numerico" data-teclado-titulo="Valor Descuento / Cantidad" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner" placeholder="Ej: 15.00">
                     </div>
                 </div>
 
-                {{-- Fila: Vigencia de Fechas --}}
+                {{-- Fila: Vigencia de Fechas (NO llevan teclado virtual: usan el selector de fecha nativo) --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Fecha Inicio Vigencia</label>

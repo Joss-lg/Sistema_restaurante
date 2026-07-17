@@ -88,9 +88,25 @@
                                 @if($detalle->notas)
                                     <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase italic">{{ $detalle->notas }}</p>
                                 @endif
+                                {{-- NUEVO: badge de promoción --}}
+                                @if($detalle->promocionAplicada)
+                                    <p class="text-[10px] text-emerald-400 font-black uppercase mt-1 flex items-center gap-1">
+                                        <i class="fas fa-tag"></i> {{ $detalle->promocionAplicada->promocion->nombre ?? 'Promo' }}
+                                        (-${{ number_format($detalle->promocionAplicada->monto_descuento, 2) }})
+                                    </p>
+                                @endif
                             </div>
                         </div>
-                        <span class="text-zinc-900 dark:text-white font-black text-sm">${{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}</span>
+                        <div class="text-right">
+                            @if($detalle->promocionAplicada)
+                                <span class="text-zinc-500 text-[10px] line-through block">
+                                    ${{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}
+                                </span>
+                            @endif
+                            <span class="text-zinc-900 dark:text-white font-black text-sm">
+                                ${{ number_format(($detalle->precio_unitario * $detalle->cantidad) - ($detalle->promocionAplicada->monto_descuento ?? 0), 2) }}
+                            </span>
+                        </div>
                     </div>
                 @endforeach
             @endforeach
@@ -103,8 +119,16 @@
             <div class="space-y-2">
                 <div class="flex justify-between text-zinc-400 text-sm">
                     <span>Subtotal</span>
-                    <span class="font-medium text-white">${{ number_format($subtotal ?? 0, 2) }}</span>
+                    <span class="font-medium text-white">${{ number_format($subtotalBruto ?? 0, 2) }}</span>
                 </div>
+
+                @if(($descuentoPromociones ?? 0) > 0)
+                    <div class="flex justify-between text-emerald-400 text-sm">
+                        <span>Descuento (promociones)</span>
+                        <span class="font-medium">-${{ number_format($descuentoPromociones, 2) }}</span>
+                    </div>
+                @endif
+
                 <div class="flex justify-between text-zinc-400 text-sm">
                     <span>IVA (16%)</span>
                     <span class="font-medium text-white">${{ number_format($iva ?? 0, 2) }}</span>

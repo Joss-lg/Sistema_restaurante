@@ -62,17 +62,42 @@
                 @endphp
 
                 <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] {{ $config['border'] }} shadow-lg flex flex-col h-full overflow-hidden relative">
-                    <div class="p-4 border-b border-[var(--border-color)] min-w-0">
-                        <h3 class="font-black text-lg truncate">Mesa {{ $comanda->mesa->numero }}</h3>
-                        <p class="text-xs text-[var(--text-muted)] truncate">Mesero: {{ $comanda->mesero->nombre ?? 'N/A' }}</p>
+                    <div class="p-4 border-b border-[var(--border-color)] min-w-0 flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <h3 class="font-black text-lg truncate">Mesa {{ $comanda->mesa->numero }}</h3>
+                            <p class="text-xs text-[var(--text-muted)] truncate">Mesero: {{ $comanda->mesero->nombre ?? 'N/A' }}</p>
+                        </div>
+                        <span
+                            class="tiempo-espera shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wide whitespace-nowrap bg-zinc-500/10 border-zinc-500/30 text-zinc-400"
+                            data-creado="{{ optional($comanda->creado_en)->toIso8601String() }}"
+                        >
+                            <i class="fas fa-clock"></i>
+                            <span class="tiempo-texto">--</span>
+                        </span>
                     </div>
 
                     <div class="p-4 flex-1 min-w-0">
                         <ul class="space-y-2">
                             @foreach($comanda->detalles as $detalle)
+                                @php
+                                    // Mapeo de clases FIJAS (no interpoladas) para que Tailwind
+                                    // no las purgue en build de producción.
+                                    $tiempoClases = [
+                                        'sin-tiempo'     => ['label' => 'S', 'clase' => 'text-zinc-400 bg-zinc-500/10 border-zinc-500/30'],
+                                        'primer-tiempo'  => ['label' => '1', 'clase' => 'text-blue-400 bg-blue-500/10 border-blue-500/30'],
+                                        'segundo-tiempo' => ['label' => '2', 'clase' => 'text-purple-400 bg-purple-500/10 border-purple-500/30'],
+                                        'tercer-tiempo'  => ['label' => '3', 'clase' => 'text-pink-400 bg-pink-500/10 border-pink-500/30'],
+                                    ];
+                                    $tInfo = $tiempoClases[$detalle->tiempo] ?? null;
+                                @endphp
                                 <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-0.5">
                                     <span class="font-bold text-[var(--text-color)] break-words flex flex-wrap items-center gap-1.5">
                                         {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
+                                        @if($tInfo)
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md border {{ $tInfo['clase'] }}">
+                                                <i class="fas fa-clock"></i>Tiempo {{ $tInfo['label'] }}
+                                            </span>
+                                        @endif
                                         @if($detalle->gramaje)
                                             @php
                                                 $gramajeLimpio = rtrim(rtrim(number_format((float) $detalle->gramaje, 2, '.', ''), '0'), '.');
@@ -174,5 +199,38 @@
     document.addEventListener('DOMContentLoaded', () => {
         cargarKdsMesas();
         setInterval(cargarKdsMesas, 10000);
+    });
+
+    // --- Contador de tiempo de espera por ticket (desde que se envió a cocina) ---
+    function formatearEspera(minutos) {
+        if (minutos < 1) return 'Recién enviado';
+        if (minutos < 60) return `Espera: ${minutos} min`;
+        const horas = Math.floor(minutos / 60);
+        const resto = minutos % 60;
+        return `Espera: ${horas}h ${resto}min`;
+    }
+
+    function claseNivelEspera(minutos) {
+        if (minutos >= 30) return 'bg-red-500/10 border-red-500/30 text-red-500 animate-pulse';
+        if (minutos >= 15) return 'bg-orange-500/10 border-orange-500/30 text-orange-500';
+        return 'bg-zinc-500/10 border-zinc-500/30 text-zinc-400';
+    }
+
+    function actualizarContadoresEspera() {
+        document.querySelectorAll('.tiempo-espera').forEach((el) => {
+            const creado = el.dataset.creado;
+            if (!creado) return;
+
+            const minutos = Math.max(0, Math.floor((Date.now() - new Date(creado).getTime()) / 60000));
+            const texto = el.querySelector('.tiempo-texto');
+            if (texto) texto.textContent = formatearEspera(minutos);
+
+            el.className = 'tiempo-espera shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wide whitespace-nowrap ' + claseNivelEspera(minutos);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        actualizarContadoresEspera();
+        setInterval(actualizarContadoresEspera, 30000);
     });
 </script>

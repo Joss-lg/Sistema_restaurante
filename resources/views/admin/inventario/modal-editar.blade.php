@@ -1,6 +1,23 @@
+<style>
+    /* Solo aplicamos el truco de subir el modal en pantallas grandes (computadoras/punto de venta) */
+    @media (min-width: 768px) {
+        /* 1. Mandamos el modal a la parte de arriba de la pantalla */
+        body.teclado-virtual-abierto .modal-editar-insumo {
+            align-items: flex-start !important;
+            padding-top: 15px !important;
+        }
+
+        /* 2. Hacemos que el modal sea más corto para que no choque con el teclado y active el scroll interno */
+        body.teclado-virtual-abierto .modal-editar-insumo-container {
+            transform: translateY(0) scale(0.98) !important;
+            max-height: calc(100dvh - 340px) !important;
+        }
+    }
+</style>
+
 {{-- modal-editar.blade.php --}}
-<div id="modalEditar-{{ $item->id }}" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
-    <div id="modalContainer-{{ $item->id }}" class="relative bg-[#1c1c1e] rounded-2xl w-full max-w-md sm:mx-4 shadow-2xl scale-95 opacity-0 transition-all duration-200 overflow-hidden flex flex-col max-h-[92dvh]">
+<div id="modalEditar-{{ $item->id }}" class="modal-editar-insumo hidden fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+    <div id="modalContainer-{{ $item->id }}" class="modal-editar-insumo-container relative bg-[#1c1c1e] rounded-2xl w-full max-w-md sm:mx-4 shadow-2xl scale-95 opacity-0 transition-all duration-200 overflow-hidden flex flex-col max-h-[92dvh]">
 
         <div class="flex items-center gap-3 sm:gap-4 p-5 sm:p-7 pb-4 sm:pb-5 shrink-0">
             <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 bg-[#3B82F6]/20">
@@ -25,12 +42,12 @@
             {{-- Cuerpo con scroll táctil de respaldo por si la pantalla es muy baja --}}
             <div class="p-5 sm:p-7 space-y-4 sm:space-y-5 overflow-y-auto flex-1 overscroll-contain" style="-webkit-overflow-scrolling: touch;">
 
-                {{-- Input: Nombre --}}
+                {{-- Input: Nombre (TECLADO VIRTUAL DE TEXTO) --}}
                 <div class="space-y-2">
                     <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
                         <i class="fas fa-tag text-[#3B82F6] text-[10px]"></i> Nombre del Artículo
                     </label>
-                    <input type="text" name="nombre" value="{{ $item->nombre }}" required
+                    <input type="text" name="nombre" value="{{ $item->nombre }}" required readonly data-teclado="texto" inputmode="none"
                         class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 text-base sm:text-sm font-semibold text-white outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all">
                 </div>
 
@@ -77,7 +94,8 @@
                         <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
                             <i class="fas fa-bell text-[#3B82F6] text-[10px]"></i> <span class="truncate">Stock Mínimo</span>
                         </label>
-                        <input type="number" name="stock_minimo" value="{{ $item->stock_minimo }}" step="0.01" min="0" required inputmode="decimal"
+                        {{-- TECLADO VIRTUAL NUMÉRICO: type=text (no number) para que el teclado personalizado pueda escribir el valor --}}
+                        <input type="text" name="stock_minimo" value="{{ $item->stock_minimo }}" pattern="[0-9]*\.?[0-9]*" required readonly data-teclado="numerico" inputmode="none"
                             class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 text-base sm:text-sm font-semibold text-white outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all">
                     </div>
                 </div>

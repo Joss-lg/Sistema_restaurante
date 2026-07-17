@@ -20,6 +20,7 @@ class DetalleOrden extends Model
         'estado',
         'notas',
         'gramaje',
+        'tiempo', // NUEVO: tiempo de cocina (sin-tiempo, primer-tiempo, segundo-tiempo, tercer-tiempo)
         'transaccion_id',
     ];
 
@@ -43,6 +44,11 @@ class DetalleOrden extends Model
     public function producto()
     {
         return $this->belongsTo(Producto::class);
+    }
+
+    public function promocionAplicada()
+    {
+        return $this->hasOne(OrdenPromocion::class, 'detalle_orden_id');
     }
 
     // Calcular subtotal del detalle

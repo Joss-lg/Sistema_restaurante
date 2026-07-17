@@ -82,6 +82,16 @@ class Orden extends Model
         return $this->hasMany(DetalleOrden::class, 'orden_id');
     }
 
+    public function promocionesAplicadas()
+    {
+        return $this->hasMany(OrdenPromocion::class, 'orden_id');
+    }
+
+    public function getTotalDescuentosPromocionesAttribute()
+    {
+        return $this->promocionesAplicadas->sum('monto_descuento');
+    }
+
     // --- ACCESORES ---
 
     public function getTotalConImpuestosAttribute()
