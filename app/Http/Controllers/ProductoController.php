@@ -17,8 +17,6 @@ class ProductoController extends Controller
      */
     public function index()
     {
-        // No cargamos el blob 'imagen' completo aquí: solo verificamos si existe con selectRaw
-        // para no inflar la consulta del listado. La imagen real se sirve por la ruta api.imagen.
         $productos = Producto::with(['categoria:id,nombre', 'insumos:id,nombre,unidad_medida'])
                              ->select([
                                  'id', 'categoria_id', 'nombre', 'descripcion', 'precio',
@@ -33,7 +31,7 @@ class ProductoController extends Controller
 
         $insumosDisponibles = Insumo::where('esta_activo', true)
                                     ->orderBy('nombre')
-                                    ->select(['id', 'nombre', 'unidad_medida'])
+                                    ->select(['id', 'nombre', 'unidad_medida', 'stock_actual'])
                                     ->get();
 
         return view('admin.productos.index', compact('productos', 'categorias'), ['insumos' => $insumosDisponibles]);
@@ -49,16 +47,17 @@ class ProductoController extends Controller
         ]);
 
         $request->validate([
-            'nombre'             => 'required|string|max:255',
-            'categoria_id'       => 'required|exists:categorias,id',
-            'precio'             => 'required|numeric|min:0',
-            'se_vende_por_peso'  => 'sometimes|boolean',
-            'precio_por_100g'    => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
-            'insumos'            => 'nullable|array',
-            'insumos.*'          => 'exists:insumos,id',
-            'cantidades'         => 'nullable|array',
-            'cantidades.*'       => 'required_with:insumos|numeric|min:0.001',
-            'imagen'             => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+            'nombre'            => 'required|string|max:255',
+            'descripcion'       => 'nullable|string', // ✅ Validación de descripción
+            'categoria_id'      => 'required|exists:categorias,id',
+            'precio'            => 'required|numeric|min:0',
+            'se_vende_por_peso' => 'sometimes|boolean',
+            'precio_por_100g'   => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
+            'insumos'           => 'nullable|array',
+            'insumos.*'         => 'exists:insumos,id',
+            'cantidades'        => 'nullable|array',
+            'cantidades.*'      => 'required_with:insumos|numeric|min:0.001',
+            'imagen'            => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         try {
@@ -67,12 +66,13 @@ class ProductoController extends Controller
             $sePorPeso = $request->boolean('se_vende_por_peso');
 
             $producto = new Producto([
-                'nombre'             => $request->nombre,
-                'categoria_id'       => $request->categoria_id,
-                'precio'             => $sePorPeso ? 0 : $request->precio,
-                'se_vende_por_peso'  => $sePorPeso,
-                'precio_por_100g'    => $sePorPeso ? $request->precio_por_100g : null,
-                'esta_disponible'    => $request->boolean('esta_disponible'),
+                'nombre'            => $request->nombre,
+                'descripcion'       => $request->descripcion, // ✅ Se guarda la descripción
+                'categoria_id'      => $request->categoria_id,
+                'precio'            => $sePorPeso ? 0 : $request->precio,
+                'se_vende_por_peso' => $sePorPeso,
+                'precio_por_100g'   => $sePorPeso ? $request->precio_por_100g : null,
+                'esta_disponible'   => $request->boolean('esta_disponible'),
             ]);
 
             if ($request->hasFile('imagen')) {
@@ -118,17 +118,18 @@ class ProductoController extends Controller
         ]);
 
         $request->validate([
-            'nombre'             => 'required|string|max:255',
-            'categoria_id'       => 'required|exists:categorias,id',
-            'precio'             => 'required|numeric|min:0',
-            'se_vende_por_peso'  => 'sometimes|boolean',
-            'precio_por_100g'    => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
-            'insumos'            => 'nullable|array',
-            'insumos.*'          => 'exists:insumos,id',
-            'cantidades'         => 'nullable|array',
-            'cantidades.*'       => 'required_with:insumos|numeric|min:0.001',
-            'imagen'             => 'nullable|image|mimes:jpeg,png,webp|max:2048',
-            'quitar_imagen'      => 'nullable|boolean',
+            'nombre'            => 'required|string|max:255',
+            'descripcion'       => 'nullable|string', // ✅ Validación corregida
+            'categoria_id'      => 'required|exists:categorias,id',
+            'precio'            => 'required|numeric|min:0',
+            'se_vende_por_peso' => 'sometimes|boolean',
+            'precio_por_100g'   => 'nullable|required_if:se_vende_por_peso,1|numeric|min:0',
+            'insumos'           => 'nullable|array',
+            'insumos.*'         => 'exists:insumos,id',
+            'cantidades'        => 'nullable|array',
+            'cantidades.*'      => 'required_with:insumos|numeric|min:0.001',
+            'imagen'            => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+            'quitar_imagen'     => 'nullable|boolean',
         ]);
 
         try {
@@ -138,12 +139,13 @@ class ProductoController extends Controller
             $sePorPeso = $request->boolean('se_vende_por_peso');
 
             $producto->update([
-                'nombre'             => $request->nombre,
-                'categoria_id'       => $request->categoria_id,
-                'precio'             => $sePorPeso ? 0 : $request->precio,
-                'se_vende_por_peso'  => $sePorPeso,
-                'precio_por_100g'    => $sePorPeso ? $request->precio_por_100g : null,
-                 'esta_disponible'    => $request->boolean('esta_disponible'),
+                'nombre'            => $request->nombre,
+                'descripcion'       => $request->descripcion, // ✅ Se actualiza la descripción
+                'categoria_id'      => $request->categoria_id,
+                'precio'            => $sePorPeso ? 0 : $request->precio,
+                'se_vende_por_peso' => $sePorPeso,
+                'precio_por_100g'   => $sePorPeso ? $request->precio_por_100g : null,
+                'esta_disponible'   => $request->boolean('esta_disponible'),
             ]);
 
             if ($request->boolean('quitar_imagen')) {
@@ -211,8 +213,6 @@ class ProductoController extends Controller
 
     /**
      * Devuelve los productos agrupados por categoría, para renderizar las tarjetas.
-     * OPTIMIZADO: no carga el blob 'imagen' completo, solo verifica su existencia
-     * con selectRaw para mantener la respuesta ligera incluso con catálogos grandes.
      */
     public function getProductos(): JsonResponse
     {
@@ -223,7 +223,9 @@ class ProductoController extends Controller
             ])
             ->selectRaw('imagen IS NOT NULL as tiene_imagen')
             ->get()
-            ->groupBy('categoria.nombre');
+            ->groupBy(function ($producto) {
+                return $producto->categoria->nombre ?? 'Sin Categoría';
+            });
 
         return response()->json($productos);
     }
@@ -231,9 +233,9 @@ class ProductoController extends Controller
     public function getEstadisticas(): JsonResponse
     {
         return response()->json([
-            'total' => Producto::count(),
+            'total'       => Producto::count(),
             'disponibles' => Producto::where('esta_disponible', true)->count(),
-            'categorias' => Categoria::count(),
+            'categorias'  => Categoria::count(),
         ]);
     }
 
