@@ -162,46 +162,58 @@
         }
     };
 
-    window.prepararModalEditar = function(id, nombre, codigo, rolId, rolNombre, tieneAcceso) {
-        const modal = document.getElementById('editEmpleadoModal');
-        const content = document.getElementById('editModalContent');
-        const form = document.getElementById('formEditar');
-        const toggle = document.getElementById('edit_toggleAcceso');
-        
-        const alertaProteccion = document.getElementById('alertaProteccion');
-        const cajaAcceso = document.getElementById('cajaAcceso');
-        const cajaRol = document.getElementById('cajaRol');
+    window.ejecutarEditar = function(btn) {
+    // 1. Extraemos la información de los atributos data-* del botón
+    const id = btn.getAttribute('data-id');
+    const nombre = btn.getAttribute('data-nombre');
+    const codigo = btn.getAttribute('data-codigo');
+    const rolId = btn.getAttribute('data-rol-id');
+    const rolNombre = btn.getAttribute('data-rol-nombre');
+    const tieneAcceso = btn.getAttribute('data-acceso');
 
-        if(form) form.action = `/admin/empleados/${id}`;
-        
-        if(document.getElementById('edit_nombre')) document.getElementById('edit_nombre').value = nombre;
-        if(document.getElementById('edit_codigo_empleado')) document.getElementById('edit_codigo_empleado').value = codigo || '';
-        if(document.getElementById('edit_rol_id_input')) document.getElementById('edit_rol_id_input').value = rolId || '';
-        if(document.getElementById('editDropdownSelected')) document.getElementById('editDropdownSelected').innerText = rolNombre || 'Seleccionar...';
-        
-        if(toggle) {
-            toggle.checked = (tieneAcceso == 1);
-            toggleEditAccesoFields();
-        }
+    // 2. Elementos del DOM
+    const modal = document.getElementById('editEmpleadoModal');
+    const content = document.getElementById('editModalContent');
+    const form = document.getElementById('formEditar');
+    const toggle = document.getElementById('edit_toggleAcceso');
+    
+    const alertaProteccion = document.getElementById('alertaProteccion');
+    const cajaAcceso = document.getElementById('cajaAcceso');
+    const cajaRol = document.getElementById('cajaRol');
 
-        if (idUsuarioActual && parseInt(id) === idUsuarioActual) {
-            if(alertaProteccion) alertaProteccion.classList.remove('hidden');
-            if(cajaAcceso) cajaAcceso.classList.add('pointer-events-none', 'opacity-50', 'grayscale');
-            if(cajaRol) cajaRol.classList.add('pointer-events-none', 'opacity-50', 'grayscale');
-        } else {
-            if(alertaProteccion) alertaProteccion.classList.add('hidden');
-            if(cajaAcceso) cajaAcceso.classList.remove('pointer-events-none', 'opacity-50', 'grayscale');
-            if(cajaRol) cajaRol.classList.remove('pointer-events-none', 'opacity-50', 'grayscale');
-        }
+    // 3. Asignación de valores al formulario
+    if(form) form.action = `/admin/empleados/${id}`;
+    
+    if(document.getElementById('edit_nombre')) document.getElementById('edit_nombre').value = nombre || '';
+    if(document.getElementById('edit_codigo_empleado')) document.getElementById('edit_codigo_empleado').value = codigo || '';
+    if(document.getElementById('edit_rol_id_input')) document.getElementById('edit_rol_id_input').value = rolId || '';
+    if(document.getElementById('editDropdownSelected')) document.getElementById('editDropdownSelected').innerText = rolNombre || 'Seleccionar...';
+    
+    if(toggle) {
+        toggle.checked = (tieneAcceso == 1 || tieneAcceso == "1");
+        toggleEditAccesoFields();
+    }
 
-        if(modal && content) {
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
-        }
-    };
+    // 4. Verificación de usuario propio
+    if (typeof idUsuarioActual !== 'undefined' && idUsuarioActual && parseInt(id) === parseInt(idUsuarioActual)) {
+        if(alertaProteccion) alertaProteccion.classList.remove('hidden');
+        if(cajaAcceso) cajaAcceso.classList.add('pointer-events-none', 'opacity-50', 'grayscale');
+        if(cajaRol) cajaRol.classList.add('pointer-events-none', 'opacity-50', 'grayscale');
+    } else {
+        if(alertaProteccion) alertaProteccion.classList.add('hidden');
+        if(cajaAcceso) cajaAcceso.classList.remove('pointer-events-none', 'opacity-50', 'grayscale');
+        if(cajaRol) cajaRol.classList.remove('pointer-events-none', 'opacity-50', 'grayscale');
+    }
+
+    // 5. Animación para abrir modal
+    if(modal && content) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+        }, 10);
+    }
+};
 
     window.addEventListener('click', () => {
         const menu = document.getElementById('editDropdownMenu');
