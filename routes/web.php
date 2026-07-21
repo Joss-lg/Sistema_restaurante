@@ -170,6 +170,7 @@ Route::middleware(['auth'])->group(function () {
         // --- COCINA ---
         Route::middleware(['permiso:Cocina,mostrar'])->prefix('cocina')->name('cocina.')->group(function () {
             Route::get('/', [CocinaController::class, 'index'])->name('index');
+            Route::get('/api/comandas', [CocinaController::class, 'apiComandas'])->name('api.comandas');
             Route::patch('/orden/{id}/estado', [CocinaController::class, 'actualizarEstado'])->name('orden.estado')->middleware('permiso:Cocina,editar');
         });
 
