@@ -9,9 +9,12 @@ let estadoGlobal = {
     modoEdicion: false,
     modoFusion: false,
     mesaSeleccionada: null,
-    zonaActual: 'Todas',
     primeraCarga: true
 };
+
+// Permisos del usuario actual sobre el módulo Mesas (inyectados desde
+// plano-espacial.blade.php vía window.permisosMesas antes de cargar este script).
+const permisosMesas = window.permisosMesas || { crear: false, editar: false, eliminar: false };
 
 let dragState = { 
     activo: false, 
@@ -28,12 +31,10 @@ let dragState = {
 document.addEventListener('DOMContentLoaded', () => {
     cargarMesas();
     
-    // Auto-sincronización
     setInterval(() => {
         if (!estadoGlobal.modoEdicion && !estadoGlobal.modoFusion) cargarMesas();
     }, 5000);
 
-    // Eventos UI
     document.getElementById('btnEditar')?.addEventListener('click', toggleModoEdicion);
     document.getElementById('btnGuardar')?.addEventListener('click', guardarPlanoEnServidor);
     document.getElementById('btnCancelar')?.addEventListener('click', cancelarEdicion);
@@ -43,11 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnEliminar')?.addEventListener('click', eliminarMesaDelPlano);
     document.getElementById('btnActualizar')?.addEventListener('click', actualizarPropiedadesMesa);
     
-    document.getElementById('filtroZona')?.addEventListener('change', (e) => {
-        estadoGlobal.zonaActual = e.target.value || 'Todas';
-        renderizarMapaMesas();
-    });
-
     document.querySelectorAll('.btnCerrarModal').forEach(btn => {
         btn.addEventListener('click', cerrarModalNuevaMesa);
     });
@@ -60,13 +56,11 @@ async function cargarMesas() {
         if (!res.ok) throw new Error('Error en API');
         
         const response = await res.json();
-        
-        // CORRECCIÓN: Si recibes un objeto único, conviértelo en array.
-        // Si ya es un array, mantén el array.
-       estadoGlobal.mesas = response.data || [];
-        
-       renderizarMapaMesas();
-    } catch (e) { console.error(e); }
+        estadoGlobal.mesas = response.data || [];
+        renderizarMapaMesas();
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 function renderizarMapaMesas() {
@@ -74,9 +68,7 @@ function renderizarMapaMesas() {
     if (!contenedor) return;
     contenedor.innerHTML = '';
 
-    const mesasFiltradas = estadoGlobal.zonaActual === 'Todas' 
-        ? estadoGlobal.mesas 
-        : estadoGlobal.mesas.filter(m => m.zona === estadoGlobal.zonaActual);
+    const mesasFiltradas = estadoGlobal.mesas;
 
     mesasFiltradas.forEach(mesa => {
         const div = document.createElement('div');
@@ -87,14 +79,11 @@ function renderizarMapaMesas() {
         div.style.top = (mesa.posicion_y || 50) + 'px';
         div.style.width = (mesa.ancho || 80) + 'px';
         div.style.height = (mesa.alto || 80) + 'px';
-        // En móvil, evita que el navegador interprete el arrastre de la mesa
-        // como un gesto de scroll del contenedor (touch vs. drag competían).
         div.style.touchAction = 'none';
         div.innerHTML = mesa.numero;
 
-        // --- CORRECCIÓN AQUÍ ---
         div.addEventListener('pointerdown', (e) => {
-            if (estadoGlobal.modoEdicion) iniciarArrastre(e, div, mesa);
+            if (estadoGlobal.modoEdicion && permisosMesas.editar) iniciarArrastre(e, div, mesa);
         });
 
         div.addEventListener('click', (e) => {
@@ -102,7 +91,6 @@ function renderizarMapaMesas() {
                 e.stopPropagation(); 
                 seleccionarMesa(mesa); 
             } else {
-                // Navegación para no-admin/meseros
                 window.location.href = `/mesero/comanda/${mesa.id}`;
             }
         });
@@ -132,7 +120,6 @@ function iniciarArrastre(e, el, mesa) {
     el.addEventListener('pointerup', detenerArrastre);
 }
 
-// --- ACCIONES ---
 function manejarArrastre(e) {
     if (!dragState.activo) return;
     const x = e.clientX - dragState.startX + dragState.originX;
@@ -162,26 +149,37 @@ window.abrirModalNuevaMesa = () => document.getElementById('modalCrearMesa').cla
 window.cerrarModalNuevaMesa = () => document.getElementById('modalCrearMesa').classList.add('hidden');
 
 window.crearNuevaMesa = async () => {
+    if (!permisosMesas.crear) {
+        showToast('No tienes permiso para crear mesas', 'error');
+        return;
+    }
+
     const data = {
         numero: document.getElementById('newNumero').value,
         capacidad: document.getElementById('newCapacidad').value,
         estado: document.getElementById('newEstado').value
     };
 
-   const res = await fetch('/plano-espacial/api/crear', {
-    method: 'POST',
-    headers: { 
-        'Content-Type': 'application/json', 
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
-    },
-    body: JSON.stringify(data)
-});
+    try {
+        const res = await fetch('/plano-espacial/api/crear', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
+            },
+            body: JSON.stringify(data)
+        });
 
-    if (res.ok) {
-        window.cerrarModalNuevaMesa();
-        cargarMesas();
-    } else {
-        alert('Error al crear la mesa');
+        if (res.ok) {
+            window.cerrarModalNuevaMesa();
+            cargarMesas();
+            showToast('Mesa creada correctamente', 'success');
+        } else {
+            showToast('Error al crear la mesa', 'error');
+        }
+    } catch (e) {
+        console.error('Error al crear mesa:', e);
+        showToast('Error al crear la mesa', 'error');
     }
 };
 
@@ -192,11 +190,17 @@ function seleccionarMesa(mesa) {
     document.getElementById('propNumero').value = mesa.numero;
     document.getElementById('propCapacidad').value = mesa.capacidad;
     document.getElementById('btnActualizar')?.classList.remove('hidden');
+    document.getElementById('btnEliminar')?.classList.remove('hidden');
 }
 
 // --- ACCIONES DE GUARDADO Y CANCELAR ---
 
 async function guardarPlanoEnServidor() {
+    if (!permisosMesas.editar) {
+        showToast('No tienes permiso para editar mesas', 'error');
+        return;
+    }
+
     try {
         const res = await fetch('/plano-espacial/api/guardar', {
             method: 'POST',
@@ -210,28 +214,36 @@ async function guardarPlanoEnServidor() {
         if (!res.ok) {
             const errorText = await res.text();
             console.error('Respuesta del servidor no exitosa:', errorText);
+            showToast('Error al guardar el plano', 'error');
             return;
         }
 
         const result = await res.json();
         console.log('Guardado exitoso:', result);
+        showToast('Plano guardado correctamente', 'success');
     } catch (e) {
         console.error('Error en la petición:', e);
+        showToast('Error al guardar el plano', 'error');
     }
 }
 
 function cancelarEdicion() {
-    if (confirm('¿Deseas descartar los cambios sin guardar?')) {
+    showConfirm('¿Deseas descartar los cambios sin guardar?', () => {
         estadoGlobal.modoEdicion = false;
         document.getElementById('btnGuardar')?.classList.add('hidden');
         document.getElementById('btnCancelar')?.classList.add('hidden');
         document.getElementById('modosEdicion')?.classList.add('hidden');
-        cargarMesas(); 
-    }
+        cargarMesas();
+    }, { titulo: '¿Descartar cambios?', textoConfirmar: 'Descartar' });
 }
 
 window.actualizarPropiedadesMesa = async () => {
     if (!estadoGlobal.mesaSeleccionada) return;
+
+    if (!permisosMesas.editar) {
+        showToast('No tienes permiso para editar mesas', 'error');
+        return;
+    }
 
     const data = {
         numero: document.getElementById('propNumero').value,
@@ -249,20 +261,48 @@ window.actualizarPropiedadesMesa = async () => {
         });
 
         if (res.ok) {
-            alert('Propiedades actualizadas');
+            showToast('Propiedades actualizadas', 'success');
             cargarMesas();
         } else {
-            alert('Error al actualizar la mesa');
+            showToast('Error al actualizar la mesa', 'error');
         }
     } catch (e) {
         console.error('Error:', e);
+        showToast('Error al actualizar la mesa', 'error');
     }
 };
 
-window.eliminarMesaDelPlano = async () => {
+// --- ELIMINAR MESA ---
+window.eliminarMesaDelPlano = () => {
     if (!estadoGlobal.mesaSeleccionada) return;
-    
-    if (confirm('¿Estás seguro de eliminar esta mesa?')) {
-        // ... (tu código de fetch)
+
+    if (!permisosMesas.eliminar) {
+        showToast('No tienes permiso para eliminar mesas', 'error');
+        return;
     }
+
+    showConfirm('¿Estás seguro de eliminar esta mesa?', async () => {
+        try {
+            const res = await fetch(`/plano-espacial/api/eliminar/${estadoGlobal.mesaSeleccionada.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+
+            if (res.ok) {
+                showToast('Mesa eliminada correctamente', 'success');
+                estadoGlobal.mesaSeleccionada = null;
+                document.getElementById('formularioMesa')?.classList.add('hidden');
+                document.getElementById('panelVacio')?.classList.remove('hidden');
+                cargarMesas();
+            } else {
+                const errorData = await res.json().catch(() => null);
+                showToast(errorData?.message || 'Error al eliminar la mesa', 'error');
+            }
+        } catch (e) {
+            console.error('Error al eliminar mesa:', e);
+            showToast('Error al eliminar la mesa', 'error');
+        }
+    }, { titulo: 'Eliminar mesa', textoConfirmar: 'Eliminar' });
 };

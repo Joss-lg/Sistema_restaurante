@@ -17,9 +17,8 @@ class PlanoEspacialController extends Controller
     public function index()
     {
         $mesas = Mesa::orderBy('numero', 'asc')->get();
-        $zonas = ['salon', 'terraza', 'vip'];
 
-        return view('admin.mesas.plano-espacial', compact('mesas', 'zonas'));
+        return view('admin.mesas.plano-espacial', compact('mesas'));
     }
 
     /**
@@ -29,7 +28,6 @@ class PlanoEspacialController extends Controller
     {
         $zona = $request->query('zona');
 
-        // CAMBIO: Se cambió 'mesero:id,name' por 'mesero:id,nombre'
         $query = Mesa::with(['mesero:id,nombre'])
             ->withCount(['ordenes as ordenes_activas_count' => function ($q) {
                 $q->where('estado', '!=', 'pagada');
@@ -55,7 +53,6 @@ class PlanoEspacialController extends Controller
                 'ancho'         => (int)($mesa->ancho ?? 60),
                 'alto'          => (int)($mesa->alto ?? 60),
                 'estadoVisual'  => $mesa->estado, 
-                // CAMBIO: Se cambió 'mesero?->name' por 'mesero?->nombre'
                 'mesero'        => $mesa->mesero?->nombre ?? 'Sin asignar',
                 'totalConsumo'  => (float)($mesa->total_consumo ?? 0),
                 'ordenesActivas' => (int)$mesa->ordenes_activas_count,
@@ -116,89 +113,112 @@ class PlanoEspacialController extends Controller
     }
 
     /**
-     * Limpia las posiciones para sacarla del mapa sin borrarla de la BD
+     * Elimina la mesa permanentemente de la base de datos.
      */
     public function eliminarDelPlano($id): JsonResponse
     {
         try {
             $mesa = Mesa::findOrFail($id);
-            $mesa->update([
-                'posicion_x' => null,
-                'posicion_y' => null
+
+            // Evita borrar una mesa que tiene órdenes/comandas activas (sin pagar)
+            $ordenesActivas = $mesa->ordenes()->where('estado', '!=', 'pagada')->count();
+
+            if ($ordenesActivas > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede eliminar: la mesa tiene órdenes activas sin cerrar.',
+                ], 422);
+            }
+
+            $mesa->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mesa eliminada correctamente.',
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La mesa no existe o ya fue eliminada.',
+            ], 404);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Captura errores de restricción de clave foránea (ej. historial de órdenes pagadas)
+            Log::error('Error de BD al eliminar mesa: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede eliminar: la mesa tiene registros relacionados (órdenes, historial, etc.).',
+            ], 409);
+
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar mesa: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar la mesa.',
+            ], 500);
+        }
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        try {
+            // 1. Validar los datos recibidos
+            $validated = $request->validate([
+                'numero'    => 'required|string|max:50|unique:mesas,numero',
+                'capacidad' => 'required|integer|min:1|max:20',
+                'estado'    => 'required|in:disponible,reservada,limpieza',
+            ]);
+
+            // 2. Crear la mesa con valores por defecto para el plano
+            $mesa = Mesa::create([
+                'numero'     => $validated['numero'],
+                'capacidad'  => $validated['capacidad'],
+                'estado'     => $validated['estado'],
+                'zona'       => 'salon', // Zona por defecto
+                'forma'      => 'redonda', // Forma por defecto
+                'posicion_x' => 20, // Aparecerá en la esquina superior izquierda
+                'posicion_y' => 20,
+                'ancho'      => 60, // Tamaño estándar inicial
+                'alto'       => 60,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Mesa removida del plano visual visualmente.',
-            ]);
-        } catch (\Exception $e) {
+                'message' => 'Mesa creada correctamente.',
+                'data'    => $mesa
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al remover la mesa del mapa.',
+                'message' => 'Error de validación: ' . $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error al crear mesa: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno al crear la mesa.',
             ], 500);
         }
-        
     }
-public function store(Request $request): JsonResponse
-{
-    try {
-        // 1. Validar los datos recibidos
+
+    public function update(Request $request, $id)
+    {
+        $mesa = Mesa::findOrFail($id);
+
+        // Solo validamos lo que el usuario realmente edita en el panel de propiedades
         $validated = $request->validate([
-            'numero'    => 'required|string|max:50|unique:mesas,numero',
-            'capacidad' => 'required|integer|min:1|max:20',
-            'estado'    => 'required|in:disponible,reservada,limpieza',
+            'numero' => 'required|string|max:50',
+            'capacidad' => 'required|integer|min:1',
         ]);
 
-        // 2. Crear la mesa con valores por defecto para el plano
-        $mesa = Mesa::create([
-            'numero'     => $validated['numero'],
-            'capacidad'  => $validated['capacidad'],
-            'estado'     => $validated['estado'],
-            'zona'       => 'salon', // Zona por defecto
-            'forma'      => 'redonda', // Forma por defecto
-            'posicion_x' => 20, // Aparecerá en la esquina superior izquierda
-            'posicion_y' => 20,
-            'ancho'      => 60, // Tamaño estándar inicial
-            'alto'       => 60,
-        ]);
+        $mesa->update($validated);
 
         return response()->json([
             'success' => true,
-            'message' => 'Mesa creada correctamente.',
-            'data'    => $mesa
-        ], 201);
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error de validación: ' . $e->getMessage(),
-        ], 422);
-    } catch (\Exception $e) {
-        Log::error('Error al crear mesa: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Error interno al crear la mesa.',
-        ], 500);
+            'message' => 'Mesa actualizada correctamente'
+        ]);
     }
-}
-
-public function update(Request $request, $id)
-{
-    $mesa = Mesa::findOrFail($id);
-
-    // Solo validamos lo que el usuario realmente edita en el panel de propiedades
-    $validated = $request->validate([
-        'numero' => 'required|string|max:50',
-        'capacidad' => 'required|integer|min:1',
-    ]);
-
-    $mesa->update($validated);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Mesa actualizada correctamente'
-    ]);
-}
-
 
 }
