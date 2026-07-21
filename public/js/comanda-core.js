@@ -1,39 +1,4 @@
-/**
- * comanda-core.js
- * ---------------------------------------------------------------------
- * Este archivo debe cargarse PRIMERO, antes que los demás comanda-*.js.
- *
- * Aquí vive el "estado compartido" del POS (las variables que antes eran
- * `let` dentro de la única IIFE de comanda-pos.js). Se declaran con `var`
- * A NIVEL DE ARCHIVO (fuera de cualquier función/IIFE), lo que hace que
- * queden colgadas de `window` — exactamente lo mismo que pasaba antes
- * cuando todo vivía en un solo archivo dentro de una misma función:
- * cualquier otro comanda-*.js puede leerlas y reasignarlas tal cual
- * (ticketSubtotal += x, itemActivo = elemento, etc.) sin volver a
- * declararlas ni importarlas.
- *
- * También expone utilidades usadas por todos los módulos:
- *   - window.csrfToken()
- *   - window.mostrarToast / mostrarError / mostrarExito
- *   - window.cerrarModal(id)
- *   - window.toggleTheme()
- *   - window.cambiarTab(pestana)
- *   - window.actualizarVistaTotal()  (pinta "Total a Pagar")
- *
- * ORDEN DE CARGA en el blade (mesero/index.blade.php):
- *   1. comanda-core.js
- *   2. comanda-catalogo.js
- *   3. comanda-ticket.js
- *   4. comanda-gramaje.js
- *   5. comanda-promociones.js
- *   6. comanda-capitan-traspaso.js
- *   7. comanda-envio.js
- * ---------------------------------------------------------------------
- */
 
-// =====================================================================
-// ESTADO COMPARTIDO — a propósito FUERA de cualquier IIFE.
-// =====================================================================
 var ComandaConfig_ = window.ComandaConfig || {};
 
 var categoriasDB = ComandaConfig_.categorias || [];
@@ -73,6 +38,37 @@ var mesaDestinoSeleccionadaNumero = null;
     };
 
     // ---------------------------------------------------------------
+    // Compatibilidad del catálogo: algunos botones del Blade aún
+    // invocan agregarProducto(id), por lo que exponemos un puente que
+    // reenvía al handler real del ticket.
+    // ---------------------------------------------------------------
+    window.agregarProducto = function (productoId) {
+        const producto = Array.isArray(productosDB)
+            ? productosDB.find(p => Number(p.id) === Number(productoId))
+            : null;
+
+        if (!producto) {
+            mostrarError('No se encontró el producto seleccionado.');
+            return;
+        }
+
+        const categoriaNombre = producto.categoria?.nombre ?? '';
+        const precioNum = parseFloat(producto.precio) || 0;
+        const precioPor100g = parseFloat(producto.precio_por_100g) || 0;
+        const modificadores = Array.isArray(producto.modificadores) ? producto.modificadores : [];
+
+        window.agregarAlTicket(
+            producto.id,
+            producto.nombre,
+            precioNum,
+            categoriaNombre,
+            modificadores,
+            !!producto.se_vende_por_peso,
+            precioPor100g
+        );
+    };
+
+    // ---------------------------------------------------------------
     // TEMA (oscuro / crema)
     // ---------------------------------------------------------------
     window.toggleTheme = function () {
@@ -93,32 +89,47 @@ var mesaDestinoSeleccionadaNumero = null;
 
     // ---------------------------------------------------------------
     // TABS (Orden / Enviado / Total)
+    // Corregido: Se añade validación 'if' para evitar el error 'null' en textTotal
     // ---------------------------------------------------------------
     window.cambiarTab = function (pestana) {
         const slider = document.getElementById('tab-slider');
         const btns = [document.getElementById('btn-tab-nueva-orden'), document.getElementById('btn-tab-enviados'), document.getElementById('btn-tab-comanda')];
+        const txtTotalElement = document.getElementById('txtTotal');
 
         btns.forEach(el => { if (el) { el.classList.remove('text-[var(--bg-base)]'); el.classList.add('text-[var(--text-muted)]'); } });
 
         ['vista-nueva-orden', 'vista-enviados', 'vista-comanda'].forEach(id => {
-            document.getElementById(id).classList.add('hidden');
-            document.getElementById(id).classList.remove('flex');
+            const vista = document.getElementById(id);
+            if (vista) {
+                vista.classList.add('hidden');
+                vista.classList.remove('flex');
+            }
         });
 
         if (pestana === 'nueva-orden') {
             if (slider) slider.style.transform = 'translateX(0%)';
             if (btns[0]) { btns[0].classList.add('text-[var(--bg-base)]'); btns[0].classList.remove('text-[var(--text-muted)]'); }
-            document.getElementById('vista-nueva-orden').classList.remove('hidden'); document.getElementById('vista-nueva-orden').classList.add('flex');
-            document.getElementById('txtTotal').innerText = '$0.00';
+            const vNueva = document.getElementById('vista-nueva-orden');
+            if (vNueva) { vNueva.classList.remove('hidden'); vNueva.classList.add('flex'); }
+            
+            // Verificación segura del elemento de precio total
+            if (txtTotalElement) txtTotalElement.innerText = '$0.00';
+
         } else if (pestana === 'enviados') {
             if (slider) slider.style.transform = 'translateX(100%)';
             if (btns[1]) { btns[1].classList.add('text-[var(--bg-base)]'); btns[1].classList.remove('text-[var(--text-muted)]'); }
-            document.getElementById('vista-enviados').classList.remove('hidden'); document.getElementById('vista-enviados').classList.add('flex');
-            document.getElementById('txtTotal').innerText = '$0.00';
+            const vEnviados = document.getElementById('vista-enviados');
+            if (vEnviados) { vEnviados.classList.remove('hidden'); vEnviados.classList.add('flex'); }
+            
+            // Verificación segura del elemento de precio total
+            if (txtTotalElement) txtTotalElement.innerText = '$0.00';
+
         } else if (pestana === 'comanda') {
             if (slider) slider.style.transform = 'translateX(200%)';
             if (btns[2]) { btns[2].classList.add('text-[var(--bg-base)]'); btns[2].classList.remove('text-[var(--text-muted)]'); }
-            document.getElementById('vista-comanda').classList.remove('hidden'); document.getElementById('vista-comanda').classList.add('flex');
+            const vComanda = document.getElementById('vista-comanda');
+            if (vComanda) { vComanda.classList.remove('hidden'); vComanda.classList.add('flex'); }
+            
             // El total real (enviado + nuevo, con IVA) solo se calcula y se
             // muestra aquí, en la pestaña "Total". En las otras dos pestañas
             // se deja en $0.00 a propósito.
@@ -137,19 +148,25 @@ var mesaDestinoSeleccionadaNumero = null;
         const itemsEnTicket = document.querySelectorAll('#listaTicket .ticket-item');
         const contenedorDB = document.getElementById('items-db-total');
         const hayPlatillosEnDB = contenedorDB && contenedorDB.children.length > 0;
+        const txtTotalElement = document.getElementById('txtTotal');
 
-        contenedorNuevos.innerHTML = '';
+        if (contenedorNuevos) contenedorNuevos.innerHTML = '';
 
         if (itemsEnTicket.length === 0 && !hayPlatillosEnDB) {
-            mensajeVacio.classList.remove('hidden'); mensajeVacio.classList.add('flex');
+            if (mensajeVacio) { mensajeVacio.classList.remove('hidden'); mensajeVacio.classList.add('flex'); }
         } else {
-            mensajeVacio.classList.add('hidden'); mensajeVacio.classList.remove('flex');
-            if (itemsEnTicket.length > 0) {
+            if (mensajeVacio) { mensajeVacio.classList.add('hidden'); mensajeVacio.classList.remove('flex'); }
+            if (itemsEnTicket.length > 0 && contenedorNuevos) {
                 contenedorNuevos.innerHTML += `<div class="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mt-4 mb-2 px-1">Por Enviar</div>`;
                 itemsEnTicket.forEach(item => {
-                    const cant = item.querySelector('.cantidad-platillo').innerText;
-                    const nombre = item.querySelector('.nombre-platillo').innerText;
-                    const precio = item.querySelector('.precio-platillo').innerText;
+                    const cantEl = item.querySelector('.cantidad-platillo');
+                    const nomEl = item.querySelector('.nombre-platillo');
+                    const preEl = item.querySelector('.precio-platillo');
+
+                    const cant = cantEl ? cantEl.innerText : '1';
+                    const nombre = nomEl ? nomEl.innerText : 'Producto';
+                    const precio = preEl ? preEl.innerText : '$0.00';
+
                     contenedorNuevos.innerHTML += `
                         <div class="flex justify-between items-center p-2.5 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] shadow-sm mb-2">
                             <div class="flex items-center gap-3">
@@ -163,14 +180,20 @@ var mesaDestinoSeleccionadaNumero = null;
             }
         }
 
+        // Cálculos de montos y totales seguros
         const totalHistorial = platillosEnviadosDB.reduce((acc, i) => acc + ((i.precio || 0) * (i.cantidad || 1)), 0);
-        const descuento2x1Monto = calcularDescuento2x1Monto();
-        const descuentoComboMonto = calcularDescuentoComboMonto();
+        
+        const descuento2x1Monto = typeof window.calcularDescuento2x1Monto === 'function' ? window.calcularDescuento2x1Monto() : 0;
+        const descuentoComboMonto = typeof window.calcularDescuentoComboMonto === 'function' ? window.calcularDescuentoComboMonto() : 0;
+        
         const subtotalTicketTras2x1 = Math.max(0, ticketSubtotal - descuento2x1Monto - descuentoComboMonto);
         const subtotalTicketConDescuento = Math.max(0, subtotalTicketTras2x1 - (subtotalTicketTras2x1 * (descuentoPorcentaje / 100)));
         const subtotalGeneral = subtotalTicketConDescuento + totalHistorial;
         const ivaGeneral = subtotalGeneral * 0.16;
-        document.getElementById('txtTotal').innerText = '$' + (subtotalGeneral + ivaGeneral).toFixed(2);
+        
+        if (txtTotalElement) {
+            txtTotalElement.innerText = '$' + (subtotalGeneral + ivaGeneral).toFixed(2);
+        }
     };
 
     // ---------------------------------------------------------------

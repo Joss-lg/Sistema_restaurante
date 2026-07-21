@@ -76,25 +76,23 @@ class CategoriaController extends Controller
                          ->with('success', '¡La categoría fue actualizada!');
     }
 
-    /**
-     * Borrado FÍSICO (Permanente) de una categoría.
-     */
-    public function destroy($id)
-    {
-        $categoria = Categoria::findOrFail($id);
-        
-        // ==============================================================================
-        // ESTO ES LO QUE ESTABA BLOQUEANDO EL BORRADO SI LA CATEGORÍA TIENE PLATILLOS
-        // ==============================================================================
-        if ($categoria->productos()->exists()) {
-            return redirect()->back()
-                             ->with('error', 'No puedes eliminar esta categoría porque aún tiene platillos asignados.');
-        }
+ public function destroy($id)
+{
+    $categoria = Categoria::findOrFail($id);
 
-        // SE CAMBIÓ 'delete()' POR 'forceDelete()' PARA ELIMINARLO DE LA BASE DE DATOS REAL
-        $categoria->forceDelete();
-
-        return redirect()->route('admin.categorias.index')
-                         ->with('success', 'Categoría eliminada permanentemente del sistema.');
+    // 1. Si tiene productos ACTIVOS, detenemos el borrado
+    if ($categoria->productos()->exists()) {
+        return redirect()->back()
+                         ->with('error', 'No puedes eliminar esta categoría porque tiene productos activos.');
     }
+
+    // 2. Destruimos definitivamente solo los productos que están en la basura
+    $categoria->productos()->onlyTrashed()->forceDelete();
+
+    // 3. Eliminamos la categoría permanentemente
+    $categoria->forceDelete();
+
+    return redirect()->route('admin.categorias.index')
+                     ->with('success', 'Categoría eliminada con éxito.');
+}
 }

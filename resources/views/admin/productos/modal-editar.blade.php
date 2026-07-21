@@ -17,8 +17,8 @@
 </style>
 
 {{-- MODAL EDITAR ALIMENTO --}}
-<div id="modal-editar-alimento" class="fixed inset-y-0 right-0 left-[74px] sm:left-0 sm:inset-0 z-[100] overflow-y-auto hidden opacity-0 transition-all duration-300 backdrop-blur-sm">
-    <div class="fixed inset-0 bg-black/60 dark:bg-black/80 -ml-[74px] sm:ml-0" onclick="closeModalEditar()"></div>
+<div id="modal-editar-alimento" class="fixed inset-y-0 right-0 left-[74px] sm:left-0 sm:inset-0 z-[100] overflow-y-auto overscroll-contain hidden opacity-0 transition-all duration-300">
+    <div class="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm -ml-[74px] sm:ml-0" onclick="closeModalEditar()"></div>
     <div id="modal-editar-wrapper" class="flex min-h-screen items-center justify-center p-3 sm:p-4">
         <div class="relative bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-700 w-full max-w-2xl rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transform opacity-0 translate-y-8 transition-all duration-300" id="modal-editar-panel">
             <div class="p-5 sm:p-10">
@@ -32,7 +32,7 @@
                     </button>
                 </div>
 
-                <form id="formulario-editar-alimento" onsubmit="actualizarProducto(event)">
+                <form id="formulario-editar-alimento" onsubmit="actualizarProducto(event)" enctype="multipart/form-data">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         {{-- Nombre (TECLADO VIRTUAL DE TEXTO) --}}
                         <div class="col-span-1 sm:col-span-2">
@@ -83,14 +83,37 @@
                             </datalist>
                         </div>
 
-    
-
                         {{-- Descripción — TECLADO VIRTUAL DE TEXTO --}}
                         <div class="col-span-1 sm:col-span-2">
                             <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Descripción</label>
                             <textarea id="edit-descripcion" name="descripcion" rows="3" readonly data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none"></textarea>
                         </div>
 
+                        {{-- Imagen del Platillo --}}
+                        <div class="col-span-1 sm:col-span-2">
+                            <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">
+                                Imagen del Platillo <span class="normal-case font-semibold text-zinc-400">(Opcional)</span>
+                            </label>
+
+                            <div class="mt-1.5 sm:mt-2 relative w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900/40">
+                                <label for="edit-imagen" class="flex flex-col items-center justify-center w-full aspect-video sm:aspect-[21/9] cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900/70 transition relative">
+                                    <div id="imagen-placeholder-editar" class="flex flex-col items-center justify-center text-center px-4">
+                                        <i class="fas fa-image text-2xl text-zinc-400 mb-2"></i>
+                                        <p class="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300">Haz clic para subir</p>
+                                        <p class="text-[10px] text-zinc-400 mt-0.5">PNG, JPG, WEBP hasta 2MB</p>
+                                    </div>
+                                    <img id="imagen-preview-editar" src="#" alt="Preview" class="hidden absolute inset-0 w-full h-full object-cover">
+                                    <input id="edit-imagen" name="imagen" type="file" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="previewImagen(event, 'editar')">
+                                </label>
+
+                                <button type="button" id="btn-quitar-imagen-editar" onclick="quitarImagenEditar()"
+                                    class="hidden absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/60 hover:bg-red-500 text-white flex items-center justify-center transition active:scale-90 backdrop-blur-sm z-10 shadow-lg">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
+                            </div>
+
+                            <input type="checkbox" id="edit-quitar_imagen" name="quitar_imagen" value="1" class="hidden">
+                        </div>
 
                         {{-- Ingredientes --}}
                         <div class="col-span-1 sm:col-span-2">
@@ -116,11 +139,113 @@
     </div>
 </div>
 <script>
+    // ─── Bloqueo/desbloqueo de scroll del fondo (redeclarado por si este
+    // archivo carga antes que modal-crear.blade.php) ─────────────────────────
+    window.bloquearScrollFondo = function () {
+        document.body.style.overflow = 'hidden';
+    };
+    window.desbloquearScrollFondo = function () {
+        document.body.style.overflow = '';
+    };
+
     // ─── Cerrar modal editar ─────────────────────────────────────────────────
     function closeModalEditar() {
         _cerrarModal('modal-editar-alimento', 'modal-editar-panel');
+        desbloquearScrollFondo();
+        const form = document.getElementById('formulario-editar-alimento');
+        if (form) form.reset();
+        resetPreviewImagen('editar');
     }
- 
+
+    // ─── Preview de imagen (redeclarado por si este archivo carga antes que modal-crear) ───
+    function previewImagen(event, tipo) {
+        const input = event.target;
+        const preview     = document.getElementById(tipo === 'crear' ? 'imagen-preview-crear' : 'imagen-preview-editar');
+        const placeholder = document.getElementById(tipo === 'crear' ? 'imagen-placeholder-crear' : 'imagen-placeholder-editar');
+        const btnQuitar   = document.getElementById(tipo === 'crear' ? 'btn-quitar-imagen-crear' : 'btn-quitar-imagen-editar');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                if (btnQuitar) btnQuitar.classList.remove('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+
+            if (tipo === 'editar') {
+                const chkQuitar = document.getElementById('edit-quitar_imagen');
+                if (chkQuitar) chkQuitar.checked = false;
+            }
+        }
+    }
+
+    function resetPreviewImagen(tipo) {
+        const preview     = document.getElementById(tipo === 'crear' ? 'imagen-preview-crear' : 'imagen-preview-editar');
+        const placeholder = document.getElementById(tipo === 'crear' ? 'imagen-placeholder-crear' : 'imagen-placeholder-editar');
+        const btnQuitar   = document.getElementById(tipo === 'crear' ? 'btn-quitar-imagen-crear' : 'btn-quitar-imagen-editar');
+        if (preview) { preview.src = '#'; preview.classList.add('hidden'); }
+        if (placeholder) { placeholder.classList.remove('hidden'); }
+        if (btnQuitar) { btnQuitar.classList.add('hidden'); }
+    }
+
+    // ─── Botón ✕ en EDITAR: marca la imagen actual para borrarse en el servidor ───
+    function quitarImagenEditar() {
+        const inputImagen = document.getElementById('edit-imagen');
+        const chkQuitar    = document.getElementById('edit-quitar_imagen');
+        if (inputImagen) inputImagen.value = '';
+        if (chkQuitar) chkQuitar.checked = true;
+        resetPreviewImagen('editar');
+    }
+
+    // ─── Envío multipart genérico (redeclarado por si este archivo carga antes que modal-crear) ───
+    function enviarFormularioConImagen(url, formData, btn, textoOriginal, onSuccess) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+            body: formData,
+        })
+        .then(async (response) => {
+            const json = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const mensaje = json.message || 'Ocurrió un error al guardar.';
+                if (typeof mostrarNotificacion === 'function') {
+                    mostrarNotificacion(mensaje, 'error');
+                } else {
+                    alert(mensaje);
+                }
+                btn.textContent = textoOriginal;
+                btn.disabled = false;
+                return;
+            }
+
+            if (typeof mostrarNotificacion === 'function') {
+                mostrarNotificacion(json.message || 'Guardado correctamente.', 'success');
+            }
+
+            if (typeof onSuccess === 'function') onSuccess();
+
+            setTimeout(() => location.reload(), 500);
+        })
+        .catch((err) => {
+            console.error(err);
+            if (typeof mostrarNotificacion === 'function') {
+                mostrarNotificacion('Error de conexión al guardar.', 'error');
+            } else {
+                alert('Error de conexión al guardar.');
+            }
+            btn.textContent = textoOriginal;
+            btn.disabled = false;
+        });
+    }
+
     // ─── Abrir modal con datos del producto (trigger desde la tarjeta) ─────
     function editarProducto(id) {
         if (!tienePermisoEditar) { mostrarNotificacion('Sin permisos para editar', 'error'); return; }
@@ -134,8 +259,29 @@
         document.getElementById('edit-descripcion').value      = producto.descripcion         ?? '';
         document.getElementById('edit-categoria_nombre').value = producto.categoria?.nombre   ?? '';
         document.getElementById('edit-categoria_id').value     = producto.categoria?.id       ?? '';
+
+        document.getElementById('edit-quitar_imagen').checked = false;
+        document.getElementById('edit-imagen').value = '';
+        if (producto.imagen_url) {
+            document.getElementById('imagen-preview-editar').src = producto.imagen_url;
+            document.getElementById('imagen-preview-editar').classList.remove('hidden');
+            document.getElementById('imagen-placeholder-editar').classList.add('hidden');
+            document.getElementById('btn-quitar-imagen-editar').classList.remove('hidden');
+        } else {
+            resetPreviewImagen('editar');
+        }
+
         toggleModoVentaPeso('editar');
         llenarIngredientesEdicion(producto);
+        bloquearScrollFondo();
+
+        // NUEVO: mismo fix que en crear — mueve el modal a <body> para que
+        // el fondo oscuro cubra toda la pantalla, sin importar el layout.
+        const modalEditar = document.getElementById('modal-editar-alimento');
+        if (modalEditar && modalEditar.parentElement !== document.body) {
+            document.body.appendChild(modalEditar);
+        }
+
         _abrirModal('modal-editar-alimento', 'modal-editar-panel');
     }
  
@@ -148,15 +294,25 @@
         const original = btn.textContent;
         btn.textContent = 'ACTUALIZANDO...';
         btn.disabled    = true;
-        const data            = _serializarFormulario('formulario-editar-alimento');
-        data.categoria_nombre = document.getElementById('edit-categoria_nombre').value;
-        data.categoria_id     = obtenerCategoriaIdPorNombre(data.categoria_nombre);
-        data.se_vende_por_peso = document.getElementById('edit-se_vende_por_peso').checked ? 1 : 0;
-        data._method          = 'PUT';
-        if (!data.categoria_id) {
+
+        const catNombre = document.getElementById('edit-categoria_nombre').value;
+        const catId     = obtenerCategoriaIdPorNombre(catNombre);
+        if (!catId) {
             mostrarNotificacion('Selecciona una categoría válida', 'error');
             btn.textContent = original; btn.disabled = false; return;
         }
-        ejecutarPeticion(RUTA_API_BASE + estadoGlobal.editandoId, data, btn, original, closeModalEditar);
+        document.getElementById('edit-categoria_id').value = catId;
+
+        const formEl   = document.getElementById('formulario-editar-alimento');
+        const formData = new FormData(formEl);
+        formData.set('categoria_id', catId);
+        formData.set('se_vende_por_peso', document.getElementById('edit-se_vende_por_peso').checked ? '1' : '0');
+        formData.set('_method', 'PUT');
+
+        if (!document.getElementById('edit-quitar_imagen').checked) {
+            formData.delete('quitar_imagen');
+        }
+
+        enviarFormularioConImagen(RUTA_API_BASE + estadoGlobal.editandoId, formData, btn, original, closeModalEditar);
     }
 </script>

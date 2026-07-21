@@ -166,6 +166,11 @@
         const precioMostrado = esPorPeso
             ? `$${parseFloat(producto.precio_por_100g ?? 0).toFixed(2)} <span class="text-[10px] sm:text-[11px] font-bold text-[var(--text-muted)]">/100g</span>`
             : `$${parseFloat(producto.precio).toFixed(2)}`;
+
+        // NUEVO: miniatura de la imagen del producto (o ícono placeholder si no tiene)
+        const imagenHTML = producto.imagen_url
+            ? `<img src="${producto.imagen_url}" alt="${producto.nombre}" class="w-full h-full object-cover">`
+            : `<i class="fas fa-utensils text-[var(--text-muted)] text-sm sm:text-base"></i>`;
  
         const botonesHTML = [
             tienePermisoEditar   ? `<button class="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-color)] flex items-center justify-center transition active:scale-95" onclick="editarProducto(${producto.id})" title="Editar"><i class="fas fa-pen text-[11px]"></i></button>` : '',
@@ -178,11 +183,16 @@
  
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3 sm:mb-4 gap-2">
-                <div class="overflow-hidden min-w-0">
-                    <h3 class="text-sm sm:text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
-                    <p class="text-[11px] sm:text-[12px] text-[var(--text-muted)] mt-1 line-clamp-2">${producto.descripcion ?? 'Sin descripción'}</p>
-                    ${mods}
-                    ${badgePorPeso}
+                <div class="flex items-start gap-2.5 sm:gap-3 overflow-hidden min-w-0">
+                    <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-xl overflow-hidden shrink-0 bg-[var(--bg-color)] border border-[var(--border-color)] flex items-center justify-center">
+                        ${imagenHTML}
+                    </div>
+                    <div class="overflow-hidden min-w-0">
+                        <h3 class="text-sm sm:text-[15px] font-bold text-[var(--text-color)] tracking-tight truncate">${producto.nombre}</h3>
+                        <p class="text-[11px] sm:text-[12px] text-[var(--text-muted)] mt-1 line-clamp-2">${producto.descripcion ?? 'Sin descripción'}</p>
+                        ${mods}
+                        ${badgePorPeso}
+                    </div>
                 </div>
                 <div class="flex items-center gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">${botonesHTML}</div>
             </div>
@@ -248,14 +258,18 @@
     function crearFilaIngrediente(ingrediente = {}) {
         const row = document.createElement('div');
         row.className = 'flex flex-col md:grid md:grid-cols-12 gap-3 items-stretch md:items-end p-4 md:p-0 bg-[var(--bg-color)] md:bg-transparent rounded-2xl border border-[var(--border-color)] md:border-0 ingrediente-row relative mb-3 md:mb-0';
-        const insumoValue   = ingrediente.insumo_id      ?? '';
-        const cantidadValue = ingrediente.cantidad      ?? '';
+        
+        const insumoValue   = ingrediente.insumo_id    ?? ingrediente.id ?? '';
+        const cantidadValue = ingrediente.cantidad     ?? ingrediente.pivot?.cantidad_usada ?? '';
         const unidadValue   = ingrediente.unidad_medida ?? '';
-        const stockActual   = ingrediente.stock_actual  ?? '';
+
+        // Mapeo seguro asegurando que el stock_actual (incluso si es 0) se convierta en String
         const options = insumosDisponibles.map(ins => {
             const sel = ins.id == insumoValue ? 'selected' : '';
-            return `<option value="${ins.id}" data-unidad="${ins.unidad_medida}" data-stock="${ins.stock_actual}" ${sel}>${ins.nombre}</option>`;
+            const stockSeguro = (ins.stock_actual !== undefined && ins.stock_actual !== null) ? ins.stock_actual : 0;
+            return `<option value="${ins.id}" data-unidad="${ins.unidad_medida ?? ''}" data-stock="${stockSeguro}" ${sel}>${ins.nombre}</option>`;
         }).join('');
+
         row.innerHTML = `
             <div class="md:col-span-6">
                 <label class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Ingrediente</label>
@@ -278,10 +292,9 @@
                     </button>
                 </div>
             </div>
-            <div class="text-[10px] text-[var(--text-muted)] font-bold mt-1 px-1 item-stock-label">
-                ${stockActual ? `<span class="bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-md inline-block">Stock: ${stockActual}</span>` : ''}
-            </div>
+            <div class="text-[10px] text-[var(--text-muted)] font-bold mt-1 px-1 item-stock-label"></div>
         `;
+
         const select = row.querySelector('select[name="insumos[]"]');
         if (insumoValue) { select.value = insumoValue; sincronizarInsumo(select); }
         return row;
@@ -291,16 +304,23 @@
         const opt = select.options[select.selectedIndex];
         const row = select.closest('.ingrediente-row');
         if (!row) return;
+
         const unidadInput = row.querySelector('input[disabled]');
         const stockLabel  = row.querySelector('.item-stock-label');
-        if (opt?.value) {
-            unidadInput.value    = opt.dataset.unidad ?? '';
-            stockLabel.innerHTML = opt.dataset.stock
-                ? `<span class="bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-md inline-block">Stock: ${opt.dataset.stock}</span>`
-                : '';
+
+        if (opt && opt.value) {
+            if (unidadInput) unidadInput.value = opt.dataset.unidad ?? '';
+            
+            // Validación estricta para evitar "undefined"
+            const stockValor = opt.dataset.stock;
+            if (stockValor !== undefined && stockValor !== 'undefined' && stockValor !== '') {
+                stockLabel.innerHTML = `<span class="bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-md inline-block">Stock: ${stockValor}</span>`;
+            } else {
+                stockLabel.innerHTML = '';
+            }
         } else {
-            unidadInput.value    = '';
-            stockLabel.innerHTML = '';
+            if (unidadInput) unidadInput.value = '';
+            if (stockLabel) stockLabel.innerHTML = '';
         }
     }
  
@@ -383,9 +403,6 @@
         const id = `toast-ajax-${contadorToast}`;
         const esExito = tipo === 'success';
 
-        // Contenedor fijo (se crea una sola vez, se reutiliza para apilar varios toasts)
-        // En móvil: ocupa el ancho completo con márgenes laterales.
-        // En sm+: se comporta como antes, flotando arriba a la derecha con ancho fijo.
         let contenedor = document.getElementById('toast-ajax-container');
         if (!contenedor) {
             contenedor = document.createElement('div');

@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\CajaMovimiento;
 use App\Models\FlujoCaja;
 use App\Models\Mesa;
+use App\Models\User;
+use App\Models\PropinaMesero;
 use App\Services\CajaService;
+use App\Services\TicketService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -16,10 +19,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class CajaController extends Controller
 {
     protected $cajaService;
+    protected $ticketService; // <-- nuevo
 
-    public function __construct(CajaService $cajaService)
+    public function __construct(CajaService $cajaService, TicketService $ticketService)
     {
         $this->cajaService = $cajaService;
+        $this->ticketService = $ticketService; // <-- nuevo
     }
 
     public function index()
@@ -75,6 +80,46 @@ class CajaController extends Controller
 
         $cajaActiva = CajaMovimiento::where('estado', 'abierta')->firstOrFail();
 
+        // --- Reparto de propinas pendientes del turno, agrupadas por mesero ---
+        $propinasPendientes = PropinaMesero::where('caja_movimiento_id', $cajaActiva->id)
+            ->where('pagada', false)
+            ->get()
+            ->groupBy('mesero_id');
+
+        $totalPropinasEntregadas = 0;
+
+        foreach ($propinasPendientes as $meseroId => $filas) {
+            $montoMesero = $filas->sum('monto');
+            if ($montoMesero <= 0) {
+                continue;
+            }
+
+            $mesero = User::find($meseroId);
+            $nombreMesero = $mesero ? $mesero->nombre : "Mesero #{$meseroId}";
+
+            // Egreso real que sale del cajón para pagarle al mesero
+            $egreso = FlujoCaja::create([
+                'caja_movimiento_id' => $cajaActiva->id,
+                'tipo'               => 'egreso',
+                'categoria'          => 'Propinas',
+                'concepto'           => "Propina — {$nombreMesero}",
+                'monto'              => $montoMesero,
+                'metodo_pago'        => 'efectivo',
+                'fecha'              => now(),
+            ]);
+
+            // Marcamos todas las filas de este mesero como pagadas, referenciando el egreso
+            PropinaMesero::whereIn('id', $filas->pluck('id'))
+                ->update([
+                    'pagada'        => true,
+                    'pagada_el'     => now(),
+                    'flujo_caja_id' => $egreso->id,
+                ]);
+
+            $totalPropinasEntregadas += $montoMesero;
+        }
+
+        // --- Cálculo original, ahora ya incluye el egreso de propinas dentro de "egresos" ---
         $ventas = $cajaActiva->flujos()->porCategoria('Ventas')->sum('monto');
         $anticipos = $cajaActiva->flujos()->porCategoria('Anticipos')->sum('monto');
         $gastos = $cajaActiva->flujos()->egresos()->sum('monto');
@@ -116,7 +161,29 @@ class CajaController extends Controller
         $historicoVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->ingresos()->porCategoria('Ventas')->ordenado()->get();
         $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->egresos()->ordenado()->get();
 
-        return view('admin.caja.flujo', compact('cajaActiva', 'totalVentas', 'ventasEfectivo', 'ventasTarjeta', 'ventasTransferencia', 'totalGastos', 'saldoEstimado', 'historicoVentas', 'historicoGastos'));
+        // --- NUEVO: desglose de propinas pendientes de entregar en este turno ---
+        $propinasPendientes = PropinaMesero::with('mesero:id,nombre')
+            ->where('caja_movimiento_id', $cajaActiva->id)
+            ->where('pagada', false)
+            ->get()
+            ->groupBy('mesero_id')
+            ->map(function ($filas) {
+                return (object) [
+                    'mesero_id' => $filas->first()->mesero_id,
+                    'mesero'    => $filas->first()->mesero->nombre ?? ('Mesero #' . $filas->first()->mesero_id),
+                    'total'     => $filas->sum('monto'),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
+        $totalPropinasPendientes = $propinasPendientes->sum('total');
+
+        return view('admin.caja.flujo', compact(
+            'cajaActiva', 'totalVentas', 'ventasEfectivo', 'ventasTarjeta', 'ventasTransferencia',
+            'totalGastos', 'saldoEstimado', 'historicoVentas', 'historicoGastos',
+            'propinasPendientes', 'totalPropinasPendientes'
+        ));
     }
 
     public function generarReportePdf($id)
@@ -132,5 +199,11 @@ class CajaController extends Controller
 
         $pdf = Pdf::loadView('admin.caja.reporte_pdf', compact('cajaActiva', 'totalVentas', 'totalGastos', 'saldoEstimado', 'historicoVentas', 'historicoGastos'));
         return $pdf->stream('reporte-caja-turno-' . $cajaActiva->id . '.pdf');
+    }
+
+   public function imprimirTicket($id)
+    {
+        $datos = $this->ticketService->obtenerDatosTicket((int) $id);
+        return view('admin.caja.ticket', $datos);
     }
 }

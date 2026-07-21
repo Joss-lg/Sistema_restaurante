@@ -247,14 +247,30 @@
         if (document.getElementById('listaTicket').children.length === 0) document.getElementById('estadoVacio').classList.remove('hidden');
     };
 
+    if (typeof window.propinaGlobal === 'undefined') {
+        window.propinaGlobal = 0;
+    }
+
     window.actualizarTotales = function () {
         const descuento2x1Monto = calcularDescuento2x1Monto();
         const descuentoComboMonto = calcularDescuentoComboMonto();
         const subtotalTras2x1 = Math.max(0, ticketSubtotal - descuento2x1Monto - descuentoComboMonto);
         const subtotalConDescuento = Math.max(0, subtotalTras2x1 - (subtotalTras2x1 * (descuentoPorcentaje / 100)));
         const iva = subtotalConDescuento * 0.16;
+        
+        // Guardamos el total final con el IVA en una variable global para que sea accesible
+        // por la calculadora de porcentajes de propina
+        window.totalComandaSinPropina = subtotalConDescuento + iva;
+
         document.getElementById('txtSubtotal').innerText = '$' + subtotalConDescuento.toFixed(2);
         document.getElementById('txtIva').innerText = '$' + iva.toFixed(2);
+        
+        // Si tienes un elemento visual para renderizar el monto de la propina, lo actualizamos aquí:
+        const txtPropina = document.getElementById('txtPropina');
+        if (txtPropina) {
+            txtPropina.innerText = '$' + window.propinaGlobal.toFixed(2);
+        }
+
         actualizarVistaTotal();
     };
 
@@ -263,6 +279,11 @@
         ticketSubtotal = 0; descuentoPorcentaje = 0; notaGeneral = '';
         promocion2x1Activa = false; promocion2x1Nombre = '';
         comboActivo = false; comboNombre = ''; comboProductoIds = []; comboMonto = 0;
+        window.propinaGlobal = 0; // <--- Reseteamos la propina al limpiar el ticket
+        
+        const txtPropina = document.getElementById('txtPropina');
+        if (txtPropina) txtPropina.innerText = '$0.00';
+
         actualizarTotales(); deseleccionarTicket();
     };
 

@@ -109,7 +109,9 @@
             <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <div class="relative flex-1 sm:flex-none sm:w-72 group">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm group-focus-within:text-blue-500 transition-colors"></i>
-                    <input type="text" id="buscadorEmpleados" placeholder="Buscar empleado..." 
+                    
+                    {{-- AQUÍ AGREGAMOS data-teclado="texto" --}}
+                    <input type="text" id="buscadorEmpleados" data-teclado="texto" placeholder="Buscar empleado..." 
                         class="w-full h-11 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/5 rounded-full pl-11 pr-4 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-black/60 outline-none transition-all">
                 </div>
                 
@@ -134,6 +136,7 @@
                     elseif (str_contains($rolStr, 'capitan') || str_contains($rolStr, 'capitán')) { $colorClass = 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'; $dotClass = 'bg-blue-500'; }
                     elseif (str_contains($rolStr, 'cocinero')) { $colorClass = 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400'; $dotClass = 'bg-orange-500'; }
                 @endphp
+                {{-- La clase .fila-empleado-movil ya la tienes, es perfecta para el filtro --}}
                 <div class="fila-empleado-movil border border-gray-100 dark:border-white/5 rounded-2xl p-3.5 bg-gray-50/60 dark:bg-white/[0.025] transition-all {{ !$empleado->esta_activo ? 'opacity-40 grayscale' : 'hover:border-gray-200 dark:hover:border-white/10' }}">
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex items-center gap-3 min-w-0">
@@ -141,7 +144,8 @@
                                 {{ strtoupper(substr($empleado->nombre, 0, 1)) }}
                             </div>
                             <div class="flex flex-col min-w-0">
-                                <span class="font-bold text-sm text-gray-900 dark:text-gray-100 truncate">{{ $empleado->nombre }}</span>
+                                {{-- AQUÍ TIENES LA CLASE .nombre-empleado (le agregaré una auxiliar por si acaso el DOM es complejo) --}}
+                                <span class="nombre-empleado-txt font-bold text-sm text-gray-900 dark:text-gray-100 truncate">{{ $empleado->nombre }}</span>
                                 <span class="text-[10px] font-bold text-gray-400 dark:text-gray-600 mt-0.5">ID: EMP-{{ str_pad($empleado->id, 3, '0', STR_PAD_LEFT) }} · PIN {{ $empleado->codigo_empleado ?? '----' }}</span>
                             </div>
                         </div>
@@ -237,7 +241,8 @@
                                     {{ strtoupper(substr($empleado->nombre, 0, 1)) }}
                                 </div>
                                 <div class="flex flex-col min-w-0 truncate">
-                                    <span class="font-bold text-sm text-gray-900 dark:text-gray-100 truncate">{{ $empleado->nombre }}</span>
+                                    {{-- AQUÍ TIENES LA CLASE .nombre-empleado-txt --}}
+                                    <span class="nombre-empleado-txt font-bold text-sm text-gray-900 dark:text-gray-100 truncate">{{ $empleado->nombre }}</span>
                                     <span class="text-[10px] font-bold text-gray-400 dark:text-gray-600 mt-0.5">ID: EMP-{{ str_pad($empleado->id, 3, '0', STR_PAD_LEFT) }}</span>
                                 </div>
                             </div>
@@ -376,23 +381,22 @@
             glow.className = "absolute -top-24 -left-24 w-48 h-48 bg-red-500/10 dark:bg-red-500/20 rounded-full blur-3xl pointer-events-none";
             wrapperIcono.className = "flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20";
             icono.className = "fas fa-exclamation-triangle text-2xl sm:text-3xl text-red-500 dark:text-red-400";
-            btnConfirmar.className = "flex-1 py-3.5 sm:py-4 px-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-black text-[11px] sm:text-xs uppercase tracking-widest rounded-2xl transition-all shadow-[0_8px_20px_rgba(239,68,68,0.2)] outline-none active:scale-[0.98]";
+            btnConfirmar.className = "flex-1 py-3.5 sm:py-4 px-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-black text-[11px] sm:text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-red-500/20 transition-all outline-none active:scale-[0.98]";
         } else {
             titulo.innerText = '¿Desactivar Empleado?';
-            texto.innerText = 'El empleado será movido a la lista de inactivos, perderá el acceso al POS y al panel administrativo.';
+            texto.innerText = 'El empleado no podrá acceder al sistema, pero sus registros se mantendrán.';
             
             glow.className = "absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 dark:bg-amber-500/20 rounded-full blur-3xl pointer-events-none";
             wrapperIcono.className = "flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20";
             icono.className = "fas fa-user-slash text-2xl sm:text-3xl text-amber-500 dark:text-amber-400";
-            btnConfirmar.className = "flex-1 py-3.5 sm:py-4 px-4 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-black text-[11px] sm:text-xs uppercase tracking-widest rounded-2xl transition-all shadow-[0_8px_20px_rgba(245,158,11,0.2)] outline-none active:scale-[0.98]";
+            btnConfirmar.className = "flex-1 py-3.5 sm:py-4 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-black text-[11px] sm:text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-amber-500/20 transition-all outline-none active:scale-[0.98]";
         }
 
         modal.classList.remove('hidden');
     };
 
     window.cerrarConfirmacionEliminar = function() {
-        const modal = document.getElementById('modal-confirmacion-eliminar');
-        modal.classList.add('hidden');
+        document.getElementById('modal-confirmacion-eliminar').classList.add('hidden');
         formularioEliminarSeleccionado = null;
     };
 
@@ -402,61 +406,40 @@
         }
     });
 
-    window.ejecutarEditar = function(btn) {
-        if (typeof window.prepararModalEditar === 'function') {
-            window.prepararModalEditar(
-                btn.getAttribute('data-id'), 
-                btn.getAttribute('data-nombre'), 
-                btn.getAttribute('data-codigo'), 
-                btn.getAttribute('data-rol-id'), 
-                btn.getAttribute('data-rol-nombre'), 
-                btn.getAttribute('data-acceso')
-            );
-        } else {
-            const modal = document.getElementById('modalEditar');
-            if(modal) {
-                document.getElementById('edit_empleado_id').value = btn.getAttribute('data-id');
-                document.getElementById('edit_nombre').value = btn.getAttribute('data-nombre');
-                document.getElementById('edit_codigo_empleado').value = btn.getAttribute('data-codigo');
-                document.getElementById('edit_rol_id').value = btn.getAttribute('data-rol-id');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            } else {
-                alert("Error: El modal editar no se encuentra cargado en el HTML.");
-            }
-        }
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-        
-        // 📱 FIX CELULAR: Movemos los modales al body para que el sidebar no los tape
-        const modalesIds = ['modalCrearEmpleado', 'modalEditar', 'modal-confirmacion-eliminar'];
-        modalesIds.forEach(id => {
-            const modal = document.getElementById(id);
-            if (modal) {
-                document.body.appendChild(modal);
-            }
-        });
-
+    // --- NUEVO: CÓDIGO PARA BUSCADOR Y TECLADO VIRTUAL ---
+    document.addEventListener('DOMContentLoaded', function() {
         const buscador = document.getElementById('buscadorEmpleados');
-        // Buscamos en AMBAS vistas (tabla desktop + tarjetas móvil) para que el buscador funcione en cualquier tamaño de pantalla
-        const filasEmpleados = document.querySelectorAll('.fila-empleado, .fila-empleado-movil');
+        const filasDesktop = document.querySelectorAll('.fila-empleado');
+        const filasMovil = document.querySelectorAll('.fila-empleado-movil');
+        
+        function filtrarEmpleados(term) {
+            // Filtrar vista de escritorio
+            filasDesktop.forEach(fila => {
+                const nombre = fila.querySelector('.nombre-empleado-txt').textContent.toLowerCase();
+                fila.style.display = nombre.includes(term) ? '' : 'none';
+            });
+
+            // Filtrar vista móvil
+            filasMovil.forEach(fila => {
+                const nombre = fila.querySelector('.nombre-empleado-txt').textContent.toLowerCase();
+                fila.style.display = nombre.includes(term) ? '' : 'none';
+            });
+        }
 
         if (buscador) {
+            // Evento normal al teclear
             buscador.addEventListener('input', function(e) {
-                const terminoBusqueda = e.target.value.toLowerCase().trim();
-                
-                filasEmpleados.forEach(fila => {
-                    const textoFila = fila.textContent.toLowerCase();
-                    if (textoFila.includes(terminoBusqueda)) {
-                        fila.style.display = '';
-                    } else {
-                        fila.style.display = 'none';
-                    }
-                });
+                filtrarEmpleados(e.target.value.toLowerCase().trim());
+            });
+            
+            // Evento para el teclado virtual personalizado
+            buscador.addEventListener('virtualKeyboardInput', function(e) {
+                filtrarEmpleados(e.target.value.toLowerCase().trim());
             });
         }
     });
 </script>
 
+{{-- INCLUIMOS EL COMPONENTE DEL TECLADO VIRTUAL --}}
+@include('partials.teclado-virtual')
 @endsection

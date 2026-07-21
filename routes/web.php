@@ -43,6 +43,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [MesaController::class, 'index'])->name('dashboard');
         Route::get('/comanda/{mesa}', [MesaController::class, 'show'])->name('comanda.show');
         Route::post('/comanda/enviar', [MesaController::class, 'enviar'])->name('comanda.enviar');
+        
+        // --- NUEVA RUTA PARA GUARDAR LA PROPINA ---
+        Route::get('/comanda/{mesa}/precuenta', [ComandaController::class, 'precuenta'])->name('comanda.precuenta');
+
         Route::post('/capitan/verify', [ComandaController::class, 'verificarCapitan'])->name('capitan.verify');
         Route::get('/mesas/abiertas', [ComandaController::class, 'apiMesasAbiertas'])->name('mesas.abiertas');
         Route::post('/mesa/store', [MesaController::class, 'store'])->name('mesa.store');
@@ -88,6 +92,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [ProductoController::class, 'index'])->name('index');
             Route::get('/api/productos', [ProductoController::class, 'getProductos'])->name('api.productos');
             Route::get('/api/estadisticas', [ProductoController::class, 'getEstadisticas'])->name('api.estadisticas');
+            Route::get('/api/{id}/imagen', [ProductoController::class, 'imagen'])->name('api.imagen'); // <-- NUEVA
             Route::post('/api/store', [ProductoController::class, 'store'])->name('api.store')->middleware('permiso:Productos,crear');
             Route::put('/api/{id}', [ProductoController::class, 'update'])->name('api.update')->middleware('permiso:Productos,editar');
             Route::patch('/api/{id}/toggle-disponibilidad', [ProductoController::class, 'toggleDisponibilidad'])->name('api.toggle')->middleware('permiso:Productos,editar');
@@ -112,13 +117,13 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/abrir', [CajaController::class, 'abrir'])->name('abrir')->middleware('permiso:Caja,gestionar');
             Route::post('/cerrar', [CajaController::class, 'cerrar'])->name('cerrar')->middleware('permiso:Caja,gestionar');
             Route::post('/api/store', [CajaController::class, 'store'])->name('api.store')->middleware('permiso:Caja,crear');
-
             // Dominios Tácticos de Mesa y Cobros (MesaOperacionController)
             Route::get('/cobrar/{id}', [MesaOperacionController::class, 'cobrar'])->name('cobrar');
             Route::post('/api/estado-mesa', [MesaOperacionController::class, 'getEstadoMesa'])->name('api.estado-mesa');
             
             // CORRECCIÓN: Quitamos el '/api/' de la URL física y limpiamos el nombre para que machee con cobro.js
             Route::post('/procesar-pago', [MesaOperacionController::class, 'procesarPago'])->name('procesar-pago')->middleware('permiso:Caja,crear');
+            Route::patch('/orden/{id}/propina', [MesaOperacionController::class, 'actualizarPropina'])->name('orden.propina')->middleware('permiso:Caja,crear');
             
             Route::post('/api/liberar-mesa', [MesaOperacionController::class, 'liberarMesa'])->name('api.liberar-mesa')->middleware('permiso:Caja,gestionar');
             Route::post('/api/abrir-mesa', [MesaOperacionController::class, 'abrirMesa'])->name('api.abrir-mesa')->middleware('permiso:Caja,gestionar');

@@ -4,18 +4,20 @@
 @section('no-sidebar', 'true')
 
 @section('content')
-<div class="flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden bg-[#0f0f12]">
+<div class="flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
     
-    {{-- IZQUIERDA: Detalle --}}
-    <div class="w-full lg:w-2/5 border-r border-white/5 bg-[#141417] flex flex-col border-b lg:border-b-0 lg:overflow-hidden">
-        <div class="p-5 sm:p-8">
-            <a href="{{ route('admin.caja.index') }}" class="text-gray-500 hover:text-white text-[10px] font-black flex items-center gap-2 mb-2 transition-all hover:translate-x-1">
+    {{-- IZQUIERDA: Detalle (2/5 del ancho) --}}
+    <div class="w-full lg:w-2/5 border-r border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 flex flex-col border-b lg:border-b-0 lg:overflow-hidden shadow-sm">
+        <div class="p-5 sm:p-8 border-b border-zinc-200 dark:border-white/10">
+            <a href="{{ route('admin.caja.index') }}" class="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white text-[10px] font-black flex items-center gap-2 mb-2 transition-all hover:translate-x-1 uppercase tracking-widest">
                 <i class="fas fa-arrow-left"></i> VOLVER A CAJA
             </a>
             
-            <h1 class="text-3xl sm:text-5xl font-black text-white italic tracking-tighter uppercase break-words">Mesa {{ $mesa->numero }}</h1>
+            <h1 class="text-3xl sm:text-5xl font-black text-zinc-900 dark:text-white italic tracking-tighter uppercase break-words">
+                Mesa {{ $mesa->numero }}
+            </h1>
             
-            <p class="text-sm sm:text-lg font-bold text-gray-400 uppercase tracking-wide mt-2">
+            <p class="text-xs sm:text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mt-1">
                 {{ $orden->numero_orden ?? 'ORDEN SIN NÚMERO' }} • {{ $orden->mesero->nombre ?? 'MESERO NO ASIGNADO' }}
             </p>
         </div>
@@ -25,7 +27,7 @@
         </div>
     </div>
 
-    {{-- DERECHA: Pago --}}
+    {{-- DERECHA: Pago (3/5 del ancho renderizado directamente desde el partial) --}}
     @include('admin.cobrar.partials.panel-pago')
 </div>
 
@@ -44,7 +46,6 @@
             ordenId: {{ $ordenes->first()->id ?? 0 }},
             total: {{ $totalPagar ?? 0 }},
             csrfToken: "{{ csrf_token() }}",
-            // CORRECCIÓN: Nombre de ruta sincronizado con web.php
             urlPago: "{{ route('admin.caja.procesar-pago') }}" 
         };
     });

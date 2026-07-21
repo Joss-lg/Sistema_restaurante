@@ -6,10 +6,7 @@
 
 @section('content')
 <div class="p-3 sm:p-4 lg:p-6 max-w-[1600px] mx-auto w-full space-y-4 flex-1 flex flex-col bg-[var(--bg-color)] text-[var(--text-color)] h-[calc(100vh-80px)] overflow-hidden">
-    
-    {{-- Contenedor de Toasts --}}
-    <div id="toastContainer" class="toast-wrapper"></div>
-    
+        
     {{-- CABECERA --}}
     @include('admin.mesas.header')
 

@@ -1,22 +1,3 @@
-{{-- ============================================================
-     Todos los modales comparten el mismo patrón responsive:
-     - Móvil: bottom-sheet (se pega abajo, esquinas redondeadas
-       solo arriba, manija de arrastre, respeta el safe-area).
-     - Desktop (sm:): modal centrado como antes.
-
-     Mejoras de esta pasada:
-     - Animación de entrada (fade + slide-up) para que el sheet
-       se sienta nativo en móvil, respetando prefers-reduced-motion.
-     - Inputs numéricos con área táctil más alta (min-h) para que
-       sean fáciles de tocar en pantallas de POS/tablet.
-     - focus-visible en botones de cerrar y CTAs para navegación
-       por teclado.
-     - Chips de selección rápida en "Personas" (mismo patrón que
-       ya usa "Gramaje") para no depender siempre del teclado.
-     - Tarjetas de opción (Tipo de Traspaso) con ícono propio para
-       escanearse más rápido de un vistazo.
-     ============================================================ --}}
-
 <style>
     @media (prefers-reduced-motion: no-preference) {
         .modal-overlay:not(.hidden) { animation: modalFadeIn .18s ease-out; }

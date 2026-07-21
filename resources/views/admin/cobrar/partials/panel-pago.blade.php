@@ -19,6 +19,13 @@
                     </button>
                 </div>
             </div>
+
+            {{-- MOVIDO AQUÍ: Sección de Referencia (justo debajo del método de pago) --}}
+            <div id="non-cash-section" class="hidden space-y-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-[2.5rem] p-6">
+                <label class="text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] text-[10px] font-black block text-center">Referencia de operación</label>
+                <input id="referencia" type="text" placeholder="Referencia de operación" class="w-full rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 p-4 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
+            </div>
+
             {{-- 2. Display de Montos --}}
             <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 p-8 rounded-[2.5rem] text-center shadow-sm dark:shadow-2xl">
                 <p class="text-zinc-400 dark:text-zinc-500 text-[10px] font-black uppercase mb-4 italic">Monto a cobrar</p>
@@ -38,9 +45,33 @@
                 <button type="button" class="btn-tecla col-span-2 h-16 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-2xl font-black text-red-500 dark:text-red-400" data-value="DEL">BORRAR</button>
             </div>
 
-            {{-- 5. Secciones de Pago --}}
-            <div id="non-cash-section" class="hidden space-y-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-[2.5rem] p-6">
-                <input id="referencia" type="text" placeholder="Referencia de operación" class="w-full rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 p-4 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
+            {{-- NUEVO: Selector de Propina --}}
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-[2rem] p-5">
+                <p class="text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.25em] text-[10px] font-black mb-3 text-center">
+                    ¿Cuánta propina desea dejar?
+                </p>
+
+                <div class="grid grid-cols-4 gap-2 mb-3" id="propina-porcentaje-botones">
+                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="0">Sin propina</button>
+                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="10">10%</button>
+                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="15">15%</button>
+                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="20">20%</button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-bold">$</span>
+                        <input id="propina-manual-input" type="number" step="0.01" min="0" placeholder="Otro monto"
+                            class="w-full pl-7 pr-4 h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-bold" />
+                    </div>
+                    <button type="button" id="btn-aplicar-propina-manual" class="h-12 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition-all">
+                        Aplicar
+                    </button>
+                </div>
+
+                <p class="text-center text-[11px] text-zinc-400 dark:text-zinc-500 mt-3">
+                    Propina actual: <strong class="text-zinc-700 dark:text-zinc-200" id="propina-actual-display">${{ number_format($orden->propina ?? 0, 2) }}</strong>
+                </p>
             </div>
 
             {{-- 6. Botones Finales --}}

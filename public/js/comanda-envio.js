@@ -1,24 +1,24 @@
-/**
- * comanda-envio.js
- * Acciones finales del pedido: número de personas, nota, descuento
- * manual, pre-cuenta imprimible y el envío final a cocina.
- * Depende de: numeroPersonas, descuentoPorcentaje, itemActivo,
- * notaGeneral, platillosEnviadosDB, mesaDestinoSeleccionada
- * (comanda-core.js); window.actualizarTotales y window.limpiarTicket
- * (comanda-ticket.js); csrfToken/mostrarError/mostrarExito/cerrarModal
- * (comanda-core.js).
- */
+
 (function () {
     const config = window.ComandaConfig || {};
 
-    window.ajustarPersonas = function () { document.getElementById('personasInput').value = numeroPersonas; document.getElementById('modalPersonas').classList.remove('hidden'); };
+    window.ajustarPersonas = function () { 
+        const input = document.getElementById('personasInput');
+        const modal = document.getElementById('modalPersonas');
+        if (input) input.value = numeroPersonas; 
+        if (modal) modal.classList.remove('hidden'); 
+    };
 
     window.guardarPersonas = function () {
-        const v = parseInt(document.getElementById('personasInput').value, 10);
+        const input = document.getElementById('personasInput');
+        if (!input) return;
+
+        const v = parseInt(input.value, 10);
         if (isNaN(v) || v <= 0) { mostrarError('Inválido'); return; }
 
         numeroPersonas = v;
-        document.getElementById('txtPersonas').innerText = v;
+        const txtPers = document.getElementById('txtPersonas');
+        if (txtPers) txtPers.innerText = v;
         cerrarModal('modalPersonas');
 
         fetch(config.rutas.comandaPersonas, {
@@ -35,13 +35,95 @@
         .catch(() => mostrarError('Error de red al guardar personas.'));
     };
 
-    window.agregarNota = function () { if (!itemActivo) { mostrarError('Selecciona platillo'); return; } document.getElementById('notaTextarea').value = ''; document.getElementById('modalNota').classList.remove('hidden'); };
-    window.aplicarDescuento = function () { document.getElementById('descuentoInput').value = descuentoPorcentaje; document.getElementById('modalDescuento').classList.remove('hidden'); };
-    window.guardarDescuento = function () { const v = parseFloat(document.getElementById('descuentoInput').value); if (isNaN(v) || v < 0 || v > 100) { mostrarError('Inválido'); return; } descuentoPorcentaje = v; actualizarTotales(); cerrarModal('modalDescuento'); };
-    window.insertarNotaCaracter = function (c) { const t = document.getElementById('notaTextarea'); t.value += c; t.focus(); };
-    window.insertarNotaEspacio = function () { const t = document.getElementById('notaTextarea'); t.value += ' '; t.focus(); };
-    window.borrarNotaCaracter = function () { const t = document.getElementById('notaTextarea'); t.value = t.value.slice(0, -1); t.focus(); };
-    window.limpiarNota = function () { const t = document.getElementById('notaTextarea'); t.value = ''; t.focus(); };
+    window.agregarNota = function () { 
+        if (!itemActivo) { mostrarError('Selecciona platillo'); return; } 
+        const textarea = document.getElementById('notaTextarea');
+        const modal = document.getElementById('modalNota');
+        if (textarea) textarea.value = ''; 
+        if (modal) modal.classList.remove('hidden'); 
+    };
+    
+    window.aplicarDescuento = function () { 
+        const input = document.getElementById('descuentoInput');
+        const modal = document.getElementById('modalDescuento');
+        if (input) input.value = descuentoPorcentaje; 
+        if (modal) modal.classList.remove('hidden'); 
+    };
+    
+    window.guardarDescuento = function () { 
+        const input = document.getElementById('descuentoInput');
+        if (!input) return;
+        const v = parseFloat(input.value); 
+        if (isNaN(v) || v < 0 || v > 100) { mostrarError('Inválido'); return; } 
+        descuentoPorcentaje = v; 
+        if (typeof window.actualizarTotales === 'function') window.actualizarTotales(); 
+        cerrarModal('modalDescuento'); 
+    };
+    
+    window.insertarNotaCaracter = function (c) { const t = document.getElementById('notaTextarea'); if (t) { t.value += c; t.focus(); } };
+    window.insertarNotaEspacio = function () { const t = document.getElementById('notaTextarea'); if (t) { t.value += ' '; t.focus(); } };
+    window.borrarNotaCaracter = function () { const t = document.getElementById('notaTextarea'); if (t) { t.value = t.value.slice(0, -1); t.focus(); } };
+    window.limpiarNota = function () { const t = document.getElementById('notaTextarea'); if (t) { t.value = ''; t.focus(); } };
+
+    // ---------------------------------------------------------------
+    // GESTIÓN DE PROPINA (MODAL Y CÁLCULOS CORREGIDOS)
+    // ---------------------------------------------------------------
+    
+    // Abre el modal y carga el valor actual de la propina si ya tiene una asignada
+    window.abrirModalPropina = function () {
+        const input = document.getElementById('propinaInput');
+        const modal = document.getElementById('modalPropina');
+        
+        // Asignación segura del valor si el input existe
+        if (input) {
+            input.value = window.propinaGlobal > 0 ? window.propinaGlobal.toFixed(2) : '';
+        }
+        
+        // Muestra el modal de manera segura
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+        
+        // Auto focus al input para agilizar la operación del mesero
+        if (input) {
+            setTimeout(() => input.focus(), 150);
+        }
+    };
+
+    // Calcula el porcentaje basándose en el total actual (Subtotal + IVA)
+    window.calcularPropinaPorcentaje = function (porcentaje) {
+        let total = parseFloat(window.totalComandaSinPropina) || 0; 
+        const input = document.getElementById('propinaInput');
+        
+        if (total > 0) {
+            if (input) {
+                let calculado = (total * (porcentaje / 100)).toFixed(2);
+                input.value = calculado;
+            }
+        } else {
+            alert("Primero debes agregar productos para calcular un porcentaje.");
+        }
+    };
+
+    // Al dar click en aplicar, guarda el valor global y actualiza la pantalla
+    window.guardarPropina = function () {
+        const input = document.getElementById('propinaInput');
+        const montoPropina = input ? (parseFloat(input.value) || 0) : 0;
+        
+        if (montoPropina < 0) {
+            alert("La propina no puede ser un valor negativo.");
+            return;
+        }
+
+        window.propinaGlobal = montoPropina;
+        
+        // Volvemos a disparar actualizarTotales para que se refresque el total final
+        if (typeof window.actualizarTotales === 'function') {
+            window.actualizarTotales();
+        }
+        
+        cerrarModal('modalPropina');
+    };
 
     window.imprimirPrecuenta = function () {
         const url = config.rutas && config.rutas.comandaPrecuenta;
@@ -58,55 +140,59 @@
 
         const platillosData = [];
         itemsHTML.forEach(item => {
-            const nombre = item.querySelector('.nombre-platillo').innerText;
+            const nomEl = item.querySelector('.nombre-platillo');
+            const nombre = nomEl ? nomEl.innerText : 'Producto';
             const modsElementos = item.querySelectorAll('.nota-texto-real');
             const mods = []; modsElementos.forEach(m => mods.push(m.innerText.replace('•', '').trim()));
             platillosData.push({
                 id: parseInt(item.dataset.productoId, 10), nombre: nombre,
                 cantidad: parseInt(item.dataset.cantidad, 10), precio: parseFloat(item.dataset.precio),
-                // OJO: ya NO se manda "notas" por separado — `modificadores`
-                // ya contiene todo el texto (mods clickeados + notas escritas
-                // a mano, ambos caen en la misma lista .nota-texto-real).
-                // Antes se mandaban duplicados (modificadores + notas con el
-                // mismo contenido) y ComandaService los concatenaba,
-                // apareciendo repetidos en Cocina.
                 modificadores: mods,
                 gramaje: item.dataset.gramaje === 'sin-gramaje' ? null : item.dataset.gramaje,
                 tiempo: item.dataset.tiempo
             });
         });
 
-        const btn = document.getElementById('btn-enviar'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
+        const btn = document.getElementById('btn-enviar'); 
+        if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
+        
+        const txtTotalEl = document.getElementById('txtTotal');
+        const totalParseado = txtTotalEl ? parseFloat(txtTotalEl.innerText.replace('$', '')) : 0;
+
         fetch(config.rutas.comandaEnviar, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken() },
             body: JSON.stringify({
                 mesa_id: mesaDestinoSeleccionada || (config.mesa && config.mesa.id) || 1,
                 platillos: platillosData,
-                total: parseFloat(document.getElementById('txtTotal').innerText.replace('$', '')),
+                total: totalParseado,
                 personas: numeroPersonas,
                 descuento_porcentaje: descuentoPorcentaje,
-                nota_general: notaGeneral
+                nota_general: notaGeneral,
+                propina: window.propinaGlobal || 0
             })
         })
-            .then(res => res.json()).then(data => {
-                if (data.success) {
-                    mostrarExito("¡Enviado a cocina!");
+        .then(res => res.json()).then(data => {
+            if (data.success) {
+                mostrarExito("¡Enviado a cocina!");
 
-                    platillosData.forEach(p => {
-                        platillosEnviadosDB.push({
-                            nombre: p.nombre,
-                            cantidad: p.cantidad,
-                            precio: p.precio,
-                            estado: 'enviado'
-                        });
+                platillosData.forEach(p => {
+                    platillosEnviadosDB.push({
+                        nombre: p.nombre,
+                        cantidad: p.cantidad,
+                        precio: p.precio,
+                        estado: 'enviado'
                     });
+                });
 
-                    limpiarTicket();
+                if (typeof window.limpiarTicket === 'function') window.limpiarTicket();
 
-                    setTimeout(() => window.location.href = (config.rutas && config.rutas.dashboard) || '/', 1000);
-                }
-                else throw new Error(data.message);
-            }).catch(error => { mostrarError(error.message); btn.innerHTML = '<i class="fas fa-paper-plane text-sm"></i><span>Enviar Orden</span>'; btn.disabled = false; });
+                setTimeout(() => window.location.href = (config.rutas && config.rutas.dashboard) || '/', 1000);
+            }
+            else throw new Error(data.message);
+        }).catch(error => { 
+            mostrarError(error.message); 
+            if (btn) { btn.innerHTML = '<i class="fas fa-paper-plane text-sm"></i><span>Enviar Orden</span>'; btn.disabled = false; }
+        });
     };
 })();

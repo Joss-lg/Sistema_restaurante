@@ -54,11 +54,13 @@
                     Área de Impresión
                 </label>
                 <select id="edit_area_{{ $categoria->id }}" name="area_impresion"
-                    class="w-full h-11 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 px-4 text-sm font-medium text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
-                    <option value="" {{ !$categoria->area_impresion ? 'selected' : '' }}>Sin asignar</option>
-                    <option value="Cocina" {{ $categoria->area_impresion == 'Cocina' ? 'selected' : '' }}>Cocina</option>
-                    <option value="Barra" {{ $categoria->area_impresion == 'Barra' ? 'selected' : '' }}>Barra</option>
-                    <option value="Parrilla" {{ $categoria->area_impresion == 'Parrilla' ? 'selected' : '' }}>Parrilla</option>
+                    class="w-full h-11 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 px-4 text-sm font-medium text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all cursor-pointer">
+                    
+                    {{-- Opciones con color de fondo explícito para evitar el gris nativo del navegador --}}
+                    <option value="" class="bg-white dark:bg-[#121318] text-slate-900 dark:text-white" {{ !$categoria->area_impresion ? 'selected' : '' }}>Sin asignar</option>
+                    <option value="Cocina" class="bg-white dark:bg-[#121318] text-slate-900 dark:text-white" {{ $categoria->area_impresion == 'Cocina' ? 'selected' : '' }}>Cocina</option>
+                    <option value="Barra" class="bg-white dark:bg-[#121318] text-slate-900 dark:text-white" {{ $categoria->area_impresion == 'Barra' ? 'selected' : '' }}>Barra</option>
+                    <option value="Parrilla" class="bg-white dark:bg-[#121318] text-slate-900 dark:text-white" {{ $categoria->area_impresion == 'Parrilla' ? 'selected' : '' }}>Parrilla</option>
                 </select>
             </div>
 
