@@ -20,6 +20,7 @@ use App\Http\Controllers\PlanoEspacialController;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\MesaOperacionController;
 use App\Http\Controllers\HistorialCajaController;
+use App\Http\Controllers\ConfiguracionController;
 
 // ==========================================
 // --- AUTENTICACIÓN ---
@@ -134,8 +135,11 @@ Route::middleware(['auth'])->group(function () {
             
             Route::post('/api/liberar-mesa', [MesaOperacionController::class, 'liberarMesa'])->name('api.liberar-mesa')->middleware('permiso:Caja,gestionar');
             Route::post('/api/abrir-mesa', [MesaOperacionController::class, 'abrirMesa'])->name('api.abrir-mesa')->middleware('permiso:Caja,gestionar');
-            
-           Route::post('/toggle-iva', [CajaController::class, 'toggleIva'])->name('toggle-iva');
+
+            // CORREGIDO: apunta a ConfiguracionController (guarda en tabla de configuración),
+            // NO a CajaController (ese guardaba en sesión y CajaService nunca lo lee).
+            Route::post('/toggle-iva', [ConfiguracionController::class, 'toggleIva'])->name('toggle-iva');
+
             Route::delete('/{id}', [MesaOperacionController::class, 'destroy'])->name('destroy')->middleware('permiso:Caja,eliminar');
         });
 

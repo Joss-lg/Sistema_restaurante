@@ -18,6 +18,7 @@ class DetalleOrden extends Model
         'cantidad',
         'precio_unitario',
         'estado',
+        'estado_preparacion', // NUEVO: pendiente / en proceso / servida — independiente por lote+área
         'notas',
         'gramaje',
         'tiempo', // NUEVO: tiempo de cocina (sin-tiempo, primer-tiempo, segundo-tiempo, tercer-tiempo)

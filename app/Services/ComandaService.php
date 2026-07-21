@@ -69,6 +69,7 @@ class ComandaService
                     'cantidad' => $platillo['cantidad'],
                     'precio_unitario' => $platillo['precio'],
                     'estado' => 'en cocina',
+                    'estado_preparacion' => 'pendiente', // <-- NUEVO: arranca en la cola de Cocina/Barra
                     'notas' => $notasFinales,
                 ];
 
@@ -218,6 +219,7 @@ class ComandaService
                 DetalleOrden::whereIn('id', $detalleIds)->update([
                     'orden_id' => $ordenDestino->id,
                     'lote_envio' => $loteEnvio, // NUEVO
+                    'estado_preparacion' => 'pendiente', // <-- NUEVO: reinicia la cola en la mesa destino
                 ]);
             }
 
@@ -240,6 +242,7 @@ class ComandaService
                     'cantidad'        => $platillo['cantidad'],
                     'precio_unitario' => $platillo['precio'],
                     'estado'          => 'en cocina',
+                    'estado_preparacion' => 'pendiente', // <-- NUEVO
                     'notas'           => $notasFinales,
                 ];
                 if ($usaGramaje) $detalleData['gramaje'] = $platillo['gramaje'] ?? null;

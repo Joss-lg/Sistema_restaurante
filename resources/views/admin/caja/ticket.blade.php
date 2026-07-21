@@ -80,10 +80,10 @@
                 <td>{{ $item['cantidad'] }}x {{ $item['nombre'] }}</td>
                 <td class="right">${{ number_format($item['subtotal'], 2) }}</td>
             </tr>
-            @if($item['descuento'] > 0)
+            @if(($item['descuento'] ?? 0) > 0)
                 <tr class="desc-row">
                     <td colspan="2">
-                        Desc{{ $item['promocion_nombre'] ? ' ('.$item['promocion_nombre'].')' : '' }}: -${{ number_format($item['descuento'], 2) }}
+                        Desc{{ !empty($item['promocion_nombre']) ? ' ('.$item['promocion_nombre'].')' : '' }}: -${{ number_format($item['descuento'], 2) }}
                     </td>
                 </tr>
             @endif
@@ -98,19 +98,22 @@
             <td>Subtotal</td>
             <td class="right">${{ number_format($subtotal, 2) }}</td>
         </tr>
-        @if($descuentoTotal > 0)
+        @if(($descuentoTotal ?? 0) > 0)
         <tr>
             <td>Descuento total</td>
             <td class="right">-${{ number_format($descuentoTotal, 2) }}</td>
         </tr>
         @endif
-        @if(isset($iva) && $iva > 0)
+
+        {{-- --- CONDICIONAL DE IVA --- --}}
+        @if(($ivaHabilitado ?? session('iva_habilitado', true)) && isset($iva) && $iva > 0)
         <tr>
-            <td>IVA (16%)</td>
+            <td>IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%)</td>
             <td class="right">${{ number_format($iva, 2) }}</td>
         </tr>
         @endif
-        @if($propina > 0)
+
+        @if(($propina ?? 0) > 0)
         <tr>
             <td>Propina</td>
             <td class="right">${{ number_format($propina, 2) }}</td>
@@ -123,7 +126,7 @@
     </table>
     
     <!-- Pagos -->
-    @if(isset($pagos) && $pagos->isNotEmpty())
+    @if(isset($pagos) && collect($pagos)->isNotEmpty())
         <div class="linea"></div>
         <div class="center bold" style="font-size: 11px; margin-bottom: 2px;">FORMA DE PAGO</div>
         <table>
@@ -132,7 +135,7 @@
                     <td>{{ $pago['metodo'] }}</td>
                     <td class="right">${{ number_format($pago['monto'], 2) }}</td>
                 </tr>
-                @if($pago['referencia'])
+                @if(!empty($pago['referencia']))
                 <tr>
                     <td colspan="2" style="font-size: 10px; font-style: italic;">Ref: {{ $pago['referencia'] }}</td>
                 </tr>

@@ -220,18 +220,17 @@ class CajaController extends Controller
         return view('admin.caja.ticket', $datos);
     }
 
-  public function toggleIva(Request $request)
-{
-    // Obtenemos el estado actual de la sesión (por defecto true)
-    $estadoActual = session('iva_habilitado', true);
-    $nuevoEstado = !$estadoActual;
-    
-    // Guardamos el nuevo estado
-    session(['iva_habilitado' => $nuevoEstado]);
+    public function toggleIva(Request $request)
+    {
+        // Recibimos el estado exacto enviado por el switch (true o false)
+        $habilitado = $request->boolean('habilitado');
+        
+        // Guardamos exactamente lo que el usuario seleccionó
+        session(['iva_habilitado' => $habilitado]);
 
-    return response()->json([
-        'success' => true,
-        'ivaHabilitado' => $nuevoEstado
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'ivaHabilitado' => $habilitado
+        ]);
+    }
 }

@@ -138,7 +138,7 @@
         }
         Object.keys(estadoGlobal.productos).forEach(catNombre => {
             const productos = estadoGlobal.productos[catNombre];
-            const gridId    = 'grid-' + catNombre.replace(/\s+/g, '-');
+            const gridId = 'grid-' + catNombre.toLowerCase().replace(/[^a-z0-9]/g, '-');    
             const seccion   = document.createElement('div');
             seccion.className = 'mb-6 sm:mb-8 bg-[var(--bg-color)] rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-4 border border-[var(--border-color)]';
             seccion.innerHTML = `

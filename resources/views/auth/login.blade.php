@@ -192,11 +192,9 @@
             <button type="button" onclick="appendNumber('8')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">8</button>
             <button type="button" onclick="appendNumber('9')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">9</button>
             
-            <!-- Botón Borrar (Columna 4, al lado del 9) -->
-            <button type="button" onclick="deleteNumber()" class="key-btn aspect-square rounded-2xl flex items-center justify-center">
-                <div class="bg-rose-500 text-white w-7 h-6 sm:w-8 sm:h-7 rounded-md flex items-center justify-center shadow-md">
-                    <i class="fas fa-times text-xs sm:text-sm font-black"></i>
-                </div>
+            <!-- Botón Borrar (Completamente Rojo) -->
+            <button type="button" onclick="deleteNumber()" class="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white aspect-square rounded-2xl flex items-center justify-center transition-all shadow-lg border border-rose-400/30">
+                <i class="fas fa-backspace text-xl sm:text-2xl"></i>
             </button>
 
             <!-- Fila 4: '0' centrado bajo el 8 -->

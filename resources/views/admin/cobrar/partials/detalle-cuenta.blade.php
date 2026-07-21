@@ -124,7 +124,7 @@
                     </div>
                 @endif
 
-                {{-- --- NUEVO: Switch de IVA --- --}}
+                {{-- --- Switch de IVA (funciona por sesión vía CajaController::toggleIva) --- --}}
                 <div class="flex justify-between items-center text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm font-semibold py-1">
                     <span class="flex items-center gap-2">
                         IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%)
@@ -166,7 +166,7 @@
     </div>
 </div>
 
-{{-- --- NUEVO: Script del switch de IVA --- --}}
+{{-- --- Script del switch de IVA --- --}}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const ivaSwitch = document.getElementById('ivaSwitch');
@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ habilitado }),
             });

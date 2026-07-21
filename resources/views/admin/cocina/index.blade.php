@@ -9,7 +9,7 @@
 @section('content')
 <div class="p-3 sm:p-6 lg:p-8 w-full max-w-[1800px] mx-auto relative z-10 overflow-x-hidden font-sans">
 
-    {{-- --- NUEVO: Selector de Área (Cocina / Barra) --- --}}
+    {{-- --- Selector de Área (Cocina / Barra) --- --}}
     <div class="flex items-center gap-2 mb-4 sm:mb-6">
         <a href="{{ route('admin.cocina.index', ['area' => 'cocina']) }}"
            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all border
@@ -25,6 +25,15 @@
                         : 'bg-[var(--card-color)] text-[var(--text-muted)] border-[var(--border-color)] hover:border-blue-500/50' }}">
             <i class="fas fa-martini-glass mr-2"></i>Barra
         </a>
+
+        {{-- Indicador visual de auto-refresco --}}
+        <span class="ml-auto inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            En vivo
+        </span>
     </div>
 
     <div class="glass-card rounded-[20px] sm:rounded-[32px] p-3 sm:p-4 flex flex-col xl:flex-row gap-3 shadow-2xl border border-[var(--border-color)] bg-[var(--card-color)] relative overflow-hidden">
@@ -40,117 +49,127 @@
                 <h2 class="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Fuego Abierto — {{ $areaSeleccionada }}</h2>
             </div>
             <p class="text-3xl sm:text-6xl font-black text-[var(--text-color)] tracking-tighter mt-1 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-                <span>{{ $ordenesActivasEnArea }}</span>
+                <span id="stat-ordenes-activas">{{ $ordenesActivasEnArea }}</span>
                 <span class="text-xs sm:text-base text-[var(--text-muted)] font-bold uppercase tracking-widest">Órdenes activas</span>
             </p>
         </div>
 
         <div class="flex-1 grid grid-cols-3 gap-1.5 sm:gap-4">
-            @foreach(['pendientes' => ['text' => 'En Cola', 'val' => $pendientes, 'border' => 'orange', 'icon' => 'fa-receipt'], 
-                      'enProceso' => ['text' => 'Proceso', 'val' => $enProceso, 'border' => 'blue', 'icon' => 'fa-fire-burner'], 
-                      'servidas' => ['text' => 'Listas', 'val' => $servidas, 'border' => 'emerald', 'icon' => 'fa-bell-concierge']] as $key => $kpi)
-            <div class="bg-[var(--bg-color)] rounded-[14px] sm:rounded-[24px] p-2.5 sm:p-6 border border-{{$kpi['border']}}-500/30 flex flex-col items-center sm:items-start justify-center relative overflow-hidden group hover:border-{{$kpi['border']}}-500/60 transition-colors min-w-0">
-                <div class="absolute inset-0 bg-gradient-to-b from-{{$kpi['border']}}-500/10 to-transparent opacity-50"></div>
+            <div class="bg-[var(--bg-color)] rounded-[14px] sm:rounded-[24px] p-2.5 sm:p-6 border border-orange-500/30 flex flex-col items-center sm:items-start justify-center relative overflow-hidden group hover:border-orange-500/60 transition-colors min-w-0">
+                <div class="absolute inset-0 bg-gradient-to-b from-orange-500/10 to-transparent opacity-50"></div>
                 <div class="relative z-10 flex flex-col items-center sm:items-start w-full min-w-0">
                     <div class="flex justify-center sm:justify-between items-center w-full mb-1 sm:mb-2">
-                        <span class="text-[8px] sm:text-xs font-black uppercase tracking-widest text-{{$kpi['border']}}-500 drop-shadow-sm text-center sm:text-left leading-tight truncate">{{$kpi['text']}}</span>
-                        <i class="fas {{$kpi['icon']}} text-{{$kpi['border']}}-500/40 text-lg hidden sm:block shrink-0"></i>
+                        <span class="text-[8px] sm:text-xs font-black uppercase tracking-widest text-orange-500 drop-shadow-sm text-center sm:text-left leading-tight truncate">En Cola</span>
+                        <i class="fas fa-receipt text-orange-500/40 text-lg hidden sm:block shrink-0"></i>
                     </div>
-                    <p class="text-xl sm:text-5xl font-black text-[var(--text-color)] drop-shadow-md">{{$kpi['val']}}</p>
+                    <p class="text-xl sm:text-5xl font-black text-[var(--text-color)] drop-shadow-md" id="stat-pendientes">{{ $pendientes }}</p>
                 </div>
             </div>
-            @endforeach
+            <div class="bg-[var(--bg-color)] rounded-[14px] sm:rounded-[24px] p-2.5 sm:p-6 border border-blue-500/30 flex flex-col items-center sm:items-start justify-center relative overflow-hidden group hover:border-blue-500/60 transition-colors min-w-0">
+                <div class="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent opacity-50"></div>
+                <div class="relative z-10 flex flex-col items-center sm:items-start w-full min-w-0">
+                    <div class="flex justify-center sm:justify-between items-center w-full mb-1 sm:mb-2">
+                        <span class="text-[8px] sm:text-xs font-black uppercase tracking-widest text-blue-500 drop-shadow-sm text-center sm:text-left leading-tight truncate">Proceso</span>
+                        <i class="fas fa-fire-burner text-blue-500/40 text-lg hidden sm:block shrink-0"></i>
+                    </div>
+                    <p class="text-xl sm:text-5xl font-black text-[var(--text-color)] drop-shadow-md" id="stat-enproceso">{{ $enProceso }}</p>
+                </div>
+            </div>
+            <div class="bg-[var(--bg-color)] rounded-[14px] sm:rounded-[24px] p-2.5 sm:p-6 border border-emerald-500/30 flex flex-col items-center sm:items-start justify-center relative overflow-hidden group hover:border-emerald-500/60 transition-colors min-w-0">
+                <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent opacity-50"></div>
+                <div class="relative z-10 flex flex-col items-center sm:items-start w-full min-w-0">
+                    <div class="flex justify-center sm:justify-between items-center w-full mb-1 sm:mb-2">
+                        <span class="text-[8px] sm:text-xs font-black uppercase tracking-widest text-emerald-500 drop-shadow-sm text-center sm:text-left leading-tight truncate">Listas</span>
+                        <i class="fas fa-bell-concierge text-emerald-500/40 text-lg hidden sm:block shrink-0"></i>
+                    </div>
+                    <p class="text-xl sm:text-5xl font-black text-[var(--text-color)] drop-shadow-md" id="stat-servidas">{{ $servidas }}</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    @if($comandas->isEmpty())
-        <div class="glass-card rounded-[24px] px-6 py-16 sm:py-24 text-center border border-[var(--border-color)] shadow-xl mt-6 sm:mt-8 bg-[var(--card-color)]">
-            <i class="fas fa-check-double text-5xl text-emerald-500 mb-4"></i>
-            <h2 class="text-xl sm:text-2xl font-black text-[var(--text-color)]">¡{{ $areaSeleccionada }} Despejada!</h2>
-        </div>
-    @else
-        <div class="grid gap-3 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 mt-4 sm:mt-8 items-start w-full">
-            @foreach($comandas as $comanda)
-                @php
-                    $config = [
-                        'pendiente' => ['border' => 'border-t-orange-500', 'btn' => 'bg-orange-500 hover:bg-orange-400 text-white', 'textColor' => 'text-orange-500', 'badgeBg' => 'bg-orange-500/10 border-orange-500/30'],
-                        'en proceso' => ['border' => 'border-t-blue-500', 'btn' => 'bg-emerald-500 hover:bg-emerald-400 text-white', 'textColor' => 'text-blue-500', 'badgeBg' => 'bg-blue-500/10 border-blue-500/30'],
-                        'servida' => ['border' => 'border-t-emerald-500', 'btn' => 'bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-color)]', 'textColor' => 'text-emerald-500', 'badgeBg' => 'bg-emerald-500/10 border-emerald-500/30']
-                    ][$comanda->estado] ?? ['border' => 'border-t-gray-500', 'btn' => 'bg-gray-500', 'textColor' => 'text-gray-500', 'badgeBg' => 'bg-gray-500/10'];
-                @endphp
-
-                <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] {{ $config['border'] }} shadow-lg flex flex-col h-full overflow-hidden relative">
-                    <div class="p-4 border-b border-[var(--border-color)] min-w-0 flex items-start justify-between gap-2">
-                        <div class="min-w-0">
-                            <h3 class="font-black text-lg truncate">Mesa {{ $comanda->mesa->numero }}</h3>
-                            <p class="text-xs text-[var(--text-muted)] truncate">Mesero: {{ $comanda->mesero->nombre ?? 'N/A' }}</p>
-                        </div>
-                        <span
-                            class="tiempo-espera shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wide whitespace-nowrap bg-zinc-500/10 border-zinc-500/30 text-zinc-400"
-                            data-creado="{{ optional($comanda->creado_en)->toIso8601String() }}"
-                        >
-                            <i class="fas fa-clock"></i>
-                            <span class="tiempo-texto">--</span>
-                        </span>
-                    </div>
-
-                    <div class="p-4 flex-1 min-w-0">
-                        <ul class="space-y-2">
-                            @foreach($comanda->detalles as $detalle)
-                                @php
-                                    // Mapeo de clases FIJAS (no interpoladas) para que Tailwind
-                                    // no las purgue en build de producción.
-                                    $tiempoClases = [
-                                        'sin-tiempo'     => ['label' => 'S', 'clase' => 'text-zinc-400 bg-zinc-500/10 border-zinc-500/30'],
-                                        'primer-tiempo'  => ['label' => '1', 'clase' => 'text-blue-400 bg-blue-500/10 border-blue-500/30'],
-                                        'segundo-tiempo' => ['label' => '2', 'clase' => 'text-purple-400 bg-purple-500/10 border-purple-500/30'],
-                                        'tercer-tiempo'  => ['label' => '3', 'clase' => 'text-pink-400 bg-pink-500/10 border-pink-500/30'],
-                                    ];
-                                    $tInfo = $tiempoClases[$detalle->tiempo] ?? null;
-                                @endphp
-                                <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-0.5">
-                                    <span class="font-bold text-[var(--text-color)] break-words flex flex-wrap items-center gap-1.5">
-                                        {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
-                                        @if($tInfo)
-                                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md border {{ $tInfo['clase'] }}">
-                                                <i class="fas fa-clock"></i>Tiempo {{ $tInfo['label'] }}
-                                            </span>
-                                        @endif
-                                        @if($detalle->gramaje)
-                                            @php
-                                                $gramajeLimpio = rtrim(rtrim(number_format((float) $detalle->gramaje, 2, '.', ''), '0'), '.');
-                                            @endphp
-                                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-orange-400 bg-orange-500/10 border border-orange-500/30 px-1.5 py-0.5 rounded-md">
-                                                <i class="fas fa-weight-hanging"></i>{{ $gramajeLimpio }}g
-                                            </span>
-                                        @endif
-                                    </span>
-                                    @if($detalle->notas)
-                                        <span class="block text-[10px] text-red-400 italic break-words">{{ $detalle->notas }}</span>
-                                    @endif
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                    
-                    <div class="p-3 sm:p-4 bg-[var(--bg-color)] border-t border-[var(--border-color)]">
-                        <form action="{{ route('admin.cocina.orden.estado', $comanda->orden_id) }}?area={{ strtolower($areaSeleccionada) }}" method="POST">
-                            @csrf @method('PATCH')
-                            <input type="hidden" name="estado" value="{{ $comanda->estado === 'pendiente' ? 'en proceso' : 'servida' }}">
-                            <button type="submit" {{ $comanda->estado === 'servida' ? 'disabled' : '' }} 
-                                class="w-full py-3.5 rounded-xl font-black uppercase text-[12px] tracking-[0.1em] transition-all active:scale-95 {{ $config['btn'] }}">
-                                {{ $comanda->estado === 'pendiente' ? 'Iniciar Preparación' : ($comanda->estado === 'en proceso' ? 'Marcar como Lista' : 'Entregada') }}
-                            </button>
-                        </form>
-                    </div>
-                </article>
-            @endforeach
-        </div>
-    @endif
+    {{-- Contenedor de tarjetas: se reemplaza completo cada 5s por el polling --}}
+    <div id="comandas-container">
+        @include('admin.cocina.partials.comandas', ['comandas' => $comandas, 'areaSeleccionada' => $areaSeleccionada])
+    </div>
 </div>
-@endsection
 
 <script>
+    const AREA_ACTUAL = @json(strtolower($areaSeleccionada));
+    const URL_API_COMANDAS = @json(route('admin.cocina.api.comandas'));
+
+    // ---------------------------------------------------------------
+    // AUTO-REFRESCO: consulta el servidor cada 5s y reemplaza las
+    // tarjetas + contadores, sin recargar la página completa.
+    // ---------------------------------------------------------------
+    async function actualizarComandas() {
+        try {
+            const res = await fetch(`${URL_API_COMANDAS}?area=${AREA_ACTUAL}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            });
+            const data = await res.json().catch(() => null);
+            if (!res.ok || !data || !data.success) return;
+
+            const contenedor = document.getElementById('comandas-container');
+            if (contenedor) contenedor.innerHTML = data.html;
+
+            const setTexto = (id, valor) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = valor;
+            };
+            setTexto('stat-ordenes-activas', data.ordenesActivasEnArea);
+            setTexto('stat-pendientes', data.pendientes);
+            setTexto('stat-enproceso', data.enProceso);
+            setTexto('stat-servidas', data.servidas);
+
+            actualizarContadoresEspera();
+        } catch (err) {
+            console.error('Error actualizando comandas:', err);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Envío de los botones "Iniciar Preparación" / "Marcar como Lista"
+    // por AJAX (en vez de recargar toda la página), usando delegación
+    // de eventos porque las tarjetas se reemplazan dinámicamente.
+    // ---------------------------------------------------------------
+    document.addEventListener('submit', async function (e) {
+        const form = e.target.closest('.form-avanzar-estado');
+        if (!form) return;
+
+        e.preventDefault();
+
+        const boton = form.querySelector('button[type="submit"]');
+        if (boton) { boton.disabled = true; boton.innerText = 'Actualizando...'; }
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch(form.action, {
+                method: 'POST', // el form ya trae @method('PATCH') vía _method
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                body: formData
+            });
+            const data = await res.json().catch(() => null);
+
+            if (!res.ok || !data || !data.success) {
+                alert('No se pudo actualizar el estado. Intenta de nuevo.');
+                if (boton) boton.disabled = false;
+                return;
+            }
+
+            // Refrescamos de inmediato para ver el cambio sin esperar los 5s
+            actualizarComandas();
+        } catch (err) {
+            console.error('Error al avanzar estado:', err);
+            alert('Error de red al actualizar el estado.');
+            if (boton) boton.disabled = false;
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setInterval(actualizarComandas, 5000);
+    });
+
     async function cargarKdsMesas() {
         try {
             const res = await fetch('{{ route("mesero.mesas.abiertas") }}', { 
@@ -252,3 +271,4 @@
         setInterval(actualizarContadoresEspera, 30000);
     });
 </script>
+@endsection
