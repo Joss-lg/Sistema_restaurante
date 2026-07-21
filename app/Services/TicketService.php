@@ -13,18 +13,19 @@ class TicketService
             'mesa',
             'mesero',
             'detalles.producto',
-            'detalles.promocionAplicada.promocion', // <-- nuevo
+            'detalles.promocionAplicada.promocion',
         ])->findOrFail($ordenId);
 
         $items = $orden->detalles->map(function ($detalle) {
             $descuento = $detalle->promocionAplicada?->monto_descuento ?? 0;
+            $subtotalLinea = $detalle->subtotal ?? ($detalle->cantidad * $detalle->precio_unitario);
 
             return [
-                'cantidad'        => $detalle->cantidad,
-                'nombre'          => $detalle->producto->nombre ?? 'Producto',
-                'subtotal'        => $detalle->subtotal, // precio lleno, sin descuento
-                'descuento'       => $descuento,
-                'promocion_nombre'=> $detalle->promocionAplicada?->promocion?->nombre,
+                'cantidad'         => $detalle->cantidad,
+                'nombre'           => $detalle->producto->nombre ?? 'Producto sin registro',
+                'subtotal'         => $subtotalLinea,
+                'descuento'        => $descuento,
+                'promocion_nombre' => $detalle->promocionAplicada?->promocion?->nombre,
             ];
         });
 
@@ -40,6 +41,16 @@ class TicketService
 
         $subtotalBruto  = $items->sum('subtotal');
         $descuentoTotal = $items->sum('descuento');
+        
+        // Base sobre la cual calcular impuestos (Subtotal - Descuentos)
+        $baseImponible = $subtotalBruto - $descuentoTotal;
+        
+        // Calcula el IVA de forma consistente (ajusta el porcentaje si manejas otro, ej: 0.16)
+        $iva = $baseImponible * 0.16; 
+        $propina = $orden->propina ?? 0;
+
+        // Total calculado matemáticamente para evitar discrepancias con la BD
+        $totalCalculado = $baseImponible + $iva + $propina;
 
         return [
             'folio'          => 'M' . ($orden->mesa->numero ?? '') . '-' . str_pad($orden->id, 4, '0', STR_PAD_LEFT),
@@ -48,9 +59,10 @@ class TicketService
             'mesero'         => $orden->mesero->name ?? null,
             'items'          => $items,
             'subtotal'       => $subtotalBruto,
-            'descuentoTotal' => $descuentoTotal, // <-- nuevo
-            'propina'        => $orden->propina ?? 0,
-            'total'          => $orden->total_con_impuestos,
+            'descuentoTotal' => $descuentoTotal,
+            'iva'            => $iva, // <-- Asegúrate de pasarlo si lo usas en la vista del ticket
+            'propina'        => $propina,
+            'total'          => $totalCalculado, // Usamos el total unificado
             'pagos'          => $pagos,
             'negocio'        => ['nombre' => config('app.name', 'Mi Negocio')],
         ];

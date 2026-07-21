@@ -8,6 +8,7 @@ use App\Models\Categoria;
 use App\Models\Producto;
 use App\Models\Orden;
 use App\Models\DetalleOrden;
+use App\Models\Configuracion;
 use App\Services\MesaService;
 use App\Services\ComandaService;
 use Illuminate\Http\Request;
@@ -70,9 +71,14 @@ class MesaController extends Controller
                 ->get();
         }
 
+        // --- AJUSTE: IVA habilitable desde configuración global ---
+        $ivaHabilitado = Configuracion::ivaHabilitado();
+        $ivaPorcentaje = Configuracion::ivaPorcentaje();
+
         return view('mesero.index', compact(
             'mesa', 'categorias', 'productos', 'mesasAbiertas',
-            'esCapitan', 'platillosEnviados', 'ordenActiva'
+            'esCapitan', 'platillosEnviados', 'ordenActiva',
+            'ivaHabilitado', 'ivaPorcentaje'
         ));
     }
 
@@ -89,13 +95,16 @@ class MesaController extends Controller
 
             $mesa = Mesa::findOrFail($request->mesa_id);
 
+            $permitirSinStock = $request->boolean('permitir_sin_stock', true);
+
             $orden = app(ComandaService::class)->procesarEnvio(
                 $mesa,
                 $request->platillos,
                 auth()->user(),
                 $request->total ?? 0,
                 $request->personas ?? $mesa->capacidad ?? 4,
-                $request->descuento_porcentaje ?? 0
+                $request->descuento_porcentaje ?? 0,
+                $permitirSinStock // <-- Se lo pasamos como último argumento
             );
 
             return response()->json([

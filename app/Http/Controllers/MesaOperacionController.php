@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Configuracion;
 use App\Models\Mesa;
 use App\Models\CajaMovimiento;
 use App\Models\FlujoCaja;
@@ -45,10 +46,12 @@ class MesaOperacionController extends Controller
             'ordenes' => $ordenes,
             'orden' => $orden, 
             'subtotal' => $desglose['subtotal'],
-            'subtotalBruto' => $desglose['subtotalBruto'],           // NUEVO
-            'descuentoPromociones' => $desglose['descuentoPromociones'], // NUEVO
-            'productosConDescuento' => $desglose['productosConDescuento'], // NUEVO
+            'subtotalBruto' => $desglose['subtotalBruto'],
+            'descuentoPromociones' => $desglose['descuentoPromociones'],
+            'productosConDescuento' => $desglose['productosConDescuento'],
             'iva' => $desglose['iva'],
+            'ivaHabilitado' => $desglose['ivaHabilitado'],
+            'ivaPorcentaje' => $desglose['ivaPorcentaje'],
             'propina' => $desglose['propina'],
             'totalPagar' => $desglose['total'],
             'cuentasDivididas' => $desglose['cuentasDivididas'],
@@ -58,7 +61,6 @@ class MesaOperacionController extends Controller
 
     public function procesarPago(Request $request): JsonResponse
     {
-        // 1. Validar los datos estructurados que vienen del JS
         $request->validate([
             'mesa_id' => 'required|exists:mesas,id',
             'pagos' => 'required|array|min:1',
@@ -67,7 +69,6 @@ class MesaOperacionController extends Controller
             'pagos.*.referencia' => 'nullable|string|max:255',
         ]);
 
-        // 2. Obtener la sesión de caja abierta actual de manera dinámica
         $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
 
         if (!$cajaActiva) {
@@ -78,19 +79,11 @@ class MesaOperacionController extends Controller
         }
 
         try {
-            // 3. Usar transacciones para asegurar la consistencia total de los datos
             DB::transaction(function () use ($request, $cajaActiva) {
                 $mesa = Mesa::findOrFail($request->mesa_id);
                 
-                // Obtenemos la orden activa asociada para la relación polimórfica
                 $orden = $mesa->ordenesActivas()->first(); 
 
-                // --- NUEVO: preparamos el reparto proporcional de la propina ---
-                // La propina ya viene sumada dentro del total de la orden. Si el pago
-                // se divide entre métodos, la propina se reparte en la misma
-                // proporción en que se dividió el pago (solo cuenta lo pagado con
-                // tarjeta/transferencia; el efectivo nunca se registra como propina
-                // rastreable, ya que el mesero se lo queda directo).
                 $propinaOrden = $orden ? floatval($orden->propina) : 0;
 
                 $sumaTotal = collect($request->pagos)->sum(fn($p) => floatval($p['monto']));
@@ -102,12 +95,10 @@ class MesaOperacionController extends Controller
                     ? round($propinaOrden * ($sumaRastreable / $sumaTotal), 2)
                     : 0;
 
-                // Recorremos la lista de pagos del payload del Front-end
                 foreach ($request->pagos as $pago) {
                     $monto = floatval($pago['monto']);
                     $metodo = strtolower($pago['metodo']);
                     
-                    // Solo registramos si el monto ingresado para este método es mayor a 0
                     if ($monto > 0) {
                         FlujoCaja::create([
                             'caja_movimiento_id' => $cajaActiva->id, 
@@ -123,7 +114,6 @@ class MesaOperacionController extends Controller
                             'flujoable_type'     => $orden ? get_class($orden) : null,
                         ]);
 
-                        // --- NUEVO: registrar la propina rastreable de este pago ---
                         if ($orden && $orden->mesero_id && $propinaRastreableTotal > 0 && in_array($metodo, ['tarjeta', 'transferencia'])) {
                             $montoPropina = round($propinaRastreableTotal * ($monto / $sumaRastreable), 2);
 
@@ -141,7 +131,6 @@ class MesaOperacionController extends Controller
                     }
                 }
 
-                // 4. Delegamos la liberación lógica de las órdenes y de la mesa a tu Service
                 $this->cajaService->liberarMesa($mesa);
             });
 
@@ -193,14 +182,16 @@ class MesaOperacionController extends Controller
 
         $orden = \App\Models\Orden::findOrFail($id);
 
-        // Recalculamos base (subtotal - descuentos + IVA) desde el servidor,
-        // sin confiar en ningún total que venga del navegador.
         $orden->load(['detalles', 'promocionesAplicadas']);
 
         $subtotalBruto = $orden->detalles->sum(fn($d) => $d->cantidad * $d->precio_unitario);
         $descuentoPromociones = $orden->promocionesAplicadas->sum('monto_descuento');
         $subtotal = max(0, round($subtotalBruto - $descuentoPromociones, 2));
-        $iva = round($subtotal * 0.16, 2);
+
+        $ivaHabilitado = Configuracion::ivaHabilitado();
+        $ivaPorcentaje = Configuracion::ivaPorcentaje();
+        $iva = $ivaHabilitado ? round($subtotal * ($ivaPorcentaje / 100), 2) : 0;
+
         $base = $subtotal + $iva;
 
         if ($request->tipo === 'porcentaje') {

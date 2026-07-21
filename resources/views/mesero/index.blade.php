@@ -49,6 +49,36 @@
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         .hide-scroll::-webkit-scrollbar { width: 0; height: 0; display: none !important; }
 
+        /* ============================================================
+           FIX RESPONSIVE MÓVIL — scroll del catálogo no se detectaba
+           ------------------------------------------------------------
+           Causa: los paneles (#col-catalogo, #col-ticket, #col-acciones)
+           usan las clases "hidden md:flex". En desktop el media query
+           md:flex siempre gana y todo se ve bien. Pero en móvil, el JS
+           de mostrarColumnaMobile() solo hace
+           classList.remove('hidden') sobre el panel activo — como
+           "md:flex" no aplica bajo 768px, el panel se queda sin ninguna
+           regla de display y el navegador usa el valor por defecto
+           (display: block) en lugar de flex.
+
+           Eso rompe la cadena flex-1 / h-full que necesita el grid de
+           productos (#gridProductos) para calcular su altura: al no
+           estar dentro de un contenedor flex, el grid no queda acotado
+           en altura, no genera overflow interno, y como el body tiene
+           overflow:hidden, cualquier contenido que se desborda queda
+           cortado e inalcanzable. No hay ningún elemento scrolleable
+           real con el que el dedo pueda "enganchar" al hacer swipe.
+
+           Esta regla fuerza a que, en móvil, el panel visible (el que
+           NO tiene .hidden) sea siempre flex de verdad, restaurando
+           toda la cadena de alturas y el scroll táctil.
+           ============================================================ */
+        @media (max-width: 767px) {
+            .col-mobile-panel:not(.hidden) {
+                display: flex !important;
+            }
+        }
+
         @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(5px); } 100% { opacity: 1; transform: translateY(0); } }
         .animate-item { animation: fade-in-up 0.2s ease-out forwards; }
 
@@ -103,6 +133,10 @@
             categorias: @json($categorias ?? []),
             productos: @json($productos ?? []),
             platillosEnviados: @json($platillosEnviadosParaJs),
+            iva: {
+                habilitado: @json($ivaHabilitado ?? true),
+                porcentaje: @json($ivaPorcentaje ?? 16)
+            },
             rutas: {
                 dashboard: @json(route('mesero.dashboard')),
                 promociones: @json($rutaPromociones),

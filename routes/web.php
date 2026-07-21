@@ -18,8 +18,8 @@ use App\Http\Controllers\RolController;
 use App\Http\Controllers\FinanzasController;
 use App\Http\Controllers\PlanoEspacialController;
 use App\Http\Controllers\CajaController;
-use App\Http\Controllers\MesaOperacionController; // <-- NUEVO CONTROLADOR IMPORTADO
-use App\Http\Controllers\HistorialCajaController; 
+use App\Http\Controllers\MesaOperacionController;
+use App\Http\Controllers\HistorialCajaController;
 
 // ==========================================
 // --- AUTENTICACIÓN ---
@@ -30,6 +30,13 @@ Route::get('/', function () {
 
 Route::post('/login-pin', [LoginController::class, 'loginConPin'])->name('login.pin');
 Auth::routes();
+
+// ==========================================
+// --- RUTAS PÚBLICAS (SIN AUTENTICACIÓN) ---
+// ==========================================
+// Se extrae la ruta de la imagen para evitar el error 302 y problemas de CORS en incógnito
+Route::get('/productos/api/{id}/imagen', [ProductoController::class, 'imagen'])->name('admin.productos.api.imagen');
+
 
 // ==========================================
 // --- RUTAS PROTEGIDAS (AUTH) ---
@@ -54,7 +61,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/comanda/transferir', [ComandaController::class, 'transferirProductos'])->name('comanda.transferir');
         Route::patch('/comanda/{mesa}/personas', [MesaController::class, 'actualizarPersonas'])->name('comanda.personas'); 
         Route::get('/comanda/promociones/activas', [MesaController::class, 'promocionesActivas'])->name('comanda.promociones.activas');
-        Route::get('/comanda/{mesa}/precuenta', [ComandaController::class, 'precuenta'])->name('comanda.precuenta');
+        // (Ruta duplicada eliminada para mantener limpieza, ya estaba arriba)
     });
     
     // ------------------------------------------
@@ -92,7 +99,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [ProductoController::class, 'index'])->name('index');
             Route::get('/api/productos', [ProductoController::class, 'getProductos'])->name('api.productos');
             Route::get('/api/estadisticas', [ProductoController::class, 'getEstadisticas'])->name('api.estadisticas');
-            Route::get('/api/{id}/imagen', [ProductoController::class, 'imagen'])->name('api.imagen'); // <-- NUEVA
+            // La ruta de la imagen fue movida al bloque de RUTAS PÚBLICAS
             Route::post('/api/store', [ProductoController::class, 'store'])->name('api.store')->middleware('permiso:Productos,crear');
             Route::put('/api/{id}', [ProductoController::class, 'update'])->name('api.update')->middleware('permiso:Productos,editar');
             Route::patch('/api/{id}/toggle-disponibilidad', [ProductoController::class, 'toggleDisponibilidad'])->name('api.toggle')->middleware('permiso:Productos,editar');
@@ -127,6 +134,8 @@ Route::middleware(['auth'])->group(function () {
             
             Route::post('/api/liberar-mesa', [MesaOperacionController::class, 'liberarMesa'])->name('api.liberar-mesa')->middleware('permiso:Caja,gestionar');
             Route::post('/api/abrir-mesa', [MesaOperacionController::class, 'abrirMesa'])->name('api.abrir-mesa')->middleware('permiso:Caja,gestionar');
+            
+           Route::post('/toggle-iva', [CajaController::class, 'toggleIva'])->name('toggle-iva');
             Route::delete('/{id}', [MesaOperacionController::class, 'destroy'])->name('destroy')->middleware('permiso:Caja,eliminar');
         });
 
@@ -179,13 +188,13 @@ Route::middleware(['auth'])->group(function () {
 
         // --- FINANZAS ---
         Route::middleware(['permiso:Finanzas,mostrar'])->prefix('finanzas')->name('finanzas.')->group(function () {
-        Route::get('/', [FinanzasController::class, 'index'])->name('index');
-        Route::get('/exportar-csv', [FinanzasController::class, 'exportarCSV'])->name('exportar');
-        Route::post('/estadisticas-periodo', [FinanzasController::class, 'estadisticasPeriodo'])->name('estadisticas.periodo');
-        Route::get('/corte-mensual', [FinanzasController::class, 'corteMensual'])->name('corte.mensual');
-        Route::get('/corte-mensual/exportar', [FinanzasController::class, 'exportarCorteCSV'])->name('corte.exportar');
-        Route::get('/corte-mensual/pdf', [FinanzasController::class, 'exportarCortePDF'])->name('corte.pdf');
-    });
+            Route::get('/', [FinanzasController::class, 'index'])->name('index');
+            Route::get('/exportar-csv', [FinanzasController::class, 'exportarCSV'])->name('exportar');
+            Route::post('/estadisticas-periodo', [FinanzasController::class, 'estadisticasPeriodo'])->name('estadisticas.periodo');
+            Route::get('/corte-mensual', [FinanzasController::class, 'corteMensual'])->name('corte.mensual');
+            Route::get('/corte-mensual/exportar', [FinanzasController::class, 'exportarCorteCSV'])->name('corte.exportar');
+            Route::get('/corte-mensual/pdf', [FinanzasController::class, 'exportarCortePDF'])->name('corte.pdf');
+        });
 
         // --- GASTOS Y NÓMINA ---
         Route::middleware(['permiso:Finanzas,crear'])->group(function () {

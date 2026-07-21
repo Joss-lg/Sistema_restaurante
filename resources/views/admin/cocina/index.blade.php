@@ -1,13 +1,31 @@
 {{-- resources/views/admin/cocina/index.blade.php --}}
 @extends('layouts.admin')
 
-@section('title', 'KDS Cocina | Ollintem Pro')
+@section('title', ($areaSeleccionada === 'Barra' ? 'KDS Barra' : 'KDS Cocina') . ' | Ollintem Pro')
 
-@section('header-title', 'Modulo de Cocina')
+@section('header-title', 'Modulo de ' . $areaSeleccionada)
 @section('header-subtitle', 'Monitor en tiempo real de comandas, tiempos de preparación y notas especiales')
 
 @section('content')
 <div class="p-3 sm:p-6 lg:p-8 w-full max-w-[1800px] mx-auto relative z-10 overflow-x-hidden font-sans">
+
+    {{-- --- NUEVO: Selector de Área (Cocina / Barra) --- --}}
+    <div class="flex items-center gap-2 mb-4 sm:mb-6">
+        <a href="{{ route('admin.cocina.index', ['area' => 'cocina']) }}"
+           class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all border
+                  {{ $areaSeleccionada === 'Cocina'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                        : 'bg-[var(--card-color)] text-[var(--text-muted)] border-[var(--border-color)] hover:border-blue-500/50' }}">
+            <i class="fas fa-fire-burner mr-2"></i>Cocina
+        </a>
+        <a href="{{ route('admin.cocina.index', ['area' => 'barra']) }}"
+           class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all border
+                  {{ $areaSeleccionada === 'Barra'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                        : 'bg-[var(--card-color)] text-[var(--text-muted)] border-[var(--border-color)] hover:border-blue-500/50' }}">
+            <i class="fas fa-martini-glass mr-2"></i>Barra
+        </a>
+    </div>
 
     <div class="glass-card rounded-[20px] sm:rounded-[32px] p-3 sm:p-4 flex flex-col xl:flex-row gap-3 shadow-2xl border border-[var(--border-color)] bg-[var(--card-color)] relative overflow-hidden">
         
@@ -19,10 +37,10 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3 sm:h-4 sm:w-4 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"></span>
                 </span>
-                <h2 class="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Fuego Abierto</h2>
+                <h2 class="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Fuego Abierto — {{ $areaSeleccionada }}</h2>
             </div>
             <p class="text-3xl sm:text-6xl font-black text-[var(--text-color)] tracking-tighter mt-1 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-                <span>{{ $ordenes->count() }}</span>
+                <span>{{ $ordenesActivasEnArea }}</span>
                 <span class="text-xs sm:text-base text-[var(--text-muted)] font-bold uppercase tracking-widest">Órdenes activas</span>
             </p>
         </div>
@@ -48,7 +66,7 @@
     @if($comandas->isEmpty())
         <div class="glass-card rounded-[24px] px-6 py-16 sm:py-24 text-center border border-[var(--border-color)] shadow-xl mt-6 sm:mt-8 bg-[var(--card-color)]">
             <i class="fas fa-check-double text-5xl text-emerald-500 mb-4"></i>
-            <h2 class="text-xl sm:text-2xl font-black text-[var(--text-color)]">¡Cocina Despejada!</h2>
+            <h2 class="text-xl sm:text-2xl font-black text-[var(--text-color)]">¡{{ $areaSeleccionada }} Despejada!</h2>
         </div>
     @else
         <div class="grid gap-3 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 mt-4 sm:mt-8 items-start w-full">
@@ -116,7 +134,7 @@
                     </div>
                     
                     <div class="p-3 sm:p-4 bg-[var(--bg-color)] border-t border-[var(--border-color)]">
-                        <form action="{{ route('admin.cocina.orden.estado', $comanda->orden_id) }}" method="POST">
+                        <form action="{{ route('admin.cocina.orden.estado', $comanda->orden_id) }}?area={{ strtolower($areaSeleccionada) }}" method="POST">
                             @csrf @method('PATCH')
                             <input type="hidden" name="estado" value="{{ $comanda->estado === 'pendiente' ? 'en proceso' : 'servida' }}">
                             <button type="submit" {{ $comanda->estado === 'servida' ? 'disabled' : '' }} 

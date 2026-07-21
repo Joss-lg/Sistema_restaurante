@@ -200,6 +200,9 @@
     }
 
     // ─── Envío multipart genérico (redeclarado por si este archivo carga antes que modal-crear) ───
+    // FIX: ya NO recarga la página con location.reload(). Ahora solo refresca
+    // los datos vía AJAX (cargarProductos / cargarEstadisticas), por lo que
+    // el scroll de la página se mantiene donde estaba.
     function enviarFormularioConImagen(url, formData, btn, textoOriginal, onSuccess) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
@@ -232,7 +235,13 @@
 
             if (typeof onSuccess === 'function') onSuccess();
 
-            setTimeout(() => location.reload(), 500);
+            // Antes: setTimeout(() => location.reload(), 500);
+            // Ahora: solo refrescamos los datos, sin recargar toda la página.
+            if (typeof cargarProductos === 'function')    cargarProductos();
+            if (typeof cargarEstadisticas === 'function')  cargarEstadisticas();
+
+            btn.textContent = textoOriginal;
+            btn.disabled = false;
         })
         .catch((err) => {
             console.error(err);

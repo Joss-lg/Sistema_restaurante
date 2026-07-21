@@ -24,8 +24,11 @@
 
         gridProd.innerHTML = '';
 
-        if (productosDB.length > 0) {
-            productosDB.forEach(prod => {
+        // FILTRO: Solo tomamos productos activos/disponibles
+        const productosVisibles = productosDB.filter(prod => prod.esta_disponible == 1 || prod.esta_disponible === true);
+
+        if (productosVisibles.length > 0) {
+            productosVisibles.forEach(prod => {
                 const catNombre = prod.categoria ? prod.categoria.nombre : '';
                 const precioNum = parseFloat(prod.precio) || 0;
                 const sePorPeso = !!prod.se_vende_por_peso;
@@ -41,7 +44,6 @@
                     ? `<span class="absolute top-2.5 left-2.5 text-[7px] font-black uppercase tracking-widest text-white bg-orange-500 px-1.5 py-0.5 rounded-md shadow-sm z-10"><i class="fas fa-weight-hanging mr-0.5"></i>Peso</span>`
                     : '';
 
-                // NUEVO: imagen del producto si existe, si no, la inicial de siempre
                 const mediaHTML = prod.imagen_url
                     ? `<img src="${prod.imagen_url}" alt="${prod.nombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`
                     : `<span class="text-5xl font-black text-[var(--text-muted)] opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-110 select-none">${letraInicial}</span>`;

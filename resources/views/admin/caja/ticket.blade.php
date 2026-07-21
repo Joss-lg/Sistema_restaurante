@@ -4,65 +4,128 @@
     <meta charset="UTF-8">
     <title>Ticket {{ $folio }}</title>
     <style>
-        @page { size: 80mm auto; margin: 0; }
+        @page { 
+            size: 80mm auto; 
+            margin: 0; 
+        }
         body {
-            width: 80mm;
-            margin: 0 auto;
-            font-family: 'Courier New', monospace;
+            width: 72mm; /* Ligeramente menor que 80mm para dejar un margen físico limpio en la impresora */
+            margin: 4mm auto;
+            font-family: 'Courier New', Courier, monospace;
             font-size: 12px;
+            line-height: 1.2;
             color: #000;
         }
         .center { text-align: center; }
-        .linea { border-top: 1px dashed #000; margin: 6px 0; }
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 2px 0; vertical-align: top; }
+        .bold { font-weight: bold; }
+        .linea { 
+            border-top: 1px dashed #000; 
+            margin: 8px 0; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        td { 
+            padding: 3px 0; 
+            vertical-align: top; 
+        }
         .right { text-align: right; }
-        .total { font-weight: bold; font-size: 14px; }
-        @media print { .no-print { display: none !important; } }
+        
+        /* Estilos de productos y totales */
+        .item-row td {
+            font-weight: bold;
+        }
+        .desc-row td {
+            font-size: 10px;
+            color: #333;
+            padding-left: 10px;
+            padding-bottom: 4px;
+        }
+        .totales-table td {
+            padding: 2px 0;
+        }
+        .total-final { 
+            font-weight: bold; 
+            font-size: 15px; 
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 4px 0 !important;
+            margin-top: 4px;
+        }
+        
+        /* Botón de impresión oculto al mandar a imprimir */
+        @media print { 
+            .no-print { display: none !important; } 
+        }
     </style>
 </head>
 <body>
 
+    <!-- Encabezado -->
     <div class="center">
-        <strong>{{ $negocio['nombre'] }}</strong><br>
-        Ticket {{ $folio }}<br>
-        {{ $fecha }}
-        @if($mesa) <br>Mesa: {{ $mesa }} @endif
-        @if($mesero) <br>Atendió: {{ $mesero }} @endif
+        <span style="font-size: 14px;" class="bold">{{ $negocio['nombre'] }}</span><br>
+        <span class="bold">Ticket: {{ $folio }}</span><br>
+        <span style="font-size: 11px;">{{ $fecha }}</span>
+        @if($mesa) <br><span class="bold">Mesa: {{ $mesa }}</span> @endif
+        @if($mesero) <br><span style="font-size: 11px;">Atendió: {{ $mesero }}</span> @endif
     </div>
+    
     <div class="linea"></div>
 
+    <!-- Lista de Items -->
     <table>
         @foreach($items as $item)
-            <tr>
+            <tr class="item-row">
                 <td>{{ $item['cantidad'] }}x {{ $item['nombre'] }}</td>
                 <td class="right">${{ number_format($item['subtotal'], 2) }}</td>
             </tr>
             @if($item['descuento'] > 0)
-                <tr>
-                    <td style="font-size:10px; padding-left:8px;">
-                        Descuento{{ $item['promocion_nombre'] ? ' ('.$item['promocion_nombre'].')' : '' }}
+                <tr class="desc-row">
+                    <td colspan="2">
+                        Desc{{ $item['promocion_nombre'] ? ' ('.$item['promocion_nombre'].')' : '' }}: -${{ number_format($item['descuento'], 2) }}
                     </td>
-                    <td class="right" style="font-size:10px;">-${{ number_format($item['descuento'], 2) }}</td>
                 </tr>
             @endif
         @endforeach
     </table>
 
     <div class="linea"></div>
-    <table>
-        <tr><td>Subtotal</td><td class="right">${{ number_format($subtotal, 2) }}</td></tr>
+
+    <!-- Totales -->
+    <table class="totales-table">
+        <tr>
+            <td>Subtotal</td>
+            <td class="right">${{ number_format($subtotal, 2) }}</td>
+        </tr>
         @if($descuentoTotal > 0)
-        <tr><td>Descuento total</td><td class="right">-${{ number_format($descuentoTotal, 2) }}</td></tr>
+        <tr>
+            <td>Descuento total</td>
+            <td class="right">-${{ number_format($descuentoTotal, 2) }}</td>
+        </tr>
+        @endif
+        @if(isset($iva) && $iva > 0)
+        <tr>
+            <td>IVA (16%)</td>
+            <td class="right">${{ number_format($iva, 2) }}</td>
+        </tr>
         @endif
         @if($propina > 0)
-        <tr><td>Propina</td><td class="right">${{ number_format($propina, 2) }}</td></tr>
+        <tr>
+            <td>Propina</td>
+            <td class="right">${{ number_format($propina, 2) }}</td>
+        </tr>
         @endif
-        <tr class="total"><td>TOTAL</td><td class="right">${{ number_format($total, 2) }}</td></tr>
+        <tr class="total-final">
+            <td>TOTAL</td>
+            <td class="right">${{ number_format($total, 2) }}</td>
+        </tr>
     </table>
     
-    @if($pagos->isNotEmpty())
+    <!-- Pagos -->
+    @if(isset($pagos) && $pagos->isNotEmpty())
         <div class="linea"></div>
+        <div class="center bold" style="font-size: 11px; margin-bottom: 2px;">FORMA DE PAGO</div>
         <table>
             @foreach($pagos as $pago)
                 <tr>
@@ -70,16 +133,21 @@
                     <td class="right">${{ number_format($pago['monto'], 2) }}</td>
                 </tr>
                 @if($pago['referencia'])
-                <tr><td colspan="2" style="font-size:10px;">Ref: {{ $pago['referencia'] }}</td></tr>
+                <tr>
+                    <td colspan="2" style="font-size: 10px; font-style: italic;">Ref: {{ $pago['referencia'] }}</td>
+                </tr>
                 @endif
             @endforeach
         </table>
     @endif
 
     <div class="linea"></div>
-    <div class="center">¡Gracias por su compra!</div>
+    <div class="center" style="margin-top: 6px; font-size: 11px;">¡Gracias por su compra!</div>
 
-    <button class="no-print" onclick="window.print()">Imprimir</button>
+    <!-- Botón de respaldo -->
+    <div class="center" style="margin-top: 15px;">
+        <button class="no-print" style="padding: 6px 14px; cursor: pointer; font-family: sans-serif; font-weight: bold; background: #000; color: #fff; border: none; border-radius: 4px;" onclick="window.print()">Imprimir Ticket</button>
+    </div>
 
     <script>
         window.onload = () => window.print();

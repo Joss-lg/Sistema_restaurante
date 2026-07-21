@@ -92,7 +92,12 @@
         setInterval(cargarEstadisticas, 10000);
     });
  
+    // ─── FIX SCROLL: guarda la posición actual y la restaura después de
+    // volver a pintar la lista de productos, para que borrar/editar/crear
+    // no manden al usuario hasta arriba de la página ────────────────────────
     function cargarProductos() {
+        const scrollY = window.scrollY;
+
         fetch(RUTA_PRODUCTOS)
             .then(r => r.json())
             .then(data => {
@@ -102,6 +107,10 @@
                     data[cat].forEach(p => { estadoGlobal.productosMap[p.id] = p; });
                 });
                 renderizarProductos();
+
+                // Restaura la posición del scroll en el siguiente frame,
+                // una vez que el DOM ya se reconstruyó.
+                requestAnimationFrame(() => window.scrollTo(0, scrollY));
             })
             .catch(e => console.error('Error cargando productos:', e));
     }

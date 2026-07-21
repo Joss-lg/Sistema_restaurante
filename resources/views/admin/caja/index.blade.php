@@ -75,7 +75,7 @@
                         </div>
                         <div class="mt-auto w-full space-y-2 sm:space-y-3">
                             <div class="rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex justify-between items-center w-full border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-[#15171c]">
-                                <p class="text-sm sm:text-xl font-black text-emerald-600 dark:text-emerald-400">${{ number_format($mesa->total_consumo ?? 0, 2) }}</p>
+                                <p class="text-sm sm:text-xl font-black text-emerald-600 dark:text-emerald-400">${{ number_format($mesa->total_real ?? 0, 2) }}</p>
                             </div>
                             <div class="w-full py-2.5 sm:py-3.5 flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-emerald-600 dark:bg-emerald-600 text-white shadow-sm transition-all duration-200 group-hover:bg-emerald-700">
                                 💰 <span class="hidden sm:inline ml-1">Cobrar</span>

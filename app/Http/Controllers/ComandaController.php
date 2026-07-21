@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Schema, DB, Log};
-use App\Models\{Mesa, Categoria, Producto, Orden, DetalleOrden, User};
+use App\Models\{Mesa, Categoria, Producto, Orden, DetalleOrden, User, Configuracion};
 use App\Services\ComandaService;
 
 class ComandaController extends Controller
@@ -48,7 +48,11 @@ class ComandaController extends Controller
         })
         : collect();
 
-        return view('mesero.index', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan', 'comandaActiva', 'platillosEnviados'));
+        // --- AJUSTE: IVA habilitable desde configuración global ---
+        $ivaHabilitado = Configuracion::ivaHabilitado();
+        $ivaPorcentaje = Configuracion::ivaPorcentaje();
+
+        return view('mesero.index', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan', 'comandaActiva', 'platillosEnviados', 'ivaHabilitado', 'ivaPorcentaje'));
     }
 
     public function enviar(Request $request)
@@ -236,7 +240,11 @@ public function transferirProductos(Request $request)
 
         $descuento = $subtotal * ($descuentoPorcentaje / 100);
         $subtotalConDescuento = max(0, $subtotal - $descuento);
-        $iva = $subtotalConDescuento * 0.16;
+
+        // --- AJUSTE: IVA habilitable desde configuración global ---
+        $ivaHabilitado = Configuracion::ivaHabilitado();
+        $ivaPorcentaje = Configuracion::ivaPorcentaje();
+        $iva = $ivaHabilitado ? $subtotalConDescuento * ($ivaPorcentaje / 100) : 0;
         
         // --- EXTRAER PROPINA ---
         $propina = 0;

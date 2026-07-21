@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Configuracion;
 use App\Models\Mesa;
 use App\Models\Orden;
 use Illuminate\Support\Facades\DB;
@@ -44,8 +45,16 @@ class CajaService
 
         $subtotal = round($subtotalBruto - $descuentoPromociones, 2);
         $propina  = $ordenesActivas->sum('propina');
-        $iva      = round($subtotal * 0.16, 2);
-        $total    = round($subtotal + $iva + $propina, 2);
+
+        // --- AJUSTE: IVA habilitable desde configuración global ---
+        $ivaHabilitado = Configuracion::ivaHabilitado();
+        $ivaPorcentaje = Configuracion::ivaPorcentaje(); // ej. 16
+
+        $iva = $ivaHabilitado
+            ? round($subtotal * ($ivaPorcentaje / 100), 2)
+            : 0;
+
+        $total = round($subtotal + $iva + $propina, 2);
 
         return [
             'subtotal'              => $subtotal,
@@ -53,6 +62,8 @@ class CajaService
             'descuentoPromociones'  => round($descuentoPromociones, 2),
             'productosConDescuento' => $productosConDescuento,
             'iva'                   => $iva,
+            'ivaHabilitado'         => $ivaHabilitado,
+            'ivaPorcentaje'         => $ivaPorcentaje,
             'propina'               => round($propina, 2),
             'total'                 => $total,
             'ordenes'               => $ordenesActivas,

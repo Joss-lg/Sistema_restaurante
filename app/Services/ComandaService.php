@@ -18,11 +18,13 @@ class ComandaService
         Mesa $mesa, 
         array $platillos, 
         $usuario, 
-        float $totalGeneral = 0, // Ya no se usa para calcular, se deja por compatibilidad con el controller
+        float $totalGeneral = 0, 
         int $personas = 4, 
-        float $descuentoPorcentaje = 0
+        float $descuentoPorcentaje = 0,
+        bool $permitirSinStock = true // <-- Parámetro con valor por defecto
     ): Orden {
-        return DB::transaction(function () use ($mesa, $platillos, $usuario, $personas, $descuentoPorcentaje) {
+        // IMPORTANTE: Se agrega $permitirSinStock en el "use" de la transacción
+        return DB::transaction(function () use ($mesa, $platillos, $usuario, $personas, $descuentoPorcentaje, $permitirSinStock) {
             
             // 1. Buscar orden activa pendiente o crearla
             $orden = Orden::firstOrCreate(
@@ -48,7 +50,7 @@ class ComandaService
 
             $productosParaTicket = [];
 
-            // NUEVO: acumuladores para que el backend sea la fuente de verdad del total
+            // Acumuladores para que el backend sea la fuente de verdad del total
             $totalCalculado = 0.0;
             $totalDescuentosPromos = 0.0;
 
@@ -75,10 +77,10 @@ class ComandaService
 
                 $detalle = DetalleOrden::create($detalleData); 
 
-                // --- Subtotal de esta línea ---
+                // Subtotal de esta línea
                 $subtotalProducto = $platillo['cantidad'] * $platillo['precio'];
 
-                // --- NUEVO: Detectar y registrar promociones vigentes para este producto ---
+                // Detectar y registrar promociones vigentes para este producto
                 $descuentoProducto = 0.0;
 
                 $promocionesAplicables = Promocion::activas()
@@ -96,11 +98,11 @@ class ComandaService
 
                     if ($montoDescuento > 0) {
                         OrdenPromocion::create([
-                        'orden_id'         => $orden->id, // o $ordenDestino->id en transferirProductos
-                        'promocion_id'     => $promo->id,
-                        'detalle_orden_id' => $detalle->id, // NUEVO
-                        'monto_descuento'  => $montoDescuento,
-                    ]);
+                            'orden_id'         => $orden->id,
+                            'promocion_id'     => $promo->id,
+                            'detalle_orden_id' => $detalle->id,
+                            'monto_descuento'  => $montoDescuento,
+                        ]);
                         $descuentoProducto += $montoDescuento;
                     }
                 }
@@ -128,24 +130,26 @@ class ComandaService
                     foreach ($producto->insumos as $insumo) {
                         $cantidadUsada = floatval($insumo->pivot->cantidad_usada) * $platillo['cantidad'];
                         
-                        if ($insumo->stock_actual < $cantidadUsada) {
+                        // --- AJUSTE AQUÍ: Solo valida stock si $permitirSinStock es false ---
+                        if (!$permitirSinStock && $insumo->stock_actual < $cantidadUsada) {
                             throw new \Exception("Stock insuficiente en cocina para preparar: {$insumo->nombre}");
                         }
                         
+                        // Si $permitirSinStock es true, pasa de largo y lo descuenta (pudiendo quedar negativo)
                         $insumo->decrement('stock_actual', $cantidadUsada);
                         
                         MovimientoInventario::create([
                             'insumo_id' => $insumo->id, 
-                            'user_id' => $usuario->id,
-                            'cantidad' => $cantidadUsada, 
-                            'tipo' => 'salida',
-                            'motivo' => "Venta POS: {$producto->nombre}"
+                            'user_id'   => $usuario->id,
+                            'cantidad'  => $cantidadUsada, 
+                            'tipo'      => 'salida',
+                            'motivo'    => "Venta POS: {$producto->nombre}"
                         ]);
                     }
                 }
             }
 
-            // 4. Actualizar Estado Financiero Global de la Mesa (usando el total YA calculado por el backend)
+            // 4. Actualizar Estado Financiero Global de la Mesa
             $mesaUpdateData = ['estado' => 'ocupada'];
             if (Schema::hasColumn('mesas', 'total_consumo')) {
                 $mesaUpdateData['total_consumo'] = ($mesa->total_consumo ?? 0) + $totalCalculado;
@@ -156,12 +160,12 @@ class ComandaService
 
             $mesa->update($mesaUpdateData);
 
-            // NUEVO: Reflejamos también el total acumulado directamente en la Orden
+            // Reflejamos también el total acumulado directamente en la Orden
             if (Schema::hasColumn('ordenes', 'total')) {
                 $orden->increment('total', $totalCalculado);
             }
 
-            // NUEVO: Creamos los tickets separados por área (Cocina/Barra) para el KDS/agente de impresión
+            // Creamos los tickets separados por área
             $this->crearPrintJobs($orden, $loteEnvio, $productosParaTicket, $mesa, $usuario);
 
             return $orden;

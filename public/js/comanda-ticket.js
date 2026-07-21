@@ -256,7 +256,10 @@
         const descuentoComboMonto = calcularDescuentoComboMonto();
         const subtotalTras2x1 = Math.max(0, ticketSubtotal - descuento2x1Monto - descuentoComboMonto);
         const subtotalConDescuento = Math.max(0, subtotalTras2x1 - (subtotalTras2x1 * (descuentoPorcentaje / 100)));
-        const iva = subtotalConDescuento * 0.16;
+
+        // --- AJUSTE: IVA habilitable desde configuración global ---
+        const ivaConfig = (window.ComandaConfig && window.ComandaConfig.iva) || { habilitado: true, porcentaje: 16 };
+        const iva = ivaConfig.habilitado ? subtotalConDescuento * (ivaConfig.porcentaje / 100) : 0;
         
         // Guardamos el total final con el IVA en una variable global para que sea accesible
         // por la calculadora de porcentajes de propina

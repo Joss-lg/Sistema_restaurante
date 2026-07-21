@@ -48,7 +48,7 @@ class ProductoController extends Controller
 
         $request->validate([
             'nombre'            => 'required|string|max:255',
-            'descripcion'       => 'nullable|string', // ✅ Validación de descripción
+            'descripcion'       => 'nullable|string',
             'categoria_id'      => 'required|exists:categorias,id',
             'precio'            => 'required|numeric|min:0',
             'se_vende_por_peso' => 'sometimes|boolean',
@@ -67,7 +67,7 @@ class ProductoController extends Controller
 
             $producto = new Producto([
                 'nombre'            => $request->nombre,
-                'descripcion'       => $request->descripcion, // ✅ Se guarda la descripción
+                'descripcion'       => $request->descripcion,
                 'categoria_id'      => $request->categoria_id,
                 'precio'            => $sePorPeso ? 0 : $request->precio,
                 'se_vende_por_peso' => $sePorPeso,
@@ -119,7 +119,7 @@ class ProductoController extends Controller
 
         $request->validate([
             'nombre'            => 'required|string|max:255',
-            'descripcion'       => 'nullable|string', // ✅ Validación corregida
+            'descripcion'       => 'nullable|string',
             'categoria_id'      => 'required|exists:categorias,id',
             'precio'            => 'required|numeric|min:0',
             'se_vende_por_peso' => 'sometimes|boolean',
@@ -140,7 +140,7 @@ class ProductoController extends Controller
 
             $producto->update([
                 'nombre'            => $request->nombre,
-                'descripcion'       => $request->descripcion, // ✅ Se actualiza la descripción
+                'descripcion'       => $request->descripcion,
                 'categoria_id'      => $request->categoria_id,
                 'precio'            => $sePorPeso ? 0 : $request->precio,
                 'se_vende_por_peso' => $sePorPeso,
@@ -220,6 +220,7 @@ class ProductoController extends Controller
             ->select([
                 'id', 'categoria_id', 'nombre', 'descripcion', 'precio',
                 'se_vende_por_peso', 'precio_por_100g', 'esta_disponible',
+                'updated_at', // 👈 AGREGADO: necesario para el cache-busting de imagen_url
             ])
             ->selectRaw('imagen IS NOT NULL as tiene_imagen')
             ->get()
@@ -241,6 +242,8 @@ class ProductoController extends Controller
 
     /**
      * Sirve el binario de la imagen del producto con su content-type correcto.
+     * Ahora que la URL incluye ?v={timestamp}, cada versión de la imagen tiene
+     * su propia URL única, por lo que es seguro cachear agresivamente.
      */
     public function imagen($id)
     {
@@ -250,6 +253,6 @@ class ProductoController extends Controller
 
         return response($producto->imagen, 200)
             ->header('Content-Type', $producto->imagen_mime_type)
-            ->header('Cache-Control', 'public, max-age=86400');
+            ->header('Cache-Control', 'public, max-age=31536000, immutable');
     }
 }

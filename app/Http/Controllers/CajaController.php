@@ -45,8 +45,21 @@ class CajaController extends Controller
             }
         });
 
+        // --- AJUSTE: calculamos el total real de cada mesa ocupada usando
+        // CajaService (la misma fuente que usa el modal de cobro), en vez
+        // de confiar en el campo acumulado 'total_consumo', que se
+        // desincroniza con descuentos, IVA y ediciones posteriores.
+        $mesas->each(function ($mesa) {
+            if ($mesa->estado === Mesa::ESTADO_OCUPADA && $mesa->ordenesActivas->isNotEmpty()) {
+                $desglose = $this->cajaService->obtenerDesgloseMesa($mesa);
+                $mesa->total_real = $desglose['total'];
+            } else {
+                $mesa->total_real = 0;
+            }
+        });
+
         $mesasActivas = $mesas->where('estado', Mesa::ESTADO_OCUPADA)->count();
-        $totalAbierto = $mesas->where('estado', Mesa::ESTADO_OCUPADA)->sum(fn($m) => floatval($m->total_consumo ?? 0));
+        $totalAbierto = $mesas->where('estado', Mesa::ESTADO_OCUPADA)->sum(fn($m) => floatval($m->total_real ?? 0));
 
         return view('admin.caja.index', compact('mesas', 'mesasActivas', 'totalAbierto', 'cajaActiva'));
     }
@@ -206,4 +219,19 @@ class CajaController extends Controller
         $datos = $this->ticketService->obtenerDatosTicket((int) $id);
         return view('admin.caja.ticket', $datos);
     }
+
+  public function toggleIva(Request $request)
+{
+    // Obtenemos el estado actual de la sesión (por defecto true)
+    $estadoActual = session('iva_habilitado', true);
+    $nuevoEstado = !$estadoActual;
+    
+    // Guardamos el nuevo estado
+    session(['iva_habilitado' => $nuevoEstado]);
+
+    return response()->json([
+        'success' => true,
+        'ivaHabilitado' => $nuevoEstado
+    ]);
+}
 }

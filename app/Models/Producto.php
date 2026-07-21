@@ -67,11 +67,20 @@ class Producto extends Model
      * URL para consumir la imagen del producto (o null si no tiene).
      * Funciona tanto si consultaste con selectRaw('imagen IS NOT NULL as tiene_imagen')
      * como si cargaste la columna 'imagen' completa.
+     *
+     * Incluye ?v={timestamp} para forzar al navegador a pedir la imagen de nuevo
+     * cada vez que se actualiza, se reemplaza o se elimina (cache-busting).
      */
     public function getImagenUrlAttribute(): ?string
     {
         $tieneImagen = $this->attributes['tiene_imagen'] ?? (!empty($this->attributes['imagen'] ?? null));
 
-        return $tieneImagen ? route('admin.productos.api.imagen', $this->id) : null;
+        if (!$tieneImagen) {
+            return null;
+        }
+
+        $version = $this->updated_at?->timestamp ?? time();
+
+        return route('admin.productos.api.imagen', $this->id) . '?v=' . $version;
     }
 }

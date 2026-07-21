@@ -1,4 +1,3 @@
-
 var ComandaConfig_ = window.ComandaConfig || {};
 
 var categoriasDB = ComandaConfig_.categorias || [];
@@ -189,7 +188,10 @@ var mesaDestinoSeleccionadaNumero = null;
         const subtotalTicketTras2x1 = Math.max(0, ticketSubtotal - descuento2x1Monto - descuentoComboMonto);
         const subtotalTicketConDescuento = Math.max(0, subtotalTicketTras2x1 - (subtotalTicketTras2x1 * (descuentoPorcentaje / 100)));
         const subtotalGeneral = subtotalTicketConDescuento + totalHistorial;
-        const ivaGeneral = subtotalGeneral * 0.16;
+
+        // --- AJUSTE: IVA habilitable desde configuración global ---
+        const ivaConfig = (window.ComandaConfig && window.ComandaConfig.iva) || { habilitado: true, porcentaje: 16 };
+        const ivaGeneral = ivaConfig.habilitado ? subtotalGeneral * (ivaConfig.porcentaje / 100) : 0;
         
         if (txtTotalElement) {
             txtTotalElement.innerText = '$' + (subtotalGeneral + ivaGeneral).toFixed(2);

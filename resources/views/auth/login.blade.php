@@ -50,8 +50,6 @@
             margin: 0; 
             padding: 0; 
             transition: all 0.4s ease; 
-            /* Antes: overflow:hidden + h-screen podía cortar contenido en pantallas bajas. 
-               Ahora permitimos scroll de respaldo sin que se note en pantallas normales. */
             min-height: 100vh;
             min-height: 100dvh;
             overflow-y: auto;
@@ -90,11 +88,11 @@
             background: linear-gradient(180deg, #3B82F6 0%, #2563EB 100%);
             border: 1px solid #2563EB;
             border-top: 1px solid #93C5FD;
-            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
             color: white !important;
         }
 
-        .theme-toggle {
+        .action-toggle {
             background: var(--card-color);
             border: 1px solid var(--border-color);
             backdrop-filter: blur(10px);
@@ -104,8 +102,6 @@
         .cursor-blink { animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* Pantallas bajitas (ej. iPhone SE, Android en landscape): compactamos aire vertical
-           para que el teclado completo siga siendo visible sin necesidad de scroll. */
         @media (max-height: 700px) {
             .compact-header { margin-bottom: 0.5rem !important; }
             .compact-header img { width: 3rem !important; height: 3rem !important; margin-bottom: 0.25rem !important; }
@@ -125,17 +121,27 @@
         }
     </script>
 
+    {{-- Botón Salir (Arriba a la Izquierda) --}}
+    <div class="absolute z-50" style="top: max(1rem, env(safe-area-inset-top)); left: max(1rem, env(safe-area-inset-left));">
+        <button onclick="cerrarAplicacion()" class="action-toggle px-3.5 py-2 rounded-full flex items-center gap-2 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-lg text-rose-500 hover:bg-rose-500 hover:text-white border-rose-500/20 active:scale-95">
+            <i class="fas fa-power-off text-xs"></i>
+            <span class="hidden sm:inline">Salir de Ollinrest</span>
+            <span class="sm:hidden">Salir</span>
+        </button>
+    </div>
+
+    {{-- Botón Modo Claro/Oscuro (Arriba a la Derecha) --}}
     <div class="absolute z-50" style="top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right));">
-        <button onclick="toggleTheme()" class="theme-toggle px-4 py-2 rounded-full flex items-center gap-2 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-lg">
+        <button onclick="toggleTheme()" class="action-toggle px-4 py-2 rounded-full flex items-center gap-2 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-lg active:scale-95">
             <i id="themeIcon" class="fas fa-moon text-ol-blue"></i>
             <span id="themeText" class="hidden sm:inline">Modo Claro</span>
         </button>
     </div>
 
-    {{-- Contenedor principal con ancho máximo súper controlado --}}
+    {{-- Contenedor principal --}}
     <div class="w-full max-w-[320px] sm:max-w-[360px] flex flex-col items-center my-auto py-2">
         
-        {{-- Cabecera más compacta --}}
+        {{-- Cabecera --}}
         <div class="compact-header flex flex-col items-center mb-4 sm:mb-6">
             <img src="{{ asset('images/logo.png') }}" alt="Logo Ollintem" class="logo-oscuro mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-2 object-contain">
             <img src="{{ asset('images/logo2.png') }}" alt="Logo Ollintem" class="logo-claro mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-2 object-contain">
@@ -157,39 +163,46 @@
             <input type="password" name="codigo_empleado" id="pinHidden">
         </form>
 
-        {{-- Visor más chaparrito --}}
+        {{-- Visor --}}
         <div class="compact-visor w-full h-14 sm:h-16 visor-screen rounded-2xl mb-5 sm:mb-6 flex items-center justify-center gap-2 relative overflow-hidden">
             <span id="pinDisplay" class="text-3xl sm:text-4xl font-black tracking-[0.4em] mt-1"></span>
             <span class="cursor-blink w-[2px] h-8 bg-ol-blue rounded-full"></span>
         </div>
 
-        {{-- GRID PERFECTO: Usa aspect-square para mantener proporción siempre --}}
+        {{-- GRID TECLADO NUMÉRICO --}}
         <div class="keypad-grid grid grid-cols-4 gap-3 sm:gap-4 w-full">
+            <!-- Fila 1 -->
             <button type="button" onclick="appendNumber('1')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">1</button>
             <button type="button" onclick="appendNumber('2')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">2</button>
             <button type="button" onclick="appendNumber('3')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">3</button>
             
-            {{-- Botón OK ocupa toda la altura disponible de sus 2 filas --}}
-            <button type="button" onclick="submitForm()" class="btn-ok col-span-1 row-span-2 rounded-2xl flex flex-col items-center justify-center w-full h-full active:scale-95 transition-transform">
+            <!-- Botón OK (Ocupa columna 4, filas 1 y 2) -->
+            <button type="button" onclick="submitForm()" class="btn-ok row-span-2 rounded-2xl flex flex-col items-center justify-center w-full h-full active:scale-95 transition-transform">
                 <span class="font-black text-2xl sm:text-3xl leading-tight">OK</span>
                 <span class="text-[8px] sm:text-[9px] font-bold uppercase mt-1 opacity-90">Entrar</span>
             </button>
 
+            <!-- Fila 2 -->
             <button type="button" onclick="appendNumber('4')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">4</button>
             <button type="button" onclick="appendNumber('5')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">5</button>
             <button type="button" onclick="appendNumber('6')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">6</button>
 
+            <!-- Fila 3 -->
             <button type="button" onclick="appendNumber('7')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">7</button>
             <button type="button" onclick="appendNumber('8')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">8</button>
             <button type="button" onclick="appendNumber('9')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">9</button>
             
-            <button type="button" onclick="deleteNumber()" class="key-btn aspect-square rounded-2xl flex flex-col items-center justify-center">
-                <i class="fas fa-backspace text-rose-500 text-lg sm:text-xl mb-1"></i>
+            <!-- Botón Borrar (Columna 4, al lado del 9) -->
+            <button type="button" onclick="deleteNumber()" class="key-btn aspect-square rounded-2xl flex items-center justify-center">
+                <div class="bg-rose-500 text-white w-7 h-6 sm:w-8 sm:h-7 rounded-md flex items-center justify-center shadow-md">
+                    <i class="fas fa-times text-xs sm:text-sm font-black"></i>
+                </div>
             </button>
 
-            <div class="col-span-1"></div>
-            <button type="button" onclick="appendNumber('0')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">0</button>
-            <div class="col-span-2"></div>
+            <!-- Fila 4: '0' centrado bajo el 8 -->
+            <div class="col-start-2">
+                <button type="button" onclick="appendNumber('0')" class="key-btn aspect-square w-full rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">0</button>
+            </div>
         </div>
     </div>
 
@@ -205,7 +218,7 @@
             if (body.classList.contains('modo-crema')) {
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
                 themeIcon.classList.replace('text-ol-blue', 'text-orange-500');
-                if(themeText) themeText.innerText = "Modo Negro";
+                if(themeText) themeText.innerText = "Modo Oscuro";
             }
         });
 
@@ -217,7 +230,7 @@
             if (esCrema) {
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
                 themeIcon.classList.replace('text-ol-blue', 'text-orange-500');
-                if(themeText) themeText.innerText = "Modo Negro";
+                if(themeText) themeText.innerText = "Modo Oscuro";
             } else {
                 themeIcon.classList.replace('fa-sun', 'fa-moon');
                 themeIcon.classList.replace('text-orange-500', 'text-ol-blue');
@@ -244,6 +257,16 @@
 
         function submitForm() {
             if (pinHidden.value.length >= 2) pinForm.submit();
+        }
+
+        function cerrarAplicacion() {
+            // Intenta cerrar la ventana/pestaña actual
+            window.close();
+            
+            // Truco para obligar el cierre en pestañas estándar de navegador
+            setTimeout(() => {
+                window.open('about:blank', '_self').close();
+            }, 100);
         }
 
         document.addEventListener('keydown', (e) => {

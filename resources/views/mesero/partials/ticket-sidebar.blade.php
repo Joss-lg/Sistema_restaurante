@@ -197,7 +197,7 @@
     {{-- FOOTER DE TOTALES (PREMIUM) --}}
     <div class="p-5 pb-8 md:pb-5 border-t border-[var(--border-color)] bg-gradient-to-b from-[var(--bg-panel)] to-[var(--bg-panel)] flex-shrink-0 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.06)]">
         <div class="flex justify-between items-center mb-1">
-            <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Subtotal Nuevos</span>
+            <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Subtotal</span>
             <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtSubtotal">$0.00</span>
         </div>
        <div class="flex justify-between items-center mb-2">
