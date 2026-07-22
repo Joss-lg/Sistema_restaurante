@@ -121,14 +121,6 @@
         }
     </script>
 
-    {{-- Botón Salir (Arriba a la Izquierda) --}}
-    <div class="absolute z-50" style="top: max(1rem, env(safe-area-inset-top)); left: max(1rem, env(safe-area-inset-left));">
-        <button onclick="cerrarAplicacion()" class="action-toggle px-3.5 py-2 rounded-full flex items-center gap-2 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-lg text-rose-500 hover:bg-rose-500 hover:text-white border-rose-500/20 active:scale-95">
-            <i class="fas fa-power-off text-xs"></i>
-            <span class="hidden sm:inline">Salir de Ollinrest</span>
-            <span class="sm:hidden">Salir</span>
-        </button>
-    </div>
 
     {{-- Botón Modo Claro/Oscuro (Arriba a la Derecha) --}}
     <div class="absolute z-50" style="top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right));">
@@ -257,15 +249,6 @@
             if (pinHidden.value.length >= 2) pinForm.submit();
         }
 
-        function cerrarAplicacion() {
-            // Intenta cerrar la ventana/pestaña actual
-            window.close();
-            
-            // Truco para obligar el cierre en pestañas estándar de navegador
-            setTimeout(() => {
-                window.open('about:blank', '_self').close();
-            }, 100);
-        }
 
         document.addEventListener('keydown', (e) => {
             if (e.key >= '0' && e.key <= '9') appendNumber(e.key);

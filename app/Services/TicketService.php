@@ -64,7 +64,7 @@ class TicketService
             'propina'        => $propina,
             'total'          => $totalCalculado, // Usamos el total unificado
             'pagos'          => $pagos,
-            'negocio'        => ['nombre' => config('app.name', 'Mi Negocio')],
+            'negocio'        => ['nombre' => 'OllinRest'],
         ];
     }
 }

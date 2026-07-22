@@ -88,6 +88,7 @@
     </div>
 </div>
 
+
 <script>
     // Nos aseguramos de que el teclado virtual detecte el campo numérico de esta vista.
     // Si tu layout ya llama a esto globalmente, esta llamada es redundante pero inofensiva.

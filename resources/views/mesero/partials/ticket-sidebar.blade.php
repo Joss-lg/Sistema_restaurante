@@ -1,10 +1,12 @@
+{{-- BACKDROP PARA MÓVIL (Fondo oscuro al abrir el carrito flotante) --}}
+<div id="backdropOrdenMobile" onclick="toggleOrdenMobile()"
+     class="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300">
+</div>
+
 {{-- ========================================== --}}
-{{-- COLUMNA 1: ACCIONES RÁPIDAS                --}}
-{{-- Mejoras: focus-visible en botones táctiles,
-     borde/resplandor sutil en el header de mesa,
-     transición al cambiar de panel en móvil.      --}}
+{{-- COLUMNA 1: ACCIONES RÁPIDAS (SOLO PC)      --}}
 {{-- ========================================== --}}
-<aside id="col-acciones" class="col-mobile-panel hidden md:flex w-full md:w-[170px] xl:w-[220px] flex-shrink-0 h-full flex-col bg-[var(--bg-base)] border-r border-[var(--border-color)] p-4 pb-24 md:pb-4 z-20 overflow-y-auto hide-scroll">
+<aside id="col-acciones" class="hidden md:flex w-full md:w-[170px] xl:w-[220px] flex-shrink-0 h-full flex-col bg-[var(--bg-base)] border-r border-[var(--border-color)] p-4 pb-24 md:pb-4 z-20 overflow-y-auto hide-scroll">
 
     <div class="flex items-center gap-2 mb-6">
         <button type="button" onclick="window.location.href='{{ route('mesero.dashboard') }}'" class="flex-1 h-11 md:h-10 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-main)] font-semibold text-[11px] md:text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--hover-bg)] hover:border-[var(--border-highlight)] hover:shadow-md transition-all duration-150 active:scale-95 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
@@ -17,7 +19,7 @@
 
     <div class="flex items-center justify-between mb-6 p-3 rounded-2xl bg-gradient-to-br from-[var(--bg-panel)] to-transparent border border-[var(--border-color)] shadow-sm">
         <div class="flex flex-col">
-            <span class="text-[10px] md:text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1">Activa</span>
+            <span class="text-[11px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1">Activa</span>
             <h3 class="text-3xl md:text-2xl font-black tracking-tight text-[var(--text-main)] leading-none">Mesa {{ $mesa->numero ?? '12M' }}</h3>
         </div>
         <div class="relative flex items-center justify-center">
@@ -29,46 +31,39 @@
     <div class="grid grid-cols-2 gap-3 md:gap-2 flex-1 overflow-y-auto hide-scroll pb-2">
         <button type="button" onclick="ajustarPersonas()" class="flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-blue-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
             <i class="fas fa-users text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Personas</span>
+            <span class="text-[11px] md:text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Personas</span>
             <span id="txtPersonas" class="text-sm md:text-xs font-bold text-[var(--text-main)] mt-0.5">{{ $mesa->capacidad ?? 1 }}</span>
         </button>
 
         <button type="button" onclick="imprimirPrecuenta()" class="flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-blue-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
             <i class="fas fa-receipt text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors leading-tight text-center">Pre<br>Cuenta</span>
+            <span class="text-[11px] md:text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors leading-tight text-center">Pre<br>Cuenta</span>
         </button>
 
         <button type="button" onclick="agregarNota()" class="flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-blue-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
             <i class="fas fa-pen text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Nota</span>
+            <span class="text-[11px] md:text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Nota</span>
         </button>
 
         <button type="button" onclick="aplicarDescuento()" class="flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-blue-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
             <i class="fas fa-percent text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Descuento</span>
+            <span class="text-[11px] md:text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Descuento</span>
         </button>
         
-
         <button type="button" id="btn-gramaje" onclick="ajustarGramaje()" class="relative flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-orange-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50">
             <i class="fas fa-weight-scale text-[var(--text-muted)] group-hover:text-orange-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Gramaje</span>
-            <span id="indicador-gramaje-pendiente" class="hidden absolute top-2 right-2 bg-gradient-to-b from-orange-500 to-orange-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-md shadow-orange-500/30"></span>
+            <span class="text-[11px] md:text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Gramaje</span>
+            <span id="indicador-gramaje-pendiente" class="hidden absolute top-2 right-2 bg-gradient-to-b from-orange-500 to-orange-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md shadow-orange-500/30"></span>
         </button>
 
-        {{-- OJO Sebastian: este botón "Traspaso" llama a llamarCapitan(), igual que el
-             botón "Capitán" de abajo. Lo dejé tal cual estaba en tu original (no
-             cambié comportamiento), pero probablemente sea un copy/paste y debería
-             abrir un flujo de traspaso de mesa distinto en vez de pedir el NIP de
-             capitán. Revísalo y dime si quieres que lo separe. --}}
         <button type="button" onclick="llamarCapitan()" class="flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-indigo-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50">
             <i class="fas fa-exchange-alt text-[var(--text-muted)] group-hover:text-indigo-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Traspaso</span>
+            <span class="text-[11px] md:text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Traspaso</span>
         </button>
 
-        {{-- Le quitamos el col-span-2 a Promos para que quede abajo en su propia fila junto a lo que necesites después --}}
         <button type="button" onclick="mostrarPromociones()" class="col-span-2 flex flex-col items-center justify-center p-4 md:p-3 rounded-[18px] md:rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-blue-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
             <i class="fas fa-tag text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-base md:text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] md:text-[9px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Promos</span>
+            <span class="text-[11px] md:text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Promos</span>
         </button>
 
         @if($esCapitan ?? false)
@@ -87,13 +82,38 @@
 {{-- ========================================== --}}
 {{-- COLUMNA 2: TICKET / COMANDA (CENTRAL)      --}}
 {{-- ========================================== --}}
-<section id="col-ticket" class="col-mobile-panel hidden md:flex w-full md:w-[320px] xl:w-[360px] flex-shrink-0 h-full flex-col bg-[var(--bg-base)] border-r border-[var(--border-color)] relative z-10 shadow-[20px_0_40px_-15px_rgba(0,0,0,0.15)]">
+<section id="col-ticket" class="
+    /* --- ESTILOS PARA LAPTOP --- */
+    md:flex md:w-[320px] xl:w-[360px] md:flex-shrink-0 md:h-full md:flex-col md:bg-[var(--bg-base)] md:border-r md:border-[var(--border-color)] md:relative md:z-10 md:shadow-[20px_0_40px_-15px_rgba(0,0,0,0.15)] md:translate-y-0 md:rounded-none
+    
+    /* --- ESTILOS PARA TELÉFONO (Panel Inferior) --- */
+    fixed inset-x-0 bottom-0 z-50 flex flex-col bg-[var(--bg-base)] rounded-t-[24px]
+    h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.3)]
+    transition-transform duration-300 translate-y-full
+">
+
+    {{-- CABECERA MÓVIL (NUEVO: Botón Salir + Manija + Info Mesa) --}}
+    <div class="md:hidden w-full flex items-center justify-between px-4 pt-3 pb-2 border-b border-[var(--border-color)]">
+        <button type="button" onclick="window.location.href='{{ route('mesero.dashboard') }}'" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-[11px] font-bold text-red-500 shadow-sm active:scale-95">
+            <i class="fas fa-sign-out-alt"></i> Salir
+        </button>
+        
+        {{-- Zona central para arrastrar --}}
+        <div class="flex-1 flex justify-center cursor-pointer px-4 py-2" onclick="toggleOrdenMobile()">
+            <div class="w-12 h-1.5 rounded-full bg-[var(--border-color)]"></div>
+        </div>
+        
+        <div class="flex items-center gap-1.5 text-[12px] font-black tracking-tight text-[var(--text-main)]">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>
+            MESA {{ $mesa->numero ?? '12M' }}
+        </div>
+    </div>
 
     <div class="p-4 border-b border-[var(--border-color)] flex flex-col gap-3 bg-[var(--bg-base)]">
         <div id="barraModificadores" class="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-3 shadow-sm">
             <div class="flex items-center justify-between mb-2.5">
-                <span class="text-[10px] md:text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Acciones del platillo</span>
-                <span class="text-[9px] md:text-[8px] font-semibold text-[var(--text-muted)]">Selección activa</span>
+                <span class="text-[11px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Acciones del platillo</span>
+                <span class="text-[10px] md:text-[9px] font-semibold text-[var(--text-muted)]">Selección activa</span>
             </div>
             <div id="contenedorBotonesModificadores" class="flex flex-wrap gap-2"></div>
         </div>
@@ -145,11 +165,11 @@
                         </div>
                         <div class="text-right">
                             @if(($item->estado ?? 'enviado') == 'preparando')
-                                <span class="text-[10px] md:text-[9px] font-bold text-orange-500 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_rgba(249,115,22,0.5)]"></span> Cocina</span>
+                                <span class="text-[11px] md:text-[10px] font-bold text-orange-500 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_rgba(249,115,22,0.5)]"></span> Cocina</span>
                             @elseif(($item->estado ?? 'enviado') == 'listo')
-                                <span class="text-[10px] md:text-[9px] font-bold text-emerald-500 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span> Listo</span>
+                                <span class="text-[11px] md:text-[10px] font-bold text-emerald-500 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span> Listo</span>
                             @else
-                                <span class="text-[10px] md:text-[9px] font-bold text-[var(--text-muted)] flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)]"></span> Enviado</span>
+                                <span class="text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)]"></span> Enviado</span>
                             @endif
                         </div>
                     </div>
@@ -194,8 +214,36 @@
         </div>
     </div>
 
+    {{-- ACCIONES DE CUENTA (SOLO MÓVIL) - CORREGIDO PARA INCLUIR TODOS LOS BOTONES --}}
+    <div class="md:hidden flex items-center gap-2 px-4 py-3 bg-[var(--bg-base)] border-t border-[var(--border-color)] overflow-x-auto hide-scroll shadow-[0_-5px_15px_rgba(0,0,0,0.02)] z-20 relative">
+        <button type="button" onclick="ajustarPersonas()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
+            <i class="fas fa-users text-blue-500"></i> <span id="txtPersonasMobile">{{ $mesa->capacidad ?? 1 }}</span> Pax
+        </button>
+        <button type="button" onclick="agregarNota()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
+            <i class="fas fa-pen text-blue-500"></i> Nota
+        </button>
+        <button type="button" onclick="aplicarDescuento()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
+            <i class="fas fa-percent text-blue-500"></i> Descuento
+        </button>
+        <button type="button" onclick="ajustarGramaje()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
+            <i class="fas fa-weight-scale text-orange-500"></i> Gramaje
+        </button>
+        <button type="button" onclick="llamarCapitan()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
+            <i class="fas fa-exchange-alt text-indigo-500"></i> Traspaso
+        </button>
+        <button type="button" onclick="mostrarPromociones()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
+            <i class="fas fa-tag text-blue-500"></i> Promos
+        </button>
+        <button type="button" onclick="imprimirPrecuenta()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
+            <i class="fas fa-receipt text-blue-500"></i> Precuenta
+        </button>
+        <button type="button" onclick="limpiarTicket()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-red-500 shadow-sm active:scale-95">
+            <i class="fas fa-trash-alt text-red-500"></i> Limpiar
+        </button>
+    </div>
+
     {{-- FOOTER DE TOTALES (PREMIUM) --}}
-    <div class="p-5 pb-8 md:pb-5 border-t border-[var(--border-color)] bg-gradient-to-b from-[var(--bg-panel)] to-[var(--bg-panel)] flex-shrink-0 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.06)]">
+    <div class="p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-5 border-t border-[var(--border-color)] bg-gradient-to-b from-[var(--bg-panel)] to-[var(--bg-panel)] flex-shrink-0 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] relative">
         <div class="flex justify-between items-center mb-1">
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Subtotal</span>
             <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtSubtotal">$0.00</span>
@@ -211,89 +259,29 @@
             <span class="text-[13px] md:text-[12px] font-bold text-emerald-500" id="txtPropina">$0.00</span>
         </div>
 
-
         <button type="button" id="btn-enviar" onclick="enviarACocina()" class="w-full h-13 md:h-12 rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-[13px] md:text-[12px] font-bold tracking-wide transition-all duration-150 shadow-[0_8px_20px_-5px_rgba(59,130,246,0.5)] hover:shadow-[0_10px_28px_-5px_rgba(59,130,246,0.6)] active:scale-95 flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-panel)]">
             <i class="fas fa-paper-plane text-sm"></i>
             <span>Enviar Orden</span>
         </button>
-        <p id="mensajeMesaDestino" class="mt-3 text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] text-center uppercase tracking-widest">Enviando a Mesa {{ $mesa->numero ?? '12M' }}</p>
     </div>
 </section>
 
-<nav id="mobileNav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 flex bg-[var(--bg-panel)]/95 backdrop-blur-md border-t border-[var(--border-color)] shadow-[0_-8px_24px_rgba(0,0,0,0.15)] ring-1 ring-black/5" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
-    <button type="button" id="navbtn-acciones" onclick="mostrarColumnaMobile('acciones')" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center gap-1 py-3 min-h-[52px] text-[var(--text-muted)] transition-colors duration-150 active:scale-95">
-        <i class="fas fa-sliders-h text-base"></i>
-        <span class="text-[10px] font-bold uppercase tracking-wide">Mesa</span>
-    </button>
-    <button type="button" id="navbtn-ticket" onclick="mostrarColumnaMobile('ticket')" class="mobile-nav-btn relative flex-1 flex flex-col items-center justify-center gap-1 py-3 min-h-[52px] text-[var(--text-muted)] transition-colors duration-150 active:scale-95">
-        <i class="fas fa-receipt text-base"></i>
-        <span class="text-[10px] font-bold uppercase tracking-wide">Orden</span>
-        {{-- Badge opcional de # de productos en el ticket. Oculto por defecto;
-             muéstralo (quita "hidden" y pon el número) desde tu JS donde
-             actualizas listaTicket, igual que ya haces con
-             #indicador-gramaje-pendiente. --}}
-        <span id="navBadgeOrden" class="hidden absolute top-1.5 right-[22%] min-w-[16px] h-4 px-1 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center shadow-sm shadow-blue-500/40"></span>
-    </button>
-    <button type="button" id="navbtn-catalogo" onclick="mostrarColumnaMobile('catalogo')" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center gap-1 py-3 min-h-[52px] text-[var(--text-muted)] transition-colors duration-150 active:scale-95">
-        <i class="fas fa-utensils text-base"></i>
-        <span class="text-[10px] font-bold uppercase tracking-wide">Menú</span>
-    </button>
-</nav>
-
 <style>
-    /* Barra inferior móvil: solo estética, no toca tu lógica */
-    .mobile-nav-active {
-        color: var(--text-main) !important;
-        position: relative;
-    }
-    .mobile-nav-active::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 20%;
-        right: 20%;
-        height: 2px;
-        background: linear-gradient(90deg, #3b82f6, #60a5fa);
-        border-radius: 2px;
-        box-shadow: 0 0 8px rgba(59,130,246,0.5);
-    }
-
-    /* Transición suave al cambiar de columna en móvil y al cambiar de tab
-       (Orden/Enviado/Total). Solo estética: no depende de ninguna clase
-       nueva que tu JS deba manejar más allá de quitar/poner "hidden". */
+    /* Transición suave al cambiar de tab */
     @media (prefers-reduced-motion: no-preference) {
-        .col-mobile-panel:not(.hidden) { animation: panelFadeIn .2s ease-out; }
         .panel-fade:not(.hidden) { animation: panelFadeIn .18s ease-out; }
     }
     @keyframes panelFadeIn {
         from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
     }
-</style>
-
-<script>
-    // Toggle de columnas SOLO para móvil. No interactúa con cambiarTab,
-    // enviarACocina ni ninguna otra función de tu lógica de negocio.
-    function mostrarColumnaMobile(col) {
-        if (window.innerWidth >= 768) return; // en desktop las 3 se ven siempre, esto no aplica
-
-        document.querySelectorAll('.col-mobile-panel').forEach(function (el) {
-            el.classList.add('hidden');
-        });
-        var objetivo = document.getElementById('col-' + col);
-        if (objetivo) objetivo.classList.remove('hidden');
-
-        document.querySelectorAll('.mobile-nav-btn').forEach(function (btn) {
-            btn.classList.remove('mobile-nav-active');
-        });
-        var btnActivo = document.getElementById('navbtn-' + col);
-        if (btnActivo) btnActivo.classList.add('mobile-nav-active');
+    
+    /* Aseguramos que la barra inferior de botones no muestre la scrollbar visual */
+    .hide-scroll::-webkit-scrollbar {
+        display: none;
     }
-
-    // Al cargar en móvil, arranca mostrando el catálogo (lo más usado)
-    document.addEventListener('DOMContentLoaded', function () {
-        if (window.innerWidth < 768) {
-            mostrarColumnaMobile('catalogo');
-        }
-    });
-</script>
+    .hide-scroll {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>

@@ -47,8 +47,9 @@
             <h2 class="text-lg sm:text-xl font-black text-[var(--text-color)] dark:text-zinc-100 uppercase tracking-tight">Existencias | <span class="text-[var(--text-muted)] dark:text-zinc-500 font-bold text-xs sm:text-sm normal-case tracking-normal">{{ count($insumos ?? []) }} registrados</span></h2>
         </div>
 
-        {{-- ================= VISTA PARA ESCRITORIO ================= --}}
-        <div class="hidden md:block overflow-x-auto">
+        {{-- ================= VISTA PARA ESCRITORIO (pantallas grandes, >=1024px) ================= --}}
+        {{-- Cambiado de md a lg: las pantallas táctiles de POS (1024-1280px) ahora usan la vista de tarjetas --}}
+        <div class="hidden lg:block overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="border-b border-zinc-100 dark:border-zinc-900">
@@ -113,19 +114,19 @@
                                 @if(auth()->user()->tienePermiso('inventario.editar'))
                                 <button type="button" title="Ajustar Stock"
                                     onclick="openModalMovimiento('{{ $item->id }}', '{{ $item->nombre }}')" 
-                                    class="w-9 h-9 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all outline-none">
+                                    class="w-11 h-11 flex items-center justify-center rounded-xl text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all outline-none">
                                     <i class="fas fa-exchange-alt text-sm"></i>
                                 </button>
                                 <button type="button" title="Editar Detalles"
                                     onclick="abrirModalEspecifico('modalEditar-{{ $item->id }}')" 
-                                    class="w-9 h-9 flex items-center justify-center rounded-xl text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 transition-all outline-none">
+                                    class="w-11 h-11 flex items-center justify-center rounded-xl text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 transition-all outline-none">
                                     <i class="fas fa-cog text-sm"></i>
                                 </button>
                                 @endif
                                 @if(auth()->user()->tienePermiso('inventario.eliminar'))
                                 <button type="button" title="Dar de baja"
                                     onclick="confirmarEliminacion('{{ $item->id }}', '{{ $item->nombre }}')" 
-                                    class="w-9 h-9 flex items-center justify-center rounded-xl text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 transition-all outline-none">
+                                    class="w-11 h-11 flex items-center justify-center rounded-xl text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 transition-all outline-none">
                                     <i class="far fa-trash-alt text-sm"></i>
                                 </button>
                                 @endif
@@ -142,8 +143,9 @@
             </table>
         </div>
 
-        {{-- ================= VISTA COMODA PARA CELULARES ================= --}}
-        <div class="block md:hidden space-y-4">
+        {{-- ================= VISTA DE TARJETAS (móvil y pantallas táctiles POS hasta 1024px) ================= --}}
+        {{-- Cambiado de md a lg: esto cubre también las pantallas táctiles del restaurante --}}
+        <div class="block lg:hidden space-y-4">
             @forelse($insumos ?? [] as $item)
                 @php
                     $minimo = $item->stock_minimo > 0 ? $item->stock_minimo : 1; 

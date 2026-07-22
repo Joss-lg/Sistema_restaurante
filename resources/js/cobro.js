@@ -1,3 +1,32 @@
+function mostrarTicketFlotante(ordenId) {
+    if (!ordenId) return;
+
+    // Si ya había un iframe de ticket pendiente, lo quitamos
+    const anterior = document.getElementById('ticket-print-frame');
+    if (anterior) anterior.remove();
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'ticket-print-frame';
+    // Invisible: no se ve ninguna tarjeta ni modal, solo dispara la impresión
+    iframe.style.cssText = 'position: fixed; top: -9999px; left: -9999px; width: 0; height: 0; border: none;';
+    iframe.src = `/caja/ticket/${ordenId}`;
+
+    document.body.appendChild(iframe);
+
+    // El propio ticket.blade.php ya hace window.print() al cargar.
+    // Aquí solo esperamos a que el usuario cierre el diálogo (imprimir o cancelar)
+    // para quitar el iframe y no dejar basura en el DOM.
+    iframe.addEventListener('load', () => {
+        try {
+            iframe.contentWindow.addEventListener('afterprint', () => {
+                iframe.remove();
+            });
+        } catch (e) {
+            console.error('No se pudo enlazar el evento afterprint del ticket:', e);
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     // SELECCIÓN DE ELEMENTOS DE LA INTERFAZ
@@ -310,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success) {
                 const ordenId = document.getElementById('orden-id').value;
                 if (ordenId) {
-                    window.open(`/caja/ticket/${ordenId}`, '_blank', 'width=380,height=600');
+                    mostrarTicketFlotante(ordenId);
                 }
                 window.location.href = data.redirect_url || '/caja';
             } else {
@@ -345,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('No se encontró una orden activa para generar el ticket.');
                 return;
             }
-            window.open(`/caja/ticket/${inputOrden.value}`, '_blank');
+            mostrarTicketFlotante(inputOrden.value);
         });
     }
 

@@ -287,6 +287,7 @@
     {{-- Modales --}}
     @include('admin.categorias.modal-crear')
     @include('admin.categorias.modal-eliminar')
+    
 
     {{-- Scripts --}}
     <script>
