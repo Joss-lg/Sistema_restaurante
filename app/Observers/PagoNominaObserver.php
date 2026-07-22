@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\PagoNomina;
 use App\Models\FlujoCaja;
+use App\Models\CajaMovimiento;
 
 class PagoNominaObserver
 {
@@ -12,7 +13,10 @@ class PagoNominaObserver
      */
     public function created(PagoNomina $pagoNomina): void
     {
-        //
+        // Si ya se crea directamente como 'pagado', registrar el egreso en flujo_caja
+        if ($pagoNomina->estado === 'pagado') {
+            $this->crearFlujoCaja($pagoNomina);
+        }
     }
 
     /**
@@ -60,7 +64,10 @@ class PagoNominaObserver
     {
         // Verificar que no exista ya un registro
         if (!$pagoNomina->flujo) {
+            $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
+
             FlujoCaja::create([
+                'caja_movimiento_id' => $cajaActiva->id ?? null,
                 'tipo' => 'egreso',
                 'categoria' => 'Nómina',
                 'concepto' => 'Pago de nómina - ' . $pagoNomina->empleado->nombre . ' (' . $pagoNomina->periodo . ')',

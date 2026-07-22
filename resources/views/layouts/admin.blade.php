@@ -146,6 +146,27 @@
                 <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-rose-400 to-red-500 animate-shrink"></div>
             </div>
         @endif
+
+        @if($errors->any())
+            <div id="toast-validacion" class="relative overflow-hidden bg-white dark:bg-[#0f1015] border border-gray-100 dark:border-white/5 rounded-2xl shadow-2xl p-4 flex gap-3.5 items-start w-[320px] transition-all duration-300 transform translate-x-0 opacity-100">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-red-500"></div>
+
+                <div class="flex items-center justify-center w-8 h-8 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-500 dark:text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.15)] flex-shrink-0 mt-1">
+                    <i class="fas fa-exclamation text-[11px]"></i>
+                </div>
+
+                <div class="flex-1 pr-3">
+                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400 mb-1">Datos inválidos</p>
+                    <p class="text-[13px] font-bold text-gray-900 dark:text-white leading-tight">{{ $errors->first() }}</p>
+                </div>
+
+                <button onclick="cerrarToast('toast-validacion')" class="absolute top-3.5 right-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors outline-none">
+                    <i class="fas fa-times text-[10px]"></i>
+                </button>
+
+                <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-rose-400 to-red-500 animate-shrink"></div>
+            </div>
+        @endif
     </div>
 
     @hasSection('no-sidebar')

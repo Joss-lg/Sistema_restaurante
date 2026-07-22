@@ -28,7 +28,7 @@
                     <i class="fas fa-cash-register text-blue-500 mr-2"></i> Resumen de Turno
                 </h3>
                 <span class="text-[10px] sm:text-xs font-bold text-[var(--text-muted)]">ID Caja: <span class="text-[var(--text-color)]">#{{ $cajaActiva->id }}</span></span>
-                <span class="text-[10px] sm:text-xs font-bold text-[var(--text-muted)]">Cajero: <span class="text-[var(--text-color)]">{{ $cajaActiva->user->name ?? 'Admin' }}</span></span>
+                <span class="text-[10px] sm:text-xs font-bold text-[var(--text-muted)]">Cajero: <span class="text-[var(--text-color)]">{{ $cajaActiva->user->nombre ?? 'Admin' }}</span></span>
                 <span class="px-2.5 py-0.5 rounded-md text-[10px] sm:text-xs font-bold bg-blue-500/10 border border-blue-500/20 text-blue-500 uppercase tracking-wider">
                     {{ $cajaActiva->turno ?? 'Matutino' }}
                 </span>

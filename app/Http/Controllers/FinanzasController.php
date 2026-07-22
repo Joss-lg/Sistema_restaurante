@@ -8,7 +8,6 @@ use App\Models\PagoNomina;
 use App\Models\Gasto;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -42,8 +41,8 @@ class FinanzasController extends Controller
         $egresosMes  = FlujoCaja::egresos()->delMes($mesActual, $añoActual)->sum('monto');
         $balanceNeto = $ingresosMes - $egresosMes;
 
-        // --- NÓMINA PENDIENTE ---
-        $nominaPendiente = PagoNomina::pendientes()->sum('monto_neto');
+        // --- NÓMINA PAGADA (este mes) ---
+        $nominaPagada = PagoNomina::pagados()->porMes($mesActual, $añoActual)->sum('monto_neto');
 
         // --- FLUJO DE CAJA FILTRADO ---
         $query = FlujoCaja::query();
@@ -89,7 +88,7 @@ class FinanzasController extends Controller
             ->get();
 
         return view('admin.finanzas.index', compact(
-            'ingresosMes', 'egresosMes', 'balanceNeto', 'nominaPendiente', 
+            'ingresosMes', 'egresosMes', 'balanceNeto', 'nominaPagada', 
             'flujosCaja', 'tab', 'categoriasIngresos', 'categoriasEgresos', 
             'ultimosSieteDias', 'top5Gastos', 'metodosPago', 'mesActual', 'añoActual', 'empleados'
         ));
@@ -460,29 +459,19 @@ class FinanzasController extends Controller
             'descripcion' => 'nullable|string|max:500',
         ]);
 
-        DB::transaction(function () use ($request) {
-            Gasto::create([
-                'concepto'    => $request->concepto,
-                'categoria'   => $request->categoria,
-                'monto'       => $request->monto,
-                'metodo_pago' => $request->metodo_pago,
-                'estado'      => $request->estado,
-                'fecha'       => now(),
-                'documento'   => $request->documento,
-                'descripcion' => $request->descripcion,
-            ]);
-
-            if ($request->estado === 'pagado') {
-                FlujoCaja::create([
-                    'tipo'        => 'egreso',
-                    'categoria'   => $request->categoria,
-                    'concepto'    => "GASTO: " . $request->concepto,
-                    'monto'       => $request->monto,
-                    'metodo_pago' => $request->metodo_pago,
-                    'fecha'       => now(),
-                ]);
-            }
-        });
+        // El GastoObserver se encarga automáticamente de crear el
+        // registro en flujo_caja cuando el estado es 'pagado' (evento "created"),
+        // así que aquí solo creamos el Gasto.
+        Gasto::create([
+            'concepto'    => $request->concepto,
+            'categoria'   => $request->categoria,
+            'monto'       => $request->monto,
+            'metodo_pago' => $request->metodo_pago,
+            'estado'      => $request->estado,
+            'fecha'       => now(),
+            'documento'   => $request->documento,
+            'descripcion' => $request->descripcion,
+        ]);
 
         return redirect()->route('admin.finanzas.index')->with('success', 'Gasto registrado correctamente.');
     }
@@ -508,31 +497,21 @@ class FinanzasController extends Controller
         $deducciones = $request->deducciones ?? 0;
         $montoNeto   = PagoNomina::calcularMontoNeto($sueldoBase, $bonos, $deducciones);
 
-        DB::transaction(function () use ($request, $montoNeto) {
-            $nomina = PagoNomina::create([
-                'user_id'       => $request->user_id,
-                'periodo'       => $request->periodo,
-                'sueldo_base'   => $request->sueldo_base,
-                'bonos'         => $request->bonos ?? 0,
-                'deducciones'   => $request->deducciones ?? 0,
-                'monto_neto'    => $montoNeto,
-                'metodo_pago'   => $request->metodo_pago,
-                'estado'        => $request->estado,
-                'fecha_pago'    => $request->estado === 'pagado' ? now() : null,
-                'observaciones' => $request->observaciones,
-            ]);
-
-            if ($request->estado === 'pagado') {
-                FlujoCaja::create([
-                    'tipo'        => 'egreso',
-                    'categoria'   => 'Nómina',
-                    'concepto'    => "PAGO NÓMINA - PERÍODO: " . $request->periodo . " (Emp: ID {$request->user_id})",
-                    'monto'       => $montoNeto,
-                    'metodo_pago' => $request->metodo_pago,
-                    'fecha'       => now(),
-                ]);
-            }
-        });
+        // El PagoNominaObserver se encarga automáticamente de crear el
+        // registro en flujo_caja (con su vínculo a la caja activa) cuando
+        // el estado es 'pagado', así que aquí solo creamos el PagoNomina.
+        PagoNomina::create([
+            'user_id'       => $request->user_id,
+            'periodo'       => $request->periodo,
+            'sueldo_base'   => $request->sueldo_base,
+            'bonos'         => $request->bonos ?? 0,
+            'deducciones'   => $request->deducciones ?? 0,
+            'monto_neto'    => $montoNeto,
+            'metodo_pago'   => $request->metodo_pago,
+            'estado'        => $request->estado,
+            'fecha_pago'    => $request->estado === 'pagado' ? now() : null,
+            'observaciones' => $request->observaciones,
+        ]);
 
         return redirect()->route('admin.finanzas.index')->with('success', 'Pago de nómina registrado correctamente.');
     }

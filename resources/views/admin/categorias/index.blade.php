@@ -404,6 +404,6 @@
 
     {{-- Script de tu teclado --}}
     <script src="{{ asset('js/teclado-virtual.js') }}"></script>
-
+    @include('partials.no-back')
 </div>
 @endsection

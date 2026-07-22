@@ -110,12 +110,12 @@
                 <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-500 border border-purple-100 dark:border-purple-500/20">
                     <i class="fas fa-clock text-sm sm:text-lg"></i>
                 </div>
-                <span class="px-2 sm:px-2.5 py-1 bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-transparent rounded-full text-[8px] sm:text-[10px] font-black text-purple-700 dark:text-purple-500 uppercase tracking-widest">Pendiente</span>
+                <span class="px-2 sm:px-2.5 py-1 bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-transparent rounded-full text-[8px] sm:text-[10px] font-black text-purple-700 dark:text-purple-500 uppercase tracking-widest">Este Mes</span>
             </div>
             <div class="relative z-10">
                 <p class="text-purple-600 dark:text-purple-600/70 text-[9px] sm:text-[11px] font-bold uppercase tracking-widest mb-1">Nómina</p>
-                <h3 class="text-xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 break-all">$ {{ number_format($nominaPendiente, 2) }}</h3>
-                <p class="text-[9px] sm:text-[11px] font-medium text-purple-500 dark:text-purple-600/60 mt-1 sm:mt-2">Por pagar a empleados</p>
+                <h3 class="text-xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 break-all">$ {{ number_format($nominaPagada, 2) }}</h3>
+                <p class="text-[9px] sm:text-[11px] font-medium text-purple-500 dark:text-purple-600/60 mt-1 sm:mt-2">Pagada a empleados</p>
             </div>
         </div>
     </div>
@@ -392,6 +392,38 @@
     function openModalCrearNomina() { openTailwindModal('modalCrearNomina', 'createNominaContainer'); }
     function closeCreateNominaModal() { closeTailwindModal('modalCrearNomina', 'createNominaContainer'); }
 
+    // ==========================================================================
+    // NÓMINA: autocompletar sueldo base y calcular monto neto en tiempo real
+    // ==========================================================================
+    function actualizarSueldo() {
+        const select = document.getElementById('empleadoSelect');
+        const inputSueldo = document.getElementById('sueldoBase');
+        if (!select || !inputSueldo) return;
+
+        const opcionSeleccionada = select.options[select.selectedIndex];
+        const sueldo = opcionSeleccionada ? parseFloat(opcionSeleccionada.dataset.sueldo) || 0 : 0;
+
+        inputSueldo.value = sueldo.toFixed(2);
+        calcularMonto();
+    }
+
+    function calcularMonto() {
+        const inputSueldo = document.getElementById('sueldoBase');
+        const inputBonos = document.querySelector('input[name="bonos"]');
+        const inputDeducciones = document.querySelector('input[name="deducciones"]');
+        const spanMontoNeto = document.getElementById('montoNeto');
+
+        if (!spanMontoNeto) return;
+
+        const sueldo = parseFloat(inputSueldo ? inputSueldo.value : 0) || 0;
+        const bonos = parseFloat(inputBonos ? inputBonos.value : 0) || 0;
+        const deducciones = parseFloat(inputDeducciones ? inputDeducciones.value : 0) || 0;
+
+        const montoNeto = sueldo + bonos - deducciones;
+
+        spanMontoNeto.textContent = montoNeto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         
         // --- SOLUCIÓN PARA MODALES CORTADOS EN MÓVILES ---
@@ -403,8 +435,6 @@
             }
         });
 
-        // Aseguramos que el TECLADO VIRTUAL siempre quede como el ÚLTIMO
-        // elemento del body, por encima de cualquier modal reordenado arriba.
         const tecladoVirtual = document.getElementById('tecladoVirtualOverlay');
         if (tecladoVirtual) {
             document.body.appendChild(tecladoVirtual);
@@ -412,14 +442,12 @@
         // ---------------------------------------------------
 
         const buscador = document.getElementById('buscadorFlujo');
-        // Buscamos en AMBAS vistas: la tabla de escritorio (.fila-flujo) y las tarjetas de móvil (.fila-flujo-movil)
         const filas = document.querySelectorAll('.fila-flujo, .fila-flujo-movil');
 
         if (buscador) {
             buscador.addEventListener('input', function(e) {
                 const term = e.target.value.toLowerCase().trim();
                 filas.forEach(fila => {
-                    // La tabla de escritorio usa .concepto-celda, las tarjetas móviles usan .concepto-celda-movil
                     const celdaConcepto = fila.querySelector('.concepto-celda') || fila.querySelector('.concepto-celda-movil');
                     if (!celdaConcepto) return;
 

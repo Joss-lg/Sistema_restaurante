@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Gasto;
 use App\Models\FlujoCaja;
+use App\Models\CajaMovimiento;
 
 class GastoObserver
 {
@@ -63,7 +64,10 @@ class GastoObserver
     {
         // Verificar que no exista ya un registro
         if (!$gasto->flujo) {
+            $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
+
             FlujoCaja::create([
+                'caja_movimiento_id' => $cajaActiva->id ?? null,
                 'tipo' => 'egreso',
                 'categoria' => $gasto->categoria,
                 'concepto' => $gasto->concepto,

@@ -84,6 +84,16 @@
                         <option value="Transferencia">Transferencia</option>
                     </select>
                 </div>
+              {{-- Campo Estado del Pago (independiente) --}}
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 text-[10px] font-black text-zinc-400 modo-crema:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                        <i class="fas fa-check-circle opacity-40"></i> Estado del Pago
+                    </label>
+                    <select name="estado" required class="w-full h-11 bg-zinc-900 modo-crema:bg-zinc-50 border border-transparent modo-crema:border-zinc-200/60 rounded-xl px-5 text-base sm:text-xs font-bold text-zinc-100 modo-crema:text-zinc-900 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="pagado">Pagado (afecta caja hoy)</option>
+                        <option value="pendiente">Pendiente de pago</option>
+                    </select>
+                </div>
             </div>
 
             <div class="flex items-center gap-3 sm:gap-4 px-5 sm:px-8 py-4 border-t border-zinc-800 modo-crema:border-zinc-100 flex-shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">

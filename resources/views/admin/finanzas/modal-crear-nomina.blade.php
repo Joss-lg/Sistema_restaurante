@@ -79,6 +79,22 @@
                     </div>
                 </div>
 
+                {{-- El pago de nómina siempre se registra como PAGADO (afecta caja hoy). No se maneja estado pendiente. --}}
+                <input type="hidden" name="estado" value="pagado">
+
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 text-[10px] font-black text-zinc-400 modo-crema:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                        <i class="fas fa-credit-card opacity-40"></i> Método de Pago
+                    </label>
+                    <select name="metodo_pago" required class="w-full h-11 bg-zinc-900 modo-crema:bg-zinc-50 border border-transparent modo-crema:border-zinc-200/60 rounded-xl px-5 text-base sm:text-xs font-bold text-zinc-100 modo-crema:text-zinc-900 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="">Selecciona método</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+
+                {{-- Tarjeta de Monto Neto (limpia, sin el select adentro) --}}
                 <div class="bg-purple-500/5 border border-purple-500/20 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3">
                     <div class="min-w-0">
                         <label class="text-[8px] sm:text-[9px] font-black text-purple-600 uppercase tracking-[0.2em] ml-1">Monto Neto a Pagar</label>

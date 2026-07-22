@@ -3,6 +3,6 @@
 
     window.addEventListener('popstate', function () {
         history.pushState(null, null, location.href);
-        window.location.href = "{{ route('login.pin') }}";
+        window.location.href = "{{ route('login') }}";
     });
 </script>
