@@ -118,13 +118,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/flujo', [CajaController::class, 'flujoDeCaja'])->name('flujo');
             Route::get('/reporte-pdf/{id}', [CajaController::class, 'generarReportePdf'])->name('reporte.pdf');
             Route::get('/ticket/{id}', [CajaController::class, 'imprimirTicket'])->name('ticket.imprimir');
-            /**Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
+            Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
             Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
             Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
             
             Route::post('/abrir', [CajaController::class, 'abrir'])->name('abrir')->middleware('permiso:Caja,gestionar');
             Route::post('/cerrar', [CajaController::class, 'cerrar'])->name('cerrar')->middleware('permiso:Caja,gestionar');
-            Route::post('/api/store', [CajaController::class, 'store'])->name('api.store')->middleware('permiso:Caja,crear');*/
+            Route::post('/api/store', [CajaController::class, 'store'])->name('api.store')->middleware('permiso:Caja,crear');
             // Dominios Tácticos de Mesa y Cobros (MesaOperacionController)
             Route::get('/cobrar/{id}', [MesaOperacionController::class, 'cobrar'])->name('cobrar');
             Route::post('/api/estado-mesa', [MesaOperacionController::class, 'getEstadoMesa'])->name('api.estado-mesa');
