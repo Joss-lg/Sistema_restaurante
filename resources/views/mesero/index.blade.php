@@ -104,6 +104,7 @@
     @include('mesero.partials.ticket-sidebar')
     @include('mesero.partials.catalogo')
     @include('mesero.partials.modales')
+    @include('partials.teclado-virtual')
 
     @php
         $mesaId = $mesa->id ?? 1;

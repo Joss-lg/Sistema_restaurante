@@ -91,7 +91,12 @@
         </div>
 
         {{-- SIN READONLY para que salga el teclado del teléfono --}}
-        <textarea id="notaTextarea" rows="4" class="w-full rounded-2xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-sm font-medium text-[var(--text-main)] outline-none resize-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 mb-4" placeholder="Escribe la instrucción aquí..."></textarea>
+        <textarea id="notaTextarea" rows="4"
+            data-teclado="texto"
+            data-teclado-titulo="Instrucción Especial"
+            class="w-full rounded-2xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-sm font-medium text-[var(--text-main)] outline-none resize-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 mb-4"
+            placeholder="Escribe la instrucción aquí...">
+        </textarea>
 
         <div class="flex items-center gap-2 mb-4 overflow-x-auto hide-scroll pb-1">
             @foreach(['Sin cebolla', 'Salsa aparte', 'Bien cocido', 'Término medio', 'Para llevar', 'Sin picante'] as $notaRapida)
