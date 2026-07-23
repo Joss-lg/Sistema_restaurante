@@ -9,11 +9,11 @@
             margin: 0; 
         }
         body {
-            width: 72mm; /* Ligeramente menor que 80mm para dejar un margen físico limpio en la impresora */
+            width: 72mm;
             margin: 4mm auto;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 15px;   /* AJUSTE: antes 12px */
-            line-height: 1.35; /* AJUSTE: antes 1.2, un poco más de aire entre líneas */
+            font-size: 15px;
+            line-height: 1.35;
             color: #000;
         }
         .center { text-align: center; }
@@ -27,34 +27,32 @@
             border-collapse: collapse; 
         }
         td { 
-            padding: 4px 0; /* AJUSTE: antes 3px, un poco más de espacio con letra más grande */
+            padding: 4px 0;
             vertical-align: top; 
         }
         .right { text-align: right; }
         
-        /* Estilos de productos y totales */
         .item-row td {
             font-weight: bold;
         }
         .desc-row td {
-            font-size: 12px; /* AJUSTE: antes 10px */
+            font-size: 12px;
             color: #333;
             padding-left: 10px;
             padding-bottom: 4px;
         }
         .totales-table td {
-            padding: 3px 0; /* AJUSTE: antes 2px */
+            padding: 3px 0;
         }
         .total-final { 
             font-weight: bold; 
-            font-size: 18px; /* AJUSTE: antes 15px */
+            font-size: 18px;
             border-top: 1px solid #000;
             border-bottom: 1px solid #000;
-            padding: 5px 0 !important; /* AJUSTE: antes 4px */
+            padding: 5px 0 !important;
             margin-top: 4px;
         }
         
-        /* Botón de impresión oculto al mandar a imprimir */
         @media print { 
             .no-print { display: none !important; } 
         }
@@ -64,11 +62,12 @@
 
     <!-- Encabezado -->
     <div class="center">
-        <span style="font-size: 17px;" class="bold">{{ $negocio['nombre'] }}</span><br> <!-- AJUSTE: antes 14px -->
-        <span class="bold">Ticket: {{ $folio }}</span><br>
-        <span style="font-size: 13px;">{{ $fecha }}</span> <!-- AJUSTE: antes 11px -->
-        @if($mesa) <br><span class="bold">Mesa: {{ $mesa }}</span> @endif
-        @if($mesero) <br><span style="font-size: 13px;">Atendió: {{ $mesero }}</span> @endif <!-- AJUSTE: antes 11px -->
+        <span style="font-size: 17px;" class="bold">{{ $negocio['nombre'] }}</span><br>
+        @if($mesa)
+            <span class="bold" style="font-size: 16px;">Mesa {{ preg_replace('/^mesa\s*/i', '', $mesa) }}</span><br>
+        @endif
+        <span style="font-size: 13px;">{{ $fecha }}</span>
+        @if($mesero) <br><span style="font-size: 13px;">Atendió: {{ $mesero }}</span> @endif
     </div>
 
     <div class="linea"></div>
@@ -105,7 +104,6 @@
         </tr>
         @endif
 
-        {{-- --- CONDICIONAL DE IVA --- --}}
         @if(($ivaHabilitado ?? session('iva_habilitado', true)) && isset($iva) && $iva > 0)
         <tr>
             <td>IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%)</td>
@@ -128,7 +126,7 @@
     <!-- Pagos -->
     @if(isset($pagos) && collect($pagos)->isNotEmpty())
         <div class="linea"></div>
-        <div class="center bold" style="font-size: 13px; margin-bottom: 2px;">FORMA DE PAGO</div> <!-- AJUSTE: antes 11px -->
+        <div class="center bold" style="font-size: 13px; margin-bottom: 2px;">FORMA DE PAGO</div>
         <table>
             @foreach($pagos as $pago)
                 <tr>
@@ -137,7 +135,7 @@
                 </tr>
                 @if(!empty($pago['referencia']))
                 <tr>
-                    <td colspan="2" style="font-size: 12px; font-style: italic;">Ref: {{ $pago['referencia'] }}</td> <!-- AJUSTE: antes 10px -->
+                    <td colspan="2" style="font-size: 12px; font-style: italic;">Ref: {{ $pago['referencia'] }}</td>
                 </tr>
                 @endif
             @endforeach
@@ -145,7 +143,15 @@
     @endif
 
     <div class="linea"></div>
-    <div class="center" style="margin-top: 6px; font-size: 13px;">¡Gracias por su compra!</div> <!-- AJUSTE: antes 11px -->
+    <div class="center" style="margin-top: 6px; font-size: 13px;">¡Gracias por su compra!</div>
+
+    <!-- Leyenda promocional del software -->
+    <div class="linea" style="margin-top: 10px;"></div>
+    <div class="center" style="margin-top: 8px; font-size: 12px; line-height: 1.5;">
+        <span class="bold">¿Necesitas un Software para tu negocio?</span><br>
+        <span class="bold">¡Contáctanos!</span><br>
+        www.ollintem.com.mx
+    </div>
 
     <!-- Botón de respaldo -->
     <div class="center" style="margin-top: 15px;">

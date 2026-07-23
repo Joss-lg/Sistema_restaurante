@@ -106,7 +106,8 @@ class TicketService
 
         return [
             'folio'          => 'M' . ($mesa->numero ?? '') . '-' . $numeroFolio,
-            'fecha'          => optional($primeraOrden?->cerrada_el)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i'),
+            // AJUSTE: se quita la hora, solo queda la fecha.
+            'fecha'          => optional($primeraOrden?->cerrada_el)->format('d/m/Y') ?? now()->format('d/m/Y'),
             'mesa'           => $mesa->numero ?? null,
             'mesero'         => $primeraOrden?->mesero->name ?? null,
             'items'          => $items->values(),
