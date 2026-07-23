@@ -100,7 +100,7 @@
             </div>
             <div class="sidebar-text ml-3 flex flex-col">
                 <span class="font-black tracking-[0.15em] text-[15px] text-[var(--text-color)] leading-none">
-                    OLLINREST <span class="text-blue-500"></span>
+                    Agostadero <span class="text-blue-500"></span>
                 </span>
                 <span class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-[0.25em] mt-1.5">Sistema Restaurante</span>
             </div>

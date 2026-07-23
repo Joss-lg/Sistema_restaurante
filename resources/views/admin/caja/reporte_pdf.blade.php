@@ -29,7 +29,7 @@
         <table style="width: 100%">
             <tr>
                 <td>
-                    <h1 class="title">OLLINREST</h1>
+                    <h1 class="title">Agostadero</h1>
                     <div class="subtitle">Reporte de Turno y Flujo de Caja</div>
                 </td>
                 <td class="text-right" style="vertical-align: bottom; color: #71717a;">

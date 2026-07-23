@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Detalle de Turno | OllinRest')
+@section('title', 'Detalle de Turno | Agostadero')
 
 @section('content')
 <div class="px-4 py-6 sm:p-6 lg:p-8 w-full max-w-[1400px] mx-auto space-y-6 relative z-10 font-sans min-h-screen bg-[var(--bg-color)] transition-colors duration-300">

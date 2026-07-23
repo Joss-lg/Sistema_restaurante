@@ -118,7 +118,7 @@ class TicketService
             'propina'        => $propina,
             'total'          => round($totalCalculado, 2),
             'pagos'          => $pagos,
-            'negocio'        => ['nombre' => 'OllinRest'],
+            'negocio'        => ['nombre' => 'Agostadero'],
         ];
     }
 }

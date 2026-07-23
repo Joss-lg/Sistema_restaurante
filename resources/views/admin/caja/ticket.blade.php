@@ -70,7 +70,7 @@
         @if($mesa) <br><span class="bold">Mesa: {{ $mesa }}</span> @endif
         @if($mesero) <br><span style="font-size: 13px;">Atendió: {{ $mesero }}</span> @endif <!-- AJUSTE: antes 11px -->
     </div>
-    
+
     <div class="linea"></div>
 
     <!-- Lista de Items -->
