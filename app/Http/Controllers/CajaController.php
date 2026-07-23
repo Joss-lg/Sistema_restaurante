@@ -19,12 +19,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class CajaController extends Controller
 {
     protected $cajaService;
-    protected $ticketService; // <-- nuevo
+    protected $ticketService;
 
     public function __construct(CajaService $cajaService, TicketService $ticketService)
     {
         $this->cajaService = $cajaService;
-        $this->ticketService = $ticketService; // <-- nuevo
+        $this->ticketService = $ticketService;
     }
 
     public function index()
@@ -37,7 +37,6 @@ class CajaController extends Controller
 
         $mesas = Mesa::orderBy('numero', 'asc')->with(['ordenesActivas.detalles.producto'])->get();
 
-        // Limpieza de estados inconsistentes
         $mesas->each(function ($mesa) {
             if ($mesa->estado === Mesa::ESTADO_OCUPADA && $mesa->ordenesActivas()->count() === 0) {
                 $this->cajaService->liberarMesa($mesa);
@@ -45,10 +44,6 @@ class CajaController extends Controller
             }
         });
 
-        // --- AJUSTE: calculamos el total real de cada mesa ocupada usando
-        // CajaService (la misma fuente que usa el modal de cobro), en vez
-        // de confiar en el campo acumulado 'total_consumo', que se
-        // desincroniza con descuentos, IVA y ediciones posteriores.
         $mesas->each(function ($mesa) {
             if ($mesa->estado === Mesa::ESTADO_OCUPADA && $mesa->ordenesActivas->isNotEmpty()) {
                 $desglose = $this->cajaService->obtenerDesgloseMesa($mesa);
@@ -93,7 +88,6 @@ class CajaController extends Controller
 
         $cajaActiva = CajaMovimiento::where('estado', 'abierta')->firstOrFail();
 
-        // --- Reparto de propinas pendientes del turno, agrupadas por mesero ---
         $propinasPendientes = PropinaMesero::where('caja_movimiento_id', $cajaActiva->id)
             ->where('pagada', false)
             ->get()
@@ -110,7 +104,6 @@ class CajaController extends Controller
             $mesero = User::find($meseroId);
             $nombreMesero = $mesero ? $mesero->nombre : "Mesero #{$meseroId}";
 
-            // Egreso real que sale del cajón para pagarle al mesero
             $egreso = FlujoCaja::create([
                 'caja_movimiento_id' => $cajaActiva->id,
                 'tipo'               => 'egreso',
@@ -121,7 +114,6 @@ class CajaController extends Controller
                 'fecha'              => now(),
             ]);
 
-            // Marcamos todas las filas de este mesero como pagadas, referenciando el egreso
             PropinaMesero::whereIn('id', $filas->pluck('id'))
                 ->update([
                     'pagada'        => true,
@@ -132,7 +124,6 @@ class CajaController extends Controller
             $totalPropinasEntregadas += $montoMesero;
         }
 
-        // --- Cálculo original, ahora ya incluye el egreso de propinas dentro de "egresos" ---
         $ventas = $cajaActiva->flujos()->porCategoria('Ventas')->sum('monto');
         $anticipos = $cajaActiva->flujos()->porCategoria('Anticipos')->sum('monto');
         $gastos = $cajaActiva->flujos()->egresos()->sum('monto');
@@ -160,7 +151,6 @@ class CajaController extends Controller
             return view('admin.caja.apertura');
         }
 
-        // Usamos tus scopes del modelo y cambiamos los métodos de pago a minúsculas para alinearse con JS
         $baseVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->ingresos()->porCategoria('Ventas');
 
         $totalVentas        = (clone $baseVentas)->sum('monto');
@@ -174,7 +164,6 @@ class CajaController extends Controller
         $historicoVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->ingresos()->porCategoria('Ventas')->ordenado()->get();
         $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->egresos()->ordenado()->get();
 
-        // --- NUEVO: desglose de propinas pendientes de entregar en este turno ---
         $propinasPendientes = PropinaMesero::with('mesero:id,nombre')
             ->where('caja_movimiento_id', $cajaActiva->id)
             ->where('pagada', false)
@@ -214,18 +203,19 @@ class CajaController extends Controller
         return $pdf->stream('reporte-caja-turno-' . $cajaActiva->id . '.pdf');
     }
 
-   public function imprimirTicket($id)
+    public function imprimirTicket($mesaId)
     {
-        $datos = $this->ticketService->obtenerDatosTicket((int) $id);
+        // AJUSTE: ahora recibe el ID de la MESA (no de una orden individual).
+        // Una mesa puede tener varias órdenes activas (varias rondas de
+        // envío a cocina) y el ticket final debe reflejarlas TODAS, igual
+        // que ya hace CajaService::obtenerDesgloseMesa() en el modal de cobro.
+        $datos = $this->ticketService->obtenerDatosTicketPorMesa((int) $mesaId);
         return view('admin.caja.ticket', $datos);
     }
 
     public function toggleIva(Request $request)
     {
-        // Recibimos el estado exacto enviado por el switch (true o false)
         $habilitado = $request->boolean('habilitado');
-        
-        // Guardamos exactamente lo que el usuario seleccionó
         session(['iva_habilitado' => $habilitado]);
 
         return response()->json([

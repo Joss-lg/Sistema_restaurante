@@ -12,8 +12,8 @@
             width: 72mm; /* Ligeramente menor que 80mm para dejar un margen físico limpio en la impresora */
             margin: 4mm auto;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            line-height: 1.2;
+            font-size: 15px;   /* AJUSTE: antes 12px */
+            line-height: 1.35; /* AJUSTE: antes 1.2, un poco más de aire entre líneas */
             color: #000;
         }
         .center { text-align: center; }
@@ -27,7 +27,7 @@
             border-collapse: collapse; 
         }
         td { 
-            padding: 3px 0; 
+            padding: 4px 0; /* AJUSTE: antes 3px, un poco más de espacio con letra más grande */
             vertical-align: top; 
         }
         .right { text-align: right; }
@@ -37,20 +37,20 @@
             font-weight: bold;
         }
         .desc-row td {
-            font-size: 10px;
+            font-size: 12px; /* AJUSTE: antes 10px */
             color: #333;
             padding-left: 10px;
             padding-bottom: 4px;
         }
         .totales-table td {
-            padding: 2px 0;
+            padding: 3px 0; /* AJUSTE: antes 2px */
         }
         .total-final { 
             font-weight: bold; 
-            font-size: 15px; 
+            font-size: 18px; /* AJUSTE: antes 15px */
             border-top: 1px solid #000;
             border-bottom: 1px solid #000;
-            padding: 4px 0 !important;
+            padding: 5px 0 !important; /* AJUSTE: antes 4px */
             margin-top: 4px;
         }
         
@@ -64,11 +64,11 @@
 
     <!-- Encabezado -->
     <div class="center">
-        <span style="font-size: 14px;" class="bold">{{ $negocio['nombre'] }}</span><br>
+        <span style="font-size: 17px;" class="bold">{{ $negocio['nombre'] }}</span><br> <!-- AJUSTE: antes 14px -->
         <span class="bold">Ticket: {{ $folio }}</span><br>
-        <span style="font-size: 11px;">{{ $fecha }}</span>
+        <span style="font-size: 13px;">{{ $fecha }}</span> <!-- AJUSTE: antes 11px -->
         @if($mesa) <br><span class="bold">Mesa: {{ $mesa }}</span> @endif
-        @if($mesero) <br><span style="font-size: 11px;">Atendió: {{ $mesero }}</span> @endif
+        @if($mesero) <br><span style="font-size: 13px;">Atendió: {{ $mesero }}</span> @endif <!-- AJUSTE: antes 11px -->
     </div>
     
     <div class="linea"></div>
@@ -128,7 +128,7 @@
     <!-- Pagos -->
     @if(isset($pagos) && collect($pagos)->isNotEmpty())
         <div class="linea"></div>
-        <div class="center bold" style="font-size: 11px; margin-bottom: 2px;">FORMA DE PAGO</div>
+        <div class="center bold" style="font-size: 13px; margin-bottom: 2px;">FORMA DE PAGO</div> <!-- AJUSTE: antes 11px -->
         <table>
             @foreach($pagos as $pago)
                 <tr>
@@ -137,7 +137,7 @@
                 </tr>
                 @if(!empty($pago['referencia']))
                 <tr>
-                    <td colspan="2" style="font-size: 10px; font-style: italic;">Ref: {{ $pago['referencia'] }}</td>
+                    <td colspan="2" style="font-size: 12px; font-style: italic;">Ref: {{ $pago['referencia'] }}</td> <!-- AJUSTE: antes 10px -->
                 </tr>
                 @endif
             @endforeach
@@ -145,7 +145,7 @@
     @endif
 
     <div class="linea"></div>
-    <div class="center" style="margin-top: 6px; font-size: 11px;">¡Gracias por su compra!</div>
+    <div class="center" style="margin-top: 6px; font-size: 13px;">¡Gracias por su compra!</div> <!-- AJUSTE: antes 11px -->
 
     <!-- Botón de respaldo -->
     <div class="center" style="margin-top: 15px;">

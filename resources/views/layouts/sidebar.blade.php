@@ -20,7 +20,9 @@
         
         /* 4. Footer: Modo mini y transparente */
         #sidebar.colapsado .user-footer { padding-left: 0; padding-right: 0; background: transparent; border-color: transparent; box-shadow: none; align-items: center; margin-bottom: 1rem; }
-        #sidebar.colapsado .btn-logout { width: 44px; padding: 0; justify-content: center; }
+        
+        /* --- AJUSTE PERFECTO PARA EL BOTÓN ROJO CUADRADO --- */
+        #sidebar.colapsado .btn-logout { width: 44px !important; height: 44px !important; padding: 0 !important; justify-content: center !important; }
 
         /* Modo crema: contraste y fondo limpio en sidebar */
         body.modo-crema #sidebar { background: rgba(255, 255, 255, 0.96); border-color: rgba(15, 23, 42, 0.08); box-shadow: 0 30px 70px rgba(15, 23, 42, 0.08); }
@@ -33,8 +35,9 @@
         body.modo-crema #sidebar .menu-link .menu-icon { background: rgba(248, 250, 252, 0.96); border-color: rgba(15, 23, 42, 0.08); color: #374151; }
         body.modo-crema #sidebar .menu-link.active { background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.18); box-shadow: 0 12px 30px rgba(59, 130, 246, 0.12); }
         body.modo-crema .user-footer { background: #ffffff; border-color: rgba(15, 23, 42, 0.08); box-shadow: 0 25px 50px rgba(15, 23, 42, 0.06); }
-        body.modo-crema .btn-logout { background: #f8fafc; border-color: rgba(15, 23, 42, 0.08); color: #374151; }
-        body.modo-crema .btn-logout:hover { background: #e2e8f0; color: #b91c1c; }
+        
+        /* Modificado para que el degradado rojo siga activo en modo crema */
+        body.modo-crema .btn-logout { border-color: rgba(15, 23, 42, 0.08); }
 
         /* =========================================================
            MODO MÓVIL: el sidebar se convierte en un drawer que se
@@ -195,9 +198,12 @@
 
         <form method="POST" action="{{ route('logout') }}" class="mt-1 w-full flex justify-center">
             @csrf
-            <button type="submit" class="btn-logout w-full flex items-center bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-red-500/40 hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500 py-2.5 px-3 rounded-xl transition-all duration-300 text-[11px] font-bold tracking-widest group">
-                <i class="fas fa-sign-out-alt transition-transform group-hover:-translate-x-1 shrink-0 mx-auto"></i>
-                <span class="sidebar-text ml-2">CERRAR SESIÓN</span>
+            {{-- BOTÓN ACTUALIZADO PARA FORMAR EL CUADRADO PERFECTO CUANDO COLAPSA --}}
+            <button type="submit" class="btn-logout w-full h-[44px] px-3 flex items-center bg-gradient-to-tr from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-2xl transition-all duration-300 shadow-lg shadow-red-500/30 hover:shadow-red-500/50 active:scale-95 group overflow-hidden">
+                <div class="flex items-center justify-center shrink-0 w-6">
+                    <i class="fas fa-sign-out-alt text-[15px] transition-transform group-hover:scale-110"></i>
+                </div>
+                <span class="sidebar-text ml-2 text-[11px] font-bold tracking-widest mt-[2px]">CERRAR SESIÓN</span>
             </button>
         </form>
     </div>

@@ -81,10 +81,15 @@ class MesaOperacionController extends Controller
         try {
             DB::transaction(function () use ($request, $cajaActiva) {
                 $mesa = Mesa::findOrFail($request->mesa_id);
-                
-                $orden = $mesa->ordenesActivas()->first(); 
 
-                $propinaOrden = $orden ? floatval($orden->propina) : 0;
+                // AJUSTE: se toman TODAS las órdenes activas de la mesa, no
+                // solo la primera. La propina puede vivir en cualquiera de
+                // ellas (normalmente se concentra en la primera vía
+                // actualizarPropina), así que sumamos por seguridad.
+                $ordenesActivas = $mesa->ordenesActivas()->get();
+                $orden = $ordenesActivas->first();
+
+                $propinaOrden = $ordenesActivas->sum(fn ($o) => floatval($o->propina));
 
                 $sumaTotal = collect($request->pagos)->sum(fn($p) => floatval($p['monto']));
                 $sumaRastreable = collect($request->pagos)
@@ -172,7 +177,6 @@ class MesaOperacionController extends Controller
         ]);
     }
 
-
     public function actualizarPropina(Request $request, $id): JsonResponse
     {
         $request->validate([
@@ -181,17 +185,16 @@ class MesaOperacionController extends Controller
         ]);
 
         $orden = \App\Models\Orden::findOrFail($id);
+        $mesa = Mesa::findOrFail($orden->mesa_id);
 
-        $orden->load(['detalles', 'promocionesAplicadas']);
-
-        $subtotalBruto = $orden->detalles->sum(fn($d) => $d->cantidad * $d->precio_unitario);
-        $descuentoPromociones = $orden->promocionesAplicadas->sum('monto_descuento');
-        $subtotal = max(0, round($subtotalBruto - $descuentoPromociones, 2));
-
-        $ivaHabilitado = Configuracion::ivaHabilitado();
-        $ivaPorcentaje = Configuracion::ivaPorcentaje();
-        $iva = $ivaHabilitado ? round($subtotal * ($ivaPorcentaje / 100), 2) : 0;
-
+        // AJUSTE: la propina debe calcularse sobre el total de TODA la mesa
+        // (todas sus órdenes activas), no solo sobre los detalles de esta
+        // orden individual. Usamos CajaService, la misma fuente de verdad
+        // que ya usa el modal de cobro y el ticket final, para que el %
+        // de propina siempre se aplique sobre la base correcta.
+        $desglose = $this->cajaService->obtenerDesgloseMesa($mesa);
+        $subtotal = $desglose['subtotal'];
+        $iva = $desglose['iva'];
         $base = $subtotal + $iva;
 
         if ($request->tipo === 'porcentaje') {
@@ -203,6 +206,11 @@ class MesaOperacionController extends Controller
             $propina = round($request->valor, 2);
         }
 
+        // AJUSTE: la propina completa se concentra en ESTA orden, y se
+        // resetea a 0 en las demás órdenes activas de la mesa. Así,
+        // CajaService::obtenerDesgloseMesa (que suma la propina de TODAS
+        // las órdenes activas) nunca la cuenta duplicada ni la pierde.
+        $mesa->ordenesActivas()->where('id', '!=', $orden->id)->update(['propina' => 0]);
         $orden->update(['propina' => $propina]);
 
         return response()->json([

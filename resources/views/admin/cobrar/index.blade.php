@@ -43,7 +43,12 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.COBRO_CONFIG = {
             mesaId: {{ $mesa->id }},
-            ordenId: {{ $ordenes->first()->id ?? 0 }},
+            // AJUSTE: se deja de mandar ordenId (solo tomaba la primera orden
+            // de la mesa y se perdían productos/total si había más de una).
+            // El ticket ahora se imprime por MESA completa, agregando todas
+            // sus órdenes activas — la misma unidad que ya usa el desglose
+            // que ves en pantalla (subtotal, IVA, propina, total).
+            urlTicket: "{{ route('admin.caja.ticket.imprimir', $mesa->id) }}",
             total: {{ $totalPagar ?? 0 }},
             csrfToken: "{{ csrf_token() }}",
             urlPago: "{{ route('admin.caja.procesar-pago') }}" 

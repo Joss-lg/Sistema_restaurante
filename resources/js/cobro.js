@@ -1,5 +1,14 @@
-function mostrarTicketFlotante(ordenId) {
-    if (!ordenId) return;
+function mostrarTicketFlotante() {
+    // AJUSTE: ya no recibe ordenId. Usa la URL del ticket por MESA que
+    // el Blade ya construyó en window.COBRO_CONFIG.urlTicket, para que
+    // el ticket impreso siempre incluya TODAS las órdenes activas de la mesa
+    // (antes se imprimía solo la primera orden y se perdían productos/total
+    // cuando el pedido tuvo varias rondas de envío a cocina).
+    const urlTicket = window.COBRO_CONFIG && window.COBRO_CONFIG.urlTicket;
+    if (!urlTicket) {
+        console.warn('No se encontró urlTicket en COBRO_CONFIG.');
+        return;
+    }
 
     // Si ya había un iframe de ticket pendiente, lo quitamos
     const anterior = document.getElementById('ticket-print-frame');
@@ -9,7 +18,7 @@ function mostrarTicketFlotante(ordenId) {
     iframe.id = 'ticket-print-frame';
     // Invisible: no se ve ninguna tarjeta ni modal, solo dispara la impresión
     iframe.style.cssText = 'position: fixed; top: -9999px; left: -9999px; width: 0; height: 0; border: none;';
-    iframe.src = `/caja/ticket/${ordenId}`;
+    iframe.src = urlTicket;
 
     document.body.appendChild(iframe);
 
@@ -337,10 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.success) {
-                const ordenId = document.getElementById('orden-id').value;
-                if (ordenId) {
-                    mostrarTicketFlotante(ordenId);
-                }
+                // AJUSTE: ya no depende de leer 'orden-id' del DOM. El ticket
+                // se imprime por MESA usando la URL ya armada en COBRO_CONFIG,
+                // así siempre incluye todas las órdenes activas de la mesa.
+                mostrarTicketFlotante();
                 window.location.href = data.redirect_url || '/caja';
             } else {
                 alert('Error: ' + data.message);
@@ -369,12 +378,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     if (btnTicket) {
         btnTicket.addEventListener('click', () => {
-            const inputOrden = document.getElementById('orden-id');
-            if (!inputOrden || !inputOrden.value) {
-                alert('No se encontró una orden activa para generar el ticket.');
+            // AJUSTE: ya no valida 'orden-id', solo requiere que exista
+            // la URL del ticket por mesa en COBRO_CONFIG.
+            if (!window.COBRO_CONFIG || !window.COBRO_CONFIG.urlTicket) {
+                alert('No se encontró información de la mesa para generar el ticket.');
                 return;
             }
-            mostrarTicketFlotante(inputOrden.value);
+            mostrarTicketFlotante();
         });
     }
 
