@@ -93,11 +93,21 @@ class CocinaController extends Controller
             ]);
         }
 
-        // Si TODOS los detalles de la Orden (todas las áreas y lotes) ya
-        // están servidos, marcamos la Orden completa como 'servida' para
-        // que el resto del sistema (caja, mesero) lo refleje también.
+        // Si TODOS los detalles relevantes de la Orden (todas las áreas y
+        // lotes, EXCLUYENDO los cancelados) ya están servidos, marcamos la
+        // Orden completa como 'servida' para que el resto del sistema
+        // (caja, mesero) lo refleje también.
         $orden->refresh();
-        $todosServidos = $orden->detalles->every(fn ($d) => $d->estado_preparacion === 'servida');
+
+        // NUEVO: excluimos los productos cancelados de esta verificación.
+        // Antes, un solo producto cancelado (estado_preparacion='cancelado',
+        // que nunca llega a 'servida') dejaba la orden atorada para siempre
+        // en 'en proceso', aunque todo lo demás ya estuviera listo.
+        $detallesRelevantes = $orden->detalles->where('estado', '!=', 'cancelado');
+
+        $todosServidos = $detallesRelevantes->isNotEmpty()
+            && $detallesRelevantes->every(fn ($d) => $d->estado_preparacion === 'servida');
+
         if ($todosServidos && $orden->estado !== 'servida') {
             $orden->update(['estado' => 'servida']);
         } elseif (!$todosServidos && $orden->estado === 'pendiente') {
@@ -153,7 +163,12 @@ class CocinaController extends Controller
 
         $comandasTodas = collect();
         foreach ($ordenes as $orden) {
-            $porLote = $orden->detalles->groupBy(function ($detalle) {
+            // NUEVO: los productos cancelados nunca deben llegar a la cocina/barra.
+            // Se filtran ANTES de agrupar por lote/área, así una tarjeta cuyo
+            // único contenido fue cancelado simplemente deja de generarse.
+            $detallesActivos = $orden->detalles->where('estado', '!=', 'cancelado');
+
+            $porLote = $detallesActivos->groupBy(function ($detalle) {
                 return $detalle->lote_envio ?? 'sin-lote';
             });
 

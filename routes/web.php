@@ -51,6 +51,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [MesaController::class, 'index'])->name('dashboard');
         Route::get('/comanda/{mesa}', [MesaController::class, 'show'])->name('comanda.show');
         Route::post('/comanda/enviar', [MesaController::class, 'enviar'])->name('comanda.enviar');
+
+        // NUEVO: cancelación de un producto individual ya enviado a cocina,
+        // protegida por confirmación + NIP de Capitán/Administrador.
+        Route::patch('/comanda/detalle/{detalle}/cancelar', [MesaController::class, 'cancelarProducto'])->name('comanda.detalle.cancelar');
         
         // --- NUEVA RUTA PARA GUARDAR LA PROPINA ---
         Route::get('/comanda/{mesa}/precuenta', [ComandaController::class, 'precuenta'])->name('comanda.precuenta');

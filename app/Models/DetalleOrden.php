@@ -13,21 +13,25 @@ class DetalleOrden extends Model
 
     protected $fillable = [
         'orden_id',
-        'lote_envio', // NUEVO: identifica la "ronda" de envío a cocina dentro de la misma Orden
+        'lote_envio',
         'producto_id',
         'cantidad',
         'precio_unitario',
         'estado',
-        'estado_preparacion', // NUEVO: pendiente / en proceso / servida — independiente por lote+área
+        'estado_preparacion',
         'notas',
         'gramaje',
-        'tiempo', // NUEVO: tiempo de cocina (sin-tiempo, primer-tiempo, segundo-tiempo, tercer-tiempo)
+        'tiempo',
         'transaccion_id',
+        'cancelado_motivo',
+        'cancelado_por',
+        'cancelado_en',
     ];
 
     protected $casts = [
         'cantidad' => 'integer',
         'precio_unitario' => 'decimal:2',
+        'cancelado_en' => 'datetime',
     ];
 
     // Relación con Orden
@@ -50,6 +54,24 @@ class DetalleOrden extends Model
     public function promocionAplicada()
     {
         return $this->hasOne(OrdenPromocion::class, 'detalle_orden_id');
+    }
+
+    // NUEVO: quién autorizó la cancelación (Capitán/Admin)
+    public function canceladoPor()
+    {
+        return $this->belongsTo(User::class, 'cancelado_por');
+    }
+
+    // NUEVO: scope para excluir cancelados en cualquier consulta
+    public function scopeActivos($query)
+    {
+        return $query->where('estado', '!=', 'cancelado');
+    }
+
+    // NUEVO: helper de conveniencia
+    public function getEstaCanceladoAttribute(): bool
+    {
+        return $this->estado === 'cancelado';
     }
 
     // Calcular subtotal del detalle

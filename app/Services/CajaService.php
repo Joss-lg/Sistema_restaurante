@@ -24,23 +24,31 @@ class CajaService
             ])
             ->get();
 
+        // NUEVO: los productos cancelados nunca deben cobrarse. Se excluyen
+        // aquí, en el punto único de verdad que usan cobro, precuenta y propina.
         $subtotalBruto = $ordenesActivas->sum(function ($orden) {
-            return $orden->detalles->sum(fn($detalle) => $detalle->cantidad * $detalle->precio_unitario);
+            return $orden->detalles
+                ->where('estado', '!=', 'cancelado')
+                ->sum(fn($detalle) => $detalle->cantidad * $detalle->precio_unitario);
         });
 
         $descuentoPromociones = $ordenesActivas->sum(function ($orden) {
-            return $orden->promocionesAplicadas->sum('monto_descuento');
+            return $orden->promocionesAplicadas
+                ->filter(fn($op) => optional($op->detalleOrden)->estado !== 'cancelado')
+                ->sum('monto_descuento');
         });
 
         // Lista de productos con su descuento, para mostrar en la vista
         $productosConDescuento = $ordenesActivas->flatMap(function ($orden) {
-            return $orden->promocionesAplicadas->map(function ($op) {
-                return [
-                    'producto'        => $op->detalleOrden->producto->nombre ?? 'Producto',
-                    'promocion'       => $op->promocion->nombre ?? 'Promoción',
-                    'monto_descuento' => (float) $op->monto_descuento,
-                ];
-            });
+            return $orden->promocionesAplicadas
+                ->filter(fn($op) => optional($op->detalleOrden)->estado !== 'cancelado')
+                ->map(function ($op) {
+                    return [
+                        'producto'        => $op->detalleOrden->producto->nombre ?? 'Producto',
+                        'promocion'       => $op->promocion->nombre ?? 'Promoción',
+                        'monto_descuento' => (float) $op->monto_descuento,
+                    ];
+                });
         })->values();
 
         $subtotal = round($subtotalBruto - $descuentoPromociones, 2);

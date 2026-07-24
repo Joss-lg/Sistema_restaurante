@@ -172,18 +172,26 @@
         @if(isset($platillosEnviados) && count($platillosEnviados) > 0)
             <div class="flex flex-col gap-2">
                 @foreach($platillosEnviados as $item)
-                    <div class="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl p-3 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow duration-150">
+                    @php $cancelado = ($item->estado ?? '') === 'cancelado'; @endphp
+                    <div id="enviado-item-{{ $item->id }}" class="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl p-3 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow duration-150 {{ $cancelado ? 'opacity-60' : '' }}">
                         <div class="flex items-center gap-3">
                             <span class="w-7 h-7 md:w-6 md:h-6 rounded-lg bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] text-xs md:text-[11px] font-bold flex items-center justify-center shadow-sm">{{ $item->cantidad ?? 1 }}</span>
-                            <span class="text-[13px] md:text-[12px] font-medium text-[var(--text-main)]">{{ $item->nombre ?? 'Platillo' }}</span>
+                            <span class="text-[13px] md:text-[12px] font-medium {{ $cancelado ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-main)]' }}">{{ $item->nombre ?? 'Platillo' }}</span>
                         </div>
-                        <div class="text-right">
-                            @if(($item->estado ?? 'enviado') == 'preparando')
-                                <span class="text-[11px] md:text-[10px] font-bold text-orange-500 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_rgba(249,115,22,0.5)]"></span> Cocina</span>
-                            @elseif(($item->estado ?? 'enviado') == 'listo')
-                                <span class="text-[11px] md:text-[10px] font-bold text-emerald-500 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span> Listo</span>
+                        <div class="flex items-center gap-2">
+                            @if($cancelado)
+                                <span class="text-[11px] md:text-[10px] font-bold text-red-500 uppercase tracking-wide">Cancelado</span>
                             @else
-                                <span class="text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)]"></span> Enviado</span>
+                                @if(($item->estado ?? 'enviado') == 'preparando')
+                                    <span class="text-[11px] md:text-[10px] font-bold text-orange-500 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_rgba(249,115,22,0.5)]"></span> Cocina</span>
+                                @elseif(($item->estado ?? 'enviado') == 'listo')
+                                    <span class="text-[11px] md:text-[10px] font-bold text-emerald-500 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span> Listo</span>
+                                @else
+                                    <span class="text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)]"></span> Enviado</span>
+                                @endif
+                                <button type="button" onclick="cancelarProductoEnviado({{ $item->id }}, this)" class="w-7 h-7 rounded-lg text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-sm">
+                                    <i class="fas fa-trash-alt text-[10px]"></i>
+                                </button>
                             @endif
                         </div>
                     </div>
@@ -203,18 +211,22 @@
             @if(isset($platillosEnviados) && count($platillosEnviados) > 0)
                 <div class="text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] mb-2 px-1 uppercase tracking-wider">Consumo Procesado</div>
                 @foreach($platillosEnviados as $item)
-                    <div class="flex justify-between items-center p-2 rounded-xl hover:bg-[var(--hover-bg)] transition-colors duration-150">
+                    @php $cancelado = ($item->estado ?? '') === 'cancelado'; @endphp
+                    <div class="flex justify-between items-center p-2 rounded-xl hover:bg-[var(--hover-bg)] transition-colors duration-150 {{ $cancelado ? 'opacity-50' : '' }}">
                         <div class="flex items-center gap-3">
                             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-bold">{{ $item->cantidad ?? 1 }}x</span>
-                            <span class="text-[13px] md:text-[12px] font-medium text-[var(--text-main)]">{{ $item->nombre ?? 'Platillo' }}</span>
+                            <span class="text-[13px] md:text-[12px] font-medium {{ $cancelado ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-main)]' }}">{{ $item->nombre ?? 'Platillo' }}</span>
+                            @if($cancelado)
+                                <span class="text-[10px] font-bold text-red-500 uppercase">Cancelado</span>
+                            @endif
                         </div>
-                        <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]">${{ number_format(($item->precio ?? 0) * ($item->cantidad ?? 1), 2) }}</span>
+                        <span class="text-[13px] md:text-[12px] font-bold {{ $cancelado ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-main)]' }}">${{ number_format(($item->precio ?? 0) * ($item->cantidad ?? 1), 2) }}</span>
                     </div>
                 @endforeach
                 <div class="flex justify-between items-center mt-2 pt-3 border-t border-[var(--border-color)] px-2">
                     <span class="text-xs md:text-[11px] font-medium text-[var(--text-muted)]">Subtotal en mesa:</span>
                     <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]">
-                        ${{ number_format(collect($platillosEnviados)->sum(function($i) { return ($i->precio ?? 0) * ($i->cantidad ?? 1); }), 2) }}
+                        ${{ number_format(collect($platillosEnviados)->where('estado', '!=', 'cancelado')->sum(function($i) { return ($i->precio ?? 0) * ($i->cantidad ?? 1); }), 2) }}
                     </span>
                 </div>
             @endif

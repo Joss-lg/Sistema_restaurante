@@ -9,10 +9,14 @@ use App\Models\Producto;
 use App\Models\Orden;
 use App\Models\DetalleOrden;
 use App\Models\Configuracion;
+use App\Models\User;
+use App\Models\OrdenPromocion;
 use App\Services\MesaService;
 use App\Services\ComandaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class MesaController extends Controller
 {
@@ -117,6 +121,94 @@ class MesaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancela un producto individual que ya fue enviado a cocina.
+     * Requiere autorización por NIP de un Capitán o Administrador.
+     * No borra el registro: lo marca como 'cancelado' (queda de historial),
+     * revierte cualquier descuento de promoción asociado y ajusta los
+     * totales acumulados de la orden y la mesa.
+     */
+    public function cancelarProducto(Request $request, $detalleId)
+    {
+        $request->validate([
+            'nip'    => 'required|string',
+            'motivo' => 'nullable|string|max:255',
+        ]);
+
+        // --- Verificación de autorización por NIP (Capitán o Administrador) ---
+        $autorizador = User::where('codigo_empleado', $request->nip)->first();
+
+        if (!$autorizador) {
+            return response()->json([
+                'success' => false,
+                'message' => 'NIP inválido.'
+            ], 403);
+        }
+
+        // Administrador = rol_id 1, Capitán = rol_id 2 (según tabla `roles`;
+        // no existe columna 'slug' en tu esquema, así que validamos por id).
+        if (!in_array((int) $autorizador->rol_id, [1, 2])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este NIP no tiene permisos para autorizar cancelaciones.'
+            ], 403);
+        }
+
+        $detalle = DetalleOrden::findOrFail($detalleId);
+
+        if ($detalle->estado === 'cancelado') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este producto ya fue cancelado anteriormente.'
+            ], 422);
+        }
+
+        $orden = $detalle->orden;
+        $mesa  = Mesa::findOrFail($orden->mesa_id);
+
+        try {
+            DB::transaction(function () use ($detalle, $orden, $mesa, $autorizador, $request) {
+
+                // Monto bruto de la línea cancelada
+                $subtotalProducto = $detalle->cantidad * $detalle->precio_unitario;
+
+                // Si tenía descuento de promoción aplicado, lo revertimos también
+                $descuentoAsociado = OrdenPromocion::where('detalle_orden_id', $detalle->id)->sum('monto_descuento');
+                OrdenPromocion::where('detalle_orden_id', $detalle->id)->delete();
+
+                $montoNeto = $subtotalProducto - $descuentoAsociado;
+
+                // Reflejar en los totales acumulados de orden/mesa
+                if (Schema::hasColumn('ordenes', 'total')) {
+                    $orden->decrement('total', $montoNeto);
+                }
+                if (Schema::hasColumn('mesas', 'total_consumo')) {
+                    $mesa->update(['total_consumo' => max(0, ($mesa->total_consumo ?? 0) - $montoNeto)]);
+                }
+
+                // Marcar el producto como cancelado. Queda como historial, nunca se borra.
+                $detalle->update([
+                    'estado'             => 'cancelado',
+                    'estado_preparacion' => 'cancelado',
+                    'cancelado_motivo'   => $request->motivo,
+                    'cancelado_por'      => $autorizador->id,
+                    'cancelado_en'       => now(),
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto cancelado correctamente.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cancelar: ' . $e->getMessage()
             ], 500);
         }
     }

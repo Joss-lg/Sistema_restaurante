@@ -27,7 +27,9 @@
             <button type="button" onclick="cerrarModal('modalNip')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
         
-        <input type="password" id="nipInput" readonly
+        <input type="password" id="nipInput"
+               maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
                class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 tracking-[0.3em]"
                placeholder="••••">
                
@@ -131,7 +133,10 @@
             <button type="button" onclick="cerrarModal('modalDescuento')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
         
-        <input id="descuentoInput" type="text" readonly class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200" placeholder="0">
+        <input id="descuentoInput" type="text"
+               maxlength="3" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3)"
+               class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200" placeholder="0">
 
         {{-- Teclado Numérico --}}
         <div class="grid grid-cols-3 gap-1.5 mt-4">
@@ -164,7 +169,10 @@
             <button type="button" onclick="cerrarModal('modalPersonas')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
         
-        <input id="personasInput" type="text" readonly class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-[var(--text-main)] focus:ring-4 focus:ring-[var(--text-main)]/10 transition-all duration-200">
+        <input id="personasInput" type="text"
+               maxlength="3" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3)"
+               class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-[var(--text-main)] focus:ring-4 focus:ring-[var(--text-main)]/10 transition-all duration-200">
 
         {{-- Teclado Numérico --}}
         <div class="grid grid-cols-3 gap-1.5 mt-4">
@@ -198,7 +206,10 @@
         </div>
 
         <div class="flex items-center gap-3 mb-2">
-            <input id="gramajeInput" type="text" readonly class="flex-1 min-w-0 rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl font-black text-[var(--text-main)] text-center outline-none" placeholder="0">
+            <input id="gramajeInput" type="text"
+                   inputmode="decimal" autocomplete="off"
+                   oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')"
+                   class="flex-1 min-w-0 rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl font-black text-[var(--text-main)] text-center outline-none" placeholder="0">
             <span class="shrink-0 text-[var(--text-muted)] font-bold text-lg">g</span>
         </div>
 
@@ -324,5 +335,73 @@
     <div class="modal-sheet w-full sm:max-w-md max-h-[92vh] overflow-y-auto hide-scroll rounded-t-[28px] sm:rounded-3xl bg-[var(--bg-panel)] border border-[var(--border-color)] p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-2xl ring-1 ring-black/5">
         <div class="sm:hidden w-10 h-1.5 rounded-full bg-[var(--border-color)] mx-auto mb-4"></div>
         <!-- Contenido de promociones -->
+    </div>
+</div>
+
+{{-- ==========================================
+     11. MODAL NIP CANCELACIÓN DE PRODUCTO
+     (Independiente del modalNip de Capitán/Traspaso)
+     ========================================== --}}
+<div id="modalNipCancelacion" class="modal-overlay hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="modal-sheet w-full sm:max-w-sm max-h-[92vh] overflow-y-auto hide-scroll rounded-t-[28px] sm:rounded-[24px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-2xl ring-1 ring-black/5">
+        <div class="sm:hidden w-10 h-1.5 rounded-full bg-[var(--border-color)] mx-auto mb-4"></div>
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/15 to-red-500/5 border border-red-500/20 flex items-center justify-center">
+                    <i class="fas fa-ban text-red-500 text-xs"></i>
+                </span>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest text-red-500 font-bold">Autorización</p>
+                    <h2 class="text-base sm:text-lg font-bold text-[var(--text-main)] tracking-tight">NIP para Cancelar</h2>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarModalCancelacion()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
+        </div>
+
+        <p class="text-[12px] text-[var(--text-muted)] mb-3">Solicita el NIP de un Capitán o Administrador para autorizar la cancelación de este producto.</p>
+
+        <input type="password" id="nipCancelacionInput"
+               maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
+               class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all duration-200 tracking-[0.3em]"
+               placeholder="••••">
+
+        {{-- Teclado Numérico (reutiliza escribirNumVirtual/borrarNumVirtual, ya son genéricas por ID) --}}
+        <div class="grid grid-cols-3 gap-1.5 mt-4">
+            @foreach(['1','2','3','4','5','6','7','8','9'] as $key)
+                <button type="button" onclick="escribirNumVirtual('nipCancelacionInput', '{{ $key }}')" class="min-h-[44px] rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-red-500/30 hover:bg-[var(--hover-bg)] active:scale-90 text-[var(--text-main)] text-lg font-bold shadow-sm transition-all duration-100">{{ $key }}</button>
+            @endforeach
+            <button type="button" onclick="escribirNumVirtual('nipCancelacionInput', '0')" class="col-span-2 min-h-[44px] rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-red-500/30 hover:bg-[var(--hover-bg)] active:scale-90 text-[var(--text-main)] text-lg font-bold shadow-sm transition-all duration-100">0</button>
+            <button type="button" onclick="borrarNumVirtual('nipCancelacionInput')" class="min-h-[44px] rounded-lg bg-red-500/10 border border-red-500/15 text-red-500 hover:bg-red-500 hover:text-white active:scale-90 text-sm font-bold transition-all duration-150"><i class="fas fa-backspace"></i></button>
+        </div>
+
+        <div class="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
+            <button type="button" onclick="cerrarModalCancelacion()" class="w-full sm:w-auto min-h-[44px] px-6 rounded-xl border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--hover-bg)] active:scale-95 text-xs font-bold transition-all duration-150">Cancelar</button>
+            <button type="button" id="btnConfirmarNipCancelacion" onclick="confirmarNipCancelacion()" class="w-full sm:w-auto min-h-[44px] px-6 rounded-xl bg-gradient-to-b from-red-500 to-red-600 text-white text-xs font-bold active:scale-95 shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/25 transition-all duration-150">Autorizar Cancelación</button>
+        </div>
+    </div>
+</div>
+
+{{-- ==========================================
+     12. MODAL CONFIRMAR CANCELACIÓN DE PRODUCTO
+     ========================================== --}}
+<div id="modalConfirmarCancelacion" class="modal-overlay hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="modal-sheet w-full sm:max-w-sm max-h-[92vh] overflow-y-auto hide-scroll rounded-t-[28px] sm:rounded-[24px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-2xl ring-1 ring-black/5">
+        <div class="sm:hidden w-10 h-1.5 rounded-full bg-[var(--border-color)] mx-auto mb-4"></div>
+
+        <div class="flex flex-col items-center text-center gap-3 mb-2">
+            <span class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500/15 to-red-500/5 border border-red-500/20 flex items-center justify-center">
+                <i class="fas fa-triangle-exclamation text-red-500 text-xl"></i>
+            </span>
+            <div>
+                <h2 class="text-base sm:text-lg font-bold text-[var(--text-main)] tracking-tight">¿Cancelar este producto?</h2>
+                <p class="text-[12px] text-[var(--text-muted)] mt-1.5 leading-relaxed">Esta acción no se puede deshacer y ya no se cobrará al cliente.</p>
+            </div>
+        </div>
+
+        <div class="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
+            <button type="button" onclick="cerrarModalConfirmarCancelacion()" class="w-full sm:w-auto min-h-[44px] px-6 rounded-xl border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--hover-bg)] active:scale-95 text-xs font-bold transition-all duration-150">No, mantener</button>
+            <button type="button" onclick="continuarCancelacionConNip()" class="w-full sm:w-auto min-h-[44px] px-6 rounded-xl bg-gradient-to-b from-red-500 to-red-600 text-white text-xs font-bold active:scale-95 shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/25 transition-all duration-150">Sí, cancelar</button>
+        </div>
     </div>
 </div>
