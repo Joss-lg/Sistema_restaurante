@@ -121,7 +121,6 @@
         }
     </script>
 
-
     {{-- Botón Modo Claro/Oscuro (Arriba a la Derecha) --}}
     <div class="absolute z-50" style="top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right));">
         <button onclick="toggleTheme()" class="action-toggle px-4 py-2 rounded-full flex items-center gap-2 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-lg active:scale-95">
@@ -144,6 +143,27 @@
             <p class="text-[9px] sm:text-[10px] uppercase tracking-[0.4em] font-bold mt-2 opacity-60">Punto de Venta</p>
         </div>
 
+        {{-- ALERTA SI HAY ERROR DE SESIÓN (Ej. Falta de permisos) --}}
+        @if(session('error'))
+            <div class="w-full bg-rose-500/10 border border-rose-500/30 px-3 py-2.5 rounded-xl mb-4 flex items-center justify-center text-center shadow-lg backdrop-blur-sm">
+                <i class="fas fa-exclamation-circle text-rose-500 mr-2 text-xs"></i>
+                <p class="text-rose-500 text-[10px] font-black uppercase tracking-wider leading-tight">
+                    {{ session('error') }}
+                </p>
+            </div>
+        @endif
+
+        {{-- ALERTA SI HAY MENSAJE DE ÉXITO/INFORMACIÓN --}}
+        @if(session('status'))
+            <div class="w-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-2.5 rounded-xl mb-4 flex items-center justify-center text-center shadow-lg backdrop-blur-sm">
+                <i class="fas fa-check-circle text-emerald-500 mr-2 text-xs"></i>
+                <p class="text-emerald-500 text-[10px] font-black uppercase tracking-wider leading-tight">
+                    {{ session('status') }}
+                </p>
+            </div>
+        @endif
+
+        {{-- ALERTA SI HAY ERRORES DE VALIDACIÓN DEL FORMULARIO --}}
         @if($errors->any())
             <div class="w-full bg-rose-500/10 border border-rose-500/20 py-2 sm:py-3 rounded-xl mb-4 flex items-center justify-center">
                 <p class="text-rose-500 text-[10px] font-black uppercase tracking-widest">NIP Incorrecto</p>
@@ -248,7 +268,6 @@
         function submitForm() {
             if (pinHidden.value.length >= 2) pinForm.submit();
         }
-
 
         document.addEventListener('keydown', (e) => {
             if (e.key >= '0' && e.key <= '9') appendNumber(e.key);

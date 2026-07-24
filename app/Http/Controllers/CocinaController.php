@@ -59,74 +59,68 @@ class CocinaController extends Controller
     }
 
     /**
-     * Actualiza el estado de UNA tarjeta específica (orden + lote + área),
-     * NO de la Orden completa. Así, avanzar el estado en Barra no toca los
-     * productos de Cocina de la misma orden, y viceversa.
-     */
-    public function actualizarEstado(Request $request, $id)
-    {
-        $request->validate([
-            'estado' => 'required|in:pendiente,en proceso,servida',
-            'lote'   => 'required|string',
-            'area'   => 'required|in:cocina,barra',
+ * Actualiza el estado de UNA tarjeta específica (orden + lote + área).
+ */
+public function actualizarEstado(Request $request, $id)
+{
+    $request->validate([
+        'estado' => 'required|in:pendiente,en proceso,servida',
+        'lote'   => 'required|string',
+        'area'   => 'required|in:cocina,barra',
+    ]);
+
+    $areaObjetivo = $request->area === 'barra' ? 'Barra' : 'Cocina';
+
+    $orden = Orden::with('detalles.producto.categoria')->findOrFail($id);
+
+    // 1. Buscamos y actualizamos solo los detalles del lote y área seleccionada
+    $idsAActualizar = $orden->detalles
+        ->filter(function ($detalle) use ($request) {
+            $lote = $detalle->lote_envio ?? 'sin-lote';
+            return $lote === $request->lote;
+        })
+        ->filter(function ($detalle) use ($areaObjetivo) {
+            return $this->resolverAreaDetalle($detalle) === $areaObjetivo;
+        })
+        ->pluck('id');
+
+    if ($idsAActualizar->isNotEmpty()) {
+        DetalleOrden::whereIn('id', $idsAActualizar)->update([
+            'estado_preparacion' => $request->estado,
         ]);
+    }
 
-        $areaObjetivo = $request->area === 'barra' ? 'Barra' : 'Cocina';
+    // 2. Sincronizamos el estado global de la Orden
+    $orden->refresh();
 
-        $orden = Orden::with('detalles.producto.categoria')->findOrFail($id);
+    // NUEVO: Excluimos los productos cancelados de la verificación
+    $detallesRelevantes = $orden->detalles->where('estado', '!=', 'cancelado');
 
-        // Filtramos, dentro del lote indicado, solo los detalles que
-        // pertenecen al área objetivo (misma lógica que en construirComandas).
-        $idsAActualizar = $orden->detalles
-            ->filter(function ($detalle) use ($request) {
-                $lote = $detalle->lote_envio ?? 'sin-lote';
-                return $lote === $request->lote;
-            })
-            ->filter(function ($detalle) use ($areaObjetivo) {
-                return $this->resolverAreaDetalle($detalle) === $areaObjetivo;
-            })
-            ->pluck('id');
+    $todosServidos = $detallesRelevantes->isNotEmpty()
+        && $detallesRelevantes->every(fn ($d) => $d->estado_preparacion === 'servida');
 
-        if ($idsAActualizar->isNotEmpty()) {
-            DetalleOrden::whereIn('id', $idsAActualizar)->update([
-                'estado_preparacion' => $request->estado,
-            ]);
-        }
-
-        // Si TODOS los detalles relevantes de la Orden (todas las áreas y
-        // lotes, EXCLUYENDO los cancelados) ya están servidos, marcamos la
-        // Orden completa como 'servida' para que el resto del sistema
-        // (caja, mesero) lo refleje también.
-        $orden->refresh();
-
-        // NUEVO: excluimos los productos cancelados de esta verificación.
-        // Antes, un solo producto cancelado (estado_preparacion='cancelado',
-        // que nunca llega a 'servida') dejaba la orden atorada para siempre
-        // en 'en proceso', aunque todo lo demás ya estuviera listo.
-        $detallesRelevantes = $orden->detalles->where('estado', '!=', 'cancelado');
-
-        $todosServidos = $detallesRelevantes->isNotEmpty()
-            && $detallesRelevantes->every(fn ($d) => $d->estado_preparacion === 'servida');
-
-        if ($todosServidos && $orden->estado !== 'servida') {
+    if ($todosServidos) {
+        if ($orden->estado !== 'servida') {
             $orden->update(['estado' => 'servida']);
-        } elseif (!$todosServidos && $orden->estado === 'pendiente') {
-            // Si al menos un detalle ya avanzó, reflejamos "en proceso" a
-            // nivel Orden (usado por otras pantallas que sí leen Orden->estado).
+        }
+    } else {
+        // NUEVO: Si no están todos servidos pero ya entró a cocina, pasa a 'en proceso'
+        if ($orden->estado === 'pendiente') {
             $orden->update(['estado' => 'en proceso']);
         }
-
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Estado actualizado correctamente.',
-                'estado'  => $request->estado,
-            ]);
-        }
-
-        return redirect()->route('admin.cocina.index', ['area' => $request->area])
-                         ->with('success', 'Estado actualizado correctamente.');
     }
+
+    if ($request->wantsJson() || $request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado actualizado correctamente.',
+            'estado'  => $request->estado,
+        ]);
+    }
+
+    return redirect()->route('admin.cocina.index', ['area' => $request->area])
+                     ->with('success', 'Estado actualizado correctamente.');
+}
 
     /**
      * Lee el área seleccionada desde el query param ?area=, con 'cocina'
@@ -148,11 +142,7 @@ class CocinaController extends Controller
         return $area !== 'Barra' ? 'Cocina' : 'Barra';
     }
 
-    /**
-     * Construye las comandas (tarjetas) y los contadores para el área
-     * seleccionada. Compartido entre index() y apiComandas() para que
-     * ambos siempre devuelvan exactamente lo mismo.
-     */
+        
     private function construirComandas(string $areaSeleccionada): array
     {
         $ordenes = Orden::with(['mesa:id,numero', 'mesero:id,nombre', 'detalles.producto.categoria'])
@@ -163,9 +153,7 @@ class CocinaController extends Controller
 
         $comandasTodas = collect();
         foreach ($ordenes as $orden) {
-            // NUEVO: los productos cancelados nunca deben llegar a la cocina/barra.
-            // Se filtran ANTES de agrupar por lote/área, así una tarjeta cuyo
-            // único contenido fue cancelado simplemente deja de generarse.
+            // Los productos cancelados nunca deben llegar a la cocina/barra.
             $detallesActivos = $orden->detalles->where('estado', '!=', 'cancelado');
 
             $porLote = $detallesActivos->groupBy(function ($detalle) {
@@ -176,17 +164,15 @@ class CocinaController extends Controller
                 $porArea = $detallesLote->groupBy(fn ($detalle) => $this->resolverAreaDetalle($detalle));
 
                 foreach ($porArea as $area => $detallesArea) {
-                    // El estado de la tarjeta es el estado_preparacion de
-                    // sus detalles. Si por alguna razón vienen mezclados
-                    // (no debería pasar, siempre se actualizan juntos),
-                    // usamos el "más atrasado": pendiente > en proceso > servida.
+                    
                     $estadosPresentes = $detallesArea->pluck('estado_preparacion')->unique();
-                    if ($estadosPresentes->contains('pendiente')) {
-                        $estadoTarjeta = 'pendiente';
-                    } elseif ($estadosPresentes->contains('en proceso')) {
-                        $estadoTarjeta = 'en proceso';
-                    } else {
+                    
+                    // NUEVA LÓGICA: Si los detalles no están servidos, nacen DIRECTO en proceso.
+                    if ($estadosPresentes->contains('servida') && $estadosPresentes->count() === 1) {
                         $estadoTarjeta = 'servida';
+                    } else {
+                        // Si contiene 'pendiente' o 'en proceso', entra directo como 'en proceso'
+                        $estadoTarjeta = 'en proceso';
                     }
 
                     // No mostramos tarjetas ya servidas en el tablero activo
@@ -214,8 +200,9 @@ class CocinaController extends Controller
             ->sortBy('creado_en')
             ->values();
 
-        $pendientes = $comandas->where('estado', 'pendiente')->count();
-        $enProceso  = $comandas->where('estado', 'en proceso')->count();
+        // Ajuste de contadores: Ya no hay 'pendientes' aislados en cocina
+        $pendientes = 0; 
+        $enProceso  = $comandas->count(); // Todo lo que está en pantalla está en proceso
 
         // "Servidas" del turno: detalles marcados como servidos hoy, en esta área
         $servidas = DetalleOrden::where('estado_preparacion', 'servida')

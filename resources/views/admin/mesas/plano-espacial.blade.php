@@ -206,7 +206,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-[var(--text-color)] mb-1">Capacidad</label>
+                                <label class="block text-sm font-semibold text-[var(--text-color)] mb-1">No. Comensales</label>
                                 <input type="text" id="propCapacidad"
                                     inputmode="numeric"
                                     autocomplete="off"

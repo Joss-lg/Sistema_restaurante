@@ -23,7 +23,8 @@
             {{-- MOVIDO AQUÍ: Sección de Referencia (justo debajo del método de pago) --}}
             <div id="non-cash-section" class="hidden space-y-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-[2.5rem] p-6">
                 <label class="text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] text-[10px] font-black block text-center">Referencia de operación</label>
-                <input id="referencia" type="text" placeholder="Referencia de operación" class="w-full rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 p-4 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
+                <input id="referencia" type="text" placeholder="Referencia de operación"
+                    class="touch-input w-full rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 p-4 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
             </div>
 
             {{-- 2. Display de Montos --}}
@@ -62,7 +63,8 @@
                     <div class="relative flex-1">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-bold">$</span>
                         <input id="propina-manual-input" type="number" step="0.01" min="0" placeholder="Otro monto"
-                            class="w-full pl-7 pr-4 h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-bold" />
+                            data-teclado="numerico"
+                            class="touch-input pl-7 pr-4 h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-bold" />
                     </div>
                     <button type="button" id="btn-aplicar-propina-manual" class="h-12 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition-all">
                         Aplicar

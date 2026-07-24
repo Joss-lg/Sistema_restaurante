@@ -87,7 +87,12 @@
                 <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/20 flex items-center justify-center">
                     <i class="fas fa-pen text-blue-500 text-xs"></i>
                 </span>
-                <h2 class="text-base sm:text-lg font-bold text-[var(--text-main)] tracking-tight">Instrucción Especial</h2>
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-[var(--text-main)] tracking-tight">Instrucción Especial</h2>
+                    <p class="text-[11px] text-[var(--text-muted)] font-semibold">
+                        Para: <span id="notaModalProducto" class="text-blue-500 font-bold">-</span>
+                    </p>
+                </div>
             </div>
             <button type="button" onclick="cerrarModal('modalNota')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
@@ -116,7 +121,6 @@
         </div>
     </div>
 </div>
-
 {{-- ==========================================
      4. MODAL DESCUENTO (Teclado Numérico Virtual)
      ========================================== --}}

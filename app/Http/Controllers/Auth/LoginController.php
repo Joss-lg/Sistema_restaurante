@@ -138,7 +138,7 @@ class LoginController extends Controller
 
         // 3. Si no cumple ninguna de las anteriores (como un Mesero), 
         // va directo a su panel operativo de mesas que está libre de permisos modulares
-        return redirect()->route('mesero.dashboard');
+        return redirect()->route('login')->with('error', 'Por favor, asigna permisos a este usuario antes de iniciar sesión.');
     }
     /**
      * Credenciales para el login estándar.

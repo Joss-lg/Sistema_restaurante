@@ -1,4 +1,25 @@
 {{-- resources/views/admin/cocina/partials/comandas.blade.php --}}
+
+{{-- Estilos para las animaciones de parpadeo --}}
+<style>
+    @keyframes parpadeoAmarillo {
+        0%, 100% { border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
+        50% { border-color: transparent; box-shadow: none; }
+    }
+    @keyframes parpadeoRojo {
+        0%, 100% { border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); background-color: rgba(239, 68, 68, 0.08); }
+        50% { border-color: transparent; box-shadow: none; background-color: transparent; }
+    }
+    .alerta-amarilla {
+        animation: parpadeoAmarillo 1.5s infinite !important;
+        border-width: 2px !important;
+    }
+    .alerta-roja {
+        animation: parpadeoRojo 1s infinite !important;
+        border-width: 2px !important;
+    }
+</style>
+
 @if($comandas->isEmpty())
     <div class="glass-card rounded-[24px] px-6 py-16 sm:py-24 text-center border border-[var(--border-color)] shadow-xl mt-6 sm:mt-8 bg-[var(--card-color)]">
         <i class="fas fa-check-double text-5xl text-emerald-500 mb-4"></i>
@@ -8,22 +29,34 @@
     <div class="grid gap-3 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 mt-4 sm:mt-8 items-start w-full">
         @foreach($comandas as $comanda)
             @php
-                $config = [
-                    'pendiente' => ['border' => 'border-t-orange-500', 'btn' => 'bg-orange-500 hover:bg-orange-400 text-white', 'textColor' => 'text-orange-500', 'badgeBg' => 'bg-orange-500/10 border-orange-500/30'],
-                    'en proceso' => ['border' => 'border-t-blue-500', 'btn' => 'bg-emerald-500 hover:bg-emerald-400 text-white', 'textColor' => 'text-blue-500', 'badgeBg' => 'bg-blue-500/10 border-blue-500/30'],
-                    'servida' => ['border' => 'border-t-emerald-500', 'btn' => 'bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-color)]', 'textColor' => 'text-emerald-500', 'badgeBg' => 'bg-emerald-500/10 border-emerald-500/30']
-                ][$comanda->estado] ?? ['border' => 'border-t-gray-500', 'btn' => 'bg-gray-500', 'textColor' => 'text-gray-500', 'badgeBg' => 'bg-gray-500/10'];
+                // Parseo seguro de fecha
+                $fechaCarbon = !empty($comanda->creado_en) ? \Carbon\Carbon::parse($comanda->creado_en) : now();
+                $minutosEspera = $fechaCarbon->diffInMinutes(now());
+
+                // Determinamos la clase de parpadeo según los minutos
+                $claseAlerta = '';
+                if ($minutosEspera >= 15) {
+                    $claseAlerta = 'alerta-roja';
+                } elseif ($minutosEspera >= 10) {
+                    $claseAlerta = 'alerta-amarilla';
+                }
+
+                // Formateo del número de mesa para evitar "Mesa mesa 45"
+                $numMesa = $comanda->mesa->numero ?? 'S/N';
+                $labelMesa = \Illuminate\Support\Str::startsWith(strtolower($numMesa), 'mesa') 
+                    ? $numMesa 
+                    : 'Mesa ' . $numMesa;
             @endphp
 
-            <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] {{ $config['border'] }} shadow-lg flex flex-col h-full overflow-hidden relative" data-comanda-id="{{ $comanda->id }}">
+            <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] border-t-emerald-500 shadow-lg flex flex-col h-full overflow-hidden relative transition-all duration-300 {{ $claseAlerta }}" data-comanda-id="{{ $comanda->id }}">
                 <div class="p-4 border-b border-[var(--border-color)] min-w-0 flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                        <h3 class="font-black text-lg truncate">Mesa {{ $comanda->mesa->numero }}</h3>
+                        <h3 class="font-black text-lg truncate capitalize">{{ $labelMesa }}</h3>
                         <p class="text-xs text-[var(--text-muted)] truncate">Mesero: {{ $comanda->mesero->nombre ?? 'N/A' }}</p>
                     </div>
                     <span
                         class="tiempo-espera shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wide whitespace-nowrap bg-zinc-500/10 border-zinc-500/30 text-zinc-400"
-                        data-creado="{{ optional($comanda->creado_en)->toIso8601String() }}"
+                        data-creado="{{ $fechaCarbon->toIso8601String() }}"
                     >
                         <i class="fas fa-clock"></i>
                         <span class="tiempo-texto">--</span>
@@ -42,40 +75,44 @@
                                 ];
                                 $tInfo = $tiempoClases[$detalle->tiempo] ?? null;
                             @endphp
-                            <li class="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-0.5">
-                                <span class="font-bold text-[var(--text-color)] break-words flex flex-wrap items-center gap-1.5">
-                                    {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
-                                    @if($tInfo)
-                                        <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md border {{ $tInfo['clase'] }}">
-                                            <i class="fas fa-clock"></i>Tiempo {{ $tInfo['label'] }}
-                                        </span>
-                                    @endif
-                                    @if($detalle->gramaje)
-                                        @php
-                                            $gramajeLimpio = rtrim(rtrim(number_format((float) $detalle->gramaje, 2, '.', ''), '0'), '.');
-                                        @endphp
-                                        <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-orange-400 bg-orange-500/10 border border-orange-500/30 px-1.5 py-0.5 rounded-md">
-                                            <i class="fas fa-weight-hanging"></i>{{ $gramajeLimpio }}g
-                                        </span>
-                                    @endif
-                                </span>
-                                @if($detalle->notas)
-                                    <span class="block text-[10px] text-red-400 italic break-words">{{ $detalle->notas }}</span>
-                                @endif
-                            </li>
+                           <li class="flex flex-col text-sm gap-1.5">
+    <span class="font-bold text-[var(--text-color)] break-words flex flex-wrap items-center gap-1.5">
+        {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
+        @if($tInfo)
+            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md border {{ $tInfo['clase'] }}">
+                <i class="fas fa-clock"></i>Tiempo {{ $tInfo['label'] }}
+            </span>
+        @endif
+        @if($detalle->gramaje)
+            @php
+                $gramajeLimpio = rtrim(rtrim(number_format((float) $detalle->gramaje, 2, '.', ''), '0'), '.');
+            @endphp
+            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-orange-400 bg-orange-500/10 border border-orange-500/30 px-1.5 py-0.5 rounded-md">
+                <i class="fas fa-weight-hanging"></i>{{ $gramajeLimpio }}g
+            </span>
+        @endif
+    </span>
+    @if($detalle->notas)
+        <span class="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-bold w-full break-words leading-snug">
+            <i class="fas fa-exclamation-circle mt-0.5 shrink-0"></i>
+            <span>{{ $detalle->notas }}</span>
+        </span>
+    @endif
+</li>
                         @endforeach
                     </ul>
                 </div>
 
+                {{-- Formulario con ÚNICO Botón para finalizar la comanda --}}
                 <div class="p-3 sm:p-4 bg-[var(--bg-color)] border-t border-[var(--border-color)]">
                     <form action="{{ route('admin.cocina.orden.estado', $comanda->orden_id) }}" method="POST" class="form-avanzar-estado">
                         @csrf @method('PATCH')
-                        <input type="hidden" name="estado" value="{{ $comanda->estado === 'pendiente' ? 'en proceso' : 'servida' }}">
+                        <input type="hidden" name="estado" value="servida">
                         <input type="hidden" name="lote" value="{{ $comanda->lote }}">
                         <input type="hidden" name="area" value="{{ strtolower($areaSeleccionada) }}">
-                        <button type="submit" {{ $comanda->estado === 'servida' ? 'disabled' : '' }}
-                            class="w-full py-3.5 rounded-xl font-black uppercase text-[12px] tracking-[0.1em] transition-all active:scale-95 {{ $config['btn'] }}">
-                            {{ $comanda->estado === 'pendiente' ? 'Iniciar Preparación' : ($comanda->estado === 'en proceso' ? 'Marcar como Lista' : 'Entregada') }}
+                        <button type="submit"
+                            class="w-full py-3.5 rounded-xl font-black uppercase text-[12px] tracking-[0.1em] transition-all active:scale-95 bg-emerald-500 hover:bg-emerald-400 text-white shadow-md">
+                            MARCAR COMO LISTA
                         </button>
                     </form>
                 </div>

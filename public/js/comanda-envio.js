@@ -39,6 +39,11 @@
         if (!itemActivo) { mostrarError('Selecciona platillo'); return; } 
         const textarea = document.getElementById('notaTextarea');
         const modal = document.getElementById('modalNota');
+        const tituloProducto = document.getElementById('notaModalProducto');
+
+        const nombreProducto = itemActivo.querySelector('.nombre-platillo')?.innerText || 'Producto';
+        if (tituloProducto) tituloProducto.innerText = nombreProducto;
+
         if (textarea) textarea.value = ''; 
         if (modal) modal.classList.remove('hidden'); 
     };
