@@ -51,7 +51,12 @@
             urlTicket: "{{ route('admin.caja.ticket.imprimir', $mesa->id) }}",
             total: {{ $totalPagar ?? 0 }},
             csrfToken: "{{ csrf_token() }}",
-            urlPago: "{{ route('admin.caja.procesar-pago') }}" 
+            urlPago: "{{ route('admin.caja.procesar-pago') }}",
+            // NUEVO: endpoints y datos para la división de cuenta
+            urlDivisionIniciar: "{{ route('admin.caja.division.iniciar') }}",
+            urlDivisionAsignar: "{{ route('admin.caja.division.asignar') }}",
+            urlDivisionCancelar: "{{ route('admin.caja.division.cancelar') }}",
+            division: @json($division ?? null)
         };
     });
 </script>

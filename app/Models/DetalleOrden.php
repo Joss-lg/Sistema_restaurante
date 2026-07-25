@@ -26,12 +26,14 @@ class DetalleOrden extends Model
         'cancelado_motivo',
         'cancelado_por',
         'cancelado_en',
+        'cuenta_division_numero',
     ];
 
     protected $casts = [
         'cantidad' => 'integer',
         'precio_unitario' => 'decimal:2',
         'cancelado_en' => 'datetime',
+        'cuenta_division_numero' => 'integer',
     ];
 
     // Relación con Orden

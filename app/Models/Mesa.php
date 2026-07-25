@@ -52,6 +52,23 @@ class Mesa extends Model
             ->whereNull('ordenes.deleted_at');
     }
 
+    // Relación con las partes de la cuenta cuando la mesa está dividida
+    public function cuentasDivision()
+    {
+        return $this->hasMany(CuentaDivision::class, 'mesa_id');
+    }
+
+    // Partes de la división que aún no se han cobrado
+    public function cuentasDivisionPendientes()
+    {
+        return $this->cuentasDivision()->where('estado', 'pendiente');
+    }
+
+    public function getTieneDivisionActivaAttribute(): bool
+    {
+        return $this->cuentasDivision()->exists();
+    }
+
     public function getTotalConsumoAttribute()
     {
         // Si ya tienes la relación cargada en el controlador, úsala de la memoria

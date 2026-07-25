@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Configuracion;
+use App\Models\CuentaDivision;
+use App\Models\DetalleOrden;
 use App\Models\Mesa;
 use App\Models\CajaMovimiento;
 use App\Models\FlujoCaja;
@@ -55,7 +57,8 @@ class MesaOperacionController extends Controller
             'propina' => $desglose['propina'],
             'totalPagar' => $desglose['total'],
             'cuentasDivididas' => $desglose['cuentasDivididas'],
-            'totalCuentasDivision' => $desglose['totalCuentasDivision']
+            'totalCuentasDivision' => $desglose['totalCuentasDivision'],
+            'division' => $desglose['division'],
         ]);
     }
 
@@ -63,6 +66,9 @@ class MesaOperacionController extends Controller
     {
         $request->validate([
             'mesa_id' => 'required|exists:mesas,id',
+            // NUEVO: si la mesa está dividida, indica QUÉ parte se está cobrando.
+            // Si se omite y la mesa no tiene división activa, se cobra completa (comportamiento original).
+            'cuenta_division_id' => 'nullable|integer|exists:cuentas_division,id',
             'pagos' => 'required|array|min:1',
             'pagos.*.metodo' => 'required|string|in:efectivo,tarjeta,transferencia',
             'pagos.*.monto' => 'required|numeric|min:0',
@@ -79,8 +85,25 @@ class MesaOperacionController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request, $cajaActiva) {
+            $resultado = DB::transaction(function () use ($request, $cajaActiva) {
                 $mesa = Mesa::findOrFail($request->mesa_id);
+
+                // Si viene cuenta_division_id, estamos cobrando SOLO esa parte.
+                $cuentaDivision = null;
+                if ($request->filled('cuenta_division_id')) {
+                    $cuentaDivision = CuentaDivision::where('id', $request->cuenta_division_id)
+                        ->where('mesa_id', $mesa->id)
+                        ->firstOrFail();
+
+                    if ($cuentaDivision->estado === 'pagada') {
+                        throw new \Exception('Esta parte de la cuenta ya fue pagada.');
+                    }
+                } elseif ($mesa->cuentasDivisionPendientes()->exists()) {
+                    // La mesa tiene una división activa pero se intentó cobrar
+                    // todo de golpe sin indicar a quién: lo bloqueamos para no
+                    // duplicar el cobro de las partes ya pagadas.
+                    throw new \Exception('Esta mesa tiene la cuenta dividida. Selecciona a la persona que vas a cobrar.');
+                }
 
                 // AJUSTE: se toman TODAS las órdenes activas de la mesa, no
                 // solo la primera. La propina puede vivir en cualquiera de
@@ -89,7 +112,11 @@ class MesaOperacionController extends Controller
                 $ordenesActivas = $mesa->ordenesActivas()->get();
                 $orden = $ordenesActivas->first();
 
-                $propinaOrden = $ordenesActivas->sum(fn ($o) => floatval($o->propina));
+                // La propina "base" a prorratear es la de la parte que se está
+                // cobrando (si hay división) o la de toda la mesa (pago único).
+                $propinaBase = $cuentaDivision
+                    ? (float) $cuentaDivision->propina
+                    : $ordenesActivas->sum(fn ($o) => floatval($o->propina));
 
                 $sumaTotal = collect($request->pagos)->sum(fn($p) => floatval($p['monto']));
                 $sumaRastreable = collect($request->pagos)
@@ -97,8 +124,12 @@ class MesaOperacionController extends Controller
                     ->sum(fn($p) => floatval($p['monto']));
 
                 $propinaRastreableTotal = ($sumaTotal > 0)
-                    ? round($propinaOrden * ($sumaRastreable / $sumaTotal), 2)
+                    ? round($propinaBase * ($sumaRastreable / $sumaTotal), 2)
                     : 0;
+
+                $etiquetaPersona = $cuentaDivision
+                    ? " (Persona {$cuentaDivision->numero_cuenta}/{$cuentaDivision->total_partes})"
+                    : '';
 
                 foreach ($request->pagos as $pago) {
                     $monto = floatval($pago['monto']);
@@ -109,7 +140,7 @@ class MesaOperacionController extends Controller
                             'caja_movimiento_id' => $cajaActiva->id, 
                             'tipo'               => 'ingreso',
                             'categoria'          => 'Ventas',
-                            'concepto'           => "Pago Mesa #M" . $mesa->numero,
+                            'concepto'           => "Pago Mesa #M" . $mesa->numero . $etiquetaPersona,
                             'monto'              => $monto,
                             'metodo_pago'        => $metodo,
                             'referencia'         => !empty($pago['referencia']) ? trim($pago['referencia']) : null,
@@ -136,13 +167,33 @@ class MesaOperacionController extends Controller
                     }
                 }
 
+                if ($cuentaDivision) {
+                    $cuentaDivision->update([
+                        'estado'             => 'pagada',
+                        'pagada_el'          => now(),
+                        'caja_movimiento_id' => $cajaActiva->id,
+                    ]);
+
+                    // Solo se libera la mesa cuando TODAS las partes están pagadas.
+                    if (!$mesa->cuentasDivisionPendientes()->exists()) {
+                        $this->cajaService->liberarMesa($mesa);
+                        return ['mesaLiberada' => true];
+                    }
+
+                    return ['mesaLiberada' => false];
+                }
+
                 $this->cajaService->liberarMesa($mesa);
+                return ['mesaLiberada' => true];
             });
 
             return response()->json([
-                'success' => true, 
-                'message' => 'El pago se procesó y registró correctamente.',
-                'redirect_url' => route('admin.caja.index')
+                'success'       => true,
+                'mesa_liberada' => $resultado['mesaLiberada'],
+                'message'       => $resultado['mesaLiberada']
+                    ? 'El pago se procesó y registró correctamente.'
+                    : 'Pago registrado. Aún quedan personas pendientes de pagar en esta mesa.',
+                'redirect_url'  => $resultado['mesaLiberada'] ? route('admin.caja.index') : null,
             ]);
 
         } catch (\Exception $e) {
@@ -150,8 +201,76 @@ class MesaOperacionController extends Controller
             
             return response()->json([
                 'success' => false, 
-                'message' => 'Hubo un problema al procesar la venta en el servidor.'
-            ], 500);
+                'message' => $e->getMessage() ?: 'Hubo un problema al procesar la venta en el servidor.'
+            ], 422);
+        }
+    }
+
+    // ==========================================================================
+    // DIVISIÓN DE CUENTA
+    // ==========================================================================
+
+    /**
+     * Inicia la división de la cuenta de una mesa: 'equitativa' (partes
+     * iguales) o 'por_producto' (cada quien paga lo que consumió).
+     */
+    public function iniciarDivision(Request $request): JsonResponse
+    {
+        $request->validate([
+            'mesa_id'  => 'required|exists:mesas,id',
+            'tipo'     => 'required|in:equitativa,por_producto',
+            'personas' => 'required|integer|min:2|max:20',
+        ]);
+
+        try {
+            $mesa = Mesa::findOrFail($request->mesa_id);
+            $division = $this->cajaService->iniciarDivision($mesa, $request->tipo, (int) $request->personas);
+
+            return response()->json(['success' => true, 'division' => $division]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Asigna (o reasigna) un producto de la comanda a una persona de la
+     * división 'por_producto'. Lo puede hacer el mesero al enviar la
+     * comanda o el cajero al momento de cobrar.
+     */
+    public function asignarProductoDivision(Request $request): JsonResponse
+    {
+        $request->validate([
+            'mesa_id'       => 'required|exists:mesas,id',
+            'detalle_id'    => 'required|exists:detalles_orden,id',
+            'numero_cuenta' => 'required|integer|min:1',
+        ]);
+
+        try {
+            $mesa = Mesa::findOrFail($request->mesa_id);
+            $detalle = DetalleOrden::findOrFail($request->detalle_id);
+
+            $division = $this->cajaService->asignarProductoAPersona($mesa, $detalle, (int) $request->numero_cuenta);
+
+            return response()->json(['success' => true, 'division' => $division]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Cancela la división activa de una mesa (vuelve a cobro normal).
+     */
+    public function cancelarDivision(Request $request): JsonResponse
+    {
+        $request->validate(['mesa_id' => 'required|exists:mesas,id']);
+
+        try {
+            $mesa = Mesa::findOrFail($request->mesa_id);
+            $this->cajaService->cancelarDivision($mesa);
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
     }
 

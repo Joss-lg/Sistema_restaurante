@@ -6,6 +6,16 @@
         <input id="mesa-id" type="hidden" value="{{ $mesa->id }}">
         <input id="orden-id" type="hidden" value="{{ $ordenes->first()->id ?? '' }}">
         <input id="metodo-pago" type="hidden" value="Efectivo">
+        {{-- NUEVO: cuando la mesa está dividida, aquí va el id de la persona seleccionada --}}
+        <input id="cuenta-division-id" type="hidden" value="">
+
+        @if(!empty($division))
+            <div class="mb-2 p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-center">
+                <p class="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400" id="aviso-division-panel">
+                    Selecciona una persona en el panel izquierdo para cobrar su parte
+                </p>
+            </div>
+        @endif
 
         <div class="flex-1 space-y-6 overflow-y-auto pr-2">
 
@@ -47,26 +57,33 @@
             </div>
 
             {{-- NUEVO: Selector de Propina --}}
-            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-[2rem] p-5">
+            @php $propinaBloqueada = !empty($division); @endphp
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-[2rem] p-5 {{ $propinaBloqueada ? 'opacity-50' : '' }}">
                 <p class="text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.25em] text-[10px] font-black mb-3 text-center">
                     ¿Cuánta propina desea dejar?
                 </p>
 
+                @if($propinaBloqueada)
+                    <p class="text-center text-[10px] text-amber-500 font-black uppercase mb-3">
+                        <i class="fas fa-lock"></i> Cancela la división para ajustar la propina
+                    </p>
+                @endif
+
                 <div class="grid grid-cols-4 gap-2 mb-3" id="propina-porcentaje-botones">
-                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="0">Sin propina</button>
-                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="10">10%</button>
-                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="15">15%</button>
-                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="20">20%</button>
+                    <button type="button" {{ $propinaBloqueada ? 'disabled' : '' }} class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all disabled:cursor-not-allowed" data-porcentaje="0">Sin propina</button>
+                    <button type="button" {{ $propinaBloqueada ? 'disabled' : '' }} class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all disabled:cursor-not-allowed" data-porcentaje="10">10%</button>
+                    <button type="button" {{ $propinaBloqueada ? 'disabled' : '' }} class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all disabled:cursor-not-allowed" data-porcentaje="15">15%</button>
+                    <button type="button" {{ $propinaBloqueada ? 'disabled' : '' }} class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all disabled:cursor-not-allowed" data-porcentaje="20">20%</button>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-bold">$</span>
-                        <input id="propina-manual-input" type="number" step="0.01" min="0" placeholder="Otro monto"
+                        <input id="propina-manual-input" type="number" step="0.01" min="0" placeholder="Otro monto" {{ $propinaBloqueada ? 'disabled' : '' }}
                             data-teclado="numerico"
                             class="touch-input pl-7 pr-4 h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-bold" />
                     </div>
-                    <button type="button" id="btn-aplicar-propina-manual" class="h-12 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition-all">
+                    <button type="button" id="btn-aplicar-propina-manual" {{ $propinaBloqueada ? 'disabled' : '' }} class="h-12 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition-all disabled:cursor-not-allowed disabled:opacity-50">
                         Aplicar
                     </button>
                 </div>
@@ -80,7 +97,7 @@
             <div class="grid grid-cols-2 gap-4 pb-12">
                 <button id="btn-ticket" class="bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white font-black py-5 rounded-2xl border border-zinc-200 dark:border-white/10 transition-all">TICKET</button>
                 {{-- ID btn-procesar-pago para JS --}}
-                <button id="btn-procesar-pago" class="bg-green-500 hover:bg-green-400 text-black font-black py-5 rounded-2xl transition-all">FINALIZAR</button>
+                <button id="btn-procesar-pago" data-dividido="{{ !empty($division) ? '1' : '0' }}" class="bg-green-500 hover:bg-green-400 text-black font-black py-5 rounded-2xl transition-all">FINALIZAR</button>
             </div>
         </div>
     </div>

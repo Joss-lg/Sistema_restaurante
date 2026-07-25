@@ -91,8 +91,180 @@ document.addEventListener('DOMContentLoaded', () => {
         return; 
     }
 
-    const totalPagar = parseFloat(totalElement.innerText.replace(/[^0-9.]/g, '')) || 0;
+    // NOTA: totalPagar ahora es mutable porque cuando la mesa está dividida
+    // cambia según qué persona esté seleccionada en ese momento.
+    let totalPagar = parseFloat(totalElement.innerText.replace(/[^0-9.]/g, '')) || 0;
     let montoActual = "0.00";
+
+    // ==========================================================================
+    // 0. DIVISIÓN DE CUENTA (partes iguales / por consumo)
+    // ==========================================================================
+    const config = window.COBRO_CONFIG || {};
+    let division = config.division || null; // { tipo, total_partes, completa, cuentas: [...] } | null
+    let cuentaSeleccionadaId = null;
+
+    const inputCuentaDivisionId = document.getElementById('cuenta-division-id');
+    const btnAbrirDivision = document.getElementById('btn-abrir-division');
+    const panelIniciarDivision = document.getElementById('panel-iniciar-division');
+    const btnConfirmarDivision = document.getElementById('btn-confirmar-division');
+    const btnCancelarDivision = document.getElementById('btn-cancelar-division');
+    const tipoDivisionBtns = document.querySelectorAll('.tipo-division-btn');
+    const inputNumeroPersonas = document.getElementById('input-numero-personas');
+    let tipoDivisionSeleccionado = 'equitativa';
+
+    function csrfToken() {
+        return (document.querySelector('meta[name="csrf-token"]') || {}).content || config.csrfToken;
+    }
+
+    async function postJSON(url, body) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+        return response.json();
+    }
+
+    if (btnAbrirDivision && panelIniciarDivision) {
+        btnAbrirDivision.addEventListener('click', () => {
+            panelIniciarDivision.classList.toggle('hidden');
+        });
+    }
+
+    tipoDivisionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tipoDivisionSeleccionado = btn.dataset.tipoDivision;
+            tipoDivisionBtns.forEach(b => {
+                b.classList.remove('border-blue-500', 'bg-blue-500/10', 'text-blue-600', 'dark:text-blue-300');
+                b.classList.add('border-zinc-200', 'dark:border-white/10', 'text-zinc-600', 'dark:text-zinc-300');
+            });
+            btn.classList.add('border-blue-500', 'bg-blue-500/10', 'text-blue-600', 'dark:text-blue-300');
+            btn.classList.remove('border-zinc-200', 'dark:border-white/10', 'text-zinc-600', 'dark:text-zinc-300');
+        });
+    });
+
+    if (btnConfirmarDivision) {
+        btnConfirmarDivision.addEventListener('click', async () => {
+            const personas = parseInt(inputNumeroPersonas.value, 10) || 0;
+            if (personas < 2) {
+                alert('Se necesitan al menos 2 personas para dividir la cuenta.');
+                return;
+            }
+
+            btnConfirmarDivision.disabled = true;
+            try {
+                const data = await postJSON(config.urlDivisionIniciar, {
+                    mesa_id: config.mesaId,
+                    tipo: tipoDivisionSeleccionado,
+                    personas
+                });
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo dividir la cuenta.'));
+                    btnConfirmarDivision.disabled = false;
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Ocurrió un error al dividir la cuenta.');
+                btnConfirmarDivision.disabled = false;
+            }
+        });
+    }
+
+    if (btnCancelarDivision) {
+        btnCancelarDivision.addEventListener('click', async () => {
+            if (!confirm('¿Cancelar la división de la cuenta? Se perderán las asignaciones hechas.')) return;
+
+            try {
+                const data = await postJSON(config.urlDivisionCancelar, { mesa_id: config.mesaId });
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo cancelar la división.'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Ocurrió un error al cancelar la división.');
+            }
+        });
+    }
+
+    // Asignar/reasignar un producto a una persona (modo "por consumo")
+    document.querySelectorAll('.btn-asignar-persona').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const detalleId = btn.dataset.detalleId;
+            const numeroCuenta = parseInt(btn.dataset.numero, 10);
+
+            try {
+                const data = await postJSON(config.urlDivisionAsignar, {
+                    mesa_id: config.mesaId,
+                    detalle_id: detalleId,
+                    numero_cuenta: numeroCuenta
+                });
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo asignar el producto.'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Ocurrió un error al asignar el producto.');
+            }
+        });
+    });
+
+    // Selección de la persona a cobrar (tabs "Persona N")
+    const tabsCuentas = document.querySelectorAll('#tabs-cuentas-division .btn-cuenta');
+    const resumenTotal = document.getElementById('resumen-total');
+    const resumenSubtotal = document.getElementById('resumen-subtotal');
+    const resumenIva = document.getElementById('resumen-iva');
+    const resumenPropina = document.getElementById('resumen-propina');
+    const resumenPersonaSel = document.getElementById('resumen-persona-seleccionada');
+    const avisoDivisionPanel = document.getElementById('aviso-division-panel');
+
+    function actualizarBotonFinalizar() {
+        if (!btnPagar || btnPagar.dataset.dividido !== '1') return;
+        btnPagar.disabled = !cuentaSeleccionadaId;
+        btnPagar.innerText = cuentaSeleccionadaId ? 'COBRAR ESTA PERSONA' : 'FINALIZAR';
+    }
+
+    function seleccionarCuenta(btn) {
+        tabsCuentas.forEach(b => b.classList.remove('ring-2', 'ring-blue-500'));
+        btn.classList.add('ring-2', 'ring-blue-500');
+
+        cuentaSeleccionadaId = btn.dataset.cuentaId;
+        if (inputCuentaDivisionId) inputCuentaDivisionId.value = cuentaSeleccionadaId;
+
+        totalPagar = parseFloat(btn.dataset.total) || 0;
+
+        if (totalElement) totalElement.innerText = '$' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        if (resumenTotal) resumenTotal.textContent = '$' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        if (resumenSubtotal) resumenSubtotal.textContent = '$' + (parseFloat(btn.dataset.subtotal) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+        if (resumenIva) resumenIva.textContent = '$' + (parseFloat(btn.dataset.iva) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+        if (resumenPropina) resumenPropina.textContent = '$' + (parseFloat(btn.dataset.propina) || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+        if (resumenPersonaSel) resumenPersonaSel.textContent = 'Cobrando a: Persona ' + btn.dataset.numero;
+        if (avisoDivisionPanel) avisoDivisionPanel.textContent = 'Cobrando a Persona ' + btn.dataset.numero + ' · $' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+        // Precarga el monto exacto de esta persona, el cajero puede editarlo si paga con más (para dar cambio)
+        montoActual = totalPagar.toFixed(2);
+        actualizarDisplay(montoActual);
+
+        actualizarBotonFinalizar();
+    }
+
+    tabsCuentas.forEach(btn => {
+        if (btn.disabled) return;
+        btn.addEventListener('click', () => seleccionarCuenta(btn));
+    });
+
+    actualizarBotonFinalizar();
 
     // ==========================================================================
     // 2. TECLADO DIGITAL DEL PANEL DE CONTROL
@@ -257,6 +429,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // NUEVO: si la mesa está dividida, hay que tener una persona seleccionada
+            if (btnPagar.dataset.dividido === '1' && !cuentaSeleccionadaId) {
+                alert('Selecciona primero a la persona que vas a cobrar.');
+                return;
+            }
+
             btnPagar.disabled = true;
             btnPagar.innerText = 'PROCESANDO...';
 
@@ -266,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const payload = {
                 mesa_id: inputMesa.value,
+                cuenta_division_id: cuentaSeleccionadaId || null,
                 pagos: [
                     { 
                         metodo: metodo.toLowerCase(), 
@@ -285,6 +464,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const inputMesa = document.getElementById('mesa-id');
             if (!inputMesa) return;
 
+            if (btnPagar && btnPagar.dataset.dividido === '1' && !cuentaSeleccionadaId) {
+                alert('Selecciona primero a la persona que vas a cobrar.');
+                return;
+            }
+
             btnConfirmarCombinado.disabled = true;
             btnConfirmarCombinado.innerText = 'PROCESANDO...';
 
@@ -294,6 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const payload = {
                 mesa_id: inputMesa.value,
+                cuenta_division_id: cuentaSeleccionadaId || null,
                 pagos: [
                     { 
                         metodo: 'efectivo', 
@@ -346,11 +531,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.success) {
-                // AJUSTE: ya no depende de leer 'orden-id' del DOM. El ticket
-                // se imprime por MESA usando la URL ya armada en COBRO_CONFIG,
-                // así siempre incluye todas las órdenes activas de la mesa.
-                mostrarTicketFlotante();
-                window.location.href = data.redirect_url || '/caja';
+                if (data.mesa_liberada) {
+                    // AJUSTE: ya no depende de leer 'orden-id' del DOM. El ticket
+                    // se imprime por MESA usando la URL ya armada en COBRO_CONFIG,
+                    // así siempre incluye todas las órdenes activas de la mesa.
+                    mostrarTicketFlotante();
+                    window.location.href = data.redirect_url || '/caja';
+                } else {
+                    // Pago de una persona registrado, pero aún quedan otras
+                    // partes pendientes: la mesa sigue abierta. Recargamos
+                    // para reflejar quién ya pagó y limpiar la selección.
+                    alert(data.message || 'Pago registrado. Selecciona a la siguiente persona.');
+                    location.reload();
+                }
             } else {
                 alert('Error: ' + data.message);
                 restaurarBoton(botonActivo);

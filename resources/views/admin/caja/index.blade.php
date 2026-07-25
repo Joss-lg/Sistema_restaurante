@@ -78,7 +78,7 @@
                                 <p class="text-sm sm:text-xl font-black text-emerald-600 dark:text-emerald-400">${{ number_format($mesa->total_real ?? 0, 2) }}</p>
                             </div>
                             <div class="w-full py-2.5 sm:py-3.5 flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-emerald-600 dark:bg-emerald-600 text-white shadow-sm transition-all duration-200 group-hover:bg-emerald-700">
-                                💰 <span class="hidden sm:inline ml-1">Cobrar</span>
+                                 <span class="hidden sm:inline ml-1">Cobrar</span>
                             </div>
                         </div>
                     </div>
