@@ -17,16 +17,60 @@ const DISPLAY_BASE = {
     "{default}": "ABC"
 };
 
+// Tipos de <input> que NUNCA deben abrir el teclado virtual (selects,
+// checkboxes, fechas nativas, archivos, etc. ya tienen su propio control).
+const TIPOS_EXCLUIDOS = [
+    "checkbox", "radio", "file", "hidden", "submit", "button",
+    "range", "color", "date", "time", "datetime-local", "month",
+    "week", "image", "reset"
+];
+
+/**
+ * Decide si un elemento debe abrir el teclado virtual al enfocarse.
+ * Por defecto aplica a cualquier <input> de texto/número y <textarea>
+ * de toda la app (ya no hace falta agregar la clase "touch-input" a mano
+ * en cada formulario). Para excluir un campo puntual, se le puede poner
+ * el atributo `data-no-teclado`.
+ */
+function esCampoValido(el) {
+    if (!el) return false;
+    if (el.disabled || el.readOnly) return false;
+    if (el.hasAttribute("data-no-teclado")) return false;
+
+    if (el instanceof HTMLTextAreaElement) return true;
+
+    if (el instanceof HTMLInputElement) {
+        return !TIPOS_EXCLUIDOS.includes(el.type);
+    }
+
+    return false;
+}
+
 function crearTeclado() {
     const contenedor = document.getElementById("teclado-virtual-contenedor");
+    if (!contenedor) return;
 
-    // Manija de arrastre (se crea una sola vez, arriba del teclado)
-    const manija = document.createElement("div");
-    manija.className = "teclado-drag-handle";
-    manija.innerHTML = "⠿⠿⠿ &nbsp;Mover&nbsp; ⠿⠿⠿";
-    contenedor.insertBefore(manija, contenedor.firstChild);
+    // Header: manija para arrastrar + título del campo + botón de cerrar.
+    // Se crea una sola vez, arriba del teclado.
+    const header = document.createElement("div");
+    header.className = "teclado-virtual-header";
+    header.innerHTML = `
+        <span class="teclado-drag-handle" title="Arrastra para mover · doble tap para regresar">⠿⠿⠿ Mover</span>
+        <span class="teclado-virtual-titulo" id="teclado-virtual-titulo"></span>
+        <button type="button" class="teclado-virtual-cerrar" id="teclado-virtual-cerrar" aria-label="Cerrar teclado">
+            ✕ Cerrar
+        </button>
+    `;
+    contenedor.insertBefore(header, contenedor.firstChild);
 
-    habilitarArrastre(contenedor, manija);
+    habilitarArrastre(contenedor, header.querySelector(".teclado-drag-handle"));
+
+    header.querySelector("#teclado-virtual-cerrar").addEventListener("click", () => {
+        // Si venía de un campo real, le devolvemos el foco visualmente
+        // cerrado (blur) para que quede claro que ya terminó de escribir.
+        if (inputActivo) inputActivo.blur();
+        ocultarTeclado();
+    });
 
     keyboard = new Keyboard({
         onChange: input => {
@@ -156,7 +200,12 @@ function mostrarTeclado(input) {
     if (!keyboard) crearTeclado();
     mayusculasActivas = false;
 
-    const esNumerico = input.dataset.teclado === "numerico";
+    // Numérico si se pidió explícitamente (data-teclado="numerico") o si
+    // el propio campo ya es de tipo numérico/teléfono.
+    const esNumerico = input.dataset.teclado === "numerico"
+        || input.type === "number"
+        || input.type === "tel";
+
     const contenedor = document.getElementById("teclado-virtual-contenedor");
 
     keyboard.setOptions({
@@ -164,6 +213,14 @@ function mostrarTeclado(input) {
         display: DISPLAY_BASE
     });
     contenedor.classList.toggle("teclado-numerico", esNumerico);
+
+    const tituloEl = document.getElementById("teclado-virtual-titulo");
+    if (tituloEl) {
+        tituloEl.textContent = input.placeholder
+            || input.getAttribute("aria-label")
+            || input.name
+            || "";
+    }
 
     // Si el usuario ya lo movió antes, respeta esa posición
     if (posicionGuardada) {
@@ -183,14 +240,30 @@ function ocultarTeclado() {
 }
 
 export function inicializarTecladoVirtual() {
+    // Captura en fase "capture" para detectar el foco aunque el campo esté
+    // dentro de un modal que se acaba de abrir, y para cualquier input de
+    // texto/número de toda la app (ver esCampoValido más arriba).
     document.addEventListener("focus", e => {
-        if (e.target.matches(".touch-input")) mostrarTeclado(e.target);
+        if (esCampoValido(e.target)) mostrarTeclado(e.target);
+    }, true);
+
+    // Si el campo activo se destruye/oculta (p. ej. se cerró el modal que
+    // lo contenía) sin que el usuario haya cerrado el teclado a mano, lo
+    // cerramos solos para que no se quede flotando "pegado" en pantalla.
+    document.addEventListener("focusout", e => {
+        if (e.target === inputActivo) {
+            setTimeout(() => {
+                if (!inputActivo) return;
+                const desapareció = !document.body.contains(inputActivo) || inputActivo.offsetParent === null;
+                if (desapareció) ocultarTeclado();
+            }, 0);
+        }
     }, true);
 
     document.addEventListener("click", e => {
         const contenedor = document.getElementById("teclado-virtual-contenedor");
         if (contenedor && !contenedor.classList.contains("oculto")) {
-            if (!e.target.closest("#teclado-virtual-contenedor") && !e.target.matches(".touch-input")) {
+            if (!e.target.closest("#teclado-virtual-contenedor") && !esCampoValido(e.target)) {
                 ocultarTeclado();
             }
         }

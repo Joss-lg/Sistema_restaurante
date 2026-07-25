@@ -7,16 +7,16 @@
 @endphp
 <div class="flex flex-col h-full bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
 
-    <div class="p-6">
+    <div class="p-4 pb-2">
         @if($esDividida)
-            <div class="mt-2 p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+            <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-1">
+                        <p class="text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-0.5">
                             <i class="fas fa-users"></i> Cuenta Dividida
                             · {{ $tipoDivision === 'equitativa' ? 'Partes iguales' : 'Por consumo' }}
                         </p>
-                        <p class="text-zinc-900 dark:text-white text-sm font-bold">Dividida entre {{ $totalPartes }} personas</p>
+                        <p class="text-zinc-900 dark:text-white text-xs font-bold">Dividida entre {{ $totalPartes }} personas</p>
                     </div>
                     <button type="button" id="btn-cancelar-division"
                         class="text-[10px] font-black uppercase text-red-500 hover:text-red-600 whitespace-nowrap">
@@ -59,13 +59,13 @@
     </div>
 
     @if($esDividida)
-        <div class="px-6 pb-4">
-            <div class="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2" id="tabs-cuentas-division">
+        <div class="px-4 pb-2">
+            <div class="flex gap-1.5 overflow-x-auto pb-1.5 -mx-1 px-1" id="tabs-cuentas-division">
                 @foreach($division['cuentas'] as $cuenta)
                     @php $esPagada = $cuenta['estado_orden'] === 'pagada'; @endphp
                     <button
                         type="button"
-                        class="btn-cuenta px-4 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 border-2 {{ $esPagada ? 'bg-emerald-50 dark:bg-emerald-900/50 border-emerald-500 text-emerald-700 dark:text-emerald-200 opacity-70 cursor-not-allowed' : 'bg-zinc-50 dark:bg-zinc-900 border-blue-500 text-zinc-900 dark:text-white hover:bg-blue-500/10' }}"
+                        class="btn-cuenta px-3 py-1.5 rounded-lg font-bold text-[11px] whitespace-nowrap transition-all flex items-center gap-1.5 border-2 {{ $esPagada ? 'bg-emerald-50 dark:bg-emerald-900/50 border-emerald-500 text-emerald-700 dark:text-emerald-200 opacity-70 cursor-not-allowed' : 'bg-zinc-50 dark:bg-zinc-900 border-blue-500 text-zinc-900 dark:text-white hover:bg-blue-500/10' }}"
                         data-cuenta-id="{{ $cuenta['id'] }}"
                         data-numero="{{ $cuenta['numero_cuenta'] }}"
                         data-subtotal="{{ number_format($cuenta['subtotal'], 2, '.', '') }}"
@@ -73,93 +73,104 @@
                         data-propina="{{ number_format($cuenta['propina'], 2, '.', '') }}"
                         data-total="{{ number_format($cuenta['total'], 2, '.', '') }}"
                         {{ $esPagada ? 'disabled' : '' }}>
-                        @if($esPagada) <i class="fas fa-check"></i> @endif
-                        <span class="texto-cuenta">Persona {{ $cuenta['numero_cuenta'] }} · ${{ number_format($cuenta['total'], 2) }}</span>
+                        @if($esPagada) <i class="fas fa-check text-[10px]"></i> @endif
+                        <span class="texto-cuenta">P{{ $cuenta['numero_cuenta'] }} · <span class="valor-cuenta">${{ number_format($cuenta['total'], 2) }}</span></span>
                     </button>
                 @endforeach
             </div>
             @if($tipoDivision === 'por_producto')
-                <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase mt-1">
-                    Toca el número de persona en cada producto para asignarlo o reasignarlo.
+                <p class="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold uppercase">
+                    Usa + / − para repartir unidades entre personas.
                 </p>
             @else
-                <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase mt-1">
+                <p class="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold uppercase">
                     Selecciona una persona para cobrar su parte.
                 </p>
             @endif
         </div>
     @endif
 
-    <div class="px-6 pb-6 space-y-4 flex-1 overflow-y-auto" id="productos-container">
+    <div class="px-4 pb-3 space-y-1 flex-1 min-h-0 overflow-y-auto" id="productos-container">
         @foreach($ordenes as $ordenActual)
             @foreach($ordenActual->detalles->where('estado', '!=', 'cancelado') as $detalle)
-                <div class="flex items-center justify-between group p-3 rounded-2xl hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black text-xs rounded-xl flex items-center justify-center border border-blue-500/20">
-                            {{ $detalle->cantidad }}x
+                <div class="producto-row py-1.5 px-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <div class="w-7 h-7 shrink-0 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black text-[10px] rounded-md flex items-center justify-center border border-blue-500/20">
+                                {{ $detalle->cantidad }}x
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-zinc-900 dark:text-white font-bold text-[13px] leading-tight truncate">{{ $detalle->producto->nombre ?? 'Producto sin nombre' }}</p>
+                                <p class="text-[9px] text-zinc-500 dark:text-zinc-400 font-semibold leading-tight">Unit: ${{ number_format($detalle->precio_unitario, 2) }}</p>
+
+                                @if($detalle->notas)
+                                    <p class="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold uppercase italic truncate leading-tight">{{ $detalle->notas }}</p>
+                                @endif
+
+                                @if($detalle->promocionAplicada)
+                                    <p class="text-[9px] text-emerald-600 dark:text-emerald-400 font-black uppercase flex items-center gap-1 leading-tight">
+                                        <i class="fas fa-tag"></i> {{ $detalle->promocionAplicada->promocion->nombre ?? 'Promo' }}
+                                        (-${{ number_format($detalle->promocionAplicada->monto_descuento, 2) }})
+                                    </p>
+                                @endif
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-zinc-900 dark:text-white font-bold text-sm">{{ $detalle->producto->nombre ?? 'Producto sin nombre' }}</p>
-                            <p class="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold">Unit: ${{ number_format($detalle->precio_unitario, 2) }}</p>
-
-                            @if($detalle->notas)
-                                <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase italic mt-0.5">{{ $detalle->notas }}</p>
-                            @endif
-
+                        <div class="text-right shrink-0">
                             @if($detalle->promocionAplicada)
-                                <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-black uppercase mt-1 flex items-center gap-1">
-                                    <i class="fas fa-tag"></i> {{ $detalle->promocionAplicada->promocion->nombre ?? 'Promo' }}
-                                    (-${{ number_format($detalle->promocionAplicada->monto_descuento, 2) }})
-                                </p>
+                                <span class="text-zinc-400 dark:text-zinc-500 text-[9px] line-through block leading-tight">
+                                    ${{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}
+                                </span>
                             @endif
-
-                            @if($esDividida && $tipoDivision === 'por_producto')
-                                <div class="flex items-center gap-1 mt-2 producto-asignacion" data-detalle-id="{{ $detalle->id }}">
-                                    @for($p = 1; $p <= $totalPartes; $p++)
-                                        <button type="button"
-                                            class="btn-asignar-persona w-6 h-6 rounded-full text-[10px] font-black border transition-all {{ $detalle->cuenta_division_numero === $p ? 'bg-blue-600 border-blue-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:border-blue-500' }}"
-                                            data-detalle-id="{{ $detalle->id }}"
-                                            data-numero="{{ $p }}">{{ $p }}</button>
-                                    @endfor
-                                    @if(!$detalle->cuenta_division_numero)
-                                        <span class="text-[9px] text-amber-500 font-black uppercase ml-1">Sin asignar</span>
-                                    @endif
-                                </div>
-                            @endif
+                            <span class="text-zinc-900 dark:text-white font-black text-[13px]">
+                                ${{ number_format(($detalle->precio_unitario * $detalle->cantidad) - ($detalle->promocionAplicada->monto_descuento ?? 0), 2) }}
+                            </span>
                         </div>
                     </div>
-                    <div class="text-right">
-                        @if($detalle->promocionAplicada)
-                            <span class="text-zinc-400 dark:text-zinc-500 text-[10px] line-through block">
-                                ${{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}
-                            </span>
-                        @endif
-                        <span class="text-zinc-900 dark:text-white font-black text-sm">
-                            ${{ number_format(($detalle->precio_unitario * $detalle->cantidad) - ($detalle->promocionAplicada->monto_descuento ?? 0), 2) }}
-                        </span>
-                    </div>
+
+                    @if($esDividida && $tipoDivision === 'por_producto')
+                        @php
+                            $asig = $division['asignacionesPorDetalle'][$detalle->id] ?? ['por_persona' => [], 'sin_asignar' => $detalle->cantidad];
+                        @endphp
+                        <div class="mt-1 pl-9 producto-asignacion" data-detalle-id="{{ $detalle->id }}" data-cantidad-total="{{ $detalle->cantidad }}">
+                            <div class="flex flex-wrap items-center gap-1">
+                                @for($p = 1; $p <= $totalPartes; $p++)
+                                    @php $cantidadPersona = $asig['por_persona'][$p] ?? 0; @endphp
+                                    <div class="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-md pl-1.5 pr-0.5 py-0.5 stepper-persona"
+                                        data-detalle-id="{{ $detalle->id }}" data-numero="{{ $p }}">
+                                        <span class="text-[8px] font-black text-zinc-500 dark:text-zinc-400">P{{ $p }}</span>
+                                        <button type="button" class="btn-stepper-restar w-4 h-4 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-[10px] font-black leading-none flex items-center justify-center">−</button>
+                                        <span class="stepper-valor w-3 text-center text-[10px] font-black">{{ $cantidadPersona }}</span>
+                                        <button type="button" class="btn-stepper-sumar w-4 h-4 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-[10px] font-black leading-none flex items-center justify-center">+</button>
+                                    </div>
+                                @endfor
+                                <span class="sin-asignar-badge text-[8px] font-black uppercase {{ $asig['sin_asignar'] > 0 ? 'text-amber-500' : 'hidden' }}">
+                                    {{ $asig['sin_asignar'] }} sin asignar
+                                </span>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @endforeach
         @endforeach
     </div>
 
-    <div class="mt-auto px-6 py-6 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-white/10 rounded-t-3xl shadow-sm">
-        <div class="space-y-3">
-            <div class="space-y-2">
-                <div class="flex justify-between text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm font-semibold">
+    <div class="mt-auto px-4 py-2.5 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-white/10 shadow-sm">
+        <div class="space-y-1">
+            <div class="space-y-0.5">
+                <div class="flex justify-between text-zinc-600 dark:text-zinc-400 text-[11px] font-semibold">
                     <span>Subtotal</span>
                     <span class="font-bold text-zinc-900 dark:text-white" id="resumen-subtotal">${{ number_format($subtotalBruto ?? 0, 2) }}</span>
                 </div>
 
                 @if(($descuentoPromociones ?? 0) > 0)
-                    <div class="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm font-semibold">
+                    <div class="flex justify-between text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold">
                         <span>Descuento (promociones)</span>
                         <span class="font-bold">-${{ number_format($descuentoPromociones, 2) }}</span>
                     </div>
                 @endif
 
                 {{-- --- Switch de IVA (funciona por sesión vía CajaController::toggleIva) --- --}}
-                <div class="flex justify-between items-center text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm font-semibold py-1">
+                <div class="flex justify-between items-center text-zinc-600 dark:text-zinc-400 text-[11px] font-semibold">
                     <span class="flex items-center gap-2">
                         IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%)
                         <label class="relative inline-flex items-center cursor-pointer align-middle">
@@ -171,35 +182,33 @@
                                 data-toggle-url="{{ route('admin.caja.toggle-iva') }}"
                                 data-csrf="{{ csrf_token() }}"
                             >
-                            <div class="w-9 h-5 bg-zinc-300 dark:bg-zinc-700 rounded-full peer
+                            <div class="w-8 h-4 bg-zinc-300 dark:bg-zinc-700 rounded-full peer
                                         peer-checked:bg-blue-600 transition-colors"></div>
-                            <div class="absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full
+                            <div class="absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full
                                         transition-transform peer-checked:translate-x-4"></div>
                         </label>
                     </span>
                     <span class="font-bold text-zinc-900 dark:text-white" id="resumen-iva">${{ number_format($iva ?? 0, 2) }}</span>
                 </div>
 
-                @if(($propina ?? 0) > 0)
-                    <div class="flex justify-between text-amber-600 dark:text-amber-400 text-xs sm:text-sm font-semibold" id="resumen-propina-row">
-                        <span class="flex items-center gap-1.5">
-                            <i class="fas fa-hand-holding-dollar text-[11px]"></i> Propina
-                        </span>
-                        <span class="font-bold" id="resumen-propina">${{ number_format($propina, 2) }}</span>
-                    </div>
-                @endif
+                <div class="flex justify-between text-amber-600 dark:text-amber-400 text-[11px] font-semibold {{ ($propina ?? 0) > 0 ? '' : 'hidden' }}" id="resumen-propina-row">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fas fa-hand-holding-dollar text-[10px]"></i> Propina
+                    </span>
+                    <span class="font-bold" id="resumen-propina">${{ number_format($propina ?? 0, 2) }}</span>
+                </div>
             </div>
 
-            <div class="border-t border-zinc-200 dark:border-white/10 pt-3 flex justify-between items-center">
-                <span class="text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-[0.2em] text-xs" id="resumen-total-label">
+            <div class="border-t border-zinc-200 dark:border-white/10 pt-1 flex justify-between items-center">
+                <span class="text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-[0.15em] text-[10px]" id="resumen-total-label">
                     {{ $esDividida ? 'Total mesa' : 'Total' }}
                 </span>
-                <span class="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tighter italic" id="resumen-total">
+                <span class="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tighter italic" id="resumen-total">
                     ${{ number_format($totalPagar ?? 0, 2) }}
                 </span>
             </div>
             @if($esDividida)
-                <p class="text-right text-[11px] text-blue-600 dark:text-blue-400 font-bold" id="resumen-persona-seleccionada"></p>
+                <p class="text-right text-[10px] text-blue-600 dark:text-blue-400 font-bold" id="resumen-persona-seleccionada"></p>
             @endif
         </div>
     </div>

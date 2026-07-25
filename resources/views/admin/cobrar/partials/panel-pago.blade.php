@@ -1,5 +1,6 @@
 {{-- panel-pago.blade.php --}}
-<div class="w-full lg:w-3/5 p-4 lg:p-8 bg-zinc-50 dark:bg-zinc-950 overflow-hidden h-full">
+@php $anchoDerecha = $anchoDerecha ?? 'lg:w-3/5'; @endphp
+<div class="w-full {{ $anchoDerecha }} p-4 lg:p-8 bg-zinc-50 dark:bg-zinc-950 overflow-hidden h-full">
     <div class="max-w-xl mx-auto h-full flex flex-col">
 
         {{-- Inputs de Estado Ocultos --}}
@@ -56,34 +57,33 @@
                 <button type="button" class="btn-tecla col-span-2 h-16 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-2xl font-black text-red-500 dark:text-red-400" data-value="DEL">BORRAR</button>
             </div>
 
-            {{-- NUEVO: Selector de Propina --}}
-            @php $propinaBloqueada = !empty($division); @endphp
-            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-[2rem] p-5 {{ $propinaBloqueada ? 'opacity-50' : '' }}">
+            {{-- Selector de Propina — siempre habilitado, incluso con la cuenta dividida --}}
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-[2rem] p-5">
                 <p class="text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.25em] text-[10px] font-black mb-3 text-center">
                     ¿Cuánta propina desea dejar?
                 </p>
 
-                @if($propinaBloqueada)
-                    <p class="text-center text-[10px] text-amber-500 font-black uppercase mb-3">
-                        <i class="fas fa-lock"></i> Cancela la división para ajustar la propina
+                @if(!empty($division))
+                    <p class="text-center text-[9px] text-blue-500 font-black uppercase mb-3">
+                        <i class="fas fa-info-circle"></i> Se repartirá entre las personas que aún no han pagado
                     </p>
                 @endif
 
                 <div class="grid grid-cols-4 gap-2 mb-3" id="propina-porcentaje-botones">
-                    <button type="button" {{ $propinaBloqueada ? 'disabled' : '' }} class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all disabled:cursor-not-allowed" data-porcentaje="0">Sin propina</button>
-                    <button type="button" {{ $propinaBloqueada ? 'disabled' : '' }} class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all disabled:cursor-not-allowed" data-porcentaje="10">10%</button>
-                    <button type="button" {{ $propinaBloqueada ? 'disabled' : '' }} class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all disabled:cursor-not-allowed" data-porcentaje="15">15%</button>
-                    <button type="button" {{ $propinaBloqueada ? 'disabled' : '' }} class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all disabled:cursor-not-allowed" data-porcentaje="20">20%</button>
+                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="0">Sin propina</button>
+                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="10">10%</button>
+                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="15">15%</button>
+                    <button type="button" class="propina-btn h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 font-black text-xs text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500 transition-all" data-porcentaje="20">20%</button>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-bold">$</span>
-                        <input id="propina-manual-input" type="number" step="0.01" min="0" placeholder="Otro monto" {{ $propinaBloqueada ? 'disabled' : '' }}
+                        <input id="propina-manual-input" type="number" step="0.01" min="0" placeholder="Otro monto"
                             data-teclado="numerico"
                             class="touch-input pl-7 pr-4 h-12 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-bold" />
                     </div>
-                    <button type="button" id="btn-aplicar-propina-manual" {{ $propinaBloqueada ? 'disabled' : '' }} class="h-12 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition-all disabled:cursor-not-allowed disabled:opacity-50">
+                    <button type="button" id="btn-aplicar-propina-manual" class="h-12 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition-all">
                         Aplicar
                     </button>
                 </div>

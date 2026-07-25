@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Configuracion;
 use App\Models\CuentaDivision;
 use App\Models\DetalleOrden;
+use App\Models\DetalleOrdenDivision;
 use App\Models\Mesa;
 use App\Models\Orden;
 use Illuminate\Support\Facades\DB;
@@ -89,8 +90,9 @@ class CajaService
 
     /**
      * Devuelve el estado actual de la división de una mesa, o null si no
-     * está dividida. Incluye cada "cuenta" (persona) con su monto y, en
-     * modo 'por_producto', los productos que le fueron asignados.
+     * está dividida. En modo 'por_producto' también incluye, por cada
+     * producto de la comanda, cuántas unidades están asignadas a cada
+     * persona (y cuántas quedan sin asignar).
      */
     public function obtenerEstadoDivision(Mesa $mesa): ?array
     {
@@ -102,20 +104,28 @@ class CajaService
 
         $tipo = $cuentas->first()->tipo;
 
-        $productosPorCuenta = [];
+        $asignacionesPorDetalle = [];
         if ($tipo === 'por_producto') {
-            $productosPorCuenta = $mesa->ordenesActivas()
-                ->with('detalles.producto')
+            $detalles = $mesa->ordenesActivas()
+                ->with('detalles.divisiones')
                 ->get()
-                ->flatMap(fn($orden) => $orden->detalles->where('estado', '!=', 'cancelado'))
-                ->groupBy('cuenta_division_numero');
+                ->flatMap(fn($orden) => $orden->detalles->where('estado', '!=', 'cancelado'));
+
+            foreach ($detalles as $detalle) {
+                $porPersona = $detalle->divisiones->pluck('cantidad', 'numero_cuenta')->toArray();
+                $asignacionesPorDetalle[$detalle->id] = [
+                    'por_persona'   => $porPersona, // [numero_cuenta => cantidad]
+                    'sin_asignar'   => $detalle->cantidad - array_sum($porPersona),
+                ];
+            }
         }
 
         return [
             'tipo'         => $tipo,
             'total_partes' => (int) $cuentas->first()->total_partes,
             'completa'     => $cuentas->every(fn($c) => $c->estado === 'pagada'),
-            'cuentas'      => $cuentas->map(function ($cuenta) use ($tipo, $productosPorCuenta) {
+            'asignacionesPorDetalle' => $asignacionesPorDetalle,
+            'cuentas'      => $cuentas->map(function ($cuenta) {
                 return [
                     'id'             => $cuenta->id,
                     'numero_cuenta'  => $cuenta->numero_cuenta,
@@ -124,9 +134,6 @@ class CajaService
                     'iva'            => (float) $cuenta->iva,
                     'propina'        => (float) $cuenta->propina,
                     'total'          => (float) $cuenta->total,
-                    'productos'      => $tipo === 'por_producto'
-                        ? ($productosPorCuenta->get($cuenta->numero_cuenta, collect())->values())
-                        : [],
                 ];
             })->values(),
         ];
@@ -199,12 +206,17 @@ class CajaService
     }
 
     /**
-     * Asigna (o reasigna) un producto de la comanda a una persona, y
-     * recalcula el monto de cada cuenta 'por_producto' de la mesa.
+     * Asigna N unidades de un producto de la comanda a una persona
+     * (reemplaza la cantidad que esa persona ya tuviera asignada de ESE
+     * producto), y recalcula el monto de cada cuenta 'por_producto'.
+     *
+     * Permite partir un mismo renglón entre varias personas: p. ej. de
+     * "3 pizzas" en un solo detalle, 2 unidades para la Persona 1 y 1
+     * unidad para la Persona 2, llamando este método dos veces.
      */
-    public function asignarProductoAPersona(Mesa $mesa, DetalleOrden $detalle, int $numeroCuenta): array
+    public function asignarProductoAPersona(Mesa $mesa, DetalleOrden $detalle, int $numeroCuenta, int $cantidad): array
     {
-        return DB::transaction(function () use ($mesa, $detalle, $numeroCuenta) {
+        return DB::transaction(function () use ($mesa, $detalle, $numeroCuenta, $cantidad) {
             $cuenta = $mesa->cuentasDivision()->where('numero_cuenta', $numeroCuenta)->first();
 
             if (!$cuenta) {
@@ -219,7 +231,31 @@ class CajaService
                 throw new Exception('No se puede reasignar un producto a una parte ya pagada.');
             }
 
-            $detalle->update(['cuenta_division_numero' => $numeroCuenta]);
+            if ($cantidad < 0) {
+                throw new Exception('La cantidad no puede ser negativa.');
+            }
+
+            // Cuántas unidades de ESTE producto ya están repartidas a OTRAS
+            // personas, para no dejar que la suma pase de lo que hay en el renglón.
+            $asignadoAOtros = DetalleOrdenDivision::where('detalle_orden_id', $detalle->id)
+                ->where('numero_cuenta', '!=', $numeroCuenta)
+                ->sum('cantidad');
+
+            if ($asignadoAOtros + $cantidad > $detalle->cantidad) {
+                $disponibles = $detalle->cantidad - $asignadoAOtros;
+                throw new Exception("Solo quedan {$disponibles} unidad(es) sin asignar de este producto.");
+            }
+
+            if ($cantidad === 0) {
+                DetalleOrdenDivision::where('detalle_orden_id', $detalle->id)
+                    ->where('numero_cuenta', $numeroCuenta)
+                    ->delete();
+            } else {
+                DetalleOrdenDivision::updateOrCreate(
+                    ['detalle_orden_id' => $detalle->id, 'numero_cuenta' => $numeroCuenta],
+                    ['cantidad' => $cantidad]
+                );
+            }
 
             $this->recalcularCuentasPorProducto($mesa);
 
@@ -229,10 +265,9 @@ class CajaService
 
     /**
      * Recalcula subtotal/iva/propina/total de cada cuenta 'por_producto',
+     * a partir de las unidades asignadas por persona en cada producto, y
      * prorrateando IVA y propina de la mesa según el peso de cada persona
-     * en el subtotal (los descuentos por promoción ya vienen aplicados en
-     * el precio de línea a través de CajaService::obtenerDesgloseMesa,
-     * así que aquí trabajamos directo con precio_unitario * cantidad).
+     * en el subtotal.
      */
     protected function recalcularCuentasPorProducto(Mesa $mesa): void
     {
@@ -240,24 +275,38 @@ class CajaService
         $subtotalMesa = $desgloseMesa['subtotal'];
 
         $detalles = $mesa->ordenesActivas()
-            ->with('detalles.promocionAplicada')
+            ->with(['detalles.divisiones', 'detalles.promocionAplicada'])
             ->get()
             ->flatMap(fn($orden) => $orden->detalles->where('estado', '!=', 'cancelado'));
 
         $cuentas = $mesa->cuentasDivision()->where('tipo', 'por_producto')->get();
-        $numPersonas = $cuentas->count();
 
         foreach ($cuentas as $cuenta) {
             if ($cuenta->estado === 'pagada') {
                 continue; // no tocar lo ya cobrado
             }
 
-            $detallesCuenta = $detalles->where('cuenta_division_numero', $cuenta->numero_cuenta);
+            $subtotalCuenta = 0;
 
-            $subtotalCuenta = round($detallesCuenta->sum(function ($d) {
-                $descuento = optional($d->promocionAplicada)->monto_descuento ?? 0;
-                return ($d->cantidad * $d->precio_unitario) - $descuento;
-            }), 2);
+            foreach ($detalles as $detalle) {
+                $cantidadPersona = (int) $detalle->divisiones
+                    ->firstWhere('numero_cuenta', $cuenta->numero_cuenta)?->cantidad;
+
+                if ($cantidadPersona <= 0) {
+                    continue;
+                }
+
+                // Precio y descuento por UNIDAD (el descuento de la promo
+                // viene por renglón completo, así que se prorratea entre
+                // las unidades del renglón antes de multiplicar por lo
+                // que le tocó a esta persona).
+                $descuentoTotalRenglon = optional($detalle->promocionAplicada)->monto_descuento ?? 0;
+                $descuentoPorUnidad = $detalle->cantidad > 0 ? ($descuentoTotalRenglon / $detalle->cantidad) : 0;
+
+                $subtotalCuenta += $cantidadPersona * ($detalle->precio_unitario - $descuentoPorUnidad);
+            }
+
+            $subtotalCuenta = round($subtotalCuenta, 2);
 
             // Prorrateo de IVA y propina según el peso de esta parte en el subtotal total
             $proporcion = $subtotalMesa > 0 ? ($subtotalCuenta / $subtotalMesa) : 0;
@@ -274,8 +323,8 @@ class CajaService
     }
 
     /**
-     * Cancela la división activa de una mesa: borra las cuentas y libera
-     * los productos que estaban asignados a una persona.
+     * Cancela la división activa de una mesa: borra las cuentas y todas
+     * las asignaciones de unidades por producto.
      */
     public function cancelarDivision(Mesa $mesa): void
     {
@@ -284,11 +333,69 @@ class CajaService
                 throw new Exception('No se puede cancelar la división: ya hay partes pagadas. Debes cobrar o revertir el pago primero.');
             }
 
-            $mesa->ordenesActivas()
+            $detalleIds = $mesa->ordenesActivas()
                 ->get()
-                ->each(fn($orden) => $orden->detalles()->update(['cuenta_division_numero' => null]));
+                ->flatMap(fn($orden) => $orden->detalles)
+                ->pluck('id');
+
+            DetalleOrdenDivision::whereIn('detalle_orden_id', $detalleIds)->delete();
 
             $mesa->cuentasDivision()->delete();
+        });
+    }
+
+    /**
+     * Recalcula la división activa de una mesa (si la hay) después de que
+     * cambió la propina. Las partes YA PAGADAS no se tocan (ya se cobraron
+     * y quedaron registradas); el nuevo monto de propina se reparte solo
+     * entre las partes que todavía están pendientes.
+     */
+    public function recalcularDivisionTrasPropina(Mesa $mesa): void
+    {
+        $tipo = $mesa->cuentasDivision()->value('tipo');
+
+        if (!$tipo) {
+            return; // la mesa no está dividida, nada que recalcular
+        }
+
+        if ($tipo === 'por_producto') {
+            // La propina por persona ya se prorratea según el peso de su
+            // consumo cada vez que se recalculan las cuentas; solo hace
+            // falta volver a correrlo con la propina nueva.
+            $this->recalcularCuentasPorProducto($mesa);
+            return;
+        }
+
+        // tipo === 'equitativa'
+        $desglose = $this->obtenerDesgloseMesa($mesa->fresh());
+        $cuentas = $mesa->cuentasDivision()->get();
+
+        $pagadas = $cuentas->where('estado', 'pagada');
+        $pendientes = $cuentas->where('estado', 'pendiente');
+
+        if ($pendientes->isEmpty()) {
+            return; // ya se cobraron todas las partes, no hay nada que repartir
+        }
+
+        // La propina ya cobrada a las partes pagadas se resta del total;
+        // lo que queda se reparte en partes iguales entre las pendientes.
+        $propinaYaCobrada = $pagadas->sum('propina');
+        $propinaPendiente = max(0, $desglose['propina'] - $propinaYaCobrada);
+
+        $numPendientes = $pendientes->count();
+        $propinaPorParte = round($propinaPendiente / $numPendientes, 2);
+
+        $pendientes->values()->each(function ($cuenta, $index) use ($propinaPorParte, $propinaPendiente, $numPendientes) {
+            $esUltima = $index === $numPendientes - 1;
+
+            $nuevaPropina = $esUltima
+                ? round($propinaPendiente - $propinaPorParte * ($numPendientes - 1), 2)
+                : $propinaPorParte;
+
+            $cuenta->update([
+                'propina' => $nuevaPropina,
+                'total'   => round($cuenta->subtotal + $cuenta->iva + $nuevaPropina, 2),
+            ]);
         });
     }
 

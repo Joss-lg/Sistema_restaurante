@@ -84,7 +84,7 @@
                     </div>
                 </a>
             @else
-                {{-- 🔴 MESA SIN ORDEN --}}
+                {{--  MESA SIN ORDEN --}}
                 <div data-mesa-status="{{ $mesa->estado }}"
                    class="relative flex flex-col w-full rounded-2xl sm:rounded-3xl border border-red-200/50 dark:border-red-950/60 bg-red-50/5 dark:bg-red-950/5 shadow-sm overflow-hidden p-3.5 sm:p-6">
                     <div class="relative z-10 flex-1 flex flex-col w-full">

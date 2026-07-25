@@ -233,9 +233,10 @@ class MesaOperacionController extends Controller
     }
 
     /**
-     * Asigna (o reasigna) un producto de la comanda a una persona de la
-     * división 'por_producto'. Lo puede hacer el mesero al enviar la
-     * comanda o el cajero al momento de cobrar.
+     * Asigna N unidades de un producto de la comanda a una persona de la
+     * división 'por_producto'. Permite partir un mismo renglón (ej. "3
+     * pizzas") entre varias personas. Lo puede hacer el mesero al enviar
+     * la comanda o el cajero al momento de cobrar.
      */
     public function asignarProductoDivision(Request $request): JsonResponse
     {
@@ -243,13 +244,19 @@ class MesaOperacionController extends Controller
             'mesa_id'       => 'required|exists:mesas,id',
             'detalle_id'    => 'required|exists:detalles_orden,id',
             'numero_cuenta' => 'required|integer|min:1',
+            'cantidad'      => 'required|integer|min:0',
         ]);
 
         try {
             $mesa = Mesa::findOrFail($request->mesa_id);
             $detalle = DetalleOrden::findOrFail($request->detalle_id);
 
-            $division = $this->cajaService->asignarProductoAPersona($mesa, $detalle, (int) $request->numero_cuenta);
+            $division = $this->cajaService->asignarProductoAPersona(
+                $mesa,
+                $detalle,
+                (int) $request->numero_cuenta,
+                (int) $request->cantidad
+            );
 
             return response()->json(['success' => true, 'division' => $division]);
         } catch (\Exception $e) {
@@ -325,17 +332,28 @@ class MesaOperacionController extends Controller
             $propina = round($request->valor, 2);
         }
 
-        // AJUSTE: la propina completa se concentra en ESTA orden, y se
-        // resetea a 0 en las demás órdenes activas de la mesa. Así,
-        // CajaService::obtenerDesgloseMesa (que suma la propina de TODAS
-        // las órdenes activas) nunca la cuenta duplicada ni la pierde.
-        $mesa->ordenesActivas()->where('id', '!=', $orden->id)->update(['propina' => 0]);
-        $orden->update(['propina' => $propina]);
+        DB::transaction(function () use ($mesa, $orden, $propina) {
+            // AJUSTE: la propina completa se concentra en ESTA orden, y se
+            // resetea a 0 en las demás órdenes activas de la mesa. Así,
+            // CajaService::obtenerDesgloseMesa (que suma la propina de TODAS
+            // las órdenes activas) nunca la cuenta duplicada ni la pierde.
+            $mesa->ordenesActivas()->where('id', '!=', $orden->id)->update(['propina' => 0]);
+            $orden->update(['propina' => $propina]);
+
+            // NUEVO: la propina se puede cambiar en cualquier momento,
+            // incluso con la mesa ya dividida. Si hay una división activa,
+            // repartimos la propina nueva entre las partes que aún no se
+            // han pagado (las ya pagadas se quedan como quedaron cobradas).
+            $this->cajaService->recalcularDivisionTrasPropina($mesa);
+        });
 
         return response()->json([
-            'success' => true,
-            'propina' => $propina,
-            'total'   => round($base + $propina, 2),
+            'success'  => true,
+            'propina'  => $propina,
+            'total'    => round($base + $propina, 2),
+            // NUEVO: para que el frontend actualice los montos por persona
+            // sin recargar la página cuando la mesa está dividida.
+            'division' => $this->cajaService->obtenerEstadoDivision($mesa),
         ]);
     }
 

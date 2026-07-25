@@ -248,7 +248,7 @@ class ComandaService
                 if ($usaGramaje) $detalleData['gramaje'] = $platillo['gramaje'] ?? null;
                 if ($usaTiempo)  $detalleData['tiempo']  = $platillo['tiempo'] ?? null;
 
-                DetalleOrden::create($detalleData);
+                $detalle = DetalleOrden::create($detalleData);
 
                 $subtotalProducto = $platillo['cantidad'] * $platillo['precio'];
                 $descuentoProducto = 0.0;
@@ -268,9 +268,13 @@ class ComandaService
 
                     if ($montoDescuento > 0) {
                         OrdenPromocion::create([
-                            'orden_id'        => $ordenDestino->id,
-                            'promocion_id'    => $promo->id,
-                            'monto_descuento' => $montoDescuento,
+                            'orden_id'         => $ordenDestino->id,
+                            'promocion_id'     => $promo->id,
+                            // CORRECCIÓN: sin esto, el descuento quedaba huérfano
+                            // (no ligado a ningún producto) y no se reflejaba al
+                            // dividir la cuenta por consumo, ni en el detalle visual.
+                            'detalle_orden_id' => $detalle->id,
+                            'monto_descuento'  => $montoDescuento,
                         ]);
                         $descuentoProducto += $montoDescuento;
                     }

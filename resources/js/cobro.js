@@ -1,39 +1,55 @@
-function mostrarTicketFlotante() {
-    // AJUSTE: ya no recibe ordenId. Usa la URL del ticket por MESA que
-    // el Blade ya construyó en window.COBRO_CONFIG.urlTicket, para que
-    // el ticket impreso siempre incluya TODAS las órdenes activas de la mesa
-    // (antes se imprimía solo la primera orden y se perdían productos/total
-    // cuando el pedido tuvo varias rondas de envío a cocina).
+/**
+ * Muestra el ticket en un modal visible y estático (no se imprime ni se
+ * cierra solo). El usuario decide si le da "Imprimir" o "Cerrar".
+ * @param {Function} [alCerrar] - opcional, se ejecuta cuando el usuario
+ *   cierra el modal (p. ej. para recién ahí redirigir a la lista de cajas,
+ *   en vez de navegar de inmediato y "tirarse" el ticket a medio abrir).
+ */
+function mostrarModalTicket(alCerrar) {
     const urlTicket = window.COBRO_CONFIG && window.COBRO_CONFIG.urlTicket;
     if (!urlTicket) {
         console.warn('No se encontró urlTicket en COBRO_CONFIG.');
+        if (typeof alCerrar === 'function') alCerrar();
         return;
     }
 
-    // Si ya había un iframe de ticket pendiente, lo quitamos
-    const anterior = document.getElementById('ticket-print-frame');
-    if (anterior) anterior.remove();
+    const modal = document.getElementById('modal-ticket-preview');
+    const iframe = document.getElementById('ticket-preview-iframe');
+    const btnCerrar = document.getElementById('btn-cerrar-ticket-preview');
+    const btnCerrarX = document.getElementById('btn-cerrar-x-ticket-preview');
+    const btnImprimir = document.getElementById('btn-imprimir-ticket-preview');
 
-    const iframe = document.createElement('iframe');
-    iframe.id = 'ticket-print-frame';
-    // Invisible: no se ve ninguna tarjeta ni modal, solo dispara la impresión
-    iframe.style.cssText = 'position: fixed; top: -9999px; left: -9999px; width: 0; height: 0; border: none;';
+    if (!modal || !iframe || !btnCerrar || !btnCerrarX || !btnImprimir) {
+        console.warn('No se encontró el modal de ticket en el DOM.');
+        if (typeof alCerrar === 'function') alCerrar();
+        return;
+    }
+
     iframe.src = urlTicket;
+    modal.classList.remove('hidden');
 
-    document.body.appendChild(iframe);
+    function cerrar() {
+        modal.classList.add('hidden');
+        iframe.src = 'about:blank';
+        if (typeof alCerrar === 'function') alCerrar();
+    }
 
-    // El propio ticket.blade.php ya hace window.print() al cargar.
-    // Aquí solo esperamos a que el usuario cierre el diálogo (imprimir o cancelar)
-    // para quitar el iframe y no dejar basura en el DOM.
-    iframe.addEventListener('load', () => {
+    function imprimir() {
         try {
-            iframe.contentWindow.addEventListener('afterprint', () => {
-                iframe.remove();
-            });
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
         } catch (e) {
-            console.error('No se pudo enlazar el evento afterprint del ticket:', e);
+            console.error('No se pudo imprimir el ticket:', e);
+            alert('No se pudo abrir la impresión. Intenta de nuevo.');
         }
-    });
+    }
+
+    // .onclick en vez de addEventListener: si el modal se abre varias veces
+    // en la misma carga de página, esto reemplaza el handler anterior en
+    // vez de ir apilando listeners duplicados.
+    btnCerrar.onclick = cerrar;
+    btnCerrarX.onclick = cerrar;
+    btnImprimir.onclick = imprimir;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -195,29 +211,116 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Asignar/reasignar un producto a una persona (modo "por consumo")
-    document.querySelectorAll('.btn-asignar-persona').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const detalleId = btn.dataset.detalleId;
-            const numeroCuenta = parseInt(btn.dataset.numero, 10);
+    // Aplica la respuesta del backend (división actualizada) al DOM sin
+    // recargar la página: refresca los montos de cada tab de persona y
+    // los contadores +/- de cada producto.
+    function aplicarDivisionAlDOM(division) {
+        if (!division) return;
+
+        // 1) Tabs de personas: monto y data-attrs para que, si se
+        // reselecciona, el cálculo de cambio use el valor correcto.
+        (division.cuentas || []).forEach(cuenta => {
+            const tab = document.querySelector(`.btn-cuenta[data-cuenta-id="${cuenta.id}"]`);
+            if (!tab) return;
+
+            tab.dataset.subtotal = cuenta.subtotal.toFixed(2);
+            tab.dataset.iva = cuenta.iva.toFixed(2);
+            tab.dataset.propina = cuenta.propina.toFixed(2);
+            tab.dataset.total = cuenta.total.toFixed(2);
+
+            const valorEl = tab.querySelector('.valor-cuenta');
+            if (valorEl) valorEl.textContent = '$' + cuenta.total.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+            // Si esta es la persona actualmente seleccionada en el panel de
+            // cobro, refrescamos el total a cobrar y el cálculo de cambio.
+            if (String(cuenta.id) === String(cuentaSeleccionadaId)) {
+                totalPagar = cuenta.total;
+                if (resumenTotal) resumenTotal.textContent = '$' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                if (resumenSubtotal) resumenSubtotal.textContent = '$' + cuenta.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                if (resumenIva) resumenIva.textContent = '$' + cuenta.iva.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                if (resumenPropina) resumenPropina.textContent = '$' + cuenta.propina.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                if (avisoDivisionPanel) avisoDivisionPanel.textContent = 'Cobrando a Persona ' + cuenta.numero_cuenta + ' · $' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                actualizarDisplay(montoActual); // recalcula "Cambio" con el nuevo total
+            }
+        });
+
+        // 2) Contadores +/- y aviso de "sin asignar" por producto
+        const asignaciones = division.asignacionesPorDetalle || {};
+        Object.keys(asignaciones).forEach(detalleId => {
+            const info = asignaciones[detalleId];
+            document.querySelectorAll(`.stepper-persona[data-detalle-id="${detalleId}"]`).forEach(stepper => {
+                const numero = stepper.dataset.numero;
+                const valorEl = stepper.querySelector('.stepper-valor');
+                if (valorEl) valorEl.textContent = (info.por_persona && info.por_persona[numero]) || 0;
+            });
+
+            const badge = document.querySelector(`.producto-asignacion[data-detalle-id="${detalleId}"] .sin-asignar-badge`);
+            if (badge) {
+                if (info.sin_asignar > 0) {
+                    badge.textContent = info.sin_asignar + ' sin asignar';
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    // Asignar/reasignar UNIDADES de un producto a una persona (modo "por consumo").
+    // Cada stepper "P{n}" tiene su propio contador +/- independiente; el
+    // backend valida que la suma de todas las personas no pase de la
+    // cantidad total del renglón (ej. no más de 3 si son "3 pizzas").
+    // Se actualiza en vivo (sin recargar) para que se sienta instantáneo.
+    document.querySelectorAll('.stepper-persona').forEach(stepper => {
+        const detalleId = stepper.dataset.detalleId;
+        const numeroCuenta = parseInt(stepper.dataset.numero, 10);
+        const valorEl = stepper.querySelector('.stepper-valor');
+        const btnMas = stepper.querySelector('.btn-stepper-sumar');
+        const btnMenos = stepper.querySelector('.btn-stepper-restar');
+
+        async function actualizarCantidad(nuevaCantidad) {
+            if (nuevaCantidad < 0) return;
+
+            const valorAnterior = valorEl.textContent;
+            valorEl.textContent = nuevaCantidad; // optimista: se siente instantáneo
+            [btnMas, btnMenos].forEach(b => b && (b.disabled = true));
 
             try {
                 const data = await postJSON(config.urlDivisionAsignar, {
                     mesa_id: config.mesaId,
                     detalle_id: detalleId,
-                    numero_cuenta: numeroCuenta
+                    numero_cuenta: numeroCuenta,
+                    cantidad: nuevaCantidad
                 });
 
                 if (data.success) {
-                    location.reload();
+                    aplicarDivisionAlDOM(data.division);
                 } else {
+                    valorEl.textContent = valorAnterior; // revertir
                     alert('Error: ' + (data.message || 'No se pudo asignar el producto.'));
                 }
             } catch (e) {
                 console.error(e);
+                valorEl.textContent = valorAnterior; // revertir
                 alert('Ocurrió un error al asignar el producto.');
+            } finally {
+                [btnMas, btnMenos].forEach(b => b && (b.disabled = false));
             }
-        });
+        }
+
+        if (btnMas) {
+            btnMas.addEventListener('click', () => {
+                const actual = parseInt(valorEl.textContent, 10) || 0;
+                actualizarCantidad(actual + 1);
+            });
+        }
+        if (btnMenos) {
+            btnMenos.addEventListener('click', () => {
+                const actual = parseInt(valorEl.textContent, 10) || 0;
+                if (actual <= 0) return;
+                actualizarCantidad(actual - 1);
+            });
+        }
     });
 
     // Selección de la persona a cobrar (tabs "Persona N")
@@ -532,11 +635,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.success) {
                 if (data.mesa_liberada) {
-                    // AJUSTE: ya no depende de leer 'orden-id' del DOM. El ticket
-                    // se imprime por MESA usando la URL ya armada en COBRO_CONFIG,
-                    // así siempre incluye todas las órdenes activas de la mesa.
-                    mostrarTicketFlotante();
-                    window.location.href = data.redirect_url || '/caja';
+                    // AJUSTE: ya no navegamos de inmediato. El ticket se
+                    // queda abierto (estático, con botones Imprimir/Cerrar)
+                    // y solo hasta que el cajero lo cierre se redirige a la
+                    // lista de cajas — antes se navegaba al instante y eso
+                    // "tiraba" el ticket/diálogo de impresión a medio abrir.
+                    mostrarModalTicket(() => {
+                        window.location.href = data.redirect_url || '/caja';
+                    });
                 } else {
                     // Pago de una persona registrado, pero aún quedan otras
                     // partes pendientes: la mesa sigue abierta. Recargamos
@@ -577,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('No se encontró información de la mesa para generar el ticket.');
                 return;
             }
-            mostrarTicketFlotante();
+            mostrarModalTicket();
         });
     }
 
@@ -619,17 +725,42 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (data.success) {
-                // Recargamos para que el total (monto a cobrar) se recalcule
-                // desde el servidor con la nueva propina ya aplicada.
-                location.reload();
+                aplicarPropinaAlDOM(data);
+                if (tipo === 'manual' && propinaManualInput) propinaManualInput.value = '';
             } else {
                 alert('Error: ' + (data.message || 'No se pudo aplicar la propina.'));
-                if (botonActivo) botonActivo.disabled = false;
             }
         } catch (error) {
             console.error('Error al aplicar propina:', error);
             alert('Ocurrió un error al aplicar la propina.');
+        } finally {
             if (botonActivo) botonActivo.disabled = false;
+        }
+    }
+
+    // Aplica la propina recién calculada al DOM sin recargar la página:
+    // refresca el resumen de la izquierda y, si la mesa está dividida,
+    // los montos por persona (reusando aplicarDivisionAlDOM).
+    function aplicarPropinaAlDOM(data) {
+        const propinaDisplay = document.getElementById('propina-actual-display');
+        if (propinaDisplay) propinaDisplay.textContent = '$' + data.propina.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+        const propinaRow = document.getElementById('resumen-propina-row');
+        const propinaValor = document.getElementById('resumen-propina');
+        if (propinaValor) propinaValor.textContent = '$' + data.propina.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        if (propinaRow) propinaRow.classList.toggle('hidden', data.propina <= 0);
+
+        if (data.division) {
+            aplicarDivisionAlDOM(data.division);
+        }
+
+        // Si no hay una persona seleccionada (o la mesa no está dividida),
+        // lo que se muestra es el total de TODA la mesa.
+        if (!cuentaSeleccionadaId) {
+            totalPagar = data.total;
+            if (totalElement) totalElement.innerText = '$' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            if (resumenTotal) resumenTotal.textContent = '$' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            actualizarDisplay(montoActual);
         }
     }
 

@@ -58,6 +58,13 @@ class DetalleOrden extends Model
         return $this->hasOne(OrdenPromocion::class, 'detalle_orden_id');
     }
 
+    // NUEVO: cómo se reparte la cantidad de este producto entre personas
+    // cuando la mesa se divide "por consumo" (una fila por persona)
+    public function divisiones()
+    {
+        return $this->hasMany(DetalleOrdenDivision::class, 'detalle_orden_id');
+    }
+
     // NUEVO: quién autorizó la cancelación (Capitán/Admin)
     public function canceladoPor()
     {

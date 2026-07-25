@@ -4,10 +4,15 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 9999;
-    padding: 12px;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
-    transition: transform 0.25s ease, background-color 0.3s ease;
+    /* Por encima de CUALQUIER modal de la app (el más alto que usamos
+       hoy es z-[99999]); así el teclado nunca vuelve a quedar tapado. */
+    z-index: 1000000;
+    padding: 0 12px 12px;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+    border-radius: 20px 20px 0 0;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.3s ease;
+    max-width: 640px;
+    margin: 0 auto;
 }
 
 .teclado-virtual-contenedor.oculto {
@@ -83,21 +88,77 @@ body.modo-crema .teclado-virtual-contenedor .simple-keyboard .hg-button:active {
     margin: 0;
 }
 
-/* ===== MANIJA DE ARRASTRE ===== */
+/* ===== BARRA SUPERIOR: manija + título del campo + botón cerrar ===== */
+.teclado-virtual-contenedor .teclado-virtual-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 4px 6px;
+}
+
 .teclado-virtual-contenedor .teclado-drag-handle {
     cursor: move;
     touch-action: none;
-    text-align: center;
-    padding: 6px 0 4px;
     font-size: 10px;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #94a3b8;
     user-select: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.teclado-virtual-contenedor .teclado-virtual-titulo {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #cbd5e1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.teclado-virtual-contenedor .teclado-virtual-cerrar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.teclado-virtual-contenedor .teclado-virtual-cerrar:active {
+    transform: scale(0.95);
+    background: rgba(239, 68, 68, 0.25);
 }
 
 body.modo-crema .teclado-virtual-contenedor .teclado-drag-handle {
     color: #6b7280;
+}
+
+body.modo-crema .teclado-virtual-contenedor .teclado-virtual-titulo {
+    color: #374151;
+}
+
+body.modo-crema .teclado-virtual-contenedor .teclado-virtual-cerrar {
+    border-color: rgba(220, 38, 38, 0.25);
+    background: rgba(254, 226, 226, 0.8);
+    color: #dc2626;
 }
 
 /* ===== MODO FLOTANTE (cuando el usuario ya lo arrastró) ===== */

@@ -159,8 +159,12 @@
     </div>
 
     <script>
-        window.onload = () => window.print();
-        window.onafterprint = () => window.close();
+        // NOTA: ya no se imprime solo al cargar ni se cierra solo. El
+        // modal que lo muestra (resources/js/cobro.js) dispara la
+        // impresión manualmente con el botón "Imprimir", y este ticket
+        // se queda visible hasta que el usuario le dé "Cerrar".
+        // El botón "Imprimir Ticket" de aquí abajo queda como respaldo
+        // por si esta página se llega a abrir sola, fuera del modal.
     </script>
 </body>
 </html>
