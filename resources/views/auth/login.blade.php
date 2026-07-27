@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Ollintem Pro - Acceso</title>
+    <title>El Agostadero - Acceso</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/agostadero.png') }}?v=2">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -50,6 +51,8 @@
             margin: 0; 
             padding: 0; 
             transition: all 0.4s ease; 
+            /* Antes: overflow:hidden + h-screen podía cortar contenido en pantallas bajas. 
+               Ahora permitimos scroll de respaldo sin que se note en pantallas normales. */
             min-height: 100vh;
             min-height: 100dvh;
             overflow-y: auto;
@@ -88,11 +91,11 @@
             background: linear-gradient(180deg, #3B82F6 0%, #2563EB 100%);
             border: 1px solid #2563EB;
             border-top: 1px solid #93C5FD;
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
             color: white !important;
         }
 
-        .action-toggle {
+        .theme-toggle {
             background: var(--card-color);
             border: 1px solid var(--border-color);
             backdrop-filter: blur(10px);
@@ -102,9 +105,11 @@
         .cursor-blink { animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+        /* Pantallas bajitas (ej. iPhone SE, Android en landscape): compactamos aire vertical
+           para que el teclado completo siga siendo visible sin necesidad de scroll. */
         @media (max-height: 700px) {
             .compact-header { margin-bottom: 0.5rem !important; }
-            .compact-header img { width: 3rem !important; height: 3rem !important; margin-bottom: 0.25rem !important; }
+            .compact-header img { width: 5.5rem !important; height: 5.5rem !important; margin-bottom: 0.25rem !important; }
             .compact-header h1 { font-size: 1.25rem !important; }
             .compact-header p { margin-top: 0.25rem !important; }
             .compact-visor { height: 3rem !important; margin-bottom: 0.75rem !important; }
@@ -121,49 +126,26 @@
         }
     </script>
 
-    {{-- Botón Modo Claro/Oscuro (Arriba a la Derecha) --}}
     <div class="absolute z-50" style="top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right));">
-        <button onclick="toggleTheme()" class="action-toggle px-4 py-2 rounded-full flex items-center gap-2 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-lg active:scale-95">
+        <button onclick="toggleTheme()" class="theme-toggle px-4 py-2 rounded-full flex items-center gap-2 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-lg">
             <i id="themeIcon" class="fas fa-moon text-ol-blue"></i>
             <span id="themeText" class="hidden sm:inline">Modo Claro</span>
         </button>
     </div>
 
-    {{-- Contenedor principal --}}
+    {{-- Contenedor principal con ancho máximo súper controlado --}}
     <div class="w-full max-w-[320px] sm:max-w-[360px] flex flex-col items-center my-auto py-2">
         
-        {{-- Cabecera --}}
+        {{-- Cabecera más compacta --}}
         <div class="compact-header flex flex-col items-center mb-4 sm:mb-6">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo Ollintem" class="logo-oscuro mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-2 object-contain">
-            <img src="{{ asset('images/logo2.png') }}" alt="Logo Ollintem" class="logo-claro mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-2 object-contain">
+            <img src="{{ asset('images/agostadero.png') }}" alt="Logo El Agostadero" class="mx-auto w-28 h-28 sm:w-36 sm:h-36 mb-2 object-contain">
             
             <h1 class="text-2xl sm:text-3xl font-black tracking-widest leading-none uppercase">
-                OLLINTEM <span class="text-ol-blue">PRO</span>
+                EL AGOSTADERO
             </h1>
-            <p class="text-[9px] sm:text-[10px] uppercase tracking-[0.4em] font-bold mt-2 opacity-60">Punto de Venta</p>
+            <p class="text-[9px] sm:text-[10px] uppercase tracking-[0.4em] font-bold mt-2 opacity-60">Restaurante Campestre</p>
         </div>
 
-        {{-- ALERTA SI HAY ERROR DE SESIÓN (Ej. Falta de permisos) --}}
-        @if(session('error'))
-            <div class="w-full bg-rose-500/10 border border-rose-500/30 px-3 py-2.5 rounded-xl mb-4 flex items-center justify-center text-center shadow-lg backdrop-blur-sm">
-                <i class="fas fa-exclamation-circle text-rose-500 mr-2 text-xs"></i>
-                <p class="text-rose-500 text-[10px] font-black uppercase tracking-wider leading-tight">
-                    {{ session('error') }}
-                </p>
-            </div>
-        @endif
-
-        {{-- ALERTA SI HAY MENSAJE DE ÉXITO/INFORMACIÓN --}}
-        @if(session('status'))
-            <div class="w-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-2.5 rounded-xl mb-4 flex items-center justify-center text-center shadow-lg backdrop-blur-sm">
-                <i class="fas fa-check-circle text-emerald-500 mr-2 text-xs"></i>
-                <p class="text-emerald-500 text-[10px] font-black uppercase tracking-wider leading-tight">
-                    {{ session('status') }}
-                </p>
-            </div>
-        @endif
-
-        {{-- ALERTA SI HAY ERRORES DE VALIDACIÓN DEL FORMULARIO --}}
         @if($errors->any())
             <div class="w-full bg-rose-500/10 border border-rose-500/20 py-2 sm:py-3 rounded-xl mb-4 flex items-center justify-center">
                 <p class="text-rose-500 text-[10px] font-black uppercase tracking-widest">NIP Incorrecto</p>
@@ -175,44 +157,39 @@
             <input type="password" name="codigo_empleado" id="pinHidden">
         </form>
 
-        {{-- Visor --}}
+        {{-- Visor más chaparrito --}}
         <div class="compact-visor w-full h-14 sm:h-16 visor-screen rounded-2xl mb-5 sm:mb-6 flex items-center justify-center gap-2 relative overflow-hidden">
             <span id="pinDisplay" class="text-3xl sm:text-4xl font-black tracking-[0.4em] mt-1"></span>
             <span class="cursor-blink w-[2px] h-8 bg-ol-blue rounded-full"></span>
         </div>
 
-        {{-- GRID TECLADO NUMÉRICO --}}
+        {{-- GRID PERFECTO: Usa aspect-square para mantener proporción siempre --}}
         <div class="keypad-grid grid grid-cols-4 gap-3 sm:gap-4 w-full">
-            <!-- Fila 1 -->
             <button type="button" onclick="appendNumber('1')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">1</button>
             <button type="button" onclick="appendNumber('2')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">2</button>
             <button type="button" onclick="appendNumber('3')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">3</button>
             
-            <!-- Botón OK (Ocupa columna 4, filas 1 y 2) -->
-            <button type="button" onclick="submitForm()" class="btn-ok row-span-2 rounded-2xl flex flex-col items-center justify-center w-full h-full active:scale-95 transition-transform">
+            {{-- Botón OK ocupa toda la altura disponible de sus 2 filas --}}
+            <button type="button" onclick="submitForm()" class="btn-ok col-span-1 row-span-2 rounded-2xl flex flex-col items-center justify-center w-full h-full active:scale-95 transition-transform">
                 <span class="font-black text-2xl sm:text-3xl leading-tight">OK</span>
                 <span class="text-[8px] sm:text-[9px] font-bold uppercase mt-1 opacity-90">Entrar</span>
             </button>
 
-            <!-- Fila 2 -->
             <button type="button" onclick="appendNumber('4')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">4</button>
             <button type="button" onclick="appendNumber('5')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">5</button>
             <button type="button" onclick="appendNumber('6')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">6</button>
 
-            <!-- Fila 3 -->
             <button type="button" onclick="appendNumber('7')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">7</button>
             <button type="button" onclick="appendNumber('8')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">8</button>
             <button type="button" onclick="appendNumber('9')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">9</button>
             
-            <!-- Botón Borrar (Completamente Rojo) -->
-            <button type="button" onclick="deleteNumber()" class="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white aspect-square rounded-2xl flex items-center justify-center transition-all shadow-lg border border-rose-400/30">
-                <i class="fas fa-backspace text-xl sm:text-2xl"></i>
+            <button type="button" onclick="deleteNumber()" class="key-btn aspect-square rounded-2xl flex flex-col items-center justify-center">
+                <i class="fas fa-backspace text-rose-500 text-lg sm:text-xl mb-1"></i>
             </button>
 
-            <!-- Fila 4: '0' centrado bajo el 8 -->
-            <div class="col-start-2">
-                <button type="button" onclick="appendNumber('0')" class="key-btn aspect-square w-full rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">0</button>
-            </div>
+            <div class="col-span-1"></div>
+            <button type="button" onclick="appendNumber('0')" class="key-btn aspect-square rounded-2xl text-2xl sm:text-3xl font-bold flex items-center justify-center">0</button>
+            <div class="col-span-2"></div>
         </div>
     </div>
 
@@ -228,7 +205,7 @@
             if (body.classList.contains('modo-crema')) {
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
                 themeIcon.classList.replace('text-ol-blue', 'text-orange-500');
-                if(themeText) themeText.innerText = "Modo Oscuro";
+                if(themeText) themeText.innerText = "Modo Negro";
             }
         });
 
@@ -240,7 +217,7 @@
             if (esCrema) {
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
                 themeIcon.classList.replace('text-ol-blue', 'text-orange-500');
-                if(themeText) themeText.innerText = "Modo Oscuro";
+                if(themeText) themeText.innerText = "Modo Negro";
             } else {
                 themeIcon.classList.replace('fa-sun', 'fa-moon');
                 themeIcon.classList.replace('text-orange-500', 'text-ol-blue');

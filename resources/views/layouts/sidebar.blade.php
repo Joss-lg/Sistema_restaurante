@@ -95,7 +95,7 @@
         <div class="logo-wrapper flex items-center relative z-10 w-full transition-opacity duration-300">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 p-[1px] shadow-[0_0_15px_rgba(59,130,246,0.3)] shrink-0">
                 <div class="w-full h-full bg-[var(--card-color)] rounded-[11px] flex items-center justify-center">
-                    <img src="{{ asset('images/logo2.png') }}" alt="Logo" class="w-6 h-6 object-contain">
+                    <img src="{{ asset('images/agostadero.png') }}" alt="Logo" class="w-6 h-6 object-contain">
                 </div>
             </div>
             <div class="sidebar-text ml-3 flex flex-col">

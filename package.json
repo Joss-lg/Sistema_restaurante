@@ -20,6 +20,6 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
-        "simple-keyboard": "^3.8.170"
+        "simple-keyboard": "^3.8.171"
     }
 }
