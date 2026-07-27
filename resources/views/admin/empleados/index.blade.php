@@ -440,6 +440,4 @@
     });
 </script>
 
-{{-- INCLUIMOS EL COMPONENTE DEL TECLADO VIRTUAL --}}
-@include('partials.teclado-virtual')
 @endsection

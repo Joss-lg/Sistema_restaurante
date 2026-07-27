@@ -97,7 +97,6 @@
             <button type="button" onclick="cerrarModal('modalNota')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
 
-        {{-- SIN READONLY para que salga el teclado del teléfono --}}
         <textarea id="notaTextarea" rows="4"
             data-teclado="texto"
             data-teclado-titulo="Instrucción Especial"

@@ -42,7 +42,7 @@
                 <label for="edit_nombre_{{ $categoria->id }}" class="text-[10px] font-bold text-slate-600 dark:text-zinc-300 uppercase tracking-wider mb-2 block">
                     Nombre de la Categoría
                 </label>
-                <input type="text" id="edit_nombre_{{ $categoria->id }}" name="nombre" required readonly
+                <input type="text" id="edit_nombre_{{ $categoria->id }}" name="nombre" required 
                     data-teclado="texto" data-teclado-titulo="Nombre de Categoría" autocomplete="off"
                     value="{{ $categoria->nombre }}"
                     class="w-full h-11 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 px-4 text-sm font-medium text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">

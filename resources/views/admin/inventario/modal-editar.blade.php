@@ -47,7 +47,7 @@
                     <label class="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest">
                         <i class="fas fa-tag text-[#3B82F6] text-[10px]"></i> Nombre del Artículo
                     </label>
-                    <input type="text" name="nombre" value="{{ $item->nombre }}" required readonly data-teclado="texto" inputmode="none"
+                    <input type="text" name="nombre" value="{{ $item->nombre }}" required data-teclado="texto" inputmode="none"
                         class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 text-base sm:text-sm font-semibold text-white outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all">
                 </div>
 
@@ -95,7 +95,7 @@
                             <i class="fas fa-bell text-[#3B82F6] text-[10px]"></i> <span class="truncate">Stock Mínimo</span>
                         </label>
                         {{-- TECLADO VIRTUAL NUMÉRICO: type=text (no number) para que el teclado personalizado pueda escribir el valor --}}
-                        <input type="text" name="stock_minimo" value="{{ $item->stock_minimo }}" pattern="[0-9]*\.?[0-9]*" required readonly data-teclado="numerico" inputmode="none"
+                        <input type="text" name="stock_minimo" value="{{ $item->stock_minimo }}" pattern="[0-9]*\.?[0-9]*" required data-teclado="numerico" inputmode="none"
                             class="w-full h-12 bg-[#111113] border border-white/8 rounded-xl px-4 text-base sm:text-sm font-semibold text-white outline-none focus:border-[#3B82F6]/60 focus:ring-2 focus:ring-[#3B82F6]/10 transition-all">
                     </div>
                 </div>

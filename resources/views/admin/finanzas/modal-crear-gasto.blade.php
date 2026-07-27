@@ -42,7 +42,7 @@
                     <label class="flex items-center gap-2 text-[10px] font-black text-zinc-400 modo-crema:text-zinc-500 uppercase tracking-[0.2em] ml-1">
                         <i class="fas fa-pen opacity-40"></i> Concepto
                     </label>
-                    <input type="text" name="concepto" required readonly data-teclado="texto"
+                    <input type="text" name="concepto" required data-teclado="texto"
                         class="w-full h-11 bg-zinc-900 modo-crema:bg-zinc-50 border border-transparent modo-crema:border-zinc-200/60 rounded-xl px-5 text-base sm:text-xs font-bold text-zinc-100 modo-crema:text-zinc-900 focus:bg-zinc-800 modo-crema:focus:bg-white focus:border-rose-600 modo-crema:focus:border-rose-500 focus:ring-4 focus:ring-rose-600/10 outline-none transition-all placeholder:text-zinc-600 modo-crema:placeholder:text-zinc-400"
                         placeholder="Ej: Compra de tomates">
                 </div>
@@ -67,7 +67,7 @@
                     <label class="flex items-center gap-2 text-[10px] font-black text-zinc-400 modo-crema:text-zinc-500 uppercase tracking-[0.2em] ml-1">
                         <i class="fas fa-dollar-sign opacity-40"></i> Monto
                     </label>
-                    <input type="text" name="monto" required readonly data-teclado="numerico" data-teclado-decimales="true"
+                    <input type="text" name="monto" required data-teclado="numerico" data-teclado-decimales="true"
                         class="w-full h-11 bg-zinc-900 modo-crema:bg-zinc-50 border border-transparent modo-crema:border-zinc-200/60 rounded-xl px-5 text-base sm:text-xs font-bold text-zinc-100 modo-crema:text-zinc-900 focus:bg-zinc-800 modo-crema:focus:bg-white focus:border-rose-600 modo-crema:focus:border-rose-500 focus:ring-4 focus:ring-rose-600/10 outline-none transition-all"
                         placeholder="0.00">
                 </div>

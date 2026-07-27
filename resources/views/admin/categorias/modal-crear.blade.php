@@ -43,7 +43,7 @@
                 <label class="flex items-center gap-2 text-[11px] font-black text-slate-600 dark:text-zinc-400 uppercase tracking-wider">
                     <i class="fas fa-tag text-blue-500 dark:text-blue-400 text-[10px]"></i> Nombre de Categoría
                 </label>
-                <input type="text" name="nombre" placeholder="Ej: Platos Fuertes..." required readonly data-teclado="texto"
+                <input type="text" name="nombre" placeholder="Ej: Platos Fuertes..." required data-teclado="texto"
                     class="w-full h-12 bg-slate-50/30 dark:bg-zinc-950/60 border border-slate-200 dark:border-zinc-800 rounded-2xl px-4 text-base font-semibold text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-blue-500 transition-all">
             </div>
 

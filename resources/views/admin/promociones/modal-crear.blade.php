@@ -25,7 +25,7 @@
                 {{-- Nombre de Promoción (Añadido soporte teclado) --}}
                 <div class="group">
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Nombre de la Promoción</label>
-                    <input type="text" name="nombre" required readonly data-teclado="texto" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner">
+                    <input type="text" name="nombre" required data-teclado="texto" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner">
                 </div>
 
                 {{-- Fila: Tipo y Valor --}}
@@ -45,7 +45,7 @@
                     {{-- Valor Descuento (Añadido soporte teclado) --}}
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Valor Descuento / Cantidad</label>
-                        <input type="text" name="valor_descuento" required readonly data-teclado="numerico" data-teclado-decimales="true" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner" placeholder="Ej: 15.00">
+                        <input type="text" name="valor_descuento" required data-teclado="numerico" data-teclado-decimales="true" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-sm font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-blue-500/50 focus:!ring-2 focus:!ring-blue-500/20 transition-all shadow-inner" placeholder="Ej: 15.00">
                     </div>
                 </div>
 

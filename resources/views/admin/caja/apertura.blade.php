@@ -68,7 +68,7 @@
                         <span class="text-gray-500 dark:text-gray-400 sm:text-sm">$</span>
                     </div>
                     {{-- TECLADO VIRTUAL NUMÉRICO: type=text (no number) para que el teclado personalizado pueda escribir el valor --}}
-                    <input type="text" name="monto_inicial" id="monto_inicial" pattern="[0-9]*\.?[0-9]*" required readonly data-teclado="numerico" data-teclado-titulo="Monto Inicial" inputmode="none"
+                    <input type="text" name="monto_inicial" id="monto_inicial" pattern="[0-9]*\.?[0-9]*" required data-teclado="numerico" data-teclado-titulo="Monto Inicial" inputmode="none"
                         value="{{ old('monto_inicial', '0.00') }}"
                         class="w-full h-12 pl-7 text-base rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-blue-500 @error('monto_inicial') border-red-500 @enderror"
                         placeholder="0.00"

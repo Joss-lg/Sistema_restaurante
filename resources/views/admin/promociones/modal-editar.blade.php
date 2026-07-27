@@ -45,13 +45,13 @@
                 {{-- Nombre de la Promo (TECLADO VIRTUAL DE TEXTO) --}}
                 <div class="group">
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Nombre de la Promoción</label>
-                    <input type="text" name="nombre" id="edit_nombre" required readonly data-teclado="texto" data-teclado-titulo="Nombre de la Promoción" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner" placeholder="Ej: Jueves de Alitas 2x1">
+                    <input type="text" name="nombre" id="edit_nombre" required data-teclado="texto" data-teclado-titulo="Nombre de la Promoción" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner" placeholder="Ej: Jueves de Alitas 2x1">
                 </div>
 
                 {{-- Descripción (TECLADO VIRTUAL DE TEXTO) --}}
                 <div class="group">
                     <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Descripción de la Oferta</label>
-                    <textarea name="descripcion" id="edit_descripcion" rows="2" readonly data-teclado="texto" data-teclado-titulo="Descripción" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner resize-none" placeholder="Breve nota explicativa para los meseros o clientes..."></textarea>
+                    <textarea name="descripcion" id="edit_descripcion" rows="2" data-teclado="texto" data-teclado-titulo="Descripción" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner resize-none" placeholder="Breve nota explicativa para los meseros o clientes..."></textarea>
                 </div>
 
                 {{-- Fila: Tipo y Valor --}}
@@ -71,7 +71,7 @@
                     <div class="group">
                         <label class="block !text-gray-500 dark:!text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] mb-2">Valor Descuento / Cantidad</label>
                         {{-- TECLADO VIRTUAL NUMÉRICO: type=text (no number) para que el teclado personalizado pueda escribir el valor --}}
-                        <input type="text" name="valor_descuento" id="edit_valor_descuento" required pattern="[0-9]*\.?[0-9]*" readonly data-teclado="numerico" data-teclado-titulo="Valor Descuento / Cantidad" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner" placeholder="Ej: 15.00">
+                        <input type="text" name="valor_descuento" id="edit_valor_descuento" required pattern="[0-9]*\.?[0-9]*" data-teclado="numerico" data-teclado-titulo="Valor Descuento / Cantidad" inputmode="none" class="w-full !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 rounded-xl py-3.5 px-4 text-base font-bold !text-gray-900 dark:!text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:!border-amber-500/50 focus:!ring-2 focus:!ring-amber-500/20 transition-all shadow-inner" placeholder="Ej: 15.00">
                     </div>
                 </div>
 

@@ -37,7 +37,7 @@
                         {{-- Nombre (TECLADO VIRTUAL DE TEXTO) --}}
                         <div class="col-span-1 sm:col-span-2">
                             <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Nombre del Platillo</label>
-                            <input type="text" id="edit-nombre" name="nombre" readonly data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
+                            <input type="text" id="edit-nombre" name="nombre"  data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
                         </div>
 
                         {{-- Toggle: Se vende por peso --}}
@@ -58,7 +58,7 @@
                         {{-- Precio fijo (se oculta si es por peso) — TECLADO VIRTUAL NUMÉRICO --}}
                         <div class="col-span-1" id="grupo-precio-fijo-editar">
                             <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Precio</label>
-                            <input type="text" id="edit-precio" name="precio" pattern="[0-9]*\.?[0-9]*" readonly data-teclado="numerico" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
+                            <input type="text" id="edit-precio" name="precio" pattern="[0-9]*\.?[0-9]*" data-teclado="numerico" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
                         </div>
 
                         {{-- Precio por 100g (solo visible si es por peso) — TECLADO VIRTUAL NUMÉRICO --}}
@@ -66,7 +66,7 @@
                             <label class="text-[11px] sm:text-xs font-black text-orange-500 uppercase tracking-widest ml-1">Precio por cada 100g</label>
                             <div class="flex items-center bg-zinc-50 dark:bg-zinc-900/50 border border-orange-500/30 rounded-2xl mt-1.5 sm:mt-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 transition">
                                 <span class="pl-4 pr-1.5 text-zinc-400 text-base font-bold select-none">$</span>
-                                <input type="text" id="edit-precio_por_100g" name="precio_por_100g" pattern="[0-9]*\.?[0-9]*" autocomplete="off" readonly data-teclado="numerico" inputmode="none" class="flex-1 min-w-0 bg-transparent p-3 sm:p-4 pl-0 text-base text-zinc-900 dark:text-white placeholder:text-zinc-400 outline-none transition" placeholder="50.00">
+                                <input type="text" id="edit-precio_por_100g" name="precio_por_100g" pattern="[0-9]*\.?[0-9]*" autocomplete="off" data-teclado="numerico" inputmode="none" class="flex-1 min-w-0 bg-transparent p-3 sm:p-4 pl-0 text-base text-zinc-900 dark:text-white placeholder:text-zinc-400 outline-none transition" placeholder="50.00">
                             </div>
                             <p class="text-[9px] text-zinc-400 mt-1 ml-1">Ej: $50 por 100g → 700g = $350</p>
                         </div>
@@ -74,7 +74,7 @@
                         {{-- Categoría — TECLADO VIRTUAL DE TEXTO --}}
                         <div class="col-span-1 relative">
                             <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Categoría</label>
-                            <input type="text" id="edit-categoria_nombre" name="categoria_nombre" list="lista-categorias-editar" readonly data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" autocomplete="off" required>
+                            <input type="text" id="edit-categoria_nombre" name="categoria_nombre" list="lista-categorias-editar" data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" autocomplete="off" required>
                             <input type="hidden" id="edit-categoria_id" name="categoria_id">
                             <datalist id="lista-categorias-editar">
                                 @foreach($categorias as $categoria)
@@ -86,7 +86,7 @@
                         {{-- Descripción — TECLADO VIRTUAL DE TEXTO --}}
                         <div class="col-span-1 sm:col-span-2">
                             <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Descripción</label>
-                            <textarea id="edit-descripcion" name="descripcion" rows="3" readonly data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none"></textarea>
+                            <textarea id="edit-descripcion" name="descripcion" rows="3" data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 sm:mt-2 text-base text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none"></textarea>
                         </div>
 
                         {{-- Imagen del Platillo --}}

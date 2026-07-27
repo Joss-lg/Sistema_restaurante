@@ -37,7 +37,7 @@
             <div>
                 <label for="nombre" class="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em] mb-3 block">Nombre del Puesto</label>
                 <input type="text" id="nombre" name="nombre" placeholder="Ej: Guardia Nocturno" required 
-                       readonly data-teclado="texto"
+                        data-teclado="texto"
                        class="w-full h-12 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl px-5 text-base text-[var(--text-color)] outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 @error('nombre') <span class="text-xs text-rose-500 mt-2 block font-bold">{{ $message }}</span> @enderror
             </div>

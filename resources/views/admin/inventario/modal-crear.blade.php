@@ -45,7 +45,7 @@
                     <label class="flex items-center gap-2 text-[8px] sm:text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] ml-1">
                         <i class="fas fa-tag opacity-40"></i> Nombre del Artículo
                     </label>
-                    <input type="text" name="nombre" required readonly data-teclado="texto"
+                    <input type="text" name="nombre" required data-teclado="texto"
                         class="w-full h-11 bg-zinc-50 dark:bg-white/5 border border-transparent rounded-xl px-4 sm:px-5 text-base sm:text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-white/10 focus:border-blue-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         placeholder="Ej: Harina">
                 </div>
@@ -80,7 +80,7 @@
                         <label class="flex items-center gap-2 text-[8px] sm:text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] ml-1">
                             <i class="fas fa-dollar-sign opacity-40"></i> Precio Compra
                         </label>
-                        <input type="text" name="precio_compra" readonly data-teclado="numerico" data-teclado-decimales="true"
+                        <input type="text" name="precio_compra" data-teclado="numerico" data-teclado-decimales="true"
                             class="w-full h-11 bg-zinc-50 dark:bg-white/5 border border-transparent rounded-xl px-4 sm:px-5 text-base sm:text-xs font-black text-zinc-900 dark:text-zinc-100 focus:border-blue-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             placeholder="0.00">
                     </div>
@@ -89,7 +89,7 @@
                         <label class="flex items-center gap-2 text-[8px] sm:text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] ml-1">
                             <i class="fas fa-bell opacity-40"></i> Stock Mínimo
                         </label>
-                        <input type="text" name="stock_minimo" required readonly data-teclado="numerico"
+                        <input type="text" name="stock_minimo" required data-teclado="numerico"
                             class="w-full h-11 bg-zinc-50 dark:bg-white/5 border border-transparent rounded-xl px-4 sm:px-5 text-base sm:text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:border-blue-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             placeholder="0">
                     </div>

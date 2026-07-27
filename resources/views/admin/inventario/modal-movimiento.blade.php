@@ -64,7 +64,7 @@
                             <i class="fas fa-hashtag opacity-60"></i> Cantidad a mover
                         </label>
                         {{-- TECLADO VIRTUAL NUMÉRICO: type=text (no number) para que el teclado personalizado pueda escribir el valor --}}
-                        <input type="text" name="cantidad" pattern="[0-9]*\.?[0-9]*" required readonly data-teclado="numerico" inputmode="none"
+                        <input type="text" name="cantidad" pattern="[0-9]*\.?[0-9]*" required data-teclado="numerico" inputmode="none"
                             class="w-full h-11 sm:h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl sm:rounded-2xl px-4 sm:px-5 text-base sm:text-xs font-black text-[var(--text-color)] dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                             placeholder="Ej: 50">
                     </div>
@@ -74,7 +74,7 @@
                     <label class="flex items-center gap-2 text-[8px] sm:text-[9px] font-black text-[var(--text-muted)] dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
                         <i class="fas fa-comment-alt opacity-60"></i> Motivo o Justificación
                     </label>
-                    <input type="text" name="motivo" required readonly data-teclado="texto" inputmode="none"
+                    <input type="text" name="motivo" required data-teclado="texto" inputmode="none"
                         class="w-full h-11 sm:h-12 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl sm:rounded-2xl px-4 sm:px-5 text-base sm:text-xs font-bold text-[var(--text-color)] dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                         placeholder="Ej: Factura #1234 / Se rompió">
                 </div>

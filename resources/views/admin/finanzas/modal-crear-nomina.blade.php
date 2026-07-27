@@ -55,7 +55,7 @@
                         <label class="flex items-center gap-2 text-[10px] font-black text-zinc-400 modo-crema:text-zinc-500 uppercase tracking-[0.2em] ml-1">
                             <i class="fas fa-calendar opacity-40"></i> Período
                         </label>
-                        <input type="text" name="periodo" required readonly data-teclado="texto"
+                        <input type="text" name="periodo" required data-teclado="texto"
                             class="w-full h-11 bg-zinc-900 modo-crema:bg-zinc-50 border border-transparent modo-crema:border-zinc-200/60 rounded-xl px-5 text-base sm:text-xs font-bold text-zinc-100 modo-crema:text-zinc-900 outline-none transition-all"
                             placeholder="Ej: 1-15 Mayo 2026">
                     </div>
@@ -64,17 +64,17 @@
                 <div class="grid grid-cols-3 gap-2 sm:gap-3 bg-zinc-900/50 modo-crema:bg-zinc-50/80 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-transparent modo-crema:border-zinc-200/60">
                     <div class="space-y-1.5 min-w-0">
                         <label class="text-[7px] sm:text-[8px] font-black text-zinc-400 uppercase tracking-wider text-center block">Sueldo Base</label>
-                        <input type="text" name="sueldo_base" required id="sueldoBase" readonly data-teclado="numerico" data-teclado-decimales="true"
+                        <input type="text" name="sueldo_base" required id="sueldoBase" data-teclado="numerico" data-teclado-decimales="true"
                             class="w-full h-11 sm:h-10 bg-zinc-950 modo-crema:bg-white rounded-lg text-sm sm:text-xs font-bold text-zinc-100 modo-crema:text-zinc-900 text-center outline-none" placeholder="0.00">
                     </div>
                     <div class="space-y-1.5 min-w-0">
                         <label class="text-[7px] sm:text-[8px] font-black text-emerald-600 uppercase tracking-wider text-center block">+ Bonos</label>
-                        <input type="text" name="bonos" value="0" readonly data-teclado="numerico" data-teclado-decimales="true"
+                        <input type="text" name="bonos" value="0" data-teclado="numerico" data-teclado-decimales="true"
                             class="w-full h-11 sm:h-10 bg-zinc-950 modo-crema:bg-white rounded-lg text-sm sm:text-xs font-bold text-emerald-600 text-center outline-none" placeholder="0.00" oninput="calcularMonto()">
                     </div>
                     <div class="space-y-1.5 min-w-0">
                         <label class="text-[7px] sm:text-[8px] font-black text-rose-600 uppercase tracking-wider text-center block">- Descuentos</label>
-                        <input type="text" name="deducciones" value="0" readonly data-teclado="numerico" data-teclado-decimales="true"
+                        <input type="text" name="deducciones" value="0" data-teclado="numerico" data-teclado-decimales="true"
                             class="w-full h-11 sm:h-10 bg-zinc-950 modo-crema:bg-white rounded-lg text-sm sm:text-xs font-bold text-rose-600 text-center outline-none" placeholder="0.00" oninput="calcularMonto()">
                     </div>
                 </div>

@@ -49,7 +49,6 @@
                             <i class="fas fa-user text-gray-400 dark:text-gray-500 group-focus-within:text-blue-600 transition-colors text-sm"></i>
                         </div>
                         <input type="text" name="nombre" id="crear_nombre" required placeholder="Ej. Juan Pérez" autocomplete="off"
-                            readonly data-teclado="texto"
                             class="w-full h-12 bg-gray-50 dark:bg-[#1a1d20] border border-gray-300 dark:border-gray-700 rounded-xl pl-11 pr-4 text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm">
                     </div>
                 </div>
@@ -94,7 +93,7 @@
                             <i class="fas fa-lock text-gray-400 dark:text-gray-500 group-focus-within:text-blue-500 transition-colors text-sm"></i>
                         </div>
                         <input type="password" name="codigo_empleado" id="crear_codigo" maxlength="4" pattern="[0-9]*" placeholder="••••" autocomplete="new-password"
-                            readonly data-teclado="numerico" data-teclado-max="4" inputmode="none"
+                            data-teclado="numerico" data-teclado-max="4" inputmode="none"
                             class="w-full h-12 bg-gray-50 dark:bg-[#1a1d20] border border-gray-300 dark:border-gray-700 rounded-xl pl-11 pr-4 text-lg tracking-[0.4em] font-black text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm">
                     </div>
                 </div>
