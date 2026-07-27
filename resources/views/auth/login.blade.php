@@ -205,19 +205,19 @@
             if (body.classList.contains('modo-crema')) {
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
                 themeIcon.classList.replace('text-ol-blue', 'text-orange-500');
-                if(themeText) themeText.innerText = "Modo Negro";
+                if(themeText) themeText.innerText = "Modo Oscuro";
             }
         });
 
         function toggleTheme() {
             body.classList.toggle('modo-crema');
             const esCrema = body.classList.contains('modo-crema');
-            localStorage.setItem('tema-ollintem', esCrema ? 'crema' : 'negro');
+            localStorage.setItem('tema-ollintem', esCrema ? 'crema' : 'Oscuro');
 
             if (esCrema) {
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
                 themeIcon.classList.replace('text-ol-blue', 'text-orange-500');
-                if(themeText) themeText.innerText = "Modo Negro";
+                if(themeText) themeText.innerText = "Modo Oscuro";
             } else {
                 themeIcon.classList.replace('fa-sun', 'fa-moon');
                 themeIcon.classList.replace('text-orange-500', 'text-ol-blue');
