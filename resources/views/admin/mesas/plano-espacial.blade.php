@@ -41,7 +41,7 @@
     }
 </style>
 
-<div class="min-h-screen bg-[var(--bg-color)] transition-colors duration-300">
+<div class="py-3 sm:py-6 lg:py-8">
     {{-- CABECERA Y FILTROS --}}
     <div class="sticky top-0 z-50 bg-[var(--card-color)] border-b border-[var(--border-color)] shadow-sm">
         <div class="max-w-full px-4 sm:px-6 lg:px-8 py-4">
@@ -123,7 +123,7 @@
     </div>
 
     {{-- CONTENEDOR PRINCIPAL: MAPA Y PROPIEDADES --}}
-    <div class="p-3 sm:p-6 lg:p-8">
+   <div class="py-3 sm:py-6 lg:py-8">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
             {{-- MAPA --}}
             <div class="lg:col-span-3">
@@ -203,7 +203,7 @@
                         </button>
                     </div>
 
-                    <div class="px-5 py-4 overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:pb-5">
+                    <div class="px-5 py-4 overflow-y-auto flex-1 min-h-0 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:pb-5">
                         <div id="panelVacio" class="text-center py-8">
                             <svg class="w-12 h-12 mx-auto mb-3 text-[var(--text-muted)] opacity-50" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>

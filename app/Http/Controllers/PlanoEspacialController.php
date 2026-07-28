@@ -132,7 +132,7 @@ class PlanoEspacialController extends Controller
                 ], 422);
             }
 
-            $mesa->delete();
+            $mesa->forceDelete();
 
             return response()->json([
                 'success' => true,
