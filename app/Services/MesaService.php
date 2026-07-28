@@ -14,10 +14,11 @@ class MesaService
     public function obtenerMesasParaUsuario($usuario)
     {
         if ($this->esCapitan($usuario)) {
-            return Mesa::orderBy('numero', 'asc')->get();
+            return Mesa::soloLocales()->orderBy('numero', 'asc')->get();
         }
 
-        return Mesa::where(function ($query) use ($usuario) {
+        return Mesa::soloLocales()
+            ->where(function ($query) use ($usuario) {
                 $query->where('estado', 'disponible')
                     ->orWhere(function ($q) use ($usuario) {
                         $q->where('estado', 'ocupada')

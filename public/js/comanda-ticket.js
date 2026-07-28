@@ -267,14 +267,67 @@
 
         document.getElementById('txtSubtotal').innerText = '$' + subtotalConDescuento.toFixed(2);
         document.getElementById('txtIva').innerText = '$' + iva.toFixed(2);
-        
+
         // Si tienes un elemento visual para renderizar el monto de la propina, lo actualizamos aquí:
         const txtPropina = document.getElementById('txtPropina');
         if (txtPropina) {
             txtPropina.innerText = '$' + window.propinaGlobal.toFixed(2);
         }
 
+        // --- NUEVO: comisión de plataforma de delivery (Rappi/Uber/DiDi) ---
+        // Misma fórmula que CajaService en el servidor, para que lo que ve el
+        // mesero coincida con lo que cobra Caja y con el ticket impreso:
+        //   base       = subtotal + IVA del producto
+        //   comisión   = base * %plataforma
+        //   IVA com.   = comisión * %iva
+        // y el total de comisión SE SUMA al total del pedido.
+        const totalComision = window.calcularComisionDelivery(subtotalConDescuento + iva);
+
+        const totalFinal = subtotalConDescuento + iva + window.propinaGlobal + totalComision;
+        const txtTotalComanda = document.getElementById('txtTotalComanda');
+        if (txtTotalComanda) {
+            txtTotalComanda.innerText = '$' + totalFinal.toFixed(2);
+        }
+
         actualizarVistaTotal();
+    };
+
+    /**
+     * Calcula la comisión de la plataforma de delivery sobre una base dada,
+     * pinta el desglose en pantalla y devuelve el total de comisión.
+     * Si la mesa NO es de delivery, oculta el bloque y devuelve 0.
+     */
+    window.calcularComisionDelivery = function (base) {
+        const bloque = document.getElementById('bloqueComisionDelivery');
+        const cfg = (window.ComandaConfig && window.ComandaConfig.delivery) || null;
+
+        if (!cfg || !cfg.esDelivery) {
+            if (bloque) bloque.classList.add('hidden');
+            return 0;
+        }
+
+        const pctComision = parseFloat(cfg.comisionPorcentaje) || 0;
+        const pctIva      = parseFloat(cfg.comisionIvaPorcentaje) || 0;
+
+        const comision    = base * (pctComision / 100);
+        const comisionIva = comision * (pctIva / 100);
+
+        if (bloque) {
+            bloque.classList.remove('hidden');
+
+            const setTxt = (id, valor) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = valor;
+            };
+
+            setTxt('txtPlataformaNombre', cfg.plataforma || 'Delivery');
+            setTxt('txtComisionPorcentaje', pctComision.toFixed(0));
+            setTxt('txtComisionIvaPorcentaje', pctIva.toFixed(0));
+            setTxt('txtComision', '$' + comision.toFixed(2));
+            setTxt('txtComisionIva', '$' + comisionIva.toFixed(2));
+        }
+
+        return comision + comisionIva;
     };
 
     window.limpiarTicket = function () {

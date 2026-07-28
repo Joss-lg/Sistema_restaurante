@@ -15,6 +15,9 @@ class Mesa extends Model
     const ESTADO_DISPONIBLE = 'disponible';
     const ESTADO_OCUPADA = 'ocupada';
 
+    const TIPO_LOCAL = 'local';
+    const TIPO_DELIVERY = 'delivery';
+
     protected $table = 'mesas';
 
     protected $fillable = [
@@ -30,12 +33,34 @@ class Mesa extends Model
         'alto',
         'mesero_id',
         'total_consumo',
+        'tipo',
+        'plataforma_delivery_id',
+        'comision_porcentaje',
+        'comision_iva_porcentaje',
     ];
 
     // Relación con Mesero
     public function mesero()
     {
         return $this->belongsTo(User::class, 'mesero_id');
+    }
+
+    // Relación con la plataforma de delivery (Rappi/Uber/DiDi), si aplica
+    public function plataformaDelivery()
+    {
+        return $this->belongsTo(PlataformaDelivery::class, 'plataforma_delivery_id');
+    }
+
+    public function esDelivery(): bool
+    {
+        return $this->tipo === self::TIPO_DELIVERY;
+    }
+
+    public function scopeSoloLocales($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('tipo', self::TIPO_LOCAL)->orWhereNull('tipo');
+        });
     }
 
     // Relación con Órdenes

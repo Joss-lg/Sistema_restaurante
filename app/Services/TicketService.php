@@ -18,7 +18,12 @@ class TicketService
      */
     public function obtenerDatosTicketPorMesa(int $mesaId): array
     {
-        $mesa = Mesa::findOrFail($mesaId);
+        // withTrashed() es obligatorio aquí: las mesas de delivery se retiran
+        // (borrado suave) en cuanto se cobran, y el ticket se imprime JUSTO
+        // DESPUÉS del pago. Sin esto, findOrFail lanzaría 404 al imprimir el
+        // ticket de cualquier pedido de Rappi/Uber/DiDi. También permite
+        // reimprimir tickets viejos desde el historial.
+        $mesa = Mesa::withTrashed()->findOrFail($mesaId);
 
         $ordenes = $mesa->ordenesActivas()
             ->with([
@@ -97,7 +102,20 @@ class TicketService
         // sumar todas es seguro y no depende de ese detalle interno.
         $propina = $ordenes->sum(fn ($orden) => $orden->propina ?? 0);
 
-        $totalCalculado = $baseImponible + $iva + $propina;
+        // --- NUEVO: comisión de plataforma de delivery (Rappi/Uber/DiDi) ---
+        // Se lee el % "congelado" en la propia mesa (columna comision_porcentaje /
+        // comision_iva_porcentaje) para que el ticket siempre coincida con lo que
+        // se cobró, aunque después cambies el % en Configuración > Delivery.
+        $esDelivery = $mesa->esDelivery();
+        $comisionPorcentaje = $esDelivery ? (float) ($mesa->comision_porcentaje ?? 0) : 0;
+        $comisionIvaPorcentaje = $esDelivery ? (float) ($mesa->comision_iva_porcentaje ?? 0) : 0;
+
+        $baseComision = $baseImponible + $iva;
+        $comisionMonto = $esDelivery ? round($baseComision * ($comisionPorcentaje / 100), 2) : 0;
+        $comisionIvaMonto = $esDelivery ? round($comisionMonto * ($comisionIvaPorcentaje / 100), 2) : 0;
+        $comisionTotal = round($comisionMonto + $comisionIvaMonto, 2);
+
+        $totalCalculado = $baseImponible + $iva + $propina + $comisionTotal;
 
         $primeraOrden = $ordenes->first();
         $numeroFolio  = $ordenIds->isNotEmpty()
@@ -117,6 +135,14 @@ class TicketService
             'ivaPorcentaje'  => $ivaPorcentaje,
             'ivaHabilitado'  => $ivaHabilitado,
             'propina'        => $propina,
+            // --- NUEVO ---
+            'esDelivery'            => $esDelivery,
+            'plataformaNombre'      => $esDelivery ? optional($mesa->plataformaDelivery)->nombre : null,
+            'comisionPorcentaje'    => $comisionPorcentaje,
+            'comisionMonto'         => $comisionMonto,
+            'comisionIvaPorcentaje' => $comisionIvaPorcentaje,
+            'comisionIvaMonto'      => $comisionIvaMonto,
+            'comisionTotal'         => $comisionTotal,
             'total'          => round($totalCalculado, 2),
             'pagos'          => $pagos,
             'negocio'        => ['nombre' => 'Agostadero'],

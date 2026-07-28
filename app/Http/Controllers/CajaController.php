@@ -35,7 +35,7 @@ class CajaController extends Controller
             return view('admin.caja.apertura');
         }
 
-        $mesas = Mesa::orderBy('numero', 'asc')->with(['ordenesActivas.detalles.producto'])->get();
+        $mesas = Mesa::orderBy('numero', 'asc')->with(['ordenesActivas.detalles.producto', 'plataformaDelivery'])->get();
 
         $mesas->each(function ($mesa) {
             if ($mesa->estado === Mesa::ESTADO_OCUPADA && $mesa->ordenesActivas()->count() === 0) {
@@ -56,7 +56,25 @@ class CajaController extends Controller
         $mesasActivas = $mesas->where('estado', Mesa::ESTADO_OCUPADA)->count();
         $totalAbierto = $mesas->where('estado', Mesa::ESTADO_OCUPADA)->sum(fn($m) => floatval($m->total_real ?? 0));
 
-        return view('admin.caja.index', compact('mesas', 'mesasActivas', 'totalAbierto', 'cajaActiva'));
+        // Se cuenta ANTES de filtrar. Las mesas de delivery no cuentan como
+        // "libres": son virtuales y desaparecen al cobrarse, así que este
+        // número refleja solo las mesas reales del salón.
+        $mesasLibres = $mesas
+            ->where('estado', Mesa::ESTADO_DISPONIBLE)
+            ->filter(fn($m) => !$m->esDelivery())
+            ->count();
+
+        // --- NUEVO: Caja solo muestra mesas con cuenta abierta ---
+        // Las mesas libres ya no se listan aquí: en Caja no hay nada que
+        // hacer con ellas y solo estorban. En cuanto se cobra una mesa
+        // queda "disponible" y desaparece sola de esta pantalla.
+        //
+        // OJO: se filtra DESPUÉS de calcular los totales de arriba para que
+        // las tarjetas de resumen sigan siendo correctas.
+        // Las mesas NO se borran: siguen intactas en el plano espacial.
+        $mesas = $mesas->where('estado', Mesa::ESTADO_OCUPADA)->values();
+
+        return view('admin.caja.index', compact('mesas', 'mesasActivas', 'totalAbierto', 'mesasLibres', 'cajaActiva'));
     }
 
     public function abrir(Request $request)

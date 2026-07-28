@@ -59,6 +59,14 @@ class MesaOperacionController extends Controller
             'cuentasDivididas' => $desglose['cuentasDivididas'],
             'totalCuentasDivision' => $desglose['totalCuentasDivision'],
             'division' => $desglose['division'],
+            // --- NUEVO: comisión de plataforma de delivery ---
+            'esDelivery' => $desglose['esDelivery'],
+            'plataformaNombre' => $desglose['plataformaNombre'],
+            'comisionPorcentaje' => $desglose['comisionPorcentaje'],
+            'comisionMonto' => $desglose['comisionMonto'],
+            'comisionIvaPorcentaje' => $desglose['comisionIvaPorcentaje'],
+            'comisionIvaMonto' => $desglose['comisionIvaMonto'],
+            'comisionTotal' => $desglose['comisionTotal'],
         ]);
     }
 

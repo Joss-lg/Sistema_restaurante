@@ -64,7 +64,13 @@
     <div class="center">
         <span style="font-size: 17px;" class="bold">{{ $negocio['nombre'] }}</span><br>
         @if($mesa)
-            <span class="bold" style="font-size: 16px;">Mesa {{ preg_replace('/^mesa\s*/i', '', $mesa) }}</span><br>
+            <span class="bold" style="font-size: 16px;">
+                @if($esDelivery ?? false)
+                    {{ $plataformaNombre ?? 'Delivery' }} · {{ preg_replace('/^mesa\s*/i', '', $mesa) }}
+                @else
+                    Mesa {{ preg_replace('/^mesa\s*/i', '', $mesa) }}
+                @endif
+            </span><br>
         @endif
         <span style="font-size: 13px;">{{ $fecha }}</span>
         @if($mesero) <br><span style="font-size: 13px;">Atendió: {{ $mesero }}</span> @endif
@@ -117,6 +123,23 @@
             <td class="right">${{ number_format($propina, 2) }}</td>
         </tr>
         @endif
+
+        @if($esDelivery ?? false)
+        <tr>
+            <td colspan="2" style="padding-top: 6px; font-size: 12px;" class="bold">
+                {{ $plataformaNombre ?? 'Delivery' }} — comisión
+            </td>
+        </tr>
+        <tr>
+            <td>Comisión ({{ number_format($comisionPorcentaje ?? 0, 0) }}%)</td>
+            <td class="right">${{ number_format($comisionMonto ?? 0, 2) }}</td>
+        </tr>
+        <tr>
+            <td>IVA comisión ({{ number_format($comisionIvaPorcentaje ?? 0, 0) }}%)</td>
+            <td class="right">${{ number_format($comisionIvaMonto ?? 0, 2) }}</td>
+        </tr>
+        @endif
+
         <tr class="total-final">
             <td>TOTAL</td>
             <td class="right">${{ number_format($total, 2) }}</td>

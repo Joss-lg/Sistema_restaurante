@@ -22,7 +22,11 @@
             </a>
             
             <h1 class="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white italic tracking-tighter uppercase break-words">
-                Mesa {{ $mesa->numero }}
+                @if($mesa->esDelivery())
+                    <i class="fas fa-motorcycle text-orange-500 mr-1"></i> {{ $mesa->plataformaDelivery->nombre ?? 'Delivery' }} · {{ $mesa->numero }}
+                @else
+                    Mesa {{ $mesa->numero }}
+                @endif
             </h1>
             
             <p class="text-[11px] sm:text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mt-0.5">

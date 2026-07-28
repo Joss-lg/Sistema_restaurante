@@ -66,7 +66,24 @@ class CajaService
             ? round($subtotal * ($ivaPorcentaje / 100), 2)
             : 0;
 
-        $total = round($subtotal + $iva + $propina, 2);
+        // --- NUEVO: comisión de plataforma de delivery (Rappi/Uber/DiDi) ---
+        // Se calcula sobre el valor de venta al público (subtotal + IVA del
+        // producto), que es la base que usan las plataformas para cobrar su
+        // comisión. Se le suma el IVA que la propia plataforma cobra sobre
+        // esa comisión (factura de servicio), y el resultado se SUMA al
+        // total que paga el cliente (así lo pediste: el precio en delivery
+        // sube para cubrir la comisión, no se descuenta de lo que ya cobró
+        // el restaurante).
+        $esDelivery = $mesa->esDelivery();
+        $comisionPorcentaje = $esDelivery ? (float) ($mesa->comision_porcentaje ?? 0) : 0;
+        $comisionIvaPorcentaje = $esDelivery ? (float) ($mesa->comision_iva_porcentaje ?? 0) : 0;
+
+        $baseComision = $subtotal + $iva;
+        $comisionMonto = $esDelivery ? round($baseComision * ($comisionPorcentaje / 100), 2) : 0;
+        $comisionIvaMonto = $esDelivery ? round($comisionMonto * ($comisionIvaPorcentaje / 100), 2) : 0;
+        $comisionTotal = round($comisionMonto + $comisionIvaMonto, 2);
+
+        $total = round($subtotal + $iva + $propina + $comisionTotal, 2);
 
         $division = $this->obtenerEstadoDivision($mesa);
 
@@ -79,6 +96,14 @@ class CajaService
             'ivaHabilitado'         => $ivaHabilitado,
             'ivaPorcentaje'         => $ivaPorcentaje,
             'propina'               => round($propina, 2),
+            // --- NUEVO: desglose de comisión de delivery ---
+            'esDelivery'            => $esDelivery,
+            'plataformaNombre'      => $esDelivery ? optional($mesa->plataformaDelivery)->nombre : null,
+            'comisionPorcentaje'    => $comisionPorcentaje,
+            'comisionMonto'         => $comisionMonto,
+            'comisionIvaPorcentaje' => $comisionIvaPorcentaje,
+            'comisionIvaMonto'      => $comisionIvaMonto,
+            'comisionTotal'         => $comisionTotal,
             'total'                 => $total,
             'ordenes'               => $ordenesActivas,
             // NUEVO: división real de la cuenta (null si la mesa no está dividida)
@@ -424,6 +449,20 @@ class CajaService
             // Limpiamos cualquier división de cuenta: ya está todo cobrado
             // y la mesa queda libre para nuevos comensales.
             $mesa->cuentasDivision()->delete();
+
+            // --- NUEVO: las mesas de DELIVERY se retiran al cobrarse ---
+            // Una mesa de Rappi/Uber/DiDi es virtual: se crea para UN pedido
+            // concreto y no existe en el salón, así que no tiene sentido
+            // dejarla "disponible" esperando comensales. Si no se retirara,
+            // cada pedido de delivery iría acumulando una mesa fantasma en
+            // la pantalla de Caja para siempre.
+            //
+            // Se usa borrado SUAVE (SoftDeletes), no DELETE real, para no
+            // romper el historial: las órdenes, los pagos y el corte de caja
+            // siguen apuntando a esta mesa_id y deben poder consultarse.
+            if ($mesa->esDelivery()) {
+                $mesa->delete();
+            }
 
             return true;
         });

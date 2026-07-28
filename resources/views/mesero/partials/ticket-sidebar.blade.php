@@ -20,7 +20,13 @@
     <div class="flex items-center justify-between mb-6 p-3 rounded-2xl bg-gradient-to-br from-[var(--bg-panel)] to-transparent border border-[var(--border-color)] shadow-sm">
         <div class="flex flex-col">
             <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1">Activa</span>
-            <h3 class="text-2xl font-black tracking-tight text-[var(--text-main)] leading-none">Mesa {{ $mesa->numero ?? '12M' }}</h3>
+            <h3 class="text-2xl font-black tracking-tight text-[var(--text-main)] leading-none">
+                @if($mesa->esDelivery())
+                    <i class="fas fa-motorcycle text-orange-500"></i> {{ $mesa->plataformaDelivery->nombre ?? 'Delivery' }}
+                @else
+                    Mesa {{ $mesa->numero ?? '12M' }}
+                @endif
+            </h3>
         </div>
         <div class="relative flex items-center justify-center">
             <div class="absolute w-4 h-4 rounded-full bg-emerald-500/30 animate-pulse"></div>
@@ -105,7 +111,11 @@
 
         <div class="flex items-center gap-1.5 text-[12px] font-black tracking-tight text-[var(--text-main)]">
             <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>
-            MESA {{ $mesa->numero ?? '12M' }}
+            @if($mesa->esDelivery())
+                <i class="fas fa-motorcycle text-orange-500"></i> {{ strtoupper($mesa->plataformaDelivery->nombre ?? 'DELIVERY') }}
+            @else
+                MESA {{ $mesa->numero ?? '12M' }}
+            @endif
         </div>
     </div>
 
@@ -116,7 +126,11 @@
         </button>
         <div class="flex items-center gap-1.5 text-[12px] font-black tracking-tight text-[var(--text-main)]">
             <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>
-            MESA {{ $mesa->numero ?? '12M' }}
+            @if($mesa->esDelivery())
+                <i class="fas fa-motorcycle text-orange-500"></i> {{ strtoupper($mesa->plataformaDelivery->nombre ?? 'DELIVERY') }}
+            @else
+                MESA {{ $mesa->numero ?? '12M' }}
+            @endif
         </div>
         <button type="button" onclick="toggleTheme()" class="w-8 h-8 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] active:scale-95">
             <i id="themeIconTablet" class="fas fa-sun text-[11px]"></i>
@@ -285,6 +299,34 @@
         <div class="flex justify-between items-center mb-4">
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Propina</span>
             <span class="text-[13px] md:text-[12px] font-bold text-emerald-500" id="txtPropina">$0.00</span>
+        </div>
+
+        {{-- --- NUEVO: comisión de plataforma de delivery ---
+             Oculto por defecto; comanda-ticket.js lo muestra solo cuando la
+             mesa es un pedido de Rappi/Uber/DiDi. --}}
+        <div id="bloqueComisionDelivery" class="hidden mb-4 p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 space-y-1">
+            <p class="text-[10px] font-black uppercase tracking-widest text-orange-500 flex items-center gap-1.5">
+                <i class="fas fa-motorcycle"></i>
+                <span id="txtPlataformaNombre">Delivery</span>
+            </p>
+            <div class="flex justify-between items-center">
+                <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">
+                    Comisión (<span id="txtComisionPorcentaje">0</span>%)
+                </span>
+                <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtComision">$0.00</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">
+                    IVA comisión (<span id="txtComisionIvaPorcentaje">0</span>%)
+                </span>
+                <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtComisionIva">$0.00</span>
+            </div>
+        </div>
+
+        {{-- Total final (incluye comisión cuando aplica) --}}
+        <div class="flex justify-between items-center mb-4 pt-2 border-t border-[var(--border-color)]">
+            <span class="text-[13px] md:text-xs text-[var(--text-main)] font-black uppercase tracking-wide">Total</span>
+            <span class="text-base md:text-sm font-black text-[var(--text-main)]" id="txtTotalComanda">$0.00</span>
         </div>
 
         <button type="button" id="btn-enviar" onclick="enviarACocina()" class="w-full h-13 md:h-12 rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-[13px] md:text-[12px] font-bold tracking-wide transition-all duration-150 shadow-[0_8px_20px_-5px_rgba(59,130,246,0.5)] hover:shadow-[0_10px_28px_-5px_rgba(59,130,246,0.6)] active:scale-95 flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-panel)]">

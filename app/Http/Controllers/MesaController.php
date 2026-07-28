@@ -30,12 +30,13 @@ class MesaController extends Controller
     public function index()
     {
         $mesas = $this->mesaService->obtenerMesasParaUsuario(auth()->user());
-        return view('admin.mesas.index', compact('mesas'));
+        $plataformasDelivery = \App\Models\PlataformaDelivery::activas()->orderBy('nombre')->get();
+        return view('admin.mesas.index', compact('mesas', 'plataformasDelivery'));
     }
 
     public function show($mesaId)
     {
-        $mesa = Mesa::findOrFail($mesaId);
+        $mesa = Mesa::with('plataformaDelivery')->findOrFail($mesaId);
         $usuario = auth()->user();
 
         $this->mesaService->verificarAccesoMesa($mesa, $usuario);

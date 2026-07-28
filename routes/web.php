@@ -21,6 +21,8 @@ use App\Http\Controllers\CajaController;
 use App\Http\Controllers\MesaOperacionController;
 use App\Http\Controllers\HistorialCajaController;
 use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\PlataformaDeliveryController;
 
 // ==========================================
 // --- AUTENTICACIÓN ---
@@ -67,6 +69,9 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/comanda/{mesa}/personas', [MesaController::class, 'actualizarPersonas'])->name('comanda.personas'); 
         Route::get('/comanda/promociones/activas', [MesaController::class, 'promocionesActivas'])->name('comanda.promociones.activas');
         // (Ruta duplicada eliminada para mantener limpieza, ya estaba arriba)
+
+        // --- DELIVERY (Rappi/Uber/DiDi): abre el pedido igual que una mesa ---
+        Route::post('/delivery/crear', [DeliveryController::class, 'crear'])->name('delivery.crear');
     });
     
     // ------------------------------------------
@@ -221,6 +226,14 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::post('/permisos/store', [PermisoController::class, 'store'])->name('permisos.store');
+
+        // --- DELIVERY (Configuración de comisiones por plataforma) ---
+        Route::middleware(['permiso:Delivery,mostrar'])->prefix('delivery')->name('delivery.')->group(function () {
+            Route::get('/', [PlataformaDeliveryController::class, 'index'])->name('index');
+            Route::post('/', [PlataformaDeliveryController::class, 'store'])->name('store')->middleware('permiso:Delivery,crear');
+            Route::put('/{id}', [PlataformaDeliveryController::class, 'update'])->name('update')->middleware('permiso:Delivery,editar');
+            Route::delete('/{id}', [PlataformaDeliveryController::class, 'destroy'])->name('destroy')->middleware('permiso:Delivery,eliminar');
+        });
 
     });
 

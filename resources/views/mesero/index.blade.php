@@ -114,6 +114,16 @@
                 habilitado: @json($ivaHabilitado ?? true),
                 porcentaje: @json($ivaPorcentaje ?? 16)
             },
+            // --- NUEVO: comisión de plataforma de delivery ---
+            // Se leen los porcentajes "congelados" en la propia mesa, no los
+            // de la tabla de configuración, para que el total que ve el
+            // mesero coincida exactamente con lo que cobrará Caja.
+            delivery: {
+                esDelivery: @json($mesa->esDelivery() ?? false),
+                plataforma: @json(optional($mesa->plataformaDelivery)->nombre),
+                comisionPorcentaje: @json((float) ($mesa->comision_porcentaje ?? 0)),
+                comisionIvaPorcentaje: @json((float) ($mesa->comision_iva_porcentaje ?? 0))
+            },
             rutas: {
                 dashboard: @json(route('mesero.dashboard')),
                 promociones: @json($rutaPromociones),

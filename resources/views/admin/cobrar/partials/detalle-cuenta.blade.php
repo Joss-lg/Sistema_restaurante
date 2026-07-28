@@ -197,6 +197,26 @@
                     </span>
                     <span class="font-bold" id="resumen-propina">${{ number_format($propina ?? 0, 2) }}</span>
                 </div>
+
+                @if($esDelivery ?? false)
+                    <div class="mt-1 p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 space-y-0.5">
+                        <p class="text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fas fa-motorcycle"></i> {{ $plataformaNombre ?? 'Delivery' }}
+                        </p>
+                        <div class="flex justify-between text-zinc-600 dark:text-zinc-400 text-[11px] font-semibold">
+                            <span>Comisión ({{ number_format($comisionPorcentaje ?? 0, 0) }}%)</span>
+                            <span class="font-bold text-zinc-900 dark:text-white">${{ number_format($comisionMonto ?? 0, 2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-zinc-600 dark:text-zinc-400 text-[11px] font-semibold">
+                            <span>IVA de la comisión ({{ number_format($comisionIvaPorcentaje ?? 0, 0) }}%)</span>
+                            <span class="font-bold text-zinc-900 dark:text-white">${{ number_format($comisionIvaMonto ?? 0, 2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-orange-600 dark:text-orange-400 text-[11px] font-black pt-0.5 border-t border-orange-500/20">
+                            <span>Total comisión (se suma al pedido)</span>
+                            <span>${{ number_format($comisionTotal ?? 0, 2) }}</span>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="border-t border-zinc-200 dark:border-white/10 pt-1 flex justify-between items-center">

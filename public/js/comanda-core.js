@@ -192,9 +192,21 @@ var mesaDestinoSeleccionadaNumero = null;
         // --- AJUSTE: IVA habilitable desde configuración global ---
         const ivaConfig = (window.ComandaConfig && window.ComandaConfig.iva) || { habilitado: true, porcentaje: 16 };
         const ivaGeneral = ivaConfig.habilitado ? subtotalGeneral * (ivaConfig.porcentaje / 100) : 0;
-        
+
+        // --- NUEVO: comisión de delivery sobre el total de la mesa ---
+        // Se calcula sobre TODO lo consumido (lo ya enviado a cocina + lo
+        // pendiente), que es la misma base que usa Caja al cobrar.
+        let comisionGeneral = 0;
+        const cfgDelivery = (window.ComandaConfig && window.ComandaConfig.delivery) || null;
+        if (cfgDelivery && cfgDelivery.esDelivery) {
+            const baseComision = subtotalGeneral + ivaGeneral;
+            const comision = baseComision * ((parseFloat(cfgDelivery.comisionPorcentaje) || 0) / 100);
+            const comisionIva = comision * ((parseFloat(cfgDelivery.comisionIvaPorcentaje) || 0) / 100);
+            comisionGeneral = comision + comisionIva;
+        }
+
         if (txtTotalElement) {
-            txtTotalElement.innerText = '$' + (subtotalGeneral + ivaGeneral).toFixed(2);
+            txtTotalElement.innerText = '$' + (subtotalGeneral + ivaGeneral + comisionGeneral).toFixed(2);
         }
     };
 

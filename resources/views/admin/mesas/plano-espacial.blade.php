@@ -52,6 +52,24 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
+                    {{-- --- DELIVERY (Rappi/Uber/DiDi) ---
+                         Van en la MISMA fila que los botones de acción a
+                         propósito: la cabecera es sticky y su contenedor
+                         padre (admin/mesas/index.blade.php) tiene alto fijo
+                         con overflow-hidden. Si estos botones ocuparan su
+                         propia fila, empujarían el mapa fuera del área
+                         visible y las mesas dejarían de verse. --}}
+                    @foreach(($plataformasDelivery ?? collect()) as $plataforma)
+                        <button type="button"
+                            class="btn-delivery flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 rounded-lg text-white text-sm sm:text-base font-semibold transition shadow-sm active:scale-95 flex items-center gap-2"
+                            style="background-color: {{ $plataforma->color }}"
+                            data-plataforma-id="{{ $plataforma->id }}"
+                            data-plataforma-nombre="{{ $plataforma->nombre }}"
+                            title="Nuevo pedido de {{ $plataforma->nombre }}">
+                            <i class="fas fa-motorcycle"></i>
+                            <span>{{ $plataforma->nombre }}</span>
+                        </button>
+                    @endforeach
                     {{-- El modo "Editar" da acceso a mover mesas, agregar y eliminar.
                          Se muestra si el usuario tiene AL MENOS UNO de esos permisos. --}}
                     @if($puedeEditarMesa || $puedeCrearMesa || $puedeEliminarMesa)
@@ -313,6 +331,48 @@
             if (typeof TecladoVirtual !== 'undefined') {
                 TecladoVirtual.attachAll();
             }
+
+            // --- NUEVO: botones de Delivery (Rappi/Uber/DiDi) ---
+            // Al elegir una plataforma, se crea el "pedido" (una mesa virtual)
+            // en el servidor y se redirige a la comanda, exactamente igual
+            // que si se hubiera abierto una mesa del salón.
+            document.querySelectorAll('.btn-delivery').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const plataformaId = btn.dataset.plataformaId;
+                    const nombre = btn.dataset.plataformaNombre;
+
+                    document.querySelectorAll('.btn-delivery').forEach(b => b.disabled = true);
+                    const textoOriginal = btn.innerHTML;
+                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Abriendo ${nombre}...`;
+
+                    try {
+                        const res = await fetch('{{ route("mesero.delivery.crear") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ plataforma_delivery_id: plataformaId }),
+                        });
+
+                        const data = await res.json();
+
+                        if (res.ok && data.success) {
+                            window.location.href = data.redirect;
+                        } else {
+                            alert(data.message || `No se pudo abrir el pedido de ${nombre}.`);
+                            document.querySelectorAll('.btn-delivery').forEach(b => b.disabled = false);
+                            btn.innerHTML = textoOriginal;
+                        }
+                    } catch (e) {
+                        console.error('Error al crear pedido de delivery:', e);
+                        alert(`Error de conexión al abrir el pedido de ${nombre}.`);
+                        document.querySelectorAll('.btn-delivery').forEach(b => b.disabled = false);
+                        btn.innerHTML = textoOriginal;
+                    }
+                });
+            });
         });
     </script>
 @endpush

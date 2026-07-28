@@ -134,6 +134,7 @@
                 'Operaciones' => [
                     ['route' => 'admin.cocina.index', 'icon' => 'fas fa-fire-burner', 'label' => 'Cocina', 'modulo_id' => 8],
                     ['route' => 'admin.mesas.index', 'icon' => 'fas fa-chair', 'label' => 'Mesas', 'modulo_id' => 6],
+                    ['route' => 'admin.delivery.index', 'icon' => 'fas fa-motorcycle', 'label' => 'Delivery', 'modulo_id' => 13],
                 ],
                 'Caja' => [
                     ['route' => 'admin.caja.index', 'icon' => 'fas fa-cash-register', 'label' => 'Caja', 'modulo_id' => 9],

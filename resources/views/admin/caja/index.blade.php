@@ -4,7 +4,10 @@
 
 @section('content')
 @php
-    $mesasLibres = $mesas->where('estado', 'disponible')->count();
+    // $mesasLibres ahora llega desde CajaController: ya NO se puede calcular
+    // aquí porque $mesas viene filtrada y solo trae las mesas con cuenta
+    // abierta, así que este conteo siempre daría 0.
+    $mesasLibres = $mesasLibres ?? 0;
 @endphp
 
 <div id="toastContainer" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-8 sm:bottom-8 z-[9999] flex flex-col gap-3 items-center sm:items-end" aria-live="polite" aria-atomic="true"></div>
@@ -70,7 +73,14 @@
                         <div class="flex justify-between items-start mb-3.5 sm:mb-6 w-full">
                             <div class="w-full">
                                <h3 class="text-base sm:text-2xl font-black tracking-tight text-gray-900 dark:text-slate-100 transition-colors group-hover:text-emerald-500 truncate">{{ $mesa->numero }}</h3>
-                                <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-semibold">Cap. {{ $mesa->capacidad }} p.</p>
+                                @if($mesa->esDelivery())
+                                    <p class="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md text-white mt-0.5"
+                                       style="background-color: {{ $mesa->plataformaDelivery->color ?? '#f97316' }}">
+                                        <i class="fas fa-motorcycle"></i> {{ $mesa->plataformaDelivery->nombre ?? 'Delivery' }}
+                                    </p>
+                                @else
+                                    <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-semibold">Cap. {{ $mesa->capacidad }} p.</p>
+                                @endif
                             </div>
                         </div>
                         <div class="mt-auto w-full space-y-2 sm:space-y-3">
@@ -103,7 +113,13 @@
                 </div>
             @endif
         @empty
-            <p class="col-span-2 lg:col-span-3 xl:col-span-4 text-center w-full py-10 text-gray-500 dark:text-slate-400 font-semibold">No hay mesas configuradas</p>
+            <div class="col-span-2 lg:col-span-3 xl:col-span-4 text-center w-full py-14">
+                <i class="fas fa-mug-hot text-4xl text-gray-300 dark:text-slate-700 mb-3"></i>
+                <p class="text-gray-500 dark:text-slate-400 font-bold">No hay cuentas abiertas</p>
+                <p class="text-gray-400 dark:text-slate-500 text-sm mt-1">
+                    Aquí aparecerán las mesas y los pedidos de delivery en cuanto tengan consumo.
+                </p>
+            </div>
         @endforelse
     </div>
 </div>

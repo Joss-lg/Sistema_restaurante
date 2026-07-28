@@ -16,9 +16,10 @@ class PlanoEspacialController extends Controller
      */
     public function index()
     {
-        $mesas = Mesa::orderBy('numero', 'asc')->get();
+        $mesas = Mesa::soloLocales()->orderBy('numero', 'asc')->get();
+        $plataformasDelivery = \App\Models\PlataformaDelivery::activas()->orderBy('nombre')->get();
 
-        return view('admin.mesas.plano-espacial', compact('mesas'));
+        return view('admin.mesas.plano-espacial', compact('mesas', 'plataformasDelivery'));
     }
 
     /**
@@ -28,7 +29,8 @@ class PlanoEspacialController extends Controller
     {
         $zona = $request->query('zona');
 
-        $query = Mesa::with(['mesero:id,nombre'])
+        $query = Mesa::soloLocales()
+            ->with(['mesero:id,nombre'])
             ->withCount(['ordenes as ordenes_activas_count' => function ($q) {
                 $q->where('estado', '!=', 'pagada');
             }])
