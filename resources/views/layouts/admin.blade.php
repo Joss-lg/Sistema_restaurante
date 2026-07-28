@@ -6,12 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'El Agostadero')</title>
+
+    <!-- Favicon tradicional (para la pestaña del navegador) -->
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}">
-   <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconos de alta resolución para Web Apps, Barra de tareas y Accesos directos -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/agostadero.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('images/agostadero.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/agostadero.png') }}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     @vite(['resources/js/app.js'])
 
