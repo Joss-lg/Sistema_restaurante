@@ -22,7 +22,7 @@ class UsuarioAdminSeeder extends Seeder
         $admin = User::updateOrCreate(
             ['email' => 'admin@ollintem.com'],
             [
-                'nombre' => 'Sebastian Admin',
+                'nombre' => 'Admin',
                 'password' => Hash::make('admin123'),
                 'codigo_empleado' => '1010',
                 'rol_id' => $rolAdmin->id,
