@@ -35,6 +35,21 @@ class CajaController extends Controller
             return view('admin.caja.apertura');
         }
 
+        $datos = $this->construirMesasCaja();
+
+        return view('admin.caja.index', array_merge($datos, ['cajaActiva' => $cajaActiva]));
+    }
+
+    /**
+     * Devuelve las mesas con cuenta abierta y los contadores del encabezado.
+     *
+     * Vive aparte porque lo usan DOS entradas: el render inicial de la
+     * pantalla (index) y el endpoint de auto-refresco (apiMesas). Tenerlo en
+     * un solo lugar evita que la pantalla y el refresco muestren cosas
+     * distintas cuando se cambie algún cálculo.
+     */
+    private function construirMesasCaja(): array
+    {
         $mesas = Mesa::orderBy('numero', 'asc')->with(['ordenesActivas.detalles.producto', 'plataformaDelivery'])->get();
 
         $mesas->each(function ($mesa) {
@@ -64,9 +79,8 @@ class CajaController extends Controller
             ->filter(fn($m) => !$m->esDelivery())
             ->count();
 
-        // --- NUEVO: Caja solo muestra mesas con cuenta abierta ---
-        // Las mesas libres ya no se listan aquí: en Caja no hay nada que
-        // hacer con ellas y solo estorban. En cuanto se cobra una mesa
+        // Caja solo muestra mesas con cuenta abierta: las libres no tienen
+        // nada que cobrarse y solo estorban. En cuanto se cobra una mesa
         // queda "disponible" y desaparece sola de esta pantalla.
         //
         // OJO: se filtra DESPUÉS de calcular los totales de arriba para que
@@ -74,7 +88,41 @@ class CajaController extends Controller
         // Las mesas NO se borran: siguen intactas en el plano espacial.
         $mesas = $mesas->where('estado', Mesa::ESTADO_OCUPADA)->values();
 
-        return view('admin.caja.index', compact('mesas', 'mesasActivas', 'totalAbierto', 'mesasLibres', 'cajaActiva'));
+        return compact('mesas', 'mesasActivas', 'totalAbierto', 'mesasLibres');
+    }
+
+    /**
+     * Endpoint de auto-refresco de la pantalla de Caja.
+     *
+     * Devuelve el HTML ya renderizado de las tarjetas más los contadores,
+     * igual que hace Cocina. Antes la pantalla se refrescaba descargando la
+     * PÁGINA COMPLETA cada 4s y recortándole dos pedazos con DOMParser: eso
+     * traía el menú, los estilos y todos los modales en cada vuelta, y si
+     * fallaba se silenciaba sin dejar rastro.
+     */
+    public function apiMesas()
+    {
+        $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
+
+        // Si cerraron la caja desde otra terminal, se avisa para que la
+        // pantalla se recargue y muestre la vista de apertura.
+        if (!$cajaActiva) {
+            return response()->json([
+                'success'     => false,
+                'caja_cerrada' => true,
+                'message'     => 'La caja fue cerrada.',
+            ]);
+        }
+
+        $datos = $this->construirMesasCaja();
+
+        return response()->json([
+            'success'      => true,
+            'html'         => view('admin.caja.partials.mesas', ['mesas' => $datos['mesas']])->render(),
+            'totalAbierto' => '$' . number_format($datos['totalAbierto'], 2),
+            'mesasActivas' => $datos['mesasActivas'],
+            'mesasLibres'  => $datos['mesasLibres'],
+        ]);
     }
 
     public function abrir(Request $request)

@@ -48,79 +48,18 @@
             </div>
             <div class="p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
                 <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Mesas activas</p>
-                <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black tracking-tighter text-gray-900 dark:text-slate-100">{{ $mesasActivas ?? 0 }}</p>
+                <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black tracking-tighter text-gray-900 dark:text-slate-100" id="mesas-activas-display">{{ $mesasActivas ?? 0 }}</p>
             </div>
             <div class="p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
                 <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Mesas libres</p>
-                <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black tracking-tighter text-gray-500 dark:text-slate-400">{{ $mesasLibres }}</p>
+                <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black tracking-tighter text-gray-500 dark:text-slate-400" id="mesas-libres-display">{{ $mesasLibres }}</p>
             </div>
         </div>
     </div>
 
     {{-- GRID DE MESAS --}}
     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6 pt-1 sm:pt-4 w-full" id="mesas-container">
-        @forelse ($mesas as $mesa)
-            @php
-                $cuenta = $mesa->ordenesActivas->first() ?? null; 
-            @endphp
-
-            @if($cuenta)
-                {{-- 🟢 MESA CON ORDEN ACTIVA --}}
-                <a href="{{ route('admin.caja.cobrar', $mesa->id) }}" 
-                   data-mesa-status="{{ $mesa->estado }}"
-                   class="group relative flex flex-col w-full rounded-2xl sm:rounded-3xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/10 dark:bg-emerald-950/10 shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer transition-all duration-300 hover:-translate-y-1 overflow-hidden p-3.5 sm:p-6">
-                    <div class="relative z-10 flex-1 flex flex-col w-full">
-                        <div class="flex justify-between items-start mb-3.5 sm:mb-6 w-full">
-                            <div class="w-full">
-                               <h3 class="text-base sm:text-2xl font-black tracking-tight text-gray-900 dark:text-slate-100 transition-colors group-hover:text-emerald-500 truncate">{{ $mesa->numero }}</h3>
-                                @if($mesa->esDelivery())
-                                    <p class="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md text-white mt-0.5"
-                                       style="background-color: {{ $mesa->plataformaDelivery->color ?? '#f97316' }}">
-                                        <i class="fas fa-motorcycle"></i> {{ $mesa->plataformaDelivery->nombre ?? 'Delivery' }}
-                                    </p>
-                                @else
-                                    <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-semibold">Cap. {{ $mesa->capacidad }} p.</p>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="mt-auto w-full space-y-2 sm:space-y-3">
-                            <div class="rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex justify-between items-center w-full border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-[#15171c]">
-                                <p class="text-sm sm:text-xl font-black text-emerald-600 dark:text-emerald-400">${{ number_format($mesa->total_real ?? 0, 2) }}</p>
-                            </div>
-                            <div class="w-full py-2.5 sm:py-3.5 flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base bg-emerald-600 dark:bg-emerald-600 text-white shadow-sm transition-all duration-200 group-hover:bg-emerald-700">
-                                 <span class="hidden sm:inline ml-1">Cobrar</span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            @else
-                {{--  MESA SIN ORDEN --}}
-                <div data-mesa-status="{{ $mesa->estado }}"
-                   class="relative flex flex-col w-full rounded-2xl sm:rounded-3xl border border-red-200/50 dark:border-red-950/60 bg-red-50/5 dark:bg-red-950/5 shadow-sm overflow-hidden p-3.5 sm:p-6">
-                    <div class="relative z-10 flex-1 flex flex-col w-full">
-                        <div class="flex justify-between items-start mb-3.5 sm:mb-6 w-full">
-                            <div class="w-full">
-                               <h3 class="text-base sm:text-2xl font-black tracking-tight text-gray-400 dark:text-slate-500 truncate">{{ $mesa->numero }}</h3>
-                                <p class="text-gray-400 dark:text-slate-500 text-[10px] sm:text-xs font-semibold">Cap. {{ $mesa->capacidad }} p.</p>
-                            </div>
-                        </div>
-                        <div class="mt-auto w-full">
-                            <div class="w-full py-2.5 sm:py-3.5 flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-base border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 text-red-500 dark:text-red-400 cursor-not-allowed select-none text-center leading-tight px-1">
-                                ❌ <span class="hidden sm:inline ml-1">Mesa sin orden</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
-        @empty
-            <div class="col-span-2 lg:col-span-3 xl:col-span-4 text-center w-full py-14">
-                <i class="fas fa-mug-hot text-4xl text-gray-300 dark:text-slate-700 mb-3"></i>
-                <p class="text-gray-500 dark:text-slate-400 font-bold">No hay cuentas abiertas</p>
-                <p class="text-gray-400 dark:text-slate-500 text-sm mt-1">
-                    Aquí aparecerán las mesas y los pedidos de delivery en cuanto tengan consumo.
-                </p>
-            </div>
-        @endforelse
+        @include('admin.caja.partials.mesas')
     </div>
 </div>
 
@@ -145,26 +84,97 @@
     };
 
     document.addEventListener('DOMContentLoaded', function () {
-        const buttons = document.querySelectorAll('[data-filter]');
-        const mesaCards = document.querySelectorAll('[data-mesa-status]');
+        // --- FILTROS POR ESTADO ---
+        // Se usa delegación en el contenedor (y no querySelectorAll una sola
+        // vez) porque las tarjetas se reemplazan cada 5s con el auto-refresco:
+        // las referencias capturadas al cargar apuntarían a elementos que ya
+        // no existen y el filtro dejaría de funcionar tras el primer refresco.
+        const botonesFiltro = document.querySelectorAll('[data-filter]');
+        let filtroActivo = 'all';
 
-        buttons.forEach(button => {
-            button.addEventListener('click', () => {
-                buttons.forEach(btn => btn.classList.remove('filter-button--active'));
-                button.classList.add('filter-button--active');
-                const filter = button.dataset.filter;
-                
-                mesaCards.forEach(card => {
-                    const status = card.dataset.mesaStatus;
-                    if (filter === 'all' || status === filter) {
-                        card.style.display = 'flex';
-                        card.style.opacity = '1';
-                    } else {
-                        card.style.opacity = '0';
-                        setTimeout(() => { card.style.display = 'none'; }, 300);
-                    }
-                });
+        const aplicarFiltro = () => {
+            document.querySelectorAll('[data-mesa-status]').forEach(card => {
+                const coincide = filtroActivo === 'all' || card.dataset.mesaStatus === filtroActivo;
+                card.style.display = coincide ? 'flex' : 'none';
+                card.style.opacity = coincide ? '1' : '0';
             });
+        };
+
+        botonesFiltro.forEach(boton => {
+            boton.addEventListener('click', () => {
+                botonesFiltro.forEach(b => b.classList.remove('filter-button--active'));
+                boton.classList.add('filter-button--active');
+                filtroActivo = boton.dataset.filter;
+                aplicarFiltro();
+            });
+        });
+
+        // ---------------------------------------------------------------
+        // AUTO-REFRESCO (mismo patrón que Cocina)
+        // Consulta un endpoint que devuelve solo las tarjetas y los
+        // contadores. Antes se descargaba la página entera cada 4s y se
+        // recortaba con DOMParser: mucho más pesado y, si fallaba, el error
+        // se tragaba en silencio.
+        // ---------------------------------------------------------------
+        const URL_API_MESAS = @json(route('admin.caja.api.mesas'));
+        let refrescando = false;
+
+        async function actualizarMesas() {
+            // Evita que se encimen dos consultas si el servidor va lento.
+            if (refrescando || document.hidden) return;
+            refrescando = true;
+
+            try {
+                const res = await fetch(URL_API_MESAS, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+
+                if (!res.ok) {
+                    console.error('apiMesas falló:', res.status);
+                    return;
+                }
+
+                const data = await res.json();
+
+                // La caja se cerró desde otra terminal: recargamos para que
+                // aparezca la pantalla de apertura en vez de dejar tarjetas
+                // de mesas que ya no se pueden cobrar.
+                if (data && data.caja_cerrada) {
+                    window.location.reload();
+                    return;
+                }
+
+                if (!data || !data.success) {
+                    console.error('apiMesas respondió sin success:', data);
+                    return;
+                }
+
+                const contenedor = document.getElementById('mesas-container');
+                if (contenedor && contenedor.innerHTML.trim() !== data.html.trim()) {
+                    contenedor.innerHTML = data.html;
+                    aplicarFiltro(); // reaplicar el filtro a las tarjetas nuevas
+                }
+
+                const setTexto = (id, valor) => {
+                    const el = document.getElementById(id);
+                    if (el && el.innerText !== String(valor)) el.innerText = valor;
+                };
+                setTexto('total-abierto-display', data.totalAbierto);
+                setTexto('mesas-activas-display', data.mesasActivas);
+                setTexto('mesas-libres-display', data.mesasLibres);
+
+            } catch (err) {
+                console.error('Error actualizando mesas de caja:', err);
+            } finally {
+                refrescando = false;
+            }
+        }
+
+        setInterval(actualizarMesas, 5000);
+
+        // Al volver a la pestaña se actualiza de inmediato, sin esperar los 5s.
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) actualizarMesas();
         });
     });
 </script>

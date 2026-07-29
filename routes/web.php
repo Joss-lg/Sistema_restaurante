@@ -141,6 +141,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/reporte-pdf/{id}', [CajaController::class, 'generarReportePdf'])->name('reporte.pdf');
             Route::get('/ticket/{id}', [CajaController::class, 'imprimirTicket'])->name('ticket.imprimir');
             Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
+            Route::get('/api/mesas', [CajaController::class, 'apiMesas'])->name('api.mesas');
             Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
             Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
             
