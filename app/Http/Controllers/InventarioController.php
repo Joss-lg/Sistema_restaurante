@@ -175,7 +175,7 @@ class InventarioController extends Controller
 
     public function exportarPdfBajoStock()
     {
-        if (!auth()->user()->tienePermiso('gestionar.reporte')) {
+        if (!auth()->user()->tienePermiso('inventario.mostrar')) {
             return back()->with('error', 'No tienes permiso para generar reportes.');
         }
 

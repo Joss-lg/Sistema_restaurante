@@ -16,7 +16,7 @@
         </div>
 
         <div class="w-full xl:w-auto mt-2 xl:mt-0">
-            @if(auth()->user()->tienePermiso('promociones.agregar'))
+            @if(auth()->user()->tienePermiso('promociones.crear'))
                 <button onclick="openModal('modalCrear')" class="group w-full sm:w-auto relative flex justify-center items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-3.5 text-xs font-black uppercase tracking-widest !text-white transition-all hover:from-blue-500 hover:to-blue-400 shadow-[0_8px_20px_rgba(59,130,246,0.3)] hover:shadow-[0_8px_25px_rgba(59,130,246,0.5)] hover:-translate-y-0.5 outline-none border-0 active:scale-95">
                     <i class="fas fa-plus transition-transform group-hover:rotate-90"></i>
                     Nueva Promo
@@ -61,7 +61,7 @@
             <h2 class="text-xl sm:text-3xl font-black !text-gray-900 dark:!text-white tracking-tight">Sin promociones activas</h2>
             <p class="mt-3 text-xs sm:text-sm !text-gray-500 dark:!text-gray-400 font-medium max-w-md">No tienes ninguna oferta configurada en el sistema. Crea una nueva promo para atraer más clientes.</p>
             
-            @if(auth()->user()->tienePermiso('promociones.agregar'))
+            @if(auth()->user()->tienePermiso('promociones.crear'))
                 <button onclick="openModal('modalCrear')" class="mt-6 sm:mt-8 w-full sm:w-auto rounded-2xl !bg-gray-50 dark:!bg-black/40 border !border-gray-200 dark:!border-white/5 px-6 py-3 text-xs font-black uppercase tracking-widest !text-gray-900 dark:!text-white transition-all hover:!bg-gray-100 dark:hover:!bg-white/10 outline-none active:scale-95">
                     Comenzar ahora
                 </button>

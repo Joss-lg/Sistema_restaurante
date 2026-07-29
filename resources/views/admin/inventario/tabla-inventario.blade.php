@@ -22,14 +22,14 @@
                 <input type="text" id="buscadorInventario" data-teclado="texto" placeholder="Buscar ingrediente..." class="w-full h-12 bg-black/5 dark:bg-zinc-900/50 modo-crema:bg-black/5 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl pl-11 pr-4 text-xs font-bold text-[var(--text-color)] dark:text-zinc-100 focus:bg-[var(--card-color)] dark:focus:bg-zinc-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all">
             </div>
 
-            @if(auth()->user()->tienePermiso('gestionar.reporte'))
+            @if(auth()->user()->tienePermiso('inventario.mostrar'))
                 <a href="{{ route('admin.inventario.exportar_pdf_bajo_stock') }}" 
                 class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white px-6 h-12 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all shadow-lg shadow-rose-600/20 hover:shadow-rose-600/30 active:scale-95 outline-none flex items-center justify-center gap-2">
                     <i class="fas fa-file-pdf"></i> Reporte Bajo Stock
                 </a>
             @endif
 
-            @if(auth()->user()->tienePermiso('inventario.agregar'))
+            @if(auth()->user()->tienePermiso('inventario.crear'))
             <button onclick="openModalCrear()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-7 h-12 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 active:scale-95 outline-none flex items-center justify-center gap-2">
                 <i class="fas fa-plus"></i> Agregar Producto
             </button>

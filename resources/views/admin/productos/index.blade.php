@@ -55,9 +55,9 @@
     {{-- Contenedor de productos por categoría --}}
     <div class="bg-[var(--bg-panel)] rounded-[18px] sm:rounded-[24px] p-2.5 sm:p-6 shadow-sm border border-[var(--border-color)] min-h-[420px]">
         <div id="categorias-container" class="space-y-5 sm:space-y-6"
-             data-permiso-editar="{{ auth()->user()->tienePermiso('Alimentos', 'editar') ? 'true' : 'false' }}"
-             data-permiso-eliminar="{{ auth()->user()->tienePermiso('Alimentos', 'eliminar') ? 'true' : 'false' }}"
-             data-permiso-gestionar="{{ auth()->user()->tienePermiso('Alimentos', 'mostrar') ? 'true' : 'false' }}">
+             data-permiso-editar="{{ auth()->user()->tienePermiso('Productos', 'editar') ? 'true' : 'false' }}"
+             data-permiso-eliminar="{{ auth()->user()->tienePermiso('Productos', 'eliminar') ? 'true' : 'false' }}"
+             data-permiso-gestionar="{{ auth()->user()->tienePermiso('Productos', 'mostrar') ? 'true' : 'false' }}">
         </div>
     </div>
 

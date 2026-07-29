@@ -18,7 +18,7 @@
                 <i class="fas fa-calendar-check"></i> Corte Mensual
             </a>
 
-            @if(auth()->user()->tienePermiso('finanzas.reporte'))
+            @if(auth()->user()->tienePermiso('finanzas.mostrar'))
                 <a href="{{ route('admin.finanzas.exportar') }}"
                     class="w-full sm:w-auto bg-white hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 px-5 py-3.5 sm:py-2.5 rounded-xl text-sm font-bold transition-all outline-none flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-sm">
                     <i class="fas fa-download"></i> Exportar CSV
@@ -32,7 +32,7 @@
                 </button>
             @endif
 
-            @if(auth()->user()->tienePermiso('finanzas.agregar'))
+            @if(auth()->user()->tienePermiso('finanzas.crear'))
                 <button onclick="openModalCrearGasto()"
                     class="w-full sm:w-auto bg-rose-500 hover:bg-rose-600 dark:bg-rose-600 dark:hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 px-6 py-3.5 sm:py-2.5 rounded-xl text-sm font-bold transition-all outline-none flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
                     <i class="fas fa-plus"></i> Nuevo Gasto

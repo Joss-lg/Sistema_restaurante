@@ -24,7 +24,7 @@
             </p>
         </div>
 
-        @if(auth()->user()->tienePermiso('roles.agregar'))
+        @if(auth()->user()->tienePermiso('roles.crear'))
             <button type="button"
                     onclick="abrirModalCrear()"
                     class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-[0_4px_12px_rgba(37,99,235,0.25)] hover:shadow-[0_8px_20px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-[#15151a]">
@@ -134,7 +134,7 @@
 </div>
 
 {{-- MODALES --}}
-@if(auth()->user()->tienePermiso('roles.agregar')) @include('admin.roles.modal-crear') @endif
+@if(auth()->user()->tienePermiso('roles.crear')) @include('admin.roles.modal-crear') @endif
 @if(auth()->user()->tienePermiso('roles.editar')) @include('admin.roles.modal-editar') @endif
 @if(auth()->user()->tienePermiso('roles.eliminar')) @include('admin.roles.modal-eliminar') @endif
 @endsection

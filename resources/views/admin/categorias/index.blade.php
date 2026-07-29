@@ -44,7 +44,7 @@
                 </div>
                 
                 {{-- Botón Crear --}}
-                @if(auth()->user()->tienePermiso('categories.agregar') || auth()->user()->tienePermiso('categorias.agregar'))   
+                @if(auth()->user()->tienePermiso('categorias.crear'))   
                     <button onclick="openModalCrear()"
                         class="inline-flex items-center justify-center gap-2 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#2563eb] dark:hover:bg-blue-500 px-6 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-blue-500/20 transition-all outline-none w-full sm:w-auto active:scale-95">
                         <i class="fas fa-plus"></i> Crear Categoría

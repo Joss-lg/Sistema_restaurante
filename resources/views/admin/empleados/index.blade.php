@@ -13,7 +13,7 @@
             <h1 class="text-2xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">Empleados</h1>
         </div>
 
-        @if(auth()->user()->tienePermiso('empleados.agregar'))
+        @if(auth()->user()->tienePermiso('empleados.crear'))
             <div class="relative group w-full sm:w-auto">
                 <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500 pointer-events-none"></div>
                 <button type="button" onclick="abrirModalCrear()" class="relative flex items-center justify-center gap-2.5 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 outline-none w-full sm:w-auto shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
