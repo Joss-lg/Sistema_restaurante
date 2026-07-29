@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticket {{ $folio }}</title>
     <style>
         @page { 
@@ -9,185 +10,212 @@
             margin: 0; 
         }
         body {
+            /* Fusionamos el ancho seguro de Agostadero con la tipografía de Pizzetos */
             width: 72mm;
             margin: 4mm auto;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 15px;
-            line-height: 1.35;
-            color: #000;
-        }
-        .center { text-align: center; }
-        .bold { font-weight: bold; }
-        .linea { 
-            border-top: 1px dashed #000; 
-            margin: 8px 0; 
-        }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-        }
-        td { 
-            padding: 4px 0;
-            vertical-align: top; 
-        }
-        .right { text-align: right; }
-        
-        .item-row td {
-            font-weight: bold;
-        }
-        .desc-row td {
-            font-size: 12px;
-            color: #333;
-            padding-left: 10px;
-            padding-bottom: 4px;
-        }
-        .totales-table td {
-            padding: 3px 0;
-        }
-        .total-final { 
-            font-weight: bold; 
-            font-size: 18px;
-            border-top: 1px solid #000;
-            border-bottom: 1px solid #000;
-            padding: 5px 0 !important;
-            margin-top: 4px;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            font-size: 13px; 
+            color: #000; 
+            text-transform: uppercase; /* Todo en mayúsculas como en Pizzetos */
         }
         
+        /* Clases utilitarias estilo Pizzetos */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .text-xl { font-size: 22px; letter-spacing: 1px; }
+        .text-lg { font-size: 16px; }
+        .mt-1 { margin-top: 5px; }
+        .mb-1 { margin-bottom: 5px; }
+        .py-1 { padding: 5px 0; }
+        
+        /* Flexbox para alinear pagos y totales */
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Líneas punteadas */
+        .dashed-line { border-top: 1px dashed #000; margin: 5px 0; }
+        
+        /* Tabla de productos */
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { text-align: left; vertical-align: top; padding: 3px 0; }
+        th { border-bottom: 1px dashed #000; font-weight: bold; padding-bottom: 3px; font-size: 13px;}
+        
+        /* Estilos de productos (Letra grande y gruesa de Pizzetos) */
+        .item-principal { font-size: 16px; font-weight: 900; line-height: 1.2; }
+        .sub-item { font-size: 13px; font-weight: bold; color: #333; line-height: 1.2; }
+        .precio-text { font-size: 15px; font-weight: bold; }
+
+        /* Estilo para el logo en impresión térmica */
+        .ticket-logo {
+            width: 140px; 
+            height: auto;
+            margin: 0 auto 8px auto;
+            display: block;
+            filter: grayscale(100%) contrast(1.2); 
+        }
+
         @media print { 
             .no-print { display: none !important; } 
+            body { margin: 0 auto; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Encabezado -->
-    <div class="center">
-        <span style="font-size: 17px;" class="bold">{{ $negocio['nombre'] }}</span><br>
-        @if($mesa)
-            <span class="bold" style="font-size: 16px;">
-                @if($esDelivery ?? false)
-                    {{ $plataformaNombre ?? 'Delivery' }} · {{ preg_replace('/^mesa\s*/i', '', $mesa) }}
-                @else
-                    Mesa {{ preg_replace('/^mesa\s*/i', '', $mesa) }}
-                @endif
-            </span><br>
+    <!-- Encabezado (Estilo Pizzetos) -->
+    <div class="text-center mb-1">
+        
+        <!-- Logo de El Agostadero -->
+        <img src="{{ asset('images/agostadero.png') }}" alt="El Agostadero" class="ticket-logo">
+        
+        <div style="font-size: 12px; margin-top: 4px;">TICKET</div>
+        
+        <div style="font-size: 12px;">{{ $fecha }}</div>
+        
+        @if($mesero) 
+            <div style="font-size: 12px;">ATENDIÓ: {{ $mesero }}</div> 
         @endif
-        <span style="font-size: 13px;">{{ $fecha }}</span>
-        @if($mesero) <br><span style="font-size: 13px;">Atendió: {{ $mesero }}</span> @endif
+        
+        <!-- Bloque central de Mesa/Delivery con bordes superior e inferior -->
+        <div class="font-bold text-lg mt-1 mb-1 py-1" style="border-top: 1px dashed #000; border-bottom: 1px dashed #000;">
+            @if($mesa)
+                @if($esDelivery ?? false)
+                    {{ mb_strtoupper($plataformaNombre ?? 'DELIVERY') }} · {{ mb_strtoupper(preg_replace('/^mesa\s*/i', '', $mesa)) }}
+                @else
+                    MESA {{ mb_strtoupper(preg_replace('/^mesa\s*/i', '', $mesa)) }}
+                @endif
+            @else
+                PUNTO DE VENTA
+            @endif
+        </div>
     </div>
 
-    <div class="linea"></div>
-
     <!-- Lista de Items -->
-    <table>
-        @foreach($items as $item)
-            <tr class="item-row">
-                <td>{{ $item['cantidad'] }}x {{ $item['nombre'] }}</td>
-                <td class="right">${{ number_format($item['subtotal'], 2) }}</td>
+    <table class="mb-1">
+        <thead>
+            <tr>
+                <th style="width: 75%; padding-left: 2px;">DESCRIPCIÓN</th>
+                <th style="width: 25%; text-align: right;">IMPORTE</th>
             </tr>
-            @if(($item['descuento'] ?? 0) > 0)
-                <tr class="desc-row">
-                    <td colspan="2">
-                        Desc{{ !empty($item['promocion_nombre']) ? ' ('.$item['promocion_nombre'].')' : '' }}: -${{ number_format($item['descuento'], 2) }}
-                    </td>
+        </thead>
+        <tbody>
+            @foreach($items as $item)
+                <tr class="item-principal">
+                    <td style="padding-top: 8px; padding-left: 2px;">{{ $item['cantidad'] }}X {{ $item['nombre'] }}</td>
+                    <td class="text-right precio-text" style="padding-top: 8px;">${{ number_format($item['subtotal'], 2) }}</td>
                 </tr>
-            @endif
-        @endforeach
+                
+                @if(($item['descuento'] ?? 0) > 0)
+                    <tr class="sub-item">
+                        <td style="padding-left: 10px; padding-bottom: 4px;">
+                            DESC{{ !empty($item['promocion_nombre']) ? ' ('.$item['promocion_nombre'].')' : '' }}
+                        </td>
+                        <td class="text-right precio-text" style="padding-bottom: 4px;">
+                            -${{ number_format($item['descuento'], 2) }}
+                        </td>
+                    </tr>
+                @endif
+                
+                <!-- Espaciador entre productos -->
+                <tr><td colspan="2" style="height: 6px;"></td></tr>
+            @endforeach
+        </tbody>
     </table>
 
-    <div class="linea"></div>
+    <div class="dashed-line"></div>
 
-    <!-- Totales -->
-    <table class="totales-table">
-        <tr>
-            <td>Subtotal</td>
-            <td class="right">${{ number_format($subtotal, 2) }}</td>
-        </tr>
+    <!-- Totales (Alineados con flex-between estilo Pizzetos) -->
+    <div style="padding: 5px 0;">
+        <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
+            <span>SUBTOTAL:</span>
+            <span>${{ number_format($subtotal, 2) }}</span>
+        </div>
+        
         @if(($descuentoTotal ?? 0) > 0)
-        <tr>
-            <td>Descuento total</td>
-            <td class="right">-${{ number_format($descuentoTotal, 2) }}</td>
-        </tr>
+            <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
+                <span>DESCUENTO TOTAL:</span>
+                <span>-${{ number_format($descuentoTotal, 2) }}</span>
+            </div>
         @endif
 
         @if(($ivaHabilitado ?? session('iva_habilitado', true)) && isset($iva) && $iva > 0)
-        <tr>
-            <td>IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%)</td>
-            <td class="right">${{ number_format($iva, 2) }}</td>
-        </tr>
+            <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
+                <span>IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%):</span>
+                <span>${{ number_format($iva, 2) }}</span>
+            </div>
         @endif
 
         @if(($propina ?? 0) > 0)
-        <tr>
-            <td>Propina</td>
-            <td class="right">${{ number_format($propina, 2) }}</td>
-        </tr>
+            <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
+                <span>PROPINA:</span>
+                <span>${{ number_format($propina, 2) }}</span>
+            </div>
         @endif
 
         @if($esDelivery ?? false)
-        <tr>
-            <td colspan="2" style="padding-top: 6px; font-size: 12px;" class="bold">
-                {{ $plataformaNombre ?? 'Delivery' }} — comisión
-            </td>
-        </tr>
-        <tr>
-            <td>Comisión ({{ number_format($comisionPorcentaje ?? 0, 0) }}%)</td>
-            <td class="right">${{ number_format($comisionMonto ?? 0, 2) }}</td>
-        </tr>
-        <tr>
-            <td>IVA comisión ({{ number_format($comisionIvaPorcentaje ?? 0, 0) }}%)</td>
-            <td class="right">${{ number_format($comisionIvaMonto ?? 0, 2) }}</td>
-        </tr>
+            <div style="margin-top: 6px; font-size: 12px; font-weight: bold;">
+                {{ mb_strtoupper($plataformaNombre ?? 'DELIVERY') }} — COMISIÓN
+            </div>
+            <div class="flex-between" style="font-size: 13px;">
+                <span>COMISIÓN ({{ number_format($comisionPorcentaje ?? 0, 0) }}%):</span>
+                <span>${{ number_format($comisionMonto ?? 0, 2) }}</span>
+            </div>
+            <div class="flex-between" style="font-size: 13px; margin-bottom: 3px;">
+                <span>IVA COMISIÓN ({{ number_format($comisionIvaPorcentaje ?? 0, 0) }}%):</span>
+                <span>${{ number_format($comisionIvaMonto ?? 0, 2) }}</span>
+            </div>
         @endif
 
-        <tr class="total-final">
-            <td>TOTAL</td>
-            <td class="right">${{ number_format($total, 2) }}</td>
-        </tr>
-    </table>
-    
-    <!-- Pagos -->
-    @if(isset($pagos) && collect($pagos)->isNotEmpty())
-        <div class="linea"></div>
-        <div class="center bold" style="font-size: 13px; margin-bottom: 2px;">FORMA DE PAGO</div>
-        <table>
-            @foreach($pagos as $pago)
-                <tr>
-                    <td>{{ $pago['metodo'] }}</td>
-                    <td class="right">${{ number_format($pago['monto'], 2) }}</td>
-                </tr>
-                @if(!empty($pago['referencia']))
-                <tr>
-                    <td colspan="2" style="font-size: 12px; font-style: italic;">Ref: {{ $pago['referencia'] }}</td>
-                </tr>
-                @endif
-            @endforeach
-        </table>
-    @endif
-
-    <div class="linea"></div>
-    <div class="center" style="margin-top: 6px; font-size: 13px;">¡Gracias por su compra!</div>
-
-    <!-- Leyenda promocional del software -->
-    <div class="linea" style="margin-top: 10px;"></div>
-    <div class="center" style="margin-top: 8px; font-size: 12px; line-height: 1.5;">
-        <span class="bold">¿Necesitas un Software para tu negocio?</span><br>
-        <span class="bold">¡Contáctanos!</span><br>
-        www.ollintem.com.mx
+        <div class="flex-between mt-1" style="border-top: 1px dashed #000; padding-top: 5px;">
+            <span class="font-bold text-lg">TOTAL:</span>
+            <span class="font-bold text-xl">${{ number_format($total, 2) }}</span>
+        </div>
     </div>
 
-    <!-- Botón de respaldo -->
-    <div class="center" style="margin-top: 15px;">
-        <button class="no-print" style="padding: 6px 14px; cursor: pointer; font-family: sans-serif; font-weight: bold; background: #000; color: #fff; border: none; border-radius: 4px;" onclick="window.print()">Imprimir Ticket</button>
+    <!-- Pagos -->
+    @if(isset($pagos) && collect($pagos)->isNotEmpty())
+        <div class="dashed-line"></div>
+        <div class="font-bold" style="font-size: 13px; margin-bottom: 5px;">FORMA DE PAGO:</div>
+        
+        @foreach($pagos as $pago)
+            <div style="margin-bottom: 5px;">
+                <div class="flex-between font-bold" style="font-size: 14px;">
+                    <span>{{ mb_strtoupper($pago['metodo']) }}</span>
+                    <span>${{ number_format($pago['monto'], 2) }}</span>
+                </div>
+                @if(!empty($pago['referencia']))
+                    <div style="font-size: 12px; color: #333;">REF: {{ mb_strtoupper($pago['referencia']) }}</div>
+                @endif
+            </div>
+        @endforeach
+    @endif
+
+    <div class="dashed-line"></div>
+
+    <!-- Agradecimiento -->
+    <div class="text-center mt-1 pt-1" style="margin-top: 15px; font-size: 13px; font-weight: bold;">
+        ¡GRACIAS POR SU COMPRA!
+    </div>
+
+    <!-- Leyenda promocional del software -->
+    <div class="dashed-line" style="margin-top: 15px;"></div>
+    <div class="text-center" style="margin-top: 8px; font-size: 12px; line-height: 1.4;">
+        <span class="font-bold">¿NECESITAS UN SOFTWARE PARA TU NEGOCIO?</span><br>
+        <span class="font-bold">¡CONTÁCTANOS!</span><br>
+        WWW.OLLINTEM.COM.MX
+    </div>
+
+    <!-- Botón de respaldo (Se oculta al imprimir) -->
+    <div class="text-center no-print" style="margin-top: 20px;">
+        <button style="padding: 8px 16px; cursor: pointer; font-family: 'Helvetica Neue', sans-serif; font-weight: bold; background: #000; color: #fff; border: none; border-radius: 4px; font-size: 14px;" onclick="window.print()">
+            IMPRIMIR TICKET
+        </button>
     </div>
 
     <script>
-        // NOTA: ya no se imprime solo al cargar ni se cierra solo. El
-        // modal que lo muestra (resources/js/cobro.js) dispara la
-        // impresión manualmente con el botón "Imprimir", y este ticket
-        // se queda visible hasta que el usuario le dé "Cerrar".
-        // El botón "Imprimir Ticket" de aquí abajo queda como respaldo
-        // por si esta página se llega a abrir sola, fuera del modal.
+        // JS original de Agostadero mantenido intencionalmente
+        // El modal que lo muestra dispara la impresión. 
+        // No auto-imprimir ni auto-cerrar.
     </script>
 </body>
 </html>
