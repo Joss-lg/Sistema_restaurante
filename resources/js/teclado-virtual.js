@@ -292,7 +292,62 @@ function ocultarTeclado() {
     inputActivo = null;
 }
 
+/**
+ * Decide si en ESTE dispositivo debe usarse el teclado virtual de la app.
+ *
+ * Criterio: en teléfonos y tablets NO se usa, porque su teclado nativo es
+ * mejor (predictivo, más rápido, con su propio punto decimal) y además
+ * salían los dos encimados. En equipos de escritorio SÍ se usa, que es el
+ * caso de los monitores touch del punto de venta.
+ *
+ * No hay forma 100% fiable de distinguir "tablet" de "monitor touch", así
+ * que se decide por el sistema operativo: Android/iOS = dispositivo móvil;
+ * Windows/Mac/Linux = escritorio, aunque tenga pantalla táctil.
+ *
+ * FORZAR MANUALMENTE (útil si un punto de venta usa una tablet Android, o
+ * si una laptop no debe mostrarlo). Se abre una sola vez en ese equipo:
+ *      ...?teclado=on    fuerza el teclado virtual siempre
+ *      ...?teclado=off   lo desactiva siempre
+ *      ...?teclado=auto  vuelve a la detección automática
+ * La preferencia queda guardada en ese navegador.
+ */
+function debeUsarTecladoVirtual() {
+    // 1. Preferencia forzada por URL (y se recuerda para las próximas veces)
+    try {
+        const parametro = new URLSearchParams(window.location.search).get("teclado");
+        if (parametro === "on" || parametro === "off") {
+            localStorage.setItem("teclado-virtual-modo", parametro);
+        } else if (parametro === "auto") {
+            localStorage.removeItem("teclado-virtual-modo");
+        }
+
+        const guardado = localStorage.getItem("teclado-virtual-modo");
+        if (guardado === "on") return true;
+        if (guardado === "off") return false;
+    } catch (e) {
+        // Si el navegador bloquea localStorage (modo privado), seguimos con
+        // la detección automática sin romper nada.
+    }
+
+    // 2. Detección automática por dispositivo
+    const ua = navigator.userAgent || "";
+
+    if (/Android|iPhone|iPod|IEMobile|Opera Mini|BlackBerry|webOS/i.test(ua)) return false;
+    if (/iPad/i.test(ua)) return false;
+
+    // iPadOS 13+ se anuncia como Mac de escritorio. Se distingue porque una
+    // Mac real no reporta puntos táctiles.
+    if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return false;
+
+    return true;
+}
+
 export function inicializarTecladoVirtual() {
+    // En teléfonos y tablets no se inicializa nada: sin listeners y, sobre
+    // todo, SIN poner inputmode="none", para que el teclado del dispositivo
+    // funcione con total normalidad.
+    if (!debeUsarTecladoVirtual()) return;
+
     // Bloquea el teclado nativo en todo lo que ya está en pantalla...
     bloquearTecladoNativoEn(document);
 
