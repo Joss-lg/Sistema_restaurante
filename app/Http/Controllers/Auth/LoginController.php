@@ -136,9 +136,30 @@ class LoginController extends Controller
             return redirect()->route('admin.caja.index');
         }
 
-        // 3. Si no cumple ninguna de las anteriores (como un Mesero), 
-        // va directo a su panel operativo de mesas que está libre de permisos modulares
-        return redirect()->route('login')->with('error', 'Por favor, asigna permisos a este usuario antes de iniciar sesión.');
+        // 3. Meseros y capitanes: su panel operativo de mesas.
+        //
+        // Esta rama FALTABA. Sin ella, un mesero (que normalmente solo tiene
+        // el módulo "Mesas") caía en el return de abajo y era devuelto a la
+        // pantalla de login: se autenticaba correctamente, pero volvía al
+        // teclado con el NIP vacío, como si no hubiera pasado nada.
+        //
+        // Se manda a 'admin.mesas.index' (/mesas) y no a 'mesero.dashboard':
+        // ambas rutas renderizan EXACTAMENTE la misma vista (MesaController@index),
+        // pero /mesas es la que el personal reconoce y la que aparece en el menú.
+        //
+        // Va al final a propósito: si alguien tiene Caja y Mesas a la vez,
+        // gana Caja, que es la vista más completa para ese perfil.
+        if ($user->tienePermiso('Mesas', 'mostrar')) {
+            return redirect()->route('admin.mesas.index');
+        }
+
+        // 4. Sin ningún módulo asignado no hay a dónde mandarlo: se cierra la
+        //    sesión para no dejarlo autenticado dando vueltas en el login.
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('error', 'Este usuario no tiene módulos asignados. Pide al administrador que le asigne permisos.');
     }
     /**
      * Credenciales para el login estándar.
