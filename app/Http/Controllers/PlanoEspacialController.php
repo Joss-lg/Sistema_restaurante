@@ -18,8 +18,9 @@ class PlanoEspacialController extends Controller
     {
         $mesas = Mesa::soloLocales()->orderBy('numero', 'asc')->get();
         $plataformasDelivery = \App\Models\PlataformaDelivery::activas()->orderBy('nombre')->get();
+        $cajaAbierta = \App\Models\CajaMovimiento::where('estado', 'abierta')->exists();
 
-        return view('admin.mesas.plano-espacial', compact('mesas', 'plataformasDelivery'));
+        return view('admin.mesas.plano-espacial', compact('mesas', 'plataformasDelivery', 'cajaAbierta'));
     }
 
     /**

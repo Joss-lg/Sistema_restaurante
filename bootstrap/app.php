@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'permiso' => \App\Http\Middleware\RoleMiddleware::class,
+            'caja.abierta' => \App\Http\Middleware\CajaAbierta::class,
         ]);
 
         // Aplica el middleware anti-caché a todo el grupo web

@@ -52,7 +52,22 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('mesero')->name('mesero.')->group(function () {
         Route::get('/dashboard', [MesaController::class, 'index'])->name('dashboard');
         Route::get('/comanda/{mesa}', [MesaController::class, 'show'])->name('comanda.show');
-        Route::post('/comanda/enviar', [MesaController::class, 'enviar'])->name('comanda.enviar');
+
+        // --- ACCIONES QUE GENERAN CONSUMO ---
+        // Requieren un turno de caja abierto. Si la caja está cerrada, lo
+        // que se levante aquí no entraría a ningún corte y descuadraría
+        // ventas e inventario.
+        //
+        // Se deja FUERA a propósito: ver la comanda, la precuenta, cancelar
+        // un producto ya enviado y transferir entre mesas. Todo eso puede
+        // hacer falta para cerrar cuentas que quedaron abiertas de antes, y
+        // bloquearlo dejaría al mesero atrapado sin poder resolverlas.
+        Route::middleware('caja.abierta')->group(function () {
+            Route::post('/comanda/enviar', [MesaController::class, 'enviar'])->name('comanda.enviar');
+            Route::post('/mesa/store', [MesaController::class, 'store'])->name('mesa.store');
+            Route::post('/mesa/reabrir', [ComandaController::class, 'reabrir'])->name('mesa.reabrir');
+            Route::post('/delivery/crear', [DeliveryController::class, 'crear'])->name('delivery.crear');
+        });
 
         // NUEVO: cancelación de un producto individual ya enviado a cocina,
         // protegida por confirmación + NIP de Capitán/Administrador.
@@ -63,15 +78,13 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/capitan/verify', [ComandaController::class, 'verificarCapitan'])->name('capitan.verify');
         Route::get('/mesas/abiertas', [ComandaController::class, 'apiMesasAbiertas'])->name('mesas.abiertas');
-        Route::post('/mesa/store', [MesaController::class, 'store'])->name('mesa.store');
-        Route::post('/mesa/reabrir', [ComandaController::class, 'reabrir'])->name('mesa.reabrir');
         Route::post('/comanda/transferir', [ComandaController::class, 'transferirProductos'])->name('comanda.transferir');
         Route::patch('/comanda/{mesa}/personas', [MesaController::class, 'actualizarPersonas'])->name('comanda.personas'); 
         Route::get('/comanda/promociones/activas', [MesaController::class, 'promocionesActivas'])->name('comanda.promociones.activas');
-        // (Ruta duplicada eliminada para mantener limpieza, ya estaba arriba)
-
-        // --- DELIVERY (Rappi/Uber/DiDi): abre el pedido igual que una mesa ---
-        Route::post('/delivery/crear', [DeliveryController::class, 'crear'])->name('delivery.crear');
+        // NOTA: mesa.store, mesa.reabrir y delivery.crear estaban declaradas
+        // aquí abajo también. Se quitaron porque Laravel se queda con la
+        // ÚLTIMA definición de cada ruta, y esas copias sin el middleware
+        // 'caja.abierta' anulaban el bloqueo. Ahora viven solo arriba.
     });
     
     // ------------------------------------------

@@ -58,6 +58,17 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
+                    {{-- Aviso de caja cerrada. Va DENTRO de la fila de botones
+                         (no en una fila aparte) porque la cabecera es sticky y
+                         su contenedor padre tiene alto fijo con overflow-hidden:
+                         una fila extra empujaría el mapa fuera de la vista. --}}
+                    @unless($cajaAbierta ?? true)
+                        <span class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs sm:text-sm font-bold">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            Caja cerrada — no se pueden levantar pedidos
+                        </span>
+                    @endunless
+
                     {{-- --- DELIVERY (Rappi/Uber/DiDi) ---
                          Van en la MISMA fila que los botones de acción a
                          propósito: la cabecera es sticky y su contenedor
@@ -67,11 +78,11 @@
                          visible y las mesas dejarían de verse. --}}
                     @foreach(($plataformasDelivery ?? collect()) as $plataforma)
                         <button type="button"
-                            class="btn-delivery flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 rounded-lg text-white text-sm sm:text-base font-semibold transition shadow-sm active:scale-95 flex items-center gap-2"
+                            class="btn-delivery flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 rounded-lg text-white text-sm sm:text-base font-semibold transition shadow-sm active:scale-95 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                             style="background-color: {{ $plataforma->color }}"
                             data-plataforma-id="{{ $plataforma->id }}"
                             data-plataforma-nombre="{{ $plataforma->nombre }}"
-                            title="Nuevo pedido de {{ $plataforma->nombre }}">
+                            @unless($cajaAbierta ?? true) disabled title="La caja está cerrada" @else title="Nuevo pedido de {{ $plataforma->nombre }}" @endunless>
                             <i class="fas fa-motorcycle"></i>
                             <span>{{ $plataforma->nombre }}</span>
                         </button>

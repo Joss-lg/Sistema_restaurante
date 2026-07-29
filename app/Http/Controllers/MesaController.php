@@ -31,7 +31,13 @@ class MesaController extends Controller
     {
         $mesas = $this->mesaService->obtenerMesasParaUsuario(auth()->user());
         $plataformasDelivery = \App\Models\PlataformaDelivery::activas()->orderBy('nombre')->get();
-        return view('admin.mesas.index', compact('mesas', 'plataformasDelivery'));
+
+        // Para avisar en pantalla que no se puede levantar pedidos. El bloqueo
+        // real lo hace el middleware 'caja.abierta' en las rutas; esto es solo
+        // para que el mesero se entere antes de capturar todo el pedido.
+        $cajaAbierta = \App\Models\CajaMovimiento::where('estado', 'abierta')->exists();
+
+        return view('admin.mesas.index', compact('mesas', 'plataformasDelivery', 'cajaAbierta'));
     }
 
     public function show($mesaId)

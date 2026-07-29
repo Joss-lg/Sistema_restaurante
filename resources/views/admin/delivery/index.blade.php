@@ -32,13 +32,13 @@
                     <div class="flex-1 grid grid-cols-2 gap-3">
                         <label class="block">
                             <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">% Comisión</span>
-                            <input type="number" step="0.01" min="0" max="100"
+                            <input type="text" inputmode="decimal" data-teclado="numerico"
                                    class="input-comision mt-0.5 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0f0f13] text-sm font-bold text-slate-900 dark:text-white"
                                    value="{{ number_format($plataforma->comision_porcentaje, 2, '.', '') }}">
                         </label>
                         <label class="block">
                             <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">% IVA sobre comisión</span>
-                            <input type="number" step="0.01" min="0" max="100"
+                            <input type="text" inputmode="decimal" data-teclado="numerico"
                                    class="input-iva mt-0.5 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0f0f13] text-sm font-bold text-slate-900 dark:text-white"
                                    value="{{ number_format($plataforma->iva_comision_porcentaje, 2, '.', '') }}">
                         </label>
@@ -76,10 +76,44 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.plataforma-card').forEach(card => {
         card.querySelector('.btn-guardar').addEventListener('click', async () => {
             const id = card.dataset.id;
-            const comision = parseFloat(card.querySelector('.input-comision').value) || 0;
-            const iva = parseFloat(card.querySelector('.input-iva').value) || 0;
-            const activo = card.querySelector('.input-activo').checked;
             const mensaje = card.querySelector('.mensaje-guardado');
+
+            // Los campos son de texto (para que el teclado táctil pueda
+            // escribir el punto decimal), así que la validación de rango
+            // que antes hacía el navegador con min/max ahora va aquí.
+            // También se acepta la coma como separador decimal: es común
+            // teclear "25,5" y así no se pierde el valor.
+            const leerPorcentaje = (selector) => {
+                const el = card.querySelector(selector);
+                const crudo = (el.value || '').trim().replace(',', '.');
+                const num = parseFloat(crudo);
+                return isNaN(num) ? null : num;
+            };
+
+            const comision = leerPorcentaje('.input-comision');
+            const iva = leerPorcentaje('.input-iva');
+            const activo = card.querySelector('.input-activo').checked;
+
+            const mostrarError = (texto) => {
+                mensaje.textContent = texto;
+                mensaje.classList.remove('hidden', 'text-emerald-500');
+                mensaje.classList.add('text-red-500');
+                setTimeout(() => mensaje.classList.add('hidden'), 3000);
+            };
+
+            if (comision === null || iva === null) {
+                mostrarError('Escribe un número válido (ej. 25.5)');
+                return;
+            }
+            if (comision < 0 || comision > 100 || iva < 0 || iva > 100) {
+                mostrarError('Los porcentajes deben estar entre 0 y 100');
+                return;
+            }
+
+            // Se normaliza lo que quedó en pantalla, para que el usuario vea
+            // exactamente el valor que se guardó.
+            card.querySelector('.input-comision').value = comision.toFixed(2);
+            card.querySelector('.input-iva').value = iva.toFixed(2);
 
             try {
                 const res = await fetch(`/delivery/${id}`, {
