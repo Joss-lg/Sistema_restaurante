@@ -256,6 +256,12 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permiso:Historial de Cajas,mostrar'])->prefix('historial-cajas')->name('historial.')->group(function () {
         Route::get('/', [HistorialCajaController::class, 'index'])->name('index');
         Route::get('/{id}', [HistorialCajaController::class, 'show'])->name('show');
+
+        // PDF del corte desde el historial. Se declara aquí (y no se reutiliza
+        // 'admin.caja.reporte.pdf') porque aquella ruta exige permiso de Caja:
+        // un usuario que solo tiene "Historial de Cajas" podría ver el detalle
+        // en pantalla pero recibiría un 403 al intentar abrir el PDF.
+        Route::get('/{id}/pdf', [CajaController::class, 'generarReportePdf'])->name('pdf');
     });
 
     // ------------------------------------------

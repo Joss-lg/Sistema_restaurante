@@ -228,5 +228,56 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCerrarX) btnCerrarX.addEventListener('click', ocultarModal);
     if (btnCancelar) btnCancelar.addEventListener('click', ocultarModal);
     if (backdrop) backdrop.addEventListener('click', ocultarModal);
+
+    // --- Diferencia en vivo mientras se teclea el conteo ---
+    // Le avisa al cajero si hay faltante ANTES de confirmar, en vez de
+    // enterarse hasta que ya se cerró el turno.
+    const cajaEsperado = document.getElementById('efectivoEsperado');
+    const cajaDiferencia = document.getElementById('diferenciaCorte');
+
+    if (inputMonto && cajaEsperado && cajaDiferencia) {
+        const esperado = parseFloat(cajaEsperado.dataset.esperado) || 0;
+
+        const pintarDiferencia = () => {
+            // El campo es de texto para que el teclado táctil pueda escribir
+            // el punto decimal; se acepta también la coma.
+            const crudo = (inputMonto.value || '').trim().replace(',', '.');
+
+            if (crudo === '') {
+                cajaDiferencia.classList.add('hidden');
+                return;
+            }
+
+            const contado = parseFloat(crudo);
+            if (isNaN(contado)) {
+                cajaDiferencia.classList.add('hidden');
+                return;
+            }
+
+            const diferencia = Math.round((contado - esperado) * 100) / 100;
+            cajaDiferencia.classList.remove('hidden');
+            cajaDiferencia.className = 'mt-2 px-3 py-2 rounded-xl text-sm font-black flex items-center justify-between';
+
+            if (Math.abs(diferencia) < 0.01) {
+                cajaDiferencia.classList.add('bg-emerald-500/15', 'text-emerald-600', 'dark:text-emerald-400');
+                cajaDiferencia.innerHTML = '<span>Caja cuadrada</span><span>$0.00</span>';
+            } else if (diferencia < 0) {
+                cajaDiferencia.classList.add('bg-rose-500/15', 'text-rose-600', 'dark:text-rose-400');
+                cajaDiferencia.innerHTML = '<span>FALTANTE</span><span>-$' + Math.abs(diferencia).toFixed(2) + '</span>';
+            } else {
+                cajaDiferencia.classList.add('bg-amber-500/15', 'text-amber-600', 'dark:text-amber-400');
+                cajaDiferencia.innerHTML = '<span>SOBRANTE</span><span>+$' + diferencia.toFixed(2) + '</span>';
+            }
+        };
+
+        inputMonto.addEventListener('input', pintarDiferencia);
+        inputMonto.addEventListener('change', pintarDiferencia);
+
+        // El teclado virtual escribe con .value y no dispara 'input', así que
+        // también se revisa periódicamente mientras el modal está abierto.
+        setInterval(() => {
+            if (modal && !modal.classList.contains('hidden')) pintarDiferencia();
+        }, 300);
+    }
 });
 </script>

@@ -85,6 +85,61 @@
             </button>
         </form>
 
+        {{-- HISTORIAL DE TURNOS CERRADOS
+             Antes esta pantalla era un callejón sin salida: con la caja
+             cerrada no había forma de consultar los cortes anteriores sin
+             abrir un turno nuevo. --}}
+        @if(($turnosCerrados ?? collect())->isNotEmpty())
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                        Últimos turnos cerrados
+                    </h3>
+                    <a href="{{ route('historial.index') }}"
+                       class="text-xs font-bold text-blue-600 hover:text-blue-500">
+                        Ver todo
+                    </a>
+                </div>
+
+                <ul class="space-y-2">
+                    @foreach($turnosCerrados as $turno)
+                        <li>
+                            <a href="{{ route('historial.show', $turno->id) }}"
+                               class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                        {{ $turno->updated_at?->format('d/m/Y') }}
+                                        <span class="font-normal text-gray-500 dark:text-slate-400">
+                                            · {{ $turno->user->nombre ?? 'Sin usuario' }}
+                                        </span>
+                                    </p>
+                                    <p class="text-[11px] text-gray-500 dark:text-slate-400">
+                                        Contado: ${{ number_format($turno->monto_final_real ?? 0, 2) }}
+                                    </p>
+                                </div>
+
+                                @php $dif = (float) ($turno->diferencia ?? 0); @endphp
+                                <span class="shrink-0 text-xs font-black px-2 py-1 rounded-md
+                                    {{ abs($dif) < 0.01
+                                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                        : ($dif < 0
+                                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400') }}">
+                                    @if(abs($dif) < 0.01)
+                                        Cuadrada
+                                    @elseif($dif < 0)
+                                        Faltante ${{ number_format(abs($dif), 2) }}
+                                    @else
+                                        Sobrante ${{ number_format($dif, 2) }}
+                                    @endif
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
     </div>
 </div>
 

@@ -53,7 +53,7 @@
                 {{-- Empleado --}}
                 <div class="flex items-center gap-3">
                     <div class="h-9 w-9 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 flex items-center justify-center font-bold text-sm uppercase shadow-inner ring-1 ring-indigo-500/20 dark:ring-indigo-500/30 shrink-0">
-                        {{ substr($turno->user->name ?? 'U', 0, 1) }}
+                        {{ substr($turno->user->nombre ?? $turno->user->name ?? 'U', 0, 1) }}
                     </div>
                     <div class="flex flex-col min-w-0">
                         <span class="font-bold text-zinc-900 dark:text-zinc-100 text-sm truncate">{{ $turno->user->nombre ?? 'N/A' }}</span>
@@ -68,7 +68,7 @@
                     </span>
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold border
                         {{ $turno->turno === 'Matutino' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' }}">
-                        {{ $turno->turno === 'Matutino' ? '☀️' : '🌙' }} {{ $turno->turno }}
+                        {{ $turno->turno === 'Matutino' ? '' : '' }} {{ $turno->turno }}
                     </span>
                 </div>
 
@@ -152,7 +152,7 @@
                                 <div class="flex flex-col gap-1">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-bold w-fit border
                                         {{ $turno->turno === 'Matutino' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' }}">
-                                        {{ $turno->turno === 'Matutino' ? '☀️' : '🌙' }} {{ $turno->turno }}
+                                        {{ $turno->turno === 'Matutino' ? '' : '' }} {{ $turno->turno }}
                                     </span>
                                     <span class="text-[9px] sm:text-[10px] text-zinc-500 dark:text-zinc-500 font-medium tracking-wide">
                                         {{ $turno->created_at->format('h:i A') }}
@@ -164,7 +164,7 @@
                             <td class="px-4 sm:px-6 py-4 sm:py-5">
                                 <div class="flex items-center gap-3">
                                     <div class="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 flex items-center justify-center font-bold text-xs sm:text-sm uppercase shadow-inner ring-1 ring-indigo-500/20 dark:ring-indigo-500/30">
-                                        {{ substr($turno->user->name ?? 'U', 0, 1) }}
+                                        {{ substr($turno->user->nombre ?? $turno->user->name ?? 'U', 0, 1) }}
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="font-bold text-zinc-900 dark:text-zinc-100 text-xs sm:text-sm group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ $turno->user->nombre ?? 'N/A' }}</span>

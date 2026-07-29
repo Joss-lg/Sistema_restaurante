@@ -142,13 +142,14 @@ class CajaController extends Controller
             $totalPropinasEntregadas += $montoMesero;
         }
 
-        $ventas = $cajaActiva->flujos()->porCategoria('Ventas')->sum('monto');
-        $anticipos = $cajaActiva->flujos()->porCategoria('Anticipos')->sum('monto');
-        $gastos = $cajaActiva->flujos()->egresos()->sum('monto');
-        
-        $montoEsperado = $cajaActiva->monto_inicial + $ventas + $anticipos - $gastos;
-        $montoReal = $request->monto_final_real;
-        $diferencia = $montoReal - $montoEsperado;
+        // Se recalcula DESPUÉS de registrar las propinas como egreso, para que
+        // el efectivo esperado ya las tenga descontadas. Usa el mismo método
+        // que la pantalla y el PDF, así los tres números siempre coinciden.
+        $desglose = $this->cajaService->calcularEfectivoEsperado($cajaActiva->fresh());
+
+        $montoEsperado = $desglose['esperado'];
+        $montoReal = (float) $request->monto_final_real;
+        $diferencia = round($montoReal - $montoEsperado, 2);
 
         $cajaActiva->update([
             'monto_final_esperado' => $montoEsperado,
@@ -166,7 +167,16 @@ class CajaController extends Controller
         $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
 
         if (!$cajaActiva) {
-            return view('admin.caja.apertura');
+            // Con la caja cerrada ya no se queda en un callejón sin salida:
+            // se muestran los últimos turnos cerrados para poder consultarlos
+            // o reimprimir su corte sin tener que abrir caja primero.
+            $turnosCerrados = CajaMovimiento::with('user')
+                ->where('estado', 'cerrada')
+                ->orderByDesc('updated_at')
+                ->limit(10)
+                ->get();
+
+            return view('admin.caja.apertura', compact('turnosCerrados'));
         }
 
         $baseVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->ingresos()->porCategoria('Ventas');
@@ -199,14 +209,24 @@ class CajaController extends Controller
 
         $totalPropinasPendientes = $propinasPendientes->sum('total');
 
+        // Efectivo que debe haber físicamente en el cajón. Es el MISMO cálculo
+        // que se usará al cerrar, para que el cajero no se lleve sorpresas.
+        $efectivo = $this->cajaService->calcularEfectivoEsperado($cajaActiva);
+
+        // Las propinas pendientes se pagan al cerrar (salen del cajón), así que
+        // el efectivo que realmente debe quedar al final es el esperado menos
+        // esas propinas. Este es el número contra el que se compara el conteo.
+        $efectivoEsperadoAlCierre = round($efectivo['esperado'] - $totalPropinasPendientes, 2);
+
         return view('admin.caja.flujo', compact(
             'cajaActiva', 'totalVentas', 'ventasEfectivo', 'ventasTarjeta', 'ventasTransferencia',
             'totalGastos', 'saldoEstimado', 'historicoVentas', 'historicoGastos',
-            'propinasPendientes', 'totalPropinasPendientes'
+            'propinasPendientes', 'totalPropinasPendientes',
+            'efectivo', 'efectivoEsperadoAlCierre'
         ));
     }
 
-    public function generarReportePdf($id)
+    public function generarReportePdf($id, Request $request)
     {
         $cajaActiva = CajaMovimiento::with('user')->findOrFail($id);
         
@@ -217,8 +237,34 @@ class CajaController extends Controller
         $historicoVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->ingresos()->porCategoria('Ventas')->ordenado()->get();
         $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->egresos()->ordenado()->get();
 
-        $pdf = Pdf::loadView('admin.caja.reporte_pdf', compact('cajaActiva', 'totalVentas', 'totalGastos', 'saldoEstimado', 'historicoVentas', 'historicoGastos'));
-        return $pdf->stream('reporte-caja-turno-' . $cajaActiva->id . '.pdf');
+        // Desglose del efectivo del cajón, con el mismo cálculo del cierre.
+        $efectivo = $this->cajaService->calcularEfectivoEsperado($cajaActiva);
+
+        // Si el turno ya está cerrado se usan los valores que quedaron
+        // guardados en el corte (son el registro oficial de lo que se contó);
+        // si sigue abierto, se muestra el esperado del momento y aún no hay
+        // diferencia que reportar.
+        $cerrado = $cajaActiva->estado === 'cerrada';
+        $montoEsperado = $cerrado ? (float) $cajaActiva->monto_final_esperado : $efectivo['esperado'];
+        $montoReal     = $cerrado ? (float) $cajaActiva->monto_final_real : null;
+        $diferencia    = $cerrado ? (float) $cajaActiva->diferencia : null;
+
+        $pdf = Pdf::loadView('admin.caja.reporte_pdf', compact(
+            'cajaActiva', 'totalVentas', 'totalGastos', 'saldoEstimado',
+            'historicoVentas', 'historicoGastos',
+            'efectivo', 'cerrado', 'montoEsperado', 'montoReal', 'diferencia'
+        ));
+
+        // Nombre con la fecha del turno para que los archivos descargados no
+        // se pisen entre sí ni haya que abrirlos para saber a cuál corresponde.
+        $fecha = optional($cajaActiva->updated_at ?? $cajaActiva->created_at)->format('Y-m-d') ?? 'sin-fecha';
+        $nombre = "corte-caja-{$fecha}-turno-{$cajaActiva->id}.pdf";
+
+        // ?descargar=1 fuerza la descarga; sin el parámetro se abre en el
+        // navegador. Así el mismo enlace sirve para los dos botones.
+        return $request->boolean('descargar')
+            ? $pdf->download($nombre)
+            : $pdf->stream($nombre);
     }
 
     public function imprimirTicket($mesaId)

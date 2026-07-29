@@ -70,11 +70,88 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="padding-top: 15px; border-top: 1px solid #e4e4e7; margin-top: 10px;">
-                    <div style="color: #09090b; font-size: 12px; font-weight: bold;">Saldo Estimado en Caja Actual:</div>
-                    <div class="amount" style="font-size: 20px; color: #2563eb;">${{ number_format($saldoEstimado, 2) }}</div>
+                <td colspan="3" style="padding-top: 15px; border-top: 1px solid #e4e4e7;">
+                    <div style="color: #71717a; font-size: 11px;">Movimiento total del turno (todos los métodos de pago):</div>
+                    <div class="amount" style="font-size: 15px; color: #2563eb;">${{ number_format($saldoEstimado, 2) }}</div>
                 </td>
             </tr>
+        </table>
+    </div>
+
+    {{-- ARQUEO DE EFECTIVO
+         Este es el bloque que importa para el corte: solo cuenta el dinero
+         que físicamente pasa por el cajón. Las ventas con tarjeta y
+         transferencia se excluyen a propósito porque nunca entran ahí. --}}
+    <div class="summary-box" style="border: 2px solid {{ ($diferencia ?? 0) < 0 ? '#dc2626' : '#e4e4e7' }};">
+        <div class="summary-title">Arqueo de Efectivo</div>
+        <table class="grid">
+            <tr>
+                <td>
+                    <div style="color: #71717a; font-size: 11px;">Fondo inicial</div>
+                    <div class="amount">${{ number_format($efectivo['monto_inicial'], 2) }}</div>
+                </td>
+                <td>
+                    <div style="color: #16a34a; font-size: 11px;">(+) Entradas en efectivo</div>
+                    <div class="amount" style="color: #16a34a;">+${{ number_format($efectivo['ingresos_efectivo'], 2) }}</div>
+                </td>
+                <td>
+                    <div style="color: #dc2626; font-size: 11px;">(-) Salidas en efectivo</div>
+                    <div class="amount" style="color: #dc2626;">-${{ number_format($efectivo['egresos_efectivo'], 2) }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="padding-top: 12px; border-top: 1px solid #e4e4e7;">
+                    <div style="color: #09090b; font-size: 12px; font-weight: bold;">Efectivo que debe haber en caja:</div>
+                    <div class="amount" style="font-size: 20px; color: #09090b;">${{ number_format($montoEsperado, 2) }}</div>
+                </td>
+            </tr>
+
+            @if($cerrado)
+                <tr>
+                    <td colspan="3" style="padding-top: 12px; border-top: 1px solid #e4e4e7;">
+                        <div style="color: #71717a; font-size: 11px;">Efectivo contado al cierre:</div>
+                        <div class="amount" style="font-size: 16px;">${{ number_format($montoReal, 2) }}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding-top: 12px;">
+                        @if(abs($diferencia) < 0.01)
+                            <div style="color: #16a34a; font-size: 13px; font-weight: bold;">
+                                CAJA CUADRADA — sin diferencia
+                            </div>
+                        @elseif($diferencia < 0)
+                            <div style="color: #dc2626; font-size: 12px; font-weight: bold;">FALTANTE</div>
+                            <div class="amount" style="font-size: 22px; color: #dc2626;">
+                                -${{ number_format(abs($diferencia), 2) }}
+                            </div>
+                        @else
+                            <div style="color: #ca8a04; font-size: 12px; font-weight: bold;">SOBRANTE</div>
+                            <div class="amount" style="font-size: 22px; color: #ca8a04;">
+                                +${{ number_format($diferencia, 2) }}
+                            </div>
+                        @endif
+                    </td>
+                </tr>
+            @else
+                <tr>
+                    <td colspan="3" style="padding-top: 10px;">
+                        <div style="color: #ca8a04; font-size: 11px;">
+                            Turno aún abierto: el conteo y la diferencia se registran al cerrar la caja.
+                        </div>
+                    </td>
+                </tr>
+            @endif
+
+            @if($efectivo['ingresos_no_efectivo'] > 0)
+                <tr>
+                    <td colspan="3" style="padding-top: 10px; border-top: 1px dashed #e4e4e7;">
+                        <div style="color: #71717a; font-size: 10px;">
+                            No incluido en el arqueo (no pasa por el cajón):
+                            tarjeta y transferencia por ${{ number_format($efectivo['ingresos_no_efectivo'], 2) }}
+                        </div>
+                    </td>
+                </tr>
+            @endif
         </table>
     </div>
 

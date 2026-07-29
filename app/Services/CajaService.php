@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\CajaMovimiento;
 use App\Models\Configuracion;
 use App\Models\CuentaDivision;
 use App\Models\DetalleOrden;
 use App\Models\DetalleOrdenDivision;
+use App\Models\FlujoCaja;
 use App\Models\Mesa;
 use App\Models\Orden;
 use Illuminate\Support\Facades\DB;
@@ -466,5 +468,71 @@ class CajaService
 
             return true;
         });
+    }
+
+    /**
+     * Calcula cuánto EFECTIVO debe haber físicamente en el cajón de un turno.
+     *
+     * Fuente única de verdad: antes existían cuatro fórmulas distintas
+     * (cierre, pantalla de flujo, PDF e historial) y no coincidían entre sí,
+     * así que lo que veía el cajero durante el turno no era lo que el sistema
+     * usaba para calcular la diferencia al cerrar.
+     *
+     * Solo cuenta EFECTIVO: las ventas con tarjeta y transferencia nunca
+     * entran al cajón, y sumarlas marcaría faltantes que no existen.
+     *
+     *      esperado = monto inicial + entradas en efectivo − salidas en efectivo
+     *
+     * Dos detalles de los datos reales:
+     *  - El método se compara en minúsculas porque el módulo de Finanzas
+     *    guarda "Efectivo" con mayúscula y el de ventas "efectivo".
+     *  - En las SALIDAS, los movimientos sin método definido se cuentan como
+     *    efectivo: son gastos y retiros que salen del cajón. Se devuelven
+     *    aparte en `egresos_sin_metodo` para que puedan revisarse.
+     */
+    public function calcularEfectivoEsperado(CajaMovimiento $caja): array
+    {
+        $base = FlujoCaja::where('caja_movimiento_id', $caja->id);
+
+        $ingresosEfectivo = (clone $base)
+            ->where('tipo', 'ingreso')
+            ->whereRaw('LOWER(metodo_pago) = ?', ['efectivo'])
+            ->sum('monto');
+
+        $egresosEfectivo = (clone $base)
+            ->where('tipo', 'egreso')
+            ->where(function ($q) {
+                $q->whereRaw('LOWER(metodo_pago) = ?', ['efectivo'])
+                  ->orWhereNull('metodo_pago')
+                  ->orWhereRaw('LOWER(metodo_pago) = ?', ['no especificado']);
+            })
+            ->sum('monto');
+
+        $egresosSinMetodo = (clone $base)
+            ->where('tipo', 'egreso')
+            ->where(function ($q) {
+                $q->whereNull('metodo_pago')
+                  ->orWhereRaw('LOWER(metodo_pago) = ?', ['no especificado']);
+            })
+            ->sum('monto');
+
+        // Movimientos que NO pasan por el cajón. Se calculan para poder
+        // mostrarlos en pantalla y que quede claro por qué no se suman.
+        $ingresosNoEfectivo = (clone $base)
+            ->where('tipo', 'ingreso')
+            ->whereRaw('LOWER(IFNULL(metodo_pago, "")) <> ?', ['efectivo'])
+            ->sum('monto');
+
+        $montoInicial = (float) $caja->monto_inicial;
+        $esperado = $montoInicial + (float) $ingresosEfectivo - (float) $egresosEfectivo;
+
+        return [
+            'monto_inicial'        => round($montoInicial, 2),
+            'ingresos_efectivo'    => round((float) $ingresosEfectivo, 2),
+            'egresos_efectivo'     => round((float) $egresosEfectivo, 2),
+            'egresos_sin_metodo'   => round((float) $egresosSinMetodo, 2),
+            'ingresos_no_efectivo' => round((float) $ingresosNoEfectivo, 2),
+            'esperado'             => round($esperado, 2),
+        ];
     }
 }

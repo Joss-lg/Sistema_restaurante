@@ -15,15 +15,15 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-color)] flex items-center gap-2">
-                    📊 Auditoría de Caja #{{ $turno->id }}
+                     Auditoría de Caja #{{ $turno->id }}
                 </h1>
                 <p class="text-xs sm:text-sm font-medium text-[var(--text-muted)] mt-1">
                     Detalles específicos del flujo financiero capturado en este turno.
                 </p>
             </div>
 
-            {{-- Badge de Estado --}}
-            <div>
+            {{-- Estado del turno + acciones del PDF --}}
+            <div class="flex flex-wrap items-center gap-2">
                 @if($turno->estado === 'abierta')
                     <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 animate-pulse border border-emerald-200/50 dark:border-emerald-800/30">
                         ● Caja Activa
@@ -33,6 +33,21 @@
                          Turno Cerrado
                     </span>
                 @endif
+
+                {{-- Mismo endpoint para ambos: sin parámetro abre el PDF en el
+                     navegador, con ?descargar=1 fuerza la descarga. --}}
+                <a href="{{ route('historial.pdf', $turno->id) }}"
+                   target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-500 text-white transition-colors shadow-sm">
+                    <i class="fas fa-file-pdf"></i>
+                    Ver PDF
+                </a>
+
+                <a href="{{ route('historial.pdf', ['id' => $turno->id, 'descargar' => 1]) }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black border border-[var(--border-color)] text-[var(--text-color)] hover:border-blue-500 hover:text-blue-500 transition-colors">
+                    <i class="fas fa-download"></i>
+                    Descargar
+                </a>
             </div>
         </div>
     </div>
@@ -47,12 +62,12 @@
             <div class="space-y-3">
                 <div>
                     <span class="block text-[11px] text-[var(--text-muted)] uppercase font-bold">Empleado Responsable</span>
-                    <span class="text-sm font-bold text-[var(--text-color)]">{{ $turno->user->name ?? 'N/A' }}</span>
+                    <span class="text-sm font-bold text-[var(--text-color)]">{{ $turno->user->nombre ?? $turno->user->name ?? 'N/A' }}</span>
                 </div>
                 <div>
                     <span class="block text-[11px] text-[var(--text-muted)] uppercase font-bold">Turno Asignado</span>
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 mt-0.5">
-                        {{ $turno->turno === 'Matutino' ? '☀️' : '🌙' }} {{ $turno->turno }}
+                        {{ $turno->turno === 'Matutino' ? '' : '' }} {{ $turno->turno }}
                     </span>
                 </div>
                 <div>
@@ -67,30 +82,48 @@
             <h3 class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Conciliación de Saldos</h3>
 
             <div class="space-y-3">
+                @php
+                    // El corte guarda estos valores al cerrar: son el registro
+                    // oficial de lo que se contó ese día.
+                    //
+                    // OJO: monto_final_esperado YA incluye el fondo inicial
+                    // (se calcula como inicial + entradas − salidas). Antes
+                    // aquí se sumaba el fondo otra vez, así que un turno con
+                    // $3,000 de fondo y $2,600 contados reportaba un faltante
+                    // de $3,400 en lugar de los $400 reales.
+                    $esperadoTurno = (float) ($turno->monto_final_esperado ?? 0);
+                    $contadoTurno  = (float) ($turno->monto_final_real ?? 0);
+
+                    // Se usa la diferencia guardada; el cálculo solo es
+                    // respaldo para cortes viejos que no la tengan.
+                    $difTurno = $turno->diferencia !== null
+                        ? (float) $turno->diferencia
+                        : round($contadoTurno - $esperadoTurno, 2);
+                @endphp
+
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-1.5">
-                    <span class="text-xs text-[var(--text-muted)] font-medium">(+) Fondo Inicial:</span>
+                    <span class="text-xs text-[var(--text-muted)] font-medium">Fondo Inicial:</span>
                     <span class="text-xs font-bold text-[var(--text-color)]">${{ number_format($turno->monto_inicial, 2) }}</span>
                 </div>
-                <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-1.5">
-                    <span class="text-xs text-[var(--text-muted)] font-medium">(+) Efectivo Real Entregado:</span>
-                    <span class="text-xs font-bold text-[var(--text-color)]">${{ number_format($turno->monto_final_real ?? 0, 2) }}</span>
-                </div>
 
-                {{-- Lógica para calcular desfases si el turno está cerrado --}}
                 @if($turno->estado === 'cerrada')
-                    @php
-                        $montoEsperado = $turno->monto_inicial + ($turno->monto_final_esperado ?? 0);
-                        $diferencia = ($turno->monto_final_real ?? 0) - $montoEsperado;
-                    @endphp
+                    <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-1.5">
+                        <span class="text-xs text-[var(--text-muted)] font-medium">Debía haber en caja:</span>
+                        <span class="text-xs font-bold text-[var(--text-color)]">${{ number_format($esperadoTurno, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-1.5">
+                        <span class="text-xs text-[var(--text-muted)] font-medium">Efectivo contado:</span>
+                        <span class="text-xs font-bold text-[var(--text-color)]">${{ number_format($contadoTurno, 2) }}</span>
+                    </div>
 
                     <div class="flex justify-between items-center pt-1">
                         <span class="text-xs font-bold text-[var(--text-color)]">Resultado:</span>
-                        @if($diferencia == 0)
+                        @if(abs($difTurno) < 0.01)
                             <span class="text-xs font-bold text-emerald-500">✓ Caja Cuadrada</span>
-                        @elseif($diferencia < 0)
-                            <span class="text-xs font-bold text-red-500">⚠ Faltante: ${{ number_format(abs($diferencia), 2) }}</span>
+                        @elseif($difTurno < 0)
+                            <span class="text-xs font-bold text-red-500">⚠ Faltante: ${{ number_format(abs($difTurno), 2) }}</span>
                         @else
-                            <span class="text-xs font-bold text-amber-500">⚠ Sobrante: ${{ number_format($diferencia, 2) }}</span>
+                            <span class="text-xs font-bold text-amber-500">⚠ Sobrante: ${{ number_format($difTurno, 2) }}</span>
                         @endif
                     </div>
                 @else
@@ -127,9 +160,9 @@
                     <i class="fas fa-cash-register text-blue-500 mr-2"></i> Resumen de Turno
                 </h3>
                 <span class="text-[10px] sm:text-xs font-bold text-[var(--text-muted)]">ID Caja: <span class="text-[var(--text-color)]">#{{ $turno->id }}</span></span>
-                <span class="text-[10px] sm:text-xs font-bold text-[var(--text-muted)]">Cajero: <span class="text-[var(--text-color)]">{{ $turno->user->name ?? 'N/A' }}</span></span>
+                <span class="text-[10px] sm:text-xs font-bold text-[var(--text-muted)]">Cajero: <span class="text-[var(--text-color)]">{{ $turno->user->nombre ?? $turno->user->name ?? 'N/A' }}</span></span>
                 <span class="px-2.5 py-0.5 rounded-md text-[10px] sm:text-xs font-bold bg-blue-500/10 border border-blue-500/20 text-blue-500 uppercase tracking-wider">
-                    {{ $turno->turno === 'Matutino' ? '☀️' : '🌙' }} {{ $turno->turno }}
+                    {{ $turno->turno === 'Matutino' ? '' : '' }} {{ $turno->turno }}
                 </span>
             </div>
         </div>

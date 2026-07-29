@@ -42,13 +42,21 @@ class HistorialCajaController extends Controller
 
         $totalGastos = $historicoGastos->sum('monto');
 
-        // --- Saldo estimado del turno ---
+        // --- Movimiento total del turno (todos los métodos de pago) ---
         $saldoEstimado = $turno->monto_inicial + $totalVentas - $totalGastos;
+
+        // --- Arqueo de efectivo: solo lo que pasa por el cajón ---
+        // Mismo cálculo que usa el cierre y el PDF, para que los tres coincidan.
+        $efectivo = app(\App\Services\CajaService::class)->calcularEfectivoEsperado($turno);
+
+        $cerrado    = $turno->estado === 'cerrada';
+        $diferencia = $cerrado ? (float) $turno->diferencia : null;
 
         return view('admin.historial_cajas.show', compact(
             'turno', 'historicoVentas', 'totalVentas',
             'ventasEfectivo', 'ventasTarjeta', 'ventasTransferencia',
-            'historicoGastos', 'totalGastos', 'saldoEstimado'
+            'historicoGastos', 'totalGastos', 'saldoEstimado',
+            'efectivo', 'cerrado', 'diferencia'
         ));
     }
 }

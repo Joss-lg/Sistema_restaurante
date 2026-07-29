@@ -41,6 +41,48 @@
 
             <form action="{{ route('admin.caja.cerrar') }}" method="POST" class="space-y-4">
                 @csrf
+
+                {{-- EFECTIVO QUE DEBE HABER
+                     Se muestra ANTES de contar para que el cajero sepa contra
+                     qué está comparando. Es el mismo cálculo que usa el cierre
+                     (CajaService::calcularEfectivoEsperado), ya con las
+                     propinas pendientes descontadas. --}}
+                <div class="rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-[#15171c] overflow-hidden">
+                    <div class="px-4 py-2.5 space-y-1.5 text-xs">
+                        <div class="flex justify-between text-gray-600 dark:text-slate-400">
+                            <span>Fondo inicial</span>
+                            <span class="font-bold text-gray-900 dark:text-white">${{ number_format($efectivo['monto_inicial'] ?? 0, 2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-emerald-600 dark:text-emerald-400">
+                            <span>(+) Entradas en efectivo</span>
+                            <span class="font-bold">${{ number_format($efectivo['ingresos_efectivo'] ?? 0, 2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-rose-600 dark:text-rose-400">
+                            <span>(−) Salidas en efectivo</span>
+                            <span class="font-bold">${{ number_format($efectivo['egresos_efectivo'] ?? 0, 2) }}</span>
+                        </div>
+                        @if(($totalPropinasPendientes ?? 0) > 0)
+                            <div class="flex justify-between text-amber-600 dark:text-amber-400">
+                                <span>(−) Propinas por entregar</span>
+                                <span class="font-bold">${{ number_format($totalPropinasPendientes, 2) }}</span>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="px-4 py-3 bg-gray-900 dark:bg-black flex items-center justify-between">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-gray-300">Debe haber en caja</span>
+                        <span class="text-xl font-black text-white"
+                              id="efectivoEsperado"
+                              data-esperado="{{ $efectivoEsperadoAlCierre ?? 0 }}">
+                            ${{ number_format($efectivoEsperadoAlCierre ?? 0, 2) }}
+                        </span>
+                    </div>
+                    @if(($efectivo['ingresos_no_efectivo'] ?? 0) > 0)
+                        <p class="px-4 py-2 text-[10px] text-gray-500 dark:text-slate-500 bg-gray-100 dark:bg-slate-800/50 leading-snug">
+                            No se cuentan aquí ${{ number_format($efectivo['ingresos_no_efectivo'], 2) }} de tarjeta y transferencia: ese dinero no pasa por el cajón.
+                        </p>
+                    @endif
+                </div>
+
                 <p class="text-xs font-semibold text-gray-500 dark:text-slate-400">
                     Ingresa el monto total en efectivo que tienes físicamente en la caja para realizar la conciliación automática.
                 </p>
@@ -51,10 +93,13 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <span class="text-gray-500 dark:text-slate-400 text-sm">$</span>
                         </div>
-                        <input type="number" name="monto_final_real" id="monto_final_real" step="0.01" min="0" required
+                        <input type="text" inputmode="decimal" data-teclado="numerico" name="monto_final_real" id="monto_final_real" required
                             class="w-full pl-7 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-[#15171c] text-gray-900 dark:text-white focus:border-rose-500 focus:outline-none transition-colors"
                             placeholder="0.00" onfocus="this.select()">
                     </div>
+
+                    {{-- Diferencia calculada en vivo mientras se teclea el conteo --}}
+                    <div id="diferenciaCorte" class="hidden mt-2 px-3 py-2 rounded-xl text-sm font-black flex items-center justify-between"></div>
                 </div>
 
                 <div>
