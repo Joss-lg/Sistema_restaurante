@@ -46,6 +46,45 @@ function esCampoValido(el) {
     return false;
 }
 
+/**
+ * Impide que el teléfono/tablet abra SU teclado nativo en los campos que ya
+ * usan el teclado virtual de la app. Sin esto salen los dos encimados.
+ *
+ * Se usa inputmode="none", que es la forma estándar de decirle al sistema
+ * operativo "no muestres tu teclado" sin dejar el campo de solo lectura
+ * (readonly rompería esCampoValido y además bloquearía seleccionar texto).
+ *
+ * IMPORTANTE: el navegador decide si abre su teclado en el momento del
+ * foco, así que esto tiene que aplicarse ANTES de que el usuario toque el
+ * campo. Por eso se recorre el DOM al iniciar y se vigilan los elementos
+ * que aparezcan después (modales, filas creadas por JS, etc.).
+ *
+ * Escape: si algún campo puntual SÍ debe usar el teclado nativo, ponle el
+ * atributo `data-no-teclado`; ese queda fuera de todo esto.
+ */
+function bloquearTecladoNativo(el) {
+    if (!esCampoValido(el)) return;
+    if (el.getAttribute("inputmode") === "none") return;
+
+    // Guardamos el inputmode original por si alguna vez hay que restaurarlo
+    if (el.hasAttribute("inputmode")) {
+        el.dataset.inputmodeOriginal = el.getAttribute("inputmode");
+    }
+    el.setAttribute("inputmode", "none");
+}
+
+function bloquearTecladoNativoEn(raiz) {
+    if (!raiz) return;
+
+    if (raiz instanceof HTMLInputElement || raiz instanceof HTMLTextAreaElement) {
+        bloquearTecladoNativo(raiz);
+    }
+
+    if (typeof raiz.querySelectorAll === "function") {
+        raiz.querySelectorAll("input, textarea").forEach(bloquearTecladoNativo);
+    }
+}
+
 function crearTeclado() {
     const contenedor = document.getElementById("teclado-virtual-contenedor");
     if (!contenedor) return;
@@ -112,7 +151,8 @@ function crearTeclado() {
                 "1 2 3",
                 "4 5 6",
                 "7 8 9",
-                "{bksp} 0 {enter}"
+                ". 0 {bksp}",
+                "{enter}"
             ]
         },
         display: DISPLAY_BASE
@@ -200,11 +240,24 @@ function mostrarTeclado(input) {
     if (!keyboard) crearTeclado();
     mayusculasActivas = false;
 
-    // Numérico si se pidió explícitamente (data-teclado="numerico") o si
-    // el propio campo ya es de tipo numérico/teléfono.
+    // Numérico si se pidió explícitamente (data-teclado="numerico"), si el
+    // propio campo ya es de tipo numérico/teléfono, o si su inputmode pedía
+    // un teclado numérico.
+    //
+    // Se consulta `inputmodeOriginal` porque bloquearTecladoNativo() dejó el
+    // inputmode en "none" para que no salga el teclado del sistema; sin esto
+    // un campo con inputmode="decimal" abriría el teclado de letras.
+    const inputmodeOriginal = input.dataset.inputmodeOriginal || input.getAttribute("inputmode") || "";
+
     const esNumerico = input.dataset.teclado === "numerico"
         || input.type === "number"
-        || input.type === "tel";
+        || input.type === "tel"
+        || ["decimal", "numeric", "tel"].includes(inputmodeOriginal);
+
+    // Red de seguridad: si este campo no estaba en el DOM al iniciar (o
+    // estaba deshabilitado), aquí nos aseguramos de que no vuelva a abrir
+    // el teclado nativo la próxima vez que lo toquen.
+    bloquearTecladoNativo(input);
 
     const contenedor = document.getElementById("teclado-virtual-contenedor");
 
@@ -240,6 +293,23 @@ function ocultarTeclado() {
 }
 
 export function inicializarTecladoVirtual() {
+    // Bloquea el teclado nativo en todo lo que ya está en pantalla...
+    bloquearTecladoNativoEn(document);
+
+    // ...y en lo que aparezca después. Muchos campos de este sistema viven
+    // dentro de modales o se generan por JS (pago combinado, división de
+    // cuentas, filas de configuración), y si no se vigilan, esos sí abrirían
+    // el teclado nativo encimado al virtual.
+    if (document.body && typeof MutationObserver !== "undefined") {
+        new MutationObserver(mutaciones => {
+            for (const m of mutaciones) {
+                for (const nodo of m.addedNodes) {
+                    if (nodo.nodeType === 1) bloquearTecladoNativoEn(nodo);
+                }
+            }
+        }).observe(document.body, { childList: true, subtree: true });
+    }
+
     // Captura en fase "capture" para detectar el foco aunque el campo esté
     // dentro de un modal que se acaba de abrir, y para cualquier input de
     // texto/número de toda la app (ver esCampoValido más arriba).
