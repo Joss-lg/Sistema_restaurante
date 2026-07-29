@@ -6,6 +6,7 @@ use App\Models\Configuracion;
 use App\Models\CuentaDivision;
 use App\Models\DetalleOrden;
 use App\Models\Mesa;
+use App\Models\Orden;
 use App\Models\CajaMovimiento;
 use App\Models\FlujoCaja;
 use App\Services\CajaService;
@@ -67,6 +68,9 @@ class MesaOperacionController extends Controller
             'comisionIvaPorcentaje' => $desglose['comisionIvaPorcentaje'],
             'comisionIvaMonto' => $desglose['comisionIvaMonto'],
             'comisionTotal' => $desglose['comisionTotal'],
+            // Descuento manual aplicado desde Caja
+            'descuentoPorcentaje' => $desglose['descuentoPorcentaje'],
+            'descuentoCaja' => $desglose['descuentoCaja'],
         ]);
     }
 
@@ -127,9 +131,6 @@ class MesaOperacionController extends Controller
                     : $ordenesActivas->sum(fn ($o) => floatval($o->propina));
 
                 $sumaTotal = collect($request->pagos)->sum(fn($p) => floatval($p['monto']));
-                $sumaRastreable = collect($request->pagos)
-                    ->whereIn('metodo', ['tarjeta', 'transferencia'])
-                    ->sum(fn($p) => floatval($p['monto']));
 
                 // --- VALIDACIÓN CRÍTICA: el monto pagado debe cubrir lo que se debe ---
                 // Sin esto, se podía "cobrar" una cuenta de $450 con solo $400 y el
@@ -144,6 +145,46 @@ class MesaOperacionController extends Controller
                     throw new \Exception("El monto pagado es insuficiente. Faltan $" . number_format($faltante, 2) . " para cubrir el total de $" . number_format($montoEsperado, 2) . ".");
                 }
 
+                // --- SE DESCUENTA EL CAMBIO ANTES DE REGISTRAR EL INGRESO ---
+                //
+                // El cajero teclea lo que le ENTREGA el cliente (si la cuenta es
+                // de $260 y paga con un billete de $500, se captura $500). Ese
+                // excedente es el cambio: sale del cajón de vuelta al cliente y
+                // NO es venta. Antes se registraba completo en flujo_caja, así
+                // que Finanzas contaba $500 donde solo entraron $260.
+                //
+                // El excedente se resta SOLO del efectivo, porque el cambio
+                // siempre se devuelve en efectivo: nadie paga de más con tarjeta
+                // o transferencia esperando vuelto.
+                $excedente = round($sumaTotal - $montoEsperado, 2);
+
+                $pagosNormalizados = [];
+                foreach ($request->pagos as $pago) {
+                    $monto  = floatval($pago['monto']);
+                    $metodo = strtolower($pago['metodo']);
+
+                    if ($metodo === 'efectivo' && $excedente > 0) {
+                        $descuento = min($monto, $excedente);
+                        $monto     = round($monto - $descuento, 2);
+                        $excedente = round($excedente - $descuento, 2);
+                    }
+
+                    $pagosNormalizados[] = [
+                        'metodo'     => $metodo,
+                        'monto'      => $monto,
+                        'referencia' => $pago['referencia'] ?? null,
+                    ];
+                }
+
+                // A partir de aquí se trabaja con los montos REALES cobrados.
+                // La propina se prorratea sobre estos y no sobre lo entregado:
+                // si no, un billete grande inflaba el denominador y la parte
+                // rastreable de la propina salía más baja de lo que debía.
+                $sumaTotal = collect($pagosNormalizados)->sum(fn($p) => $p['monto']);
+                $sumaRastreable = collect($pagosNormalizados)
+                    ->whereIn('metodo', ['tarjeta', 'transferencia'])
+                    ->sum(fn($p) => $p['monto']);
+
                 $propinaRastreableTotal = ($sumaTotal > 0)
                     ? round($propinaBase * ($sumaRastreable / $sumaTotal), 2)
                     : 0;
@@ -152,9 +193,9 @@ class MesaOperacionController extends Controller
                     ? " (Persona {$cuentaDivision->numero_cuenta}/{$cuentaDivision->total_partes})"
                     : '';
 
-                foreach ($request->pagos as $pago) {
-                    $monto = floatval($pago['monto']);
-                    $metodo = strtolower($pago['metodo']);
+                foreach ($pagosNormalizados as $pago) {
+                    $monto = $pago['monto'];
+                    $metodo = $pago['metodo'];
                     
                     if ($monto > 0) {
                         FlujoCaja::create([
@@ -376,6 +417,182 @@ class MesaOperacionController extends Controller
             // sin recargar la página cuando la mesa está dividida.
             'division' => $this->cajaService->obtenerEstadoDivision($mesa),
         ]);
+    }
+
+    /**
+     * Cancela la cuenta COMPLETA de una mesa sin cobrarla.
+     *
+     * Para casos en que el dinero no va a entrar: el cliente se fue sin pagar,
+     * se levantó la comanda por error, o se decidió absorber el consumo como
+     * cortesía.
+     *
+     * Restringido a Caja por la ruta (permiso:Caja,eliminar). No basta con
+     * esconder el botón: sin la validación en el servidor, cualquiera con la
+     * URL podría borrar una cuenta pendiente.
+     *
+     * NO se registra nada en flujo_caja a propósito: en una cuenta cancelada
+     * NO entró ni salió dinero del cajón. Si se anotara como egreso, el
+     * arqueo de efectivo pediría menos dinero del que realmente debe haber y
+     * aparecerían sobrantes falsos en cada corte. La pérdida queda guardada en
+     * la propia orden (estado, motivo, quién y cuánto) para poder reportarla.
+     */
+    public function cancelarCuenta(Request $request): JsonResponse
+    {
+        $request->validate([
+            'mesa_id' => 'required|exists:mesas,id',
+            'motivo'  => 'required|string|min:5|max:255',
+        ], [
+            'motivo.required' => 'Escribe el motivo de la cancelación.',
+            'motivo.min'      => 'El motivo debe explicar qué pasó (mínimo 5 caracteres).',
+        ]);
+
+        $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
+
+        if (!$cajaActiva) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay un turno de caja abierto. Abre la caja para poder cancelar cuentas.',
+            ], 422);
+        }
+
+        try {
+            $resultado = DB::transaction(function () use ($request, $cajaActiva) {
+                $mesa = Mesa::findOrFail($request->mesa_id);
+
+                $ordenesActivas = $mesa->ordenesActivas()->get();
+
+                if ($ordenesActivas->isEmpty()) {
+                    throw new \Exception('Esta mesa no tiene ninguna cuenta abierta que cancelar.');
+                }
+
+                // Se calcula ANTES de cancelar: es el dinero que se deja de
+                // percibir y debe quedar registrado para el reporte.
+                $montoPerdido = $this->cajaService->obtenerDesgloseMesa($mesa)['total'];
+
+                foreach ($ordenesActivas as $orden) {
+                    $orden->update([
+                        'estado'           => Orden::ESTADO_CANCELADA,
+                        'cancelada_motivo' => trim($request->motivo),
+                        'cancelada_por'    => auth()->id(),
+                        'cancelada_en'     => now(),
+                        'monto_cancelado'  => $montoPerdido,
+                        'cerrada_el'       => now(),
+                    ]);
+                }
+
+                // --- QUEDA ASENTADO EN EL FLUJO DE CAJA ---
+                //
+                // Se registra con categoría propia ("Cancelaciones") y
+                // metodo_pago 'no_aplica' A PROPÓSITO:
+                //
+                //  - La categoría permite mostrarlo como bloque aparte en la
+                //    pantalla y en los PDF, sin revolverlo con los gastos
+                //    reales (un consumo no cobrado no es una compra).
+                //  - 'no_aplica' lo deja fuera del arqueo de efectivo: aquí no
+                //    salió dinero del cajón. Si contara como salida, el corte
+                //    pediría menos efectivo del que debe haber y aparecerían
+                //    sobrantes falsos.
+                //
+                // El motivo va dentro del concepto para que se lea directo en
+                // el reporte, sin tener que cruzar tablas.
+                FlujoCaja::create([
+                    'caja_movimiento_id' => $cajaActiva->id,
+                    'tipo'               => 'egreso',
+                    'categoria'          => 'Cancelaciones',
+                    'concepto'           => 'Cuenta cancelada Mesa ' . $mesa->numero . ' — ' . trim($request->motivo),
+                    'monto'              => $montoPerdido,
+                    'metodo_pago'        => 'no_aplica',
+                    'referencia'         => 'Canceló: ' . (auth()->user()->nombre ?? auth()->id()),
+                    'fecha'              => now(),
+                    'flujoable_id'       => $ordenesActivas->first()->id ?? null,
+                    'flujoable_type'     => Orden::class,
+                ]);
+
+                // Si la mesa tenía la cuenta dividida, esas partes ya no
+                // aplican: se van con la cuenta cancelada.
+                $mesa->cuentasDivision()->delete();
+
+                $this->cajaService->liberarMesa($mesa);
+
+                return [
+                    'numero' => $mesa->numero,
+                    'monto'  => $montoPerdido,
+                ];
+            });
+
+            return response()->json([
+                'success'      => true,
+                'message'      => 'Cuenta cancelada. Se registró una pérdida de $' . number_format($resultado['monto'], 2) . '.',
+                'monto'        => $resultado['monto'],
+                'redirect_url' => route('admin.caja.index'),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Aplica (o quita) un descuento porcentual a la cuenta desde Caja.
+     *
+     * El descuento se movió del módulo de Mesas a Caja: ahora lo autoriza
+     * quien cobra, no quien levanta el pedido. Se guarda en TODAS las órdenes
+     * activas de la mesa porque una mesa puede tener varias rondas de envío
+     * y el descuento aplica a la cuenta completa.
+     *
+     * Enviar 0 lo elimina.
+     */
+    public function aplicarDescuento(Request $request): JsonResponse
+    {
+        $request->validate([
+            'mesa_id'    => 'required|exists:mesas,id',
+            'porcentaje' => 'required|numeric|min:0|max:100',
+        ], [
+            'porcentaje.max' => 'El descuento no puede ser mayor a 100%.',
+            'porcentaje.min' => 'El descuento no puede ser negativo.',
+        ]);
+
+        try {
+            $mesa = Mesa::findOrFail($request->mesa_id);
+            $porcentaje = round((float) $request->porcentaje, 2);
+
+            $ordenes = $mesa->ordenesActivas()->get();
+
+            if ($ordenes->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta mesa no tiene una cuenta abierta.',
+                ], 422);
+            }
+
+            DB::transaction(function () use ($ordenes, $mesa, $porcentaje) {
+                foreach ($ordenes as $orden) {
+                    $orden->update(['descuento_porcentaje' => $porcentaje]);
+                }
+
+                // Si la mesa está dividida, las partes deben recalcularse:
+                // el descuento cambia el total de cada persona.
+                $this->cajaService->recalcularDivisionTrasPropina($mesa);
+            });
+
+            $desglose = $this->cajaService->obtenerDesgloseMesa($mesa->fresh());
+
+            return response()->json([
+                'success'    => true,
+                'message'    => $porcentaje > 0
+                    ? 'Descuento del ' . rtrim(rtrim(number_format($porcentaje, 2), '0'), '.') . '% aplicado.'
+                    : 'Descuento eliminado.',
+                'porcentaje' => $porcentaje,
+                'descuento'  => $desglose['descuentoCaja'],
+                'subtotal'   => $desglose['subtotal'],
+                'iva'        => $desglose['iva'],
+                'total'      => $desglose['total'],
+                'division'   => $desglose['division'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
     }
 
     public function destroy($id): JsonResponse

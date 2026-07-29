@@ -205,5 +205,45 @@
         </tbody>
     </table>
 
+    {{-- CUENTAS CANCELADAS
+         Bloque aparte de los gastos a propósito: no son compras ni salidas
+         de dinero, es consumo que nunca se cobró. Tampoco entra al arqueo
+         de efectivo, porque de ese dinero nunca hubo nada en el cajón. --}}
+    @if(($historicoCancelaciones ?? collect())->isNotEmpty())
+        <div class="section-title" style="color: #dc2626;">Cuentas Canceladas (no cobradas)</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Hora</th>
+                    <th>Concepto y motivo</th>
+                    <th>Autorizó</th>
+                    <th class="text-right">Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($historicoCancelaciones as $cancelacion)
+                    <tr>
+                        <td>{{ $cancelacion->created_at->format('h:i A') }}</td>
+                        <td>{{ $cancelacion->concepto }}</td>
+                        <td style="font-size: 10px; color: #71717a;">{{ $cancelacion->referencia }}</td>
+                        <td class="text-right" style="color: #dc2626; font-weight: bold;">${{ number_format($cancelacion->monto, 2) }}</td>
+                    </tr>
+                @endforeach
+                <tr>
+                    <td colspan="3" style="text-align: right; font-weight: bold;">Total no cobrado:</td>
+                    <td class="text-right" style="color: #dc2626; font-weight: bold; font-size: 13px;">
+                        ${{ number_format($totalCancelaciones ?? 0, 2) }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="font-size: 10px; color: #71717a; margin-top: 6px;">
+            Estas cuentas no se cobraron, así que no forman parte de las ventas ni del
+            arqueo de efectivo: ese dinero nunca entró al cajón. Se listan como
+            registro de la pérdida del turno.
+        </p>
+    @endif
+
 </body>
 </html>

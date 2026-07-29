@@ -51,10 +51,8 @@
             <span class="text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Nota</span>
         </button>
 
-        <button type="button" onclick="aplicarDescuento()" class="flex flex-col items-center justify-center p-3 rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-blue-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
-            <i class="fas fa-percent text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Descuento</span>
-        </button>
+        {{-- El botón de Descuento se movió al módulo de Caja: ahora lo
+             autoriza quien cobra, no quien levanta el pedido. --}}
 
         <button type="button" id="btn-gramaje" onclick="ajustarGramaje()" class="relative flex flex-col items-center justify-center p-3 rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-orange-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50">
             <i class="fas fa-weight-scale text-[var(--text-muted)] group-hover:text-orange-500 mb-2 text-sm transition-colors duration-150"></i>
@@ -264,9 +262,6 @@
         </button>
         <button type="button" onclick="agregarNota()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
             <i class="fas fa-pen text-blue-500"></i> Nota
-        </button>
-        <button type="button" onclick="aplicarDescuento()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
-            <i class="fas fa-percent text-blue-500"></i> Descuento
         </button>
         <button type="button" onclick="ajustarGramaje()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
             <i class="fas fa-weight-scale text-orange-500"></i> Gramaje

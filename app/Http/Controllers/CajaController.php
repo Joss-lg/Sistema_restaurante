@@ -234,11 +234,22 @@ class CajaController extends Controller
         $ventasTarjeta      = (clone $baseVentas)->porMetodoPago('tarjeta')->sum('monto');
         $ventasTransferencia = (clone $baseVentas)->porMetodoPago('transferencia')->sum('monto');
         
-        $totalGastos   = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->egresos()->sum('monto');
+        // Los gastos EXCLUYEN las cancelaciones de cuenta: no son compras ni
+        // salidas de dinero, son consumo que nunca se cobró. Se llevan aparte
+        // para que el reporte no las confunda con gasto operativo.
+        $totalGastos   = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+            ->egresos()->where('categoria', '<>', 'Cancelaciones')->sum('monto');
+
+        $totalCancelaciones = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+            ->egresos()->where('categoria', 'Cancelaciones')->sum('monto');
+        $historicoCancelaciones = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+            ->egresos()->where('categoria', 'Cancelaciones')->ordenado()->get();
+
         $saldoEstimado = $cajaActiva->monto_inicial + $totalVentas - $totalGastos;
 
         $historicoVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->ingresos()->porCategoria('Ventas')->ordenado()->get();
-        $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->egresos()->ordenado()->get();
+        $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+            ->egresos()->where('categoria', '<>', 'Cancelaciones')->ordenado()->get();
 
         $propinasPendientes = PropinaMesero::with('mesero:id,nombre')
             ->where('caja_movimiento_id', $cajaActiva->id)
@@ -269,6 +280,7 @@ class CajaController extends Controller
         return view('admin.caja.flujo', compact(
             'cajaActiva', 'totalVentas', 'ventasEfectivo', 'ventasTarjeta', 'ventasTransferencia',
             'totalGastos', 'saldoEstimado', 'historicoVentas', 'historicoGastos',
+            'totalCancelaciones', 'historicoCancelaciones',
             'propinasPendientes', 'totalPropinasPendientes',
             'efectivo', 'efectivoEsperadoAlCierre'
         ));
@@ -279,11 +291,22 @@ class CajaController extends Controller
         $cajaActiva = CajaMovimiento::with('user')->findOrFail($id);
         
         $totalVentas   = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->ingresos()->porCategoria('Ventas')->sum('monto');
-        $totalGastos   = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->egresos()->sum('monto');
+        // Los gastos EXCLUYEN las cancelaciones de cuenta: no son compras ni
+        // salidas de dinero, son consumo que nunca se cobró. Se llevan aparte
+        // para que el reporte no las confunda con gasto operativo.
+        $totalGastos   = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+            ->egresos()->where('categoria', '<>', 'Cancelaciones')->sum('monto');
+
+        $totalCancelaciones = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+            ->egresos()->where('categoria', 'Cancelaciones')->sum('monto');
+        $historicoCancelaciones = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+            ->egresos()->where('categoria', 'Cancelaciones')->ordenado()->get();
+
         $saldoEstimado = $cajaActiva->monto_inicial + $totalVentas - $totalGastos;
 
         $historicoVentas = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->ingresos()->porCategoria('Ventas')->ordenado()->get();
-        $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)->egresos()->ordenado()->get();
+        $historicoGastos = FlujoCaja::where('caja_movimiento_id', $cajaActiva->id)
+            ->egresos()->where('categoria', '<>', 'Cancelaciones')->ordenado()->get();
 
         // Desglose del efectivo del cajón, con el mismo cálculo del cierre.
         $efectivo = $this->cajaService->calcularEfectivoEsperado($cajaActiva);
@@ -300,6 +323,7 @@ class CajaController extends Controller
         $pdf = Pdf::loadView('admin.caja.reporte_pdf', compact(
             'cajaActiva', 'totalVentas', 'totalGastos', 'saldoEstimado',
             'historicoVentas', 'historicoGastos',
+            'totalCancelaciones', 'historicoCancelaciones',
             'efectivo', 'cerrado', 'montoEsperado', 'montoReal', 'diferencia'
         ));
 

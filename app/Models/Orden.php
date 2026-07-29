@@ -16,6 +16,11 @@ class Orden extends Model
     const ESTADO_SERVIDA   = 'servida';
     const ESTADO_PAGADA    = 'pagada';
 
+    // Cuenta cerrada SIN cobrar (el cliente se fue sin pagar, error de
+    // captura, cortesía...). Al no estar en getEstadosActivos(), la mesa
+    // deja de aparecer en Caja y en la comanda automáticamente.
+    const ESTADO_CANCELADA = 'cancelada';
+
     /**
      * Retorna los estados que se consideran "activos" o "en servicio".
      * Útil para consultas en el controlador.
@@ -47,7 +52,21 @@ class Orden extends Model
         'total_cuentas_division',
         'personas',
         'descuento_porcentaje',
+        // Auditoría de cancelación de la cuenta completa
+        'cancelada_motivo',
+        'cancelada_por',
+        'cancelada_en',
+        'monto_cancelado',
     ];
+
+    /**
+     * Usuario de caja que canceló la cuenta. Se guarda para que siempre
+     * quede claro quién autorizó una cuenta que no se cobró.
+     */
+    public function canceladaPor()
+    {
+        return $this->belongsTo(User::class, 'cancelada_por');
+    }
 
     protected $casts = [
         'total' => 'decimal:2',

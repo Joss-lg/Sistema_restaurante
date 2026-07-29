@@ -191,6 +191,16 @@
                     <span class="font-bold text-zinc-900 dark:text-white" id="resumen-iva">${{ number_format($iva ?? 0, 2) }}</span>
                 </div>
 
+                @if(($descuentoCaja ?? 0) > 0)
+                    <div class="flex justify-between text-blue-600 dark:text-blue-400 text-[11px] font-semibold">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fas fa-percent text-[10px]"></i>
+                            Descuento ({{ rtrim(rtrim(number_format($descuentoPorcentaje ?? 0, 2), '0'), '.') }}%)
+                        </span>
+                        <span class="font-bold">-${{ number_format($descuentoCaja, 2) }}</span>
+                    </div>
+                @endif
+
                 <div class="flex justify-between text-amber-600 dark:text-amber-400 text-[11px] font-semibold {{ ($propina ?? 0) > 0 ? '' : 'hidden' }}" id="resumen-propina-row">
                     <span class="flex items-center gap-1.5">
                         <i class="fas fa-hand-holding-dollar text-[10px]"></i> Propina

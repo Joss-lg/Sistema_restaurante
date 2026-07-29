@@ -198,6 +198,50 @@
             </div>
         </div>
 
+        {{-- BLOQUE 3: Cuentas canceladas
+             Va aparte de "Gastos y Salidas" a propósito: no son compras ni
+             salidas del cajón, es consumo que nunca se cobró. Tampoco entra
+             al arqueo de efectivo por la misma razón. --}}
+        @if(($historicoCancelaciones ?? collect())->isNotEmpty())
+            <div class="bg-[var(--card-color)] border border-rose-500/30 rounded-2xl shadow-xl overflow-hidden w-full">
+                <div class="bg-gradient-to-r from-rose-500/15 to-transparent p-3 sm:p-4 border-b border-[var(--border-color)] flex flex-wrap gap-2 justify-between items-center w-full">
+                    <h3 class="text-xs sm:text-sm font-black text-[var(--text-color)] uppercase tracking-wider flex items-center">
+                        <i class="fas fa-ban text-rose-500 mr-2"></i> Cuentas canceladas (no cobradas)
+                    </h3>
+                    <span class="text-[10px] sm:text-xs font-black bg-rose-500/10 text-rose-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-rose-500/20 whitespace-nowrap">
+                        Total: ${{ number_format($totalCancelaciones ?? 0, 2) }}
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
+                    <table class="w-full text-xs sm:text-sm text-center border-collapse">
+                        <thead>
+                            <tr class="bg-[var(--input-bg)] text-[var(--text-muted)] font-bold text-[10px] sm:text-xs border-b border-[var(--border-color)] uppercase tracking-wider">
+                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Hora</th>
+                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4 text-left">Mesa y motivo</th>
+                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Autorizó</th>
+                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[var(--border-color)] text-[var(--text-color)]">
+                            @foreach($historicoCancelaciones as $cancelacion)
+                                <tr class="hover:bg-[var(--input-bg)]/50 transition-colors">
+                                    <td class="py-3 sm:py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-[var(--text-muted)] whitespace-nowrap">{{ \Carbon\Carbon::parse($cancelacion->fecha)->format('H:i') }} hrs</td>
+                                    <td class="py-3 sm:py-4 px-2 sm:px-4 text-left font-semibold">{{ $cancelacion->concepto }}</td>
+                                    <td class="py-3 sm:py-4 px-2 sm:px-4 text-[10px] sm:text-xs text-[var(--text-muted)] whitespace-nowrap">{{ $cancelacion->referencia }}</td>
+                                    <td class="py-3 sm:py-4 px-2 sm:px-4 font-black text-rose-500 whitespace-nowrap">-${{ number_format($cancelacion->monto, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="px-3 sm:px-4 py-2.5 text-[10px] sm:text-[11px] text-[var(--text-muted)] border-t border-[var(--border-color)] leading-snug">
+                    Este dinero nunca entró al cajón, así que no cuenta como venta ni afecta el efectivo esperado del corte.
+                </p>
+            </div>
+        @endif
+
     </div>
 </div>
 @include('admin.caja.corte')

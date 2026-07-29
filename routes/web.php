@@ -160,6 +160,17 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/division/iniciar', [MesaOperacionController::class, 'iniciarDivision'])->name('division.iniciar')->middleware('permiso:Caja,crear');
             Route::post('/division/asignar', [MesaOperacionController::class, 'asignarProductoDivision'])->name('division.asignar')->middleware('permiso:Caja,crear');
             Route::post('/division/cancelar', [MesaOperacionController::class, 'cancelarDivision'])->name('division.cancelar')->middleware('permiso:Caja,crear');
+
+            // Cancelar la cuenta COMPLETA sin cobrarla (cliente que se fue sin
+            // pagar, comanda levantada por error, cortesía...).
+            // Exige permiso de ELIMINAR en Caja: es una acción destructiva que
+            // cierra una cuenta sin que entre dinero, así que no debería
+            // poder hacerla cualquier usuario del módulo.
+            Route::post('/cuenta/cancelar', [MesaOperacionController::class, 'cancelarCuenta'])->name('cuenta.cancelar')->middleware('permiso:Caja,eliminar');
+
+            // Descuento de la cuenta. Se movió del módulo de Mesas a Caja:
+            // ahora lo autoriza quien cobra, no quien levanta el pedido.
+            Route::post('/cuenta/descuento', [MesaOperacionController::class, 'aplicarDescuento'])->name('cuenta.descuento')->middleware('permiso:Caja,editar');
             
             Route::post('/api/liberar-mesa', [MesaOperacionController::class, 'liberarMesa'])->name('api.liberar-mesa')->middleware('permiso:Caja,gestionar');
             Route::post('/api/abrir-mesa', [MesaOperacionController::class, 'abrirMesa'])->name('api.abrir-mesa')->middleware('permiso:Caja,gestionar');

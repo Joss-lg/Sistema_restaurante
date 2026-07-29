@@ -121,40 +121,10 @@
     </div>
 </div>
 {{-- ==========================================
-     4. MODAL DESCUENTO (Teclado Numérico Virtual)
+     4. MODAL DESCUENTO — RETIRADO
+     El descuento se movió al módulo de Caja: ahora lo autoriza quien
+     cobra, no quien levanta el pedido. Ver la pantalla de cobro.
      ========================================== --}}
-<div id="modalDescuento" class="modal-overlay hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="modal-sheet w-full sm:max-w-sm max-h-[92vh] overflow-y-auto hide-scroll rounded-t-[28px] sm:rounded-[24px] bg-[var(--bg-panel)] border border-[var(--border-color)] p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-2xl ring-1 ring-black/5">
-        <div class="sm:hidden w-10 h-1.5 rounded-full bg-[var(--border-color)] mx-auto mb-4"></div>
-        <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-2.5">
-                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/20 flex items-center justify-center">
-                    <i class="fas fa-percent text-blue-500 text-xs"></i>
-                </span>
-                <h2 class="text-base sm:text-lg font-bold text-[var(--text-main)] tracking-tight">Descuento (%)</h2>
-            </div>
-            <button type="button" onclick="cerrarModal('modalDescuento')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
-        </div>
-        
-        <input id="descuentoInput" type="text"
-               maxlength="3" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
-               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3)"
-               class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200" placeholder="0">
-
-        {{-- Teclado Numérico --}}
-        <div class="grid grid-cols-3 gap-1.5 mt-4">
-            @foreach(['1','2','3','4','5','6','7','8','9'] as $key)
-                <button type="button" onclick="escribirNumVirtual('descuentoInput', '{{ $key }}')" class="min-h-[44px] rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-blue-500/30 hover:bg-[var(--hover-bg)] active:scale-90 text-[var(--text-main)] text-lg font-bold shadow-sm transition-all duration-100">{{ $key }}</button>
-            @endforeach
-            <button type="button" onclick="escribirNumVirtual('descuentoInput', '0')" class="col-span-2 min-h-[44px] rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] hover:border-blue-500/30 hover:bg-[var(--hover-bg)] active:scale-90 text-[var(--text-main)] text-lg font-bold shadow-sm transition-all duration-100">0</button>
-            <button type="button" onclick="borrarNumVirtual('descuentoInput')" class="min-h-[44px] rounded-lg bg-red-500/10 border border-red-500/15 text-red-500 hover:bg-red-500 hover:text-white active:scale-90 text-sm font-bold transition-all duration-150"><i class="fas fa-backspace"></i></button>
-        </div>
-
-        <div class="mt-6">
-            <button type="button" onclick="guardarDescuento()" class="w-full min-h-[48px] rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 text-white text-sm font-bold active:scale-95 shadow-md shadow-blue-500/20 hover:shadow-lg transition-all duration-150">Aplicar</button>
-        </div>
-    </div>
-</div>
 
 {{-- ==========================================
      5. MODAL PERSONAS (Teclado Numérico Virtual)

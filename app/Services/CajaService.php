@@ -57,7 +57,25 @@ class CajaService
                 });
         })->values();
 
-        $subtotal = round($subtotalBruto - $descuentoPromociones, 2);
+        $subtotalTrasPromociones = round($subtotalBruto - $descuentoPromociones, 2);
+
+        // --- DESCUENTO DE CAJA ---
+        //
+        // Se aplica DESPUÉS de las promociones, sobre lo que realmente queda
+        // por pagar, y ANTES del IVA (el impuesto se calcula sobre el importe
+        // ya rebajado, que es como debe facturarse).
+        //
+        // El porcentaje vive en la orden. Antes lo capturaba el mesero desde
+        // la comanda, pero este servicio NUNCA lo aplicaba: el descuento se
+        // veía en la comanda y Caja terminaba cobrando el total completo.
+        // Ahora lo captura Caja y sí se refleja en el cobro, la precuenta y
+        // el ticket, porque los tres salen de aquí.
+        $descuentoPorcentaje = (float) ($ordenesActivas->max('descuento_porcentaje') ?? 0);
+        $descuentoPorcentaje = max(0, min(100, $descuentoPorcentaje));
+
+        $descuentoCaja = round($subtotalTrasPromociones * ($descuentoPorcentaje / 100), 2);
+
+        $subtotal = round($subtotalTrasPromociones - $descuentoCaja, 2);
         $propina  = $ordenesActivas->sum('propina');
 
         // --- AJUSTE: IVA habilitable desde configuración global ---
@@ -94,6 +112,9 @@ class CajaService
             'subtotalBruto'         => round($subtotalBruto, 2),
             'descuentoPromociones'  => round($descuentoPromociones, 2),
             'productosConDescuento' => $productosConDescuento,
+            // Descuento manual aplicado desde Caja
+            'descuentoPorcentaje'   => $descuentoPorcentaje,
+            'descuentoCaja'         => $descuentoCaja,
             'iva'                   => $iva,
             'ivaHabilitado'         => $ivaHabilitado,
             'ivaPorcentaje'         => $ivaPorcentaje,
@@ -492,7 +513,15 @@ class CajaService
      */
     public function calcularEfectivoEsperado(CajaMovimiento $caja): array
     {
-        $base = FlujoCaja::where('caja_movimiento_id', $caja->id);
+        // Las cancelaciones de cuenta se guardan como egreso para que queden
+        // asentadas en el reporte, pero NO son salidas del cajón: nadie sacó
+        // ese dinero, simplemente nunca entró. Se excluyen de todo el arqueo.
+        // Se filtra por categoría (y no solo por metodo_pago) para que siga
+        // funcionando aunque alguien edite el método del movimiento.
+        $base = FlujoCaja::where('caja_movimiento_id', $caja->id)
+            ->where(function ($q) {
+                $q->where('categoria', '<>', 'Cancelaciones')->orWhereNull('categoria');
+            });
 
         $ingresosEfectivo = (clone $base)
             ->where('tipo', 'ingreso')

@@ -32,6 +32,39 @@
             <p class="text-[11px] sm:text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mt-0.5">
                 {{ $orden->numero_orden ?? 'ORDEN SIN NÚMERO' }} • {{ $orden->mesero->nombre ?? 'MESERO NO ASIGNADO' }}
             </p>
+
+            {{-- DESCUENTO DE LA CUENTA
+                 Se movió aquí desde el módulo de Mesas: ahora lo autoriza
+                 quien cobra. Requiere permiso de EDITAR en Caja; la ruta lo
+                 vuelve a validar en el servidor. --}}
+            @if(auth()->user()->tienePermiso('Caja', 'editar'))
+                <div class="mt-3 flex items-center gap-2">
+                    <div class="relative">
+                        <input type="text" inputmode="decimal" data-teclado="numerico"
+                               id="input-descuento-caja"
+                               value="{{ ($descuentoPorcentaje ?? 0) > 0 ? rtrim(rtrim(number_format($descuentoPorcentaje, 2, '.', ''), '0'), '.') : '' }}"
+                               placeholder="0"
+                               class="w-20 pl-3 pr-6 py-1.5 rounded-lg border border-zinc-300 dark:border-white/10 bg-white dark:bg-zinc-950 text-sm font-bold text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">%</span>
+                    </div>
+                    <button type="button" id="btn-aplicar-descuento-caja"
+                        class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-wider transition-colors">
+                        Aplicar descuento
+                    </button>
+                    <span id="msg-descuento-caja" class="hidden text-[11px] font-bold"></span>
+                </div>
+            @endif
+
+            {{-- CANCELAR CUENTA SIN COBRAR
+                 Solo se muestra a quien tenga permiso de ELIMINAR en Caja.
+                 Ocultarlo es comodidad; el bloqueo real lo hace el middleware
+                 'permiso:Caja,eliminar' de la ruta. --}}
+            @if(auth()->user()->tienePermiso('Caja', 'eliminar'))
+                <button type="button" id="btn-abrir-cancelar-cuenta"
+                    class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-rose-300 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-wider hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
+                    <i class="fas fa-ban"></i> Cancelar cuenta sin cobrar
+                </button>
+            @endif
         </div>
 
         <div class="flex-1 lg:min-h-0 lg:overflow-y-auto custom-scrollbar">
@@ -48,6 +81,9 @@
 @include('admin.cobrar.modals.exito')
 @include('admin.cobrar.modals.error')
 @include('admin.cobrar.modals.ticket-preview')
+@if(auth()->user()->tienePermiso('Caja', 'eliminar'))
+    @include('admin.cobrar.modals.cancelar-cuenta')
+@endif
 @endsection
 
 @push('scripts')
@@ -71,6 +107,65 @@
             urlDivisionCancelar: "{{ route('admin.caja.division.cancelar') }}",
             division: @json($division ?? null)
         };
+
+        // --- DESCUENTO DE LA CUENTA (movido desde el módulo de Mesas) ---
+        const btnDescuento = document.getElementById('btn-aplicar-descuento-caja');
+        const inputDescuento = document.getElementById('input-descuento-caja');
+        const msgDescuento = document.getElementById('msg-descuento-caja');
+
+        if (btnDescuento && inputDescuento) {
+            btnDescuento.addEventListener('click', async () => {
+                // El campo es de texto para que el teclado táctil escriba el
+                // punto decimal; se acepta también la coma.
+                const crudo = (inputDescuento.value || '').trim().replace(',', '.');
+                const porcentaje = crudo === '' ? 0 : parseFloat(crudo);
+
+                const avisar = (texto, ok) => {
+                    msgDescuento.textContent = texto;
+                    msgDescuento.className = 'text-[11px] font-bold ' + (ok ? 'text-emerald-500' : 'text-rose-500');
+                    msgDescuento.classList.remove('hidden');
+                };
+
+                if (isNaN(porcentaje) || porcentaje < 0 || porcentaje > 100) {
+                    avisar('Escribe un porcentaje entre 0 y 100', false);
+                    return;
+                }
+
+                btnDescuento.disabled = true;
+                const textoOriginal = btnDescuento.textContent;
+                btnDescuento.textContent = 'Aplicando...';
+
+                try {
+                    const res = await fetch(@json(route('admin.caja.cuenta.descuento')), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ mesa_id: {{ $mesa->id }}, porcentaje: porcentaje }),
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        // Se recarga para que el desglose, el total y las
+                        // partes de la división queden con el nuevo importe:
+                        // todos esos números salen del servidor.
+                        window.location.reload();
+                        return;
+                    }
+
+                    avisar(data.message || 'No se pudo aplicar el descuento.', false);
+                } catch (e) {
+                    console.error('Error al aplicar descuento:', e);
+                    avisar('Error de conexión.', false);
+                } finally {
+                    btnDescuento.disabled = false;
+                    btnDescuento.textContent = textoOriginal;
+                }
+            });
+        }
     });
 </script>
 @endpush
