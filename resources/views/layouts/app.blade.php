@@ -12,9 +12,9 @@
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
     <!-- 2. Iconos HD para la Barra de Tareas (Windows), Accesos Directos y Apps Móviles -->
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/agostadero.png') }}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('images/agostadero.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/agostadero.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/icon.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('images/icon.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/icon.png') }}">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
