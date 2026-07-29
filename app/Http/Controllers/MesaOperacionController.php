@@ -131,6 +131,19 @@ class MesaOperacionController extends Controller
                     ->whereIn('metodo', ['tarjeta', 'transferencia'])
                     ->sum(fn($p) => floatval($p['monto']));
 
+                // --- VALIDACIÓN CRÍTICA: el monto pagado debe cubrir lo que se debe ---
+                // Sin esto, se podía "cobrar" una cuenta de $450 con solo $400 y el
+                // sistema la marcaba como pagada igual. Se usa una tolerancia de 1
+                // centavo para absorber redondeos de floats, no como margen real.
+                $montoEsperado = $cuentaDivision
+                    ? (float) $cuentaDivision->total
+                    : $this->cajaService->obtenerDesgloseMesa($mesa)['total'];
+
+                if ($sumaTotal < $montoEsperado - 0.01) {
+                    $faltante = round($montoEsperado - $sumaTotal, 2);
+                    throw new \Exception("El monto pagado es insuficiente. Faltan $" . number_format($faltante, 2) . " para cubrir el total de $" . number_format($montoEsperado, 2) . ".");
+                }
+
                 $propinaRastreableTotal = ($sumaTotal > 0)
                     ? round($propinaBase * ($sumaRastreable / $sumaTotal), 2)
                     : 0;

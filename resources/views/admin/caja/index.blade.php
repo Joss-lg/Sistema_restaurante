@@ -166,6 +166,31 @@
                 });
             });
         });
+
+        // AUTO-SINCRONIZACIÓN SILENCIOSA DE CAJA
+        setInterval(() => {
+            fetch(window.location.href, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const nuevoContenedor = doc.getElementById('mesas-container');
+                const contenedorActual = document.getElementById('mesas-container');
+                if (nuevoContenedor && contenedorActual && contenedorActual.innerHTML !== nuevoContenedor.innerHTML) {
+                    contenedorActual.innerHTML = nuevoContenedor.innerHTML;
+                }
+
+                const nuevoTotal = doc.getElementById('total-abierto-display');
+                const totalActual = document.getElementById('total-abierto-display');
+                if (nuevoTotal && totalActual && totalActual.innerText !== nuevoTotal.innerText) {
+                    totalActual.innerText = nuevoTotal.innerText;
+                }
+            })
+            .catch(() => {});
+        }, 4000);
     });
 </script>
 @endsection

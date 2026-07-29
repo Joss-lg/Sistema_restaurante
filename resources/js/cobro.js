@@ -1,4 +1,86 @@
 /**
+ * Muestra una notificación tipo "toast" arriba a la derecha, replicando el
+ * mismo diseño visual que ya usa el resto del sistema: tarjeta oscura,
+ * degradado en la barra superior e inferior, ícono con anillo, título en
+ * mayúsculas y barra de progreso que indica cuánto falta para cerrarse.
+ * @param {string} mensaje
+ * @param {'error'|'exito'|'info'} tipo
+ * @param {string} [titulo] - opcional, si no se manda usa el título por defecto de cada tipo
+ */
+function mostrarAlerta(mensaje, tipo = 'info', titulo = null) {
+    // Inyecta la animación una sola vez
+    if (!document.getElementById('toast-anim-style')) {
+        const style = document.createElement('style');
+        style.id = 'toast-anim-style';
+        style.textContent = `
+            @keyframes toast-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
+            @keyframes toast-out { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(24px); } }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const estilos = {
+        // Rojo: misma estructura visual que "Operación exitosa", pero en tono error
+        error: { gradiente: 'linear-gradient(90deg, #ef4444, #f97316)', iconBg: 'bg-red-500/15', ring: 'ring-red-500/40', iconColor: 'text-red-400', icon: 'fa-circle-exclamation', tituloColor: 'text-red-400', tituloDefault: 'ERROR', duracion: 7000 },
+        exito: { gradiente: 'linear-gradient(90deg, #34d399, #22d3ee)', iconBg: 'bg-emerald-500/15', ring: 'ring-emerald-400/40', iconColor: 'text-emerald-400', icon: 'fa-check', tituloColor: 'text-emerald-400', tituloDefault: 'OPERACIÓN EXITOSA', duracion: 5000 },
+        info:  { gradiente: 'linear-gradient(90deg, #60a5fa, #22d3ee)', iconBg: 'bg-blue-500/15', ring: 'ring-blue-400/40', iconColor: 'text-blue-400', icon: 'fa-info', tituloColor: 'text-blue-400', tituloDefault: 'AVISO', duracion: 5000 },
+    };
+    const s = estilos[tipo] || estilos.info;
+    const tituloFinal = titulo || s.tituloDefault;
+
+    // Si ya hay un toast visible, lo quitamos antes de mostrar el nuevo
+    const anterior = document.getElementById('toast-alerta');
+    if (anterior) anterior.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'toast-alerta';
+    toast.className = 'fixed top-6 right-6 z-[9999] w-full max-w-sm rounded-2xl bg-zinc-900 shadow-2xl overflow-hidden';
+    toast.style.animation = 'toast-in 0.3s ease-out';
+
+    toast.innerHTML = `
+        <div class="h-[3px] w-full" style="background:${s.gradiente};"></div>
+        <div class="flex items-start gap-3 p-4">
+            <div class="w-10 h-10 rounded-full ${s.iconBg} ring-2 ${s.ring} flex items-center justify-center shrink-0">
+                <i class="fa-solid ${s.icon} ${s.iconColor}"></i>
+            </div>
+            <div class="flex-1 min-w-0 pt-0.5">
+                <p class="text-xs font-black uppercase tracking-wider ${s.tituloColor}">${tituloFinal}</p>
+                <p class="text-sm font-semibold text-white/90 mt-0.5">${mensaje}</p>
+            </div>
+            <button type="button" class="text-white/30 hover:text-white/70 shrink-0 leading-none">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="h-[3px] w-full bg-white/5">
+            <div class="toast-progress h-full" style="background:${s.gradiente}; width:100%;"></div>
+        </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    function cerrarToast() {
+        clearTimeout(timeoutId);
+        toast.style.animation = 'toast-out 0.25s ease-in forwards';
+        setTimeout(() => toast.remove(), 250);
+    }
+
+    // Barra de progreso: arranca al 100% y se reduce a 0% durante toda la
+    // duración visible del toast, para que se vea claramente cuánto falta
+    // antes de que se cierre.
+    const progressBar = toast.querySelector('.toast-progress');
+    requestAnimationFrame(() => {
+        progressBar.style.transition = `width ${s.duracion}ms linear`;
+        progressBar.style.width = '0%';
+    });
+
+    // Los errores duran más (7s) que los éxitos/avisos (5s) porque suelen
+    // requerir más tiempo de lectura. Se puede cerrar antes con la X.
+    const timeoutId = setTimeout(cerrarToast, s.duracion);
+
+    toast.querySelector('button').addEventListener('click', cerrarToast);
+}
+
+/**
  * Muestra el ticket en un modal visible y estático (no se imprime ni se
  * cierra solo). El usuario decide si le da "Imprimir" o "Cerrar".
  * @param {Function} [alCerrar] - opcional, se ejecuta cuando el usuario
@@ -40,7 +122,7 @@ function mostrarModalTicket(alCerrar) {
             iframe.contentWindow.print();
         } catch (e) {
             console.error('No se pudo imprimir el ticket:', e);
-            alert('No se pudo abrir la impresión. Intenta de nuevo.');
+            mostrarAlerta('No se pudo abrir la impresión. Intenta de nuevo.', 'error');
         }
     }
 
@@ -167,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnConfirmarDivision.addEventListener('click', async () => {
             const personas = parseInt(inputNumeroPersonas.value, 10) || 0;
             if (personas < 2) {
-                alert('Se necesitan al menos 2 personas para dividir la cuenta.');
+                mostrarAlerta('Se necesitan al menos 2 personas para dividir la cuenta.', 'error');
                 return;
             }
 
@@ -182,12 +264,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert('Error: ' + (data.message || 'No se pudo dividir la cuenta.'));
+                    mostrarAlerta(data.message || 'No se pudo dividir la cuenta.', 'error');
                     btnConfirmarDivision.disabled = false;
                 }
             } catch (e) {
                 console.error(e);
-                alert('Ocurrió un error al dividir la cuenta.');
+                mostrarAlerta('Ocurrió un error al dividir la cuenta.', 'error');
                 btnConfirmarDivision.disabled = false;
             }
         });
@@ -202,11 +284,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert('Error: ' + (data.message || 'No se pudo cancelar la división.'));
+                    mostrarAlerta(data.message || 'No se pudo cancelar la división.', 'error');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Ocurrió un error al cancelar la división.');
+                mostrarAlerta('Ocurrió un error al cancelar la división.', 'error');
             }
         });
     }
@@ -297,12 +379,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     aplicarDivisionAlDOM(data.division);
                 } else {
                     valorEl.textContent = valorAnterior; // revertir
-                    alert('Error: ' + (data.message || 'No se pudo asignar el producto.'));
+                    mostrarAlerta(data.message || 'No se pudo asignar el producto.', 'error');
                 }
             } catch (e) {
                 console.error(e);
                 valorEl.textContent = valorAnterior; // revertir
-                alert('Ocurrió un error al asignar el producto.');
+                mostrarAlerta('Ocurrió un error al asignar el producto.', 'error');
             } finally {
                 [btnMas, btnMenos].forEach(b => b && (b.disabled = false));
             }
@@ -524,17 +606,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnPagar) {
         btnPagar.addEventListener('click', async () => {
             const montoRaw = displayMonto.textContent.replace(/[^0-9.]/g, '');
+            const montoIngresado = parseFloat(montoRaw) || 0;
             const inputMesa = document.getElementById('mesa-id');
             const metodo = inputMetodoOculto ? inputMetodoOculto.value : 'efectivo';
 
             if (!inputMesa) {
-                alert('Faltan datos de la mesa.');
+                mostrarAlerta('Faltan datos de la mesa.', 'error');
                 return;
             }
 
             // NUEVO: si la mesa está dividida, hay que tener una persona seleccionada
             if (btnPagar.dataset.dividido === '1' && !cuentaSeleccionadaId) {
-                alert('Selecciona primero a la persona que vas a cobrar.');
+                mostrarAlerta('Selecciona primero a la persona que vas a cobrar.', 'error');
+                return;
+            }
+
+            // NUEVO: el cajero DEBE teclear el monto que recibió. Antes, si
+            // dejaba el teclado en $0.00 y le daba "FINALIZAR" directo, el
+            // payload mandaba `parseFloat(montoRaw) || totalPagar` — y como
+            // 0 es "falsy" en JS, eso auto-rellenaba el total completo sin
+            // que el cajero hubiera ingresado nada. Ahora se bloquea aquí,
+            // antes de armar el payload.
+            if (montoIngresado <= 0) {
+                mostrarAlerta('Debes ingresar el monto que estás cobrando.', 'error');
                 return;
             }
 
@@ -551,7 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pagos: [
                     { 
                         metodo: metodo.toLowerCase(), 
-                        monto: parseFloat(montoRaw) || totalPagar,
+                        monto: montoIngresado,
                         referencia: referencia || null
                     }
                 ]
@@ -568,7 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!inputMesa) return;
 
             if (btnPagar && btnPagar.dataset.dividido === '1' && !cuentaSeleccionadaId) {
-                alert('Selecciona primero a la persona que vas a cobrar.');
+                mostrarAlerta('Selecciona primero a la persona que vas a cobrar.', 'error');
                 return;
             }
 
@@ -611,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function enviarPeticionPago(payload, botonActivo) {
         const csrfMeta = document.querySelector('meta[name="csrf-token"]');
         if (!csrfMeta) {
-            alert('Error de seguridad: Falta el token CSRF.');
+            mostrarAlerta('Error de seguridad: Falta el token CSRF.', 'error');
             restaurarBoton(botonActivo);
             return;
         }
@@ -647,16 +741,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Pago de una persona registrado, pero aún quedan otras
                     // partes pendientes: la mesa sigue abierta. Recargamos
                     // para reflejar quién ya pagó y limpiar la selección.
-                    alert(data.message || 'Pago registrado. Selecciona a la siguiente persona.');
+                    mostrarAlerta(data.message || 'Pago registrado. Selecciona a la siguiente persona.', 'exito');
                     location.reload();
                 }
             } else {
-                alert('Error: ' + data.message);
+                mostrarAlerta(data.message, 'error');
                 restaurarBoton(botonActivo);
             }
         } catch (error) {
             console.error('Error de red o servidor:', error);
-            alert('Ocurrió un error al procesar el pago en el servidor.');
+            mostrarAlerta('Ocurrió un error al procesar el pago en el servidor.', 'error');
             restaurarBoton(botonActivo);
         }
     }
@@ -680,7 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // AJUSTE: ya no valida 'orden-id', solo requiere que exista
             // la URL del ticket por mesa en COBRO_CONFIG.
             if (!window.COBRO_CONFIG || !window.COBRO_CONFIG.urlTicket) {
-                alert('No se encontró información de la mesa para generar el ticket.');
+                mostrarAlerta('No se encontró información de la mesa para generar el ticket.', 'error');
                 return;
             }
             mostrarModalTicket();
@@ -697,13 +791,13 @@ document.addEventListener('DOMContentLoaded', () => {
     async function aplicarPropina(tipo, valor, botonActivo) {
         const inputOrden = document.getElementById('orden-id');
         if (!inputOrden || !inputOrden.value) {
-            alert('No se encontró una orden activa para aplicar la propina.');
+            mostrarAlerta('No se encontró una orden activa para aplicar la propina.', 'error');
             return;
         }
 
         const csrfMeta = document.querySelector('meta[name="csrf-token"]');
         if (!csrfMeta) {
-            alert('Error de seguridad: Falta el token CSRF.');
+            mostrarAlerta('Error de seguridad: Falta el token CSRF.', 'error');
             return;
         }
 
@@ -728,11 +822,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 aplicarPropinaAlDOM(data);
                 if (tipo === 'manual' && propinaManualInput) propinaManualInput.value = '';
             } else {
-                alert('Error: ' + (data.message || 'No se pudo aplicar la propina.'));
+                mostrarAlerta(data.message || 'No se pudo aplicar la propina.', 'error');
             }
         } catch (error) {
             console.error('Error al aplicar propina:', error);
-            alert('Ocurrió un error al aplicar la propina.');
+            mostrarAlerta('Ocurrió un error al aplicar la propina.', 'error');
         } finally {
             if (botonActivo) botonActivo.disabled = false;
         }
@@ -775,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAplicarPropinaManual.addEventListener('click', () => {
             const valor = parseFloat(propinaManualInput.value) || 0;
             if (valor < 0) {
-                alert('El monto de propina no puede ser negativo.');
+                mostrarAlerta('El monto de propina no puede ser negativo.', 'error');
                 return;
             }
             aplicarPropina('manual', valor, btnAplicarPropinaManual);

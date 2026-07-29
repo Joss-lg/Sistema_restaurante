@@ -39,6 +39,12 @@
     #panelPropiedades {
         max-height: 85dvh;
     }
+
+    @media (min-width: 1024px) {
+        #panelPropiedades {
+            max-height: calc(100dvh - 9rem);
+        }
+    }
 </style>
 
 <div class="py-3 sm:py-6 lg:py-8">
@@ -235,7 +241,7 @@
                             </div>
 
                             @if($puedeEliminarMesa || $puedeEditarMesa)
-                                <div id="botonesAccion" class="pt-4 flex gap-2 border-t border-[var(--border-color)] mt-2">
+                                <div id="botonesAccion" class="pt-4 flex flex-col gap-2 border-t border-[var(--border-color)] mt-2">
                                     @if($puedeEliminarMesa)
                                         <button type="button" id="btnEliminar" class="flex-1 px-3 py-2.5 lg:py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition shadow-sm">
                                             Eliminar
