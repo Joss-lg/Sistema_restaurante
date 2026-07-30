@@ -1,3 +1,7 @@
+// Id del usuario en sesion. Lo publica el blade en <body data-usuario-id>.
+// Sirve para pintar de amarillo las mesas propias y de rosa las de otros.
+const USUARIO_ACTUAL_ID = parseInt(document.body?.dataset?.usuarioId || '0', 10) || null;
+
 /**
  * mesas.js - Sistema centralizado de gestión de mesas (Ajustado para Plano Espacial)
  */
@@ -117,7 +121,22 @@ function renderizarMapaMesas() {
 
     mesasFiltradas.forEach(mesa => {
         const div = document.createElement('div');
-        div.className = `mesa-elemento mesa-ui absolute rounded-lg cursor-move flex items-center justify-center font-bold border-2 text-[var(--text-color)] border-[var(--text-color)] mesa-${mesa.estado} select-none`;
+
+        // --- COLOR SEGUN DE QUIEN ES LA MESA ---
+        // Verde: libre. Amarillo: la atiende el mesero que esta viendo la
+        // pantalla. Rosa: la atiende alguien mas.
+        //
+        // El color se calcula por USUARIO, no es un estado guardado en la base:
+        // la misma mesa se ve amarilla para su mesero y rosa para los demas.
+        // Por eso se compara contra el id del usuario en sesion.
+        let clasePropiedad = '';
+        if (mesa.estado === 'ocupada') {
+            clasePropiedad = (USUARIO_ACTUAL_ID && mesa.mesero_id === USUARIO_ACTUAL_ID)
+                ? 'mesa-mia'
+                : 'mesa-de-otro';
+        }
+
+        div.className = `mesa-elemento mesa-ui absolute rounded-lg cursor-move flex items-center justify-center font-bold border-2 text-[var(--text-color)] border-[var(--text-color)] mesa-${mesa.estado} ${clasePropiedad} select-none`;
 
         div.dataset.id = mesa.id;
         div.style.left = (mesa.posicion_x || 50) + 'px';

@@ -88,8 +88,17 @@
             animation: shrink-bar 3s linear forwards;
         }
     </style>
+
+    {{-- Hojas de estilo que empujan las vistas con @push('styles').
+         Este stack FALTABA: las vistas hacian el push (por ejemplo el plano
+         espacial con css/mesas.css) pero nunca se imprimia, asi que esos
+         estilos jamas llegaban al navegador. --}}
+    @stack('styles')
 </head>
-<body class="selection:bg-[#3B82F6]/30 selection:text-[var(--text-color)]">
+{{-- data-usuario-id lo usa el plano espacial para pintar de amarillo las
+     mesas del mesero en sesion y de rosa las de los demas. --}}
+<body class="selection:bg-[#3B82F6]/30 selection:text-[var(--text-color)]"
+      data-usuario-id="{{ auth()->id() }}">
 
     <script>
         // 1. Recuperar estado del Tema

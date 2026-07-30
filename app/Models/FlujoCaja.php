@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\User;
 
 class FlujoCaja extends Model
 {
@@ -22,6 +23,7 @@ class FlujoCaja extends Model
         'monto',
         'metodo_pago',
         'referencia',
+        'registrado_por', // Usuario que proceso el cobro (no siempre es quien abrio el turno)
         'fecha',
         'flujoable_id',
         'flujoable_type',
@@ -59,6 +61,36 @@ class FlujoCaja extends Model
     public function scopeEgresos($query)
     {
         return $query->where('tipo', 'egreso');
+    }
+
+    /**
+     * Categoria reservada para las cuentas canceladas (cliente que se fue sin
+     * pagar, comanda levantada por error, cortesia...).
+     *
+     * Se guardan como egreso para que queden asentadas en los reportes, pero
+     * NO son gasto: nadie compro nada ni salio dinero del cajon, es venta que
+     * nunca se cobro. Sumarlas a los gastos desinfla el balance y descuadra
+     * el arqueo de efectivo.
+     */
+    const CATEGORIA_CANCELACIONES = 'Cancelaciones';
+
+    /**
+     * Excluye las cancelaciones. Usar en cualquier total de GASTOS.
+     */
+    public function scopeSinCancelaciones($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('categoria', '<>', self::CATEGORIA_CANCELACIONES)
+              ->orWhereNull('categoria');
+        });
+    }
+
+    /**
+     * Solo las cancelaciones. Usar para reportarlas por separado.
+     */
+    public function scopeSoloCancelaciones($query)
+    {
+        return $query->where('categoria', self::CATEGORIA_CANCELACIONES);
     }
 
     public function scopePorTipo($query, $tipo)
@@ -120,5 +152,15 @@ class FlujoCaja extends Model
     public function getMontoConSigno()
     {
         return $this->tipo === 'ingreso' ? $this->monto : -$this->monto;
+    }
+
+    /**
+     * Usuario que registro el movimiento. En los cobros es el cajero que
+     * realmente lo proceso, que no siempre es el mismo que abrio el turno.
+     * En movimientos viejos viene NULL.
+     */
+    public function registradoPor()
+    {
+        return $this->belongsTo(User::class, 'registrado_por');
     }
 }

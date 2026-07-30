@@ -16,6 +16,7 @@ use App\Http\Controllers\ComandaController;
 use App\Http\Controllers\PromocionController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\FinanzasController;
+use App\Http\Controllers\MeserosFinanzasController;
 use App\Http\Controllers\PlanoEspacialController;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\MesaOperacionController;
@@ -142,6 +143,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/ticket/{id}', [CajaController::class, 'imprimirTicket'])->name('ticket.imprimir');
             Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
             Route::get('/api/mesas', [CajaController::class, 'apiMesas'])->name('api.mesas');
+            Route::get('/venta/{id}/detalle', [CajaController::class, 'detalleVenta'])->name('venta.detalle');
             Route::get('/api/movimientos', [CajaController::class, 'getMovimientos'])->name('api.movimientos');
             Route::get('/api/promociones-activas', [CajaController::class, 'getPromocionesActivas'])->name('api.promociones');
             
@@ -238,6 +240,17 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/corte-mensual', [FinanzasController::class, 'corteMensual'])->name('corte.mensual');
             Route::get('/corte-mensual/exportar', [FinanzasController::class, 'exportarCorteCSV'])->name('corte.exportar');
             Route::get('/corte-mensual/pdf', [FinanzasController::class, 'exportarCortePDF'])->name('corte.pdf');
+
+            // --- DESGLOSE POR MESERO Y TURNO ---
+            // Ver el desglose y el detalle de mesas solo requiere 'mostrar'.
+            Route::get('/meseros', [MeserosFinanzasController::class, 'index'])->name('meseros');
+            Route::get('/meseros/detalle', [MeserosFinanzasController::class, 'detalle'])->name('meseros.detalle');
+
+            // Registrar el aporte al fondo de barra y cocina SI mueve dinero,
+            // asi que pide permiso de editar y no solo de ver.
+            Route::post('/meseros/aporte', [MeserosFinanzasController::class, 'aplicarAporte'])
+                ->name('meseros.aporte')
+                ->middleware('permiso:Finanzas,editar');
         });
 
         // --- GASTOS Y NÓMINA ---

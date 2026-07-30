@@ -7,6 +7,7 @@ use App\Models\FlujoCaja;
 use App\Models\Mesa;
 use App\Models\User;
 use App\Models\PropinaMesero;
+use App\Models\Orden;
 use App\Services\CajaService;
 use App\Services\TicketService;
 use Illuminate\Http\Request;
@@ -122,6 +123,63 @@ class CajaController extends Controller
             'totalAbierto' => '$' . number_format($datos['totalAbierto'], 2),
             'mesasActivas' => $datos['mesasActivas'],
             'mesasLibres'  => $datos['mesasLibres'],
+        ]);
+    }
+
+    /**
+     * Detalle de un cobro concreto del turno.
+     *
+     * Devuelve quien atendio (mesero de la orden), quien cobro (el cajero que
+     * proceso el pago) y que se consumio en esa mesa.
+     *
+     * Sobre el cajero: hasta hace poco no se guardaba quien cobraba, solo a
+     * que turno pertenecia el movimiento. Por eso, si el registro es viejo y
+     * no trae registrado_por, se cae al usuario que ABRIO el turno y se marca
+     * como aproximado, en vez de mostrar un dato que podria ser falso.
+     */
+    public function detalleVenta($id): JsonResponse
+    {
+        $venta = FlujoCaja::with(['registradoPor', 'cajaMovimiento.user'])->findOrFail($id);
+
+        $orden = null;
+        if ($venta->flujoable_id) {
+            $orden = Orden::with(['mesero', 'mesa', 'detalles.producto'])->find($venta->flujoable_id);
+        }
+
+        $cajeroExacto = $venta->registradoPor;
+        $cajeroTurno  = optional($venta->cajaMovimiento)->user;
+
+        $productos = collect();
+        if ($orden) {
+            $productos = $orden->detalles->map(function ($d) {
+                $cancelado = strtolower($d->estado ?? '') === 'cancelado';
+
+                return [
+                    'producto'        => optional($d->producto)->nombre ?? 'Producto eliminado',
+                    'cantidad'        => (float) $d->cantidad,
+                    'precio_unitario' => round((float) $d->precio_unitario, 2),
+                    'importe'         => $cancelado ? 0 : round($d->cantidad * $d->precio_unitario, 2),
+                    'cancelado'       => $cancelado,
+                    'notas'           => $d->notas,
+                ];
+            });
+        }
+
+        return response()->json([
+            'success'  => true,
+            'concepto' => $venta->concepto,
+            'monto'    => round((float) $venta->monto, 2),
+            'metodo'   => $venta->metodo_pago,
+            'referencia' => $venta->referencia,
+            'hora'     => optional($venta->fecha)->format('d/m/Y H:i'),
+            'mesa'     => optional(optional($orden)->mesa)->numero,
+            'orden'    => optional($orden)->numero_orden,
+            'personas' => optional($orden)->personas,
+            'mesero'   => optional(optional($orden)->mesero)->nombre ?? 'Sin asignar',
+            'cajero'   => $cajeroExacto->nombre ?? $cajeroTurno->nombre ?? 'Sin registrar',
+            'cajero_aproximado' => $cajeroExacto === null,
+            'productos' => $productos->values(),
+            'consumo'   => round($productos->sum('importe'), 2),
         ]);
     }
 

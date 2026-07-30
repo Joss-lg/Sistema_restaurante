@@ -35,12 +35,24 @@ class HistorialCajaController extends Controller
         $ventasTransferencia = $historicoVentas->where('metodo_pago', 'transferencia')->sum('monto');
 
         // --- Gastos y salidas (egresos) ---
+        // Los gastos EXCLUYEN las cancelaciones: no son compras ni salidas de
+        // dinero, es consumo que nunca se cobró. Se llevan aparte para que el
+        // saldo del turno no las descuente como si fueran gasto operativo.
         $historicoGastos = $turno->flujos
             ->where('tipo', 'egreso')
+            ->where('categoria', '!=', \App\Models\FlujoCaja::CATEGORIA_CANCELACIONES)
             ->sortByDesc('fecha')
             ->values();
 
         $totalGastos = $historicoGastos->sum('monto');
+
+        $historicoCancelaciones = $turno->flujos
+            ->where('tipo', 'egreso')
+            ->where('categoria', \App\Models\FlujoCaja::CATEGORIA_CANCELACIONES)
+            ->sortByDesc('fecha')
+            ->values();
+
+        $totalCancelaciones = $historicoCancelaciones->sum('monto');
 
         // --- Movimiento total del turno (todos los métodos de pago) ---
         $saldoEstimado = $turno->monto_inicial + $totalVentas - $totalGastos;
@@ -56,6 +68,7 @@ class HistorialCajaController extends Controller
             'turno', 'historicoVentas', 'totalVentas',
             'ventasEfectivo', 'ventasTarjeta', 'ventasTransferencia',
             'historicoGastos', 'totalGastos', 'saldoEstimado',
+            'historicoCancelaciones', 'totalCancelaciones',
             'efectivo', 'cerrado', 'diferencia'
         ));
     }

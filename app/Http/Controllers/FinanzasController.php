@@ -38,7 +38,12 @@ class FinanzasController extends Controller
 
         // --- MÉTRICAS MENSUALES ---
         $ingresosMes = FlujoCaja::ingresos()->delMes($mesActual, $añoActual)->sum('monto');
-        $egresosMes  = FlujoCaja::egresos()->delMes($mesActual, $añoActual)->sum('monto');
+        // Las cancelaciones se guardan como egreso para que queden asentadas,
+        // pero NO son gasto: es venta que nunca se cobro. Si se sumaran aqui,
+        // cada cliente que se va sin pagar apareceria como una compra y
+        // desinflaria el balance dos veces.
+        $egresosMes  = FlujoCaja::egresos()->sinCancelaciones()->delMes($mesActual, $añoActual)->sum('monto');
+        $canceladoMes = FlujoCaja::egresos()->soloCancelaciones()->delMes($mesActual, $añoActual)->sum('monto');
         $balanceNeto = $ingresosMes - $egresosMes;
 
         // --- NÓMINA PAGADA (este mes) ---
@@ -49,7 +54,7 @@ class FinanzasController extends Controller
 
         match ($tab) {
             'ingresos' => $query->ingresos(),
-            'egresos'  => $query->egresos(),
+            'egresos'  => $query->egresos()->sinCancelaciones(),
             default    => null,
         };
 
@@ -64,6 +69,7 @@ class FinanzasController extends Controller
             ->get();
 
         $categoriasEgresos = FlujoCaja::egresos()
+            ->sinCancelaciones()
             ->delMes($mesActual, $añoActual)
             ->selectRaw('categoria, SUM(monto) as total, COUNT(*) as cantidad')
             ->groupBy('categoria')
@@ -71,11 +77,13 @@ class FinanzasController extends Controller
 
         // --- ÚLTIMOS 7 DÍAS ---
         $ultimosSieteDias = FlujoCaja::entre($now->copy()->subDays(7)->startOfDay(), $now->endOfDay())
+            ->sinCancelaciones()
             ->ordenado('desc')
             ->get();
 
         // --- TOP 5 GASTOS DEL MES ---
         $top5Gastos = FlujoCaja::egresos()
+            ->sinCancelaciones()
             ->delMes($mesActual, $añoActual)
             ->orderByDesc('monto')
             ->limit(5)
@@ -105,7 +113,10 @@ class FinanzasController extends Controller
         $inicioMes = Carbon::create($año, $mes, 1)->startOfMonth();
         $finMes    = $inicioMes->copy()->endOfMonth();
 
+        // Se excluyen las cancelaciones: quedan asentadas en el corte de caja
+        // y en su PDF, pero no son gasto y no deben mover el balance del mes.
         $movimientos = FlujoCaja::whereBetween('fecha', [$inicioMes, $finMes])
+            ->sinCancelaciones()
             ->orderBy('fecha', 'asc')
             ->get();
 
@@ -166,6 +177,7 @@ class FinanzasController extends Controller
         $fechaCorte  = Carbon::create($año, $mes, $ultimoDia)->endOfDay();
 
         $movimientos = FlujoCaja::whereBetween('fecha', [$inicioMes, $fechaCorte])
+            ->sinCancelaciones()
             ->orderBy('fecha', 'asc')
             ->get();
 
@@ -226,7 +238,10 @@ class FinanzasController extends Controller
         $inicioMes = Carbon::create($año, $mes, 1)->startOfMonth();
         $finMes    = $inicioMes->copy()->endOfMonth();
 
+        // Se excluyen las cancelaciones: quedan asentadas en el corte de caja
+        // y en su PDF, pero no son gasto y no deben mover el balance del mes.
         $movimientos = FlujoCaja::whereBetween('fecha', [$inicioMes, $finMes])
+            ->sinCancelaciones()
             ->orderBy('fecha', 'asc')
             ->get();
 
@@ -435,7 +450,7 @@ class FinanzasController extends Controller
         ]);
 
         $ingresos = FlujoCaja::ingresos()->entre($request->fechaInicio, $request->fechaFin)->sum('monto');
-        $egresos  = FlujoCaja::egresos()->entre($request->fechaInicio, $request->fechaFin)->sum('monto');
+        $egresos  = FlujoCaja::egresos()->sinCancelaciones()->entre($request->fechaInicio, $request->fechaFin)->sum('monto');
 
         return response()->json([
             'ingresos' => (float)$ingresos,

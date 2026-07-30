@@ -119,6 +119,7 @@
                                 <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Concepto</th>
                                 <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Método de Pago</th>
                                 <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Monto</th>
+                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[var(--border-color)] text-[var(--text-color)]">
@@ -139,6 +140,14 @@
                                         </div>
                                     </td>
                                     <td class="py-3 sm:py-4 px-2 sm:px-4 font-black text-emerald-500 whitespace-nowrap">+${{ number_format($venta->monto, 2) }}</td>
+                                    <td class="py-3 sm:py-4 px-2 sm:px-4">
+                                        <button type="button"
+                                            class="btn-ver-venta w-8 h-8 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] hover:text-blue-500 hover:border-blue-500 transition-colors"
+                                            data-venta="{{ $venta->id }}"
+                                            title="Ver detalle de esta venta">
+                                            <i class="fas fa-eye text-xs"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -244,6 +253,122 @@
 
     </div>
 </div>
+
+{{-- MODAL: DETALLE DE UNA VENTA DEL TURNO --}}
+<div id="modal-detalle-venta" class="hidden fixed inset-0 z-[9998] items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-cerrar-venta></div>
+
+    <div class="relative w-full max-w-lg bg-[var(--card-color)] rounded-3xl border border-[var(--border-color)] shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+        <div class="px-5 py-4 border-b border-[var(--border-color)] flex items-start justify-between gap-3">
+            <div>
+                <h3 class="text-base font-black text-[var(--text-color)]" id="venta-titulo">Detalle de la venta</h3>
+                <p class="text-[11px] text-[var(--text-muted)]" id="venta-subtitulo"></p>
+            </div>
+            <button type="button" data-cerrar-venta
+                class="w-8 h-8 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-color)] shrink-0">&times;</button>
+        </div>
+
+        <div class="overflow-y-auto flex-1" id="venta-contenido">
+            <p class="p-8 text-center text-sm text-[var(--text-muted)]">Cargando...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modal-detalle-venta');
+    if (!modal) return;
+
+    const contenido = document.getElementById('venta-contenido');
+    const cerrar = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+    modal.querySelectorAll('[data-cerrar-venta]').forEach(el => el.addEventListener('click', cerrar));
+
+    const dinero = n => '$' + Number(n).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const urlBase = @json(url('/caja/venta'));
+
+    document.querySelectorAll('.btn-ver-venta').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            contenido.innerHTML = '<p class="p-8 text-center text-sm text-[var(--text-muted)]">Cargando...</p>';
+
+            try {
+                const res = await fetch(urlBase + '/' + btn.dataset.venta + '/detalle', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const d = await res.json();
+
+                if (!res.ok || !d.success) {
+                    contenido.innerHTML = '<p class="p-8 text-center text-sm text-rose-500">No se pudo cargar el detalle.</p>';
+                    return;
+                }
+
+                document.getElementById('venta-titulo').textContent =
+                    d.mesa ? ('Mesa ' + d.mesa) : d.concepto;
+                document.getElementById('venta-subtitulo').textContent =
+                    [d.orden, d.hora, d.personas ? d.personas + ' pers.' : null].filter(Boolean).join(' \u00b7 ');
+
+                let html = '<div class="p-5 space-y-4">';
+
+                // Quien atendio y quien cobro
+                html += '<div class="grid grid-cols-2 gap-3">'
+                    + '<div class="rounded-xl border border-[var(--border-color)] p-3">'
+                    + '<p class="text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">Mesero que atendió</p>'
+                    + '<p class="text-sm font-bold text-[var(--text-color)] mt-0.5">' + d.mesero + '</p></div>'
+                    + '<div class="rounded-xl border border-[var(--border-color)] p-3">'
+                    + '<p class="text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">Cajero que cobró</p>'
+                    + '<p class="text-sm font-bold text-[var(--text-color)] mt-0.5">' + d.cajero + '</p>'
+                    + (d.cajero_aproximado
+                        ? '<p class="text-[9px] text-amber-500 mt-0.5 leading-tight">Cobro anterior al registro de cajero: se muestra quien abrió el turno.</p>'
+                        : '')
+                    + '</div></div>';
+
+                // Cobro
+                html += '<div class="rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 flex items-center justify-between">'
+                    + '<div><p class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">'
+                    + d.metodo + (d.referencia ? ' \u00b7 ref ' + d.referencia : '') + '</p>'
+                    + '<p class="text-[11px] text-[var(--text-muted)]">' + d.concepto + '</p></div>'
+                    + '<span class="text-xl font-black text-emerald-600 dark:text-emerald-400">' + dinero(d.monto) + '</span></div>';
+
+                // Consumo
+                if (d.productos.length) {
+                    html += '<div><p class="text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Consumo de la mesa</p>'
+                        + '<table class="w-full text-xs"><tbody class="divide-y divide-[var(--border-color)]">';
+                    d.productos.forEach(p => {
+                        html += '<tr class="' + (p.cancelado ? 'line-through opacity-50' : '') + '">'
+                            + '<td class="py-2 text-[var(--text-color)]">' + p.producto
+                            + (p.cancelado ? ' <span class="text-rose-500 font-bold text-[10px] no-underline">CANCELADO</span>' : '')
+                            + (p.notas ? '<div class="text-[10px] text-[var(--text-muted)] italic">' + p.notas + '</div>' : '')
+                            + '</td>'
+                            + '<td class="py-2 text-center w-12">x' + p.cantidad + '</td>'
+                            + '<td class="py-2 text-right w-24 font-bold text-[var(--text-color)]">' + dinero(p.importe) + '</td></tr>';
+                    });
+                    html += '</tbody><tfoot><tr class="border-t border-[var(--border-color)]">'
+                        + '<td colspan="2" class="py-2 text-right text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">Consumo</td>'
+                        + '<td class="py-2 text-right font-black text-[var(--text-color)]">' + dinero(d.consumo) + '</td>'
+                        + '</tr></tfoot></table></div>';
+
+                    if (Math.abs(d.consumo - d.monto) > 0.01) {
+                        html += '<p class="text-[10px] text-[var(--text-muted)] leading-snug">'
+                            + 'El consumo y el cobro no coinciden porque esta cuenta se pagó en varias partes '
+                            + '(pago combinado o cuenta dividida), o incluye IVA, propina o descuento.</p>';
+                    }
+                } else {
+                    html += '<p class="text-xs text-[var(--text-muted)]">Sin productos ligados a este movimiento.</p>';
+                }
+
+                html += '</div>';
+                contenido.innerHTML = html;
+
+            } catch (e) {
+                console.error('Error al cargar la venta:', e);
+                contenido.innerHTML = '<p class="p-8 text-center text-sm text-rose-500">Error de conexión.</p>';
+            }
+        });
+    });
+});
+</script>
+
 @include('admin.caja.corte')
 @endsection
 

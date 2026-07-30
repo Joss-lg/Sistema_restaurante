@@ -207,7 +207,11 @@ class MesaOperacionController extends Controller
                             'metodo_pago'        => $metodo,
                             'referencia'         => !empty($pago['referencia']) ? trim($pago['referencia']) : null,
                             'fecha'              => now(),
-                            
+
+                            // Quien COBRA, que no siempre es quien abrio el turno:
+                            // varios cajeros pueden trabajar en el mismo turno.
+                            'registrado_por'     => auth()->id(),
+
                             'flujoable_id'       => $orden ? $orden->id : null,
                             'flujoable_type'     => $orden ? get_class($orden) : null,
                         ]);

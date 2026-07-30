@@ -179,16 +179,24 @@
 
                 <div class="mt-4 flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm bg-[var(--card-color)] p-3 sm:p-4 rounded-xl border border-[var(--border-color)] shadow-sm">
                     <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-blue-500 rounded-full shadow-sm shrink-0"></div>
-                        <span class="text-[var(--text-color)] font-medium">Disponible / Normal</span>
+                        <div class="w-4 h-4 bg-green-500 rounded-full shadow-sm shrink-0"></div>
+                        <span class="text-[var(--text-color)] font-medium">Disponible</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 bg-yellow-500 rounded-full shadow-sm shrink-0"></div>
-                        <span class="text-[var(--text-color)] font-medium">Precaución (30-60 min)</span>
+                        <span class="text-[var(--text-color)] font-medium">Mis mesas</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-red-500 rounded-full shadow-sm shrink-0"></div>
-                        <span class="text-[var(--text-color)] font-medium">Crítico (&gt;60 min)</span>
+                        <div class="w-4 h-4 bg-pink-500 rounded-full shadow-sm shrink-0"></div>
+                        <span class="text-[var(--text-color)] font-medium">De otro mesero</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-purple-500 rounded-full shadow-sm shrink-0"></div>
+                        <span class="text-[var(--text-color)] font-medium">Reservada</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-slate-500 rounded-full shadow-sm shrink-0"></div>
+                        <span class="text-[var(--text-color)] font-medium">Limpieza</span>
                     </div>
                 </div>
             </div>

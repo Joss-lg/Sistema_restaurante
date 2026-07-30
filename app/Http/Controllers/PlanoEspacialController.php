@@ -57,6 +57,10 @@ class PlanoEspacialController extends Controller
                 'alto'          => (int)($mesa->alto ?? 60),
                 'estadoVisual'  => $mesa->estado, 
                 'mesero'        => $mesa->mesero?->nombre ?? 'Sin asignar',
+                // Se manda el ID ademas del nombre para poder distinguir en el
+                // plano las mesas propias de las de otros meseros. Comparar por
+                // nombre seria fragil: dos empleados pueden llamarse igual.
+                'mesero_id'     => $mesa->mesero_id ? (int)$mesa->mesero_id : null,
                 'totalConsumo'  => (float)($mesa->total_consumo ?? 0),
                 'ordenesActivas' => (int)$mesa->ordenes_activas_count,
             ];
