@@ -41,21 +41,72 @@
         </div>
         
         {{-- TARJETAS ESTADÍSTICAS --}}
-        <div class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 w-full xl:w-auto">
-            <div class="col-span-2 sm:col-span-1 p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
-                <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Total abierto</p>
-                <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black text-emerald-500 tracking-tighter" id="total-abierto-display">${{ number_format($totalAbierto ?? 0, 2) }}</p>
-            </div>
-            <div class="p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
-                <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Mesas activas</p>
-                <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black tracking-tighter text-gray-900 dark:text-slate-100" id="mesas-activas-display">{{ $mesasActivas ?? 0 }}</p>
-            </div>
-            <div class="p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
-                <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Mesas libres</p>
-                <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black tracking-tighter text-gray-500 dark:text-slate-400" id="mesas-libres-display">{{ $mesasLibres }}</p>
-            </div>
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 w-full xl:w-auto">
+    <!-- TARJETA TOTAL ABIERTO -->
+    <div class="col-span-2 sm:col-span-1 p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
+        
+        <!-- Contenedor Flex para Título y Botón del Ojito -->
+        <div class="flex justify-between items-center w-full">
+            <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Total abierto</p>
+            
+            <button id="btn-toggle-total" class="text-gray-400 hover:text-emerald-500 transition-colors focus:outline-none p-1 rounded-md" aria-label="Mostrar/Ocultar total">
+                <!-- Ojo cerrado -->
+                <svg id="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                </svg>
+                <!-- Ojo abierto -->
+                <svg id="icon-eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5 hidden">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+            </button>
         </div>
+
+        <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black text-emerald-500 tracking-tighter" 
+           id="total-abierto-display" 
+           data-real-value="${{ number_format($totalAbierto ?? 0, 2) }}">
+            $***
+        </p>
     </div>
+
+    <!-- TARJETA MESAS ACTIVAS -->
+    <div class="p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
+        <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Mesas activas</p>
+        <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black tracking-tighter text-gray-900 dark:text-slate-100" id="mesas-activas-display">{{ $mesasActivas ?? 0 }}</p>
+    </div>
+
+    <!-- TARJETA MESAS LIBRES -->
+    <div class="p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/50 dark:bg-[#1e2026]/40 shadow-sm flex flex-col justify-center w-full transition-colors duration-300">
+        <p class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Mesas libres</p>
+        <p class="mt-1 sm:mt-2 text-xl sm:text-4xl font-black tracking-tighter text-gray-500 dark:text-slate-400" id="mesas-libres-display">{{ $mesasLibres }}</p>
+    </div>
+</div>
+</div> <!-- ESTE ES EL DIV CLAVE QUE FALTABA PARA QUE NO SE ROMPA TU DISEÑO -->
+
+<!-- SCRIPT JS -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnToggle = document.getElementById('btn-toggle-total');
+        const displayTotal = document.getElementById('total-abierto-display');
+        const iconClosed = document.getElementById('icon-eye-closed');
+        const iconOpen = document.getElementById('icon-eye-open');
+
+        let isHidden = true; 
+
+        btnToggle.addEventListener('click', () => {
+            isHidden = !isHidden; 
+            if (isHidden) {
+                displayTotal.textContent = '$***';
+                iconClosed.classList.remove('hidden');
+                iconOpen.classList.add('hidden');
+            } else {
+                displayTotal.textContent = displayTotal.getAttribute('data-real-value');
+                iconClosed.classList.add('hidden');
+                iconOpen.classList.remove('hidden');
+            }
+        });
+    });
+</script>
 
     {{-- GRID DE MESAS --}}
     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6 pt-1 sm:pt-4 w-full" id="mesas-container">
