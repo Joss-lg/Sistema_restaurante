@@ -58,6 +58,16 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
+                    {{-- MIS MESAS: resumen del dia del mesero en sesion.
+                         Va en esta fila y no en una nueva porque la cabecera es
+                         sticky sobre un contenedor de alto fijo: una fila extra
+                         empuja el mapa fuera de la vista. --}}
+                    <button type="button" id="btnMisMesas"
+                        class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-lg bg-[var(--card-color)] border border-[var(--border-color)] text-[var(--text-color)] text-sm font-semibold transition hover:border-blue-500 hover:text-blue-500 flex items-center gap-2 shadow-sm">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Mis mesas</span>
+                    </button>
+
                     {{-- Aviso de caja cerrada. Va DENTRO de la fila de botones
                          (no en una fila aparte) porque la cabecera es sticky y
                          su contenedor padre tiene alto fijo con overflow-hidden:
@@ -144,7 +154,10 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
             {{-- MAPA --}}
             <div class="lg:col-span-3">
-                <div class="bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-lg">
+                {{-- relative: la simbologia flotante se posiciona contra este bloque
+                     y NO contra el viewport con scroll, para que se quede fija
+                     en su esquina aunque se haga pan del plano. --}}
+                <div class="relative bg-[var(--card-color)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-lg">
 
                     {{-- Barra de zoom --}}
                     <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-[var(--border-color)] bg-[var(--input-bg)]">
@@ -159,6 +172,36 @@
                     </div>
 
                     {{-- Viewport: esto es lo que hace scroll/pan en el teléfono --}}
+                    {{-- SIMBOLOGIA
+                         Va flotando SOBRE el plano, no como una fila debajo:
+                         el contenedor tiene alto fijo, y cualquier fila extra
+                         empuja el mapa fuera del area visible.
+                         Se puede plegar porque en telefono tapa mesas. --}}
+                    <div class="absolute top-14 right-3 z-20 select-none">
+                        <button type="button" id="btnSimbologia"
+                            class="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-t-lg bg-[var(--card-color)]/95 backdrop-blur border border-[var(--border-color)] text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)] hover:text-[var(--text-color)] transition-colors">
+                            <span><i class="fas fa-palette mr-1"></i> Simbología</span>
+                            <i id="iconoSimbologia" class="fas fa-chevron-up text-[9px]"></i>
+                        </button>
+
+                        <div id="listaSimbologia"
+                             class="bg-[var(--card-color)]/95 backdrop-blur border border-t-0 border-[var(--border-color)] rounded-b-lg px-2.5 py-2 space-y-1.5 shadow-lg">
+                            <div class="flex items-center gap-2 whitespace-nowrap">
+                                <span class="w-3 h-3 rounded-full bg-green-500 shrink-0 border border-black/10"></span>
+                                <span class="text-[11px] font-semibold text-[var(--text-color)]">Disponible</span>
+                            </div>
+                            <div class="flex items-center gap-2 whitespace-nowrap">
+                                <span class="w-3 h-3 rounded-full bg-yellow-500 shrink-0 border border-black/10"></span>
+                                <span class="text-[11px] font-semibold text-[var(--text-color)]">Mis mesas</span>
+                            </div>
+                            <div class="flex items-center gap-2 whitespace-nowrap">
+                                <span class="w-3 h-3 rounded-full bg-pink-500 shrink-0 border border-black/10"></span>
+                                <span class="text-[11px] font-semibold text-[var(--text-color)]">De otro mesero</span>
+                            </div>
+                            
+                        </div>
+                    </div>
+
                     <div id="planoContenedor"
                          class="relative w-full h-[380px] sm:h-[480px] lg:h-[600px] bg-[var(--input-bg)] overflow-auto shadow-inner"
                          style="touch-action: pan-x pan-y;">
@@ -177,28 +220,7 @@
                     </div>
                 </div>
 
-                <div class="mt-4 flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm bg-[var(--card-color)] p-3 sm:p-4 rounded-xl border border-[var(--border-color)] shadow-sm">
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-green-500 rounded-full shadow-sm shrink-0"></div>
-                        <span class="text-[var(--text-color)] font-medium">Disponible</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-yellow-500 rounded-full shadow-sm shrink-0"></div>
-                        <span class="text-[var(--text-color)] font-medium">Mis mesas</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-pink-500 rounded-full shadow-sm shrink-0"></div>
-                        <span class="text-[var(--text-color)] font-medium">De otro mesero</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-purple-500 rounded-full shadow-sm shrink-0"></div>
-                        <span class="text-[var(--text-color)] font-medium">Reservada</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-slate-500 rounded-full shadow-sm shrink-0"></div>
-                        <span class="text-[var(--text-color)] font-medium">Limpieza</span>
-                    </div>
-                </div>
+                {{-- La leyenda se movio a la simbologia flotante sobre el plano. --}}
             </div>
 
             {{-- PANEL DE PROPIEDADES --}}
@@ -348,6 +370,178 @@
     <div id="notificacion" class="fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white text-sm font-semibold hidden z-50 transition-all shadow-xl"></div>
 </div>
 
+
+{{-- MODAL: MIS MESAS DEL DIA --}}
+<div id="modal-mis-mesas" class="hidden fixed inset-0 z-[9998] items-center justify-center p-3 sm:p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-cerrar-mis-mesas></div>
+
+    <div class="relative w-full max-w-2xl bg-[var(--card-color)] rounded-3xl border border-[var(--border-color)] shadow-2xl overflow-hidden max-h-[88vh] flex flex-col">
+        <div class="px-5 py-4 border-b border-[var(--border-color)] flex items-start justify-between gap-3">
+            <div>
+                <h3 class="text-lg font-black text-[var(--text-color)]">Mis mesas</h3>
+                <p class="text-[11px] text-[var(--text-muted)]" id="mis-mesas-fecha"></p>
+            </div>
+            <button type="button" data-cerrar-mis-mesas
+                class="w-8 h-8 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-color)] shrink-0">&times;</button>
+        </div>
+
+        <div class="overflow-y-auto flex-1" id="mis-mesas-contenido">
+            <p class="p-8 text-center text-sm text-[var(--text-muted)]">Cargando...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modal-mis-mesas');
+    const btn = document.getElementById('btnMisMesas');
+    if (!modal || !btn) return;
+
+    const contenido = document.getElementById('mis-mesas-contenido');
+    const cerrar = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+    modal.querySelectorAll('[data-cerrar-mis-mesas]').forEach(el => el.addEventListener('click', cerrar));
+
+    const dinero = n => '$' + Number(n || 0).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const URL_MIS_MESAS = @json(route('mesero.mis-mesas'));
+    const URL_DETALLE_BASE = @json(url('/mesero/mis-mesas'));
+
+    function pintarGrupo(titulo, icono, color, filas, tipo) {
+        if (!filas.length) return '';
+
+        let html = '<div class="px-4 pt-4">'
+            + '<p class="text-[10px] font-black uppercase tracking-widest ' + color + ' mb-2">'
+            + '<i class="fas ' + icono + ' mr-1"></i>' + titulo + ' (' + filas.length + ')</p>'
+            + '<div class="space-y-2">';
+
+        filas.forEach(f => {
+            html += '<div class="border border-[var(--border-color)] rounded-xl overflow-hidden">'
+                + '<button type="button" class="btn-mi-mesa w-full px-3 py-2.5 flex items-center justify-between gap-2 text-left hover:bg-[var(--input-bg)] transition-colors" data-orden="' + f.orden_id + '">'
+                + '<div class="min-w-0">'
+                + '<span class="font-black text-[var(--text-color)]">Mesa ' + f.mesa + '</span>'
+                + '<span class="text-[10px] text-[var(--text-muted)] ml-2">' + (f.numero || '') + '</span>'
+                + '<div class="text-[10px] text-[var(--text-muted)] mt-0.5">'
+                + (f.personas ? f.personas + ' pers. · ' : '')
+                + 'abierta ' + (f.abierta || '--')
+                + (f.cerrada ? ' · cerrada ' + f.cerrada : '')
+                + (tipo === 'canceladas' && f.motivo ? '<br><span class="text-rose-500">' + f.motivo + '</span>' : '')
+                + '</div></div>'
+                + '<div class="text-right shrink-0">'
+                + '<div class="font-black text-[var(--text-color)]">' + dinero(f.total) + '</div>'
+                + (tipo === 'cobradas'
+                    ? '<div class="text-[9px] text-[var(--text-muted)]">'
+                        + (f.efectivo > 0 ? 'efvo ' + dinero(f.efectivo) + ' ' : '')
+                        + (f.tarjeta > 0 ? 'tarj ' + dinero(f.tarjeta) + ' ' : '')
+                        + (f.transferencia > 0 ? 'transf ' + dinero(f.transferencia) : '')
+                        + '</div>'
+                    : '')
+                + '</div></button>'
+                + '<div class="detalle-mi-mesa hidden border-t border-[var(--border-color)]"></div>'
+                + '</div>';
+        });
+
+        return html + '</div></div>';
+    }
+
+    async function abrirDetalle(bloque, ordenId) {
+        bloque.classList.remove('hidden');
+        bloque.innerHTML = '<p class="px-3 py-3 text-xs text-[var(--text-muted)]">Cargando...</p>';
+
+        try {
+            const res = await fetch(URL_DETALLE_BASE + '/' + ordenId + '/detalle', { headers: {'Accept':'application/json'} });
+            const d = await res.json();
+
+            if (!res.ok || !d.success) {
+                bloque.innerHTML = '<p class="px-3 py-3 text-xs text-rose-500">' + (d.message || 'No se pudo cargar.') + '</p>';
+                return;
+            }
+
+            if (!d.productos.length) {
+                bloque.innerHTML = '<p class="px-3 py-3 text-xs text-[var(--text-muted)]">Sin productos capturados todavía.</p>';
+                return;
+            }
+
+            let html = '<table class="w-full text-xs"><tbody class="divide-y divide-[var(--border-color)]">';
+            d.productos.forEach(p => {
+                html += '<tr class="' + (p.cancelado ? 'line-through opacity-50' : '') + '">'
+                    + '<td class="py-2 px-3 text-[var(--text-color)]">' + p.producto
+                    + (p.cancelado ? ' <span class="text-rose-500 font-bold text-[9px] no-underline">CANCELADO</span>' : '')
+                    + (p.notas ? '<div class="text-[10px] text-[var(--text-muted)] italic">' + p.notas + '</div>' : '')
+                    + '</td>'
+                    + '<td class="py-2 px-2 text-center w-12 text-[var(--text-muted)]">x' + p.cantidad + '</td>'
+                    + '<td class="py-2 px-3 text-right w-24 font-bold text-[var(--text-color)]">' + dinero(p.importe) + '</td>'
+                    + '</tr>';
+            });
+            html += '</tbody><tfoot><tr class="border-t border-[var(--border-color)]">'
+                + '<td colspan="2" class="py-2 px-3 text-right text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">Consumo</td>'
+                + '<td class="py-2 px-3 text-right font-black text-[var(--text-color)]">' + dinero(d.consumo) + '</td></tr>';
+            if (d.propina > 0) {
+                html += '<tr><td colspan="2" class="py-1.5 px-3 text-right text-[10px] font-black uppercase tracking-wider text-emerald-500">Propina</td>'
+                    + '<td class="py-1.5 px-3 text-right font-black text-emerald-500">' + dinero(d.propina) + '</td></tr>';
+            }
+            html += '</tfoot></table>';
+            bloque.innerHTML = html;
+
+        } catch (e) {
+            console.error('Error al cargar el detalle de la mesa:', e);
+            bloque.innerHTML = '<p class="px-3 py-3 text-xs text-rose-500">Error de conexión.</p>';
+        }
+    }
+
+    btn.addEventListener('click', async () => {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        contenido.innerHTML = '<p class="p-8 text-center text-sm text-[var(--text-muted)]">Cargando...</p>';
+
+        try {
+            const res = await fetch(URL_MIS_MESAS, { headers: {'Accept':'application/json'} });
+            const d = await res.json();
+
+            if (!res.ok || !d.success) {
+                contenido.innerHTML = '<p class="p-8 text-center text-sm text-rose-500">No se pudo cargar.</p>';
+                return;
+            }
+
+            document.getElementById('mis-mesas-fecha').textContent = d.fecha;
+            const t = d.totales;
+
+            let html = '<div class="px-4 pt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">'
+                + '<div class="rounded-xl border border-[var(--border-color)] p-2.5 text-center"><p class="text-[9px] font-black uppercase tracking-wider text-[var(--text-muted)]">Atendidas</p><p class="text-lg font-black text-[var(--text-color)]">' + t.mesas_atendidas + '</p></div>'
+                + '<div class="rounded-xl border border-[var(--border-color)] p-2.5 text-center"><p class="text-[9px] font-black uppercase tracking-wider text-[var(--text-muted)]">Abiertas</p><p class="text-lg font-black text-amber-500">' + t.abiertas + '</p></div>'
+                + '<div class="rounded-xl border border-[var(--border-color)] p-2.5 text-center"><p class="text-[9px] font-black uppercase tracking-wider text-[var(--text-muted)]">Vendido</p><p class="text-lg font-black text-emerald-500">' + dinero(t.vendido) + '</p></div>'
+                + '<div class="rounded-xl border border-[var(--border-color)] p-2.5 text-center"><p class="text-[9px] font-black uppercase tracking-wider text-[var(--text-muted)]">Por cobrar</p><p class="text-lg font-black text-blue-500">' + dinero(t.por_cobrar) + '</p></div>'
+                + '</div>';
+
+            html += pintarGrupo('Atendiendo ahora', 'fa-utensils', 'text-amber-500', d.grupos.atendiendo, 'atendiendo');
+            html += pintarGrupo('Ya cobradas', 'fa-circle-check', 'text-emerald-500', d.grupos.cobradas, 'cobradas');
+            html += pintarGrupo('Canceladas', 'fa-ban', 'text-rose-500', d.grupos.canceladas, 'canceladas');
+
+            if (t.mesas_atendidas === 0) {
+                html += '<div class="p-10 text-center"><i class="fas fa-mug-hot text-3xl text-[var(--text-muted)] opacity-30 mb-2"></i>'
+                    + '<p class="text-sm font-bold text-[var(--text-muted)]">Todavía no has abierto mesas hoy</p></div>';
+            }
+
+            html += '<div class="h-4"></div>';
+            contenido.innerHTML = html;
+
+            // Cada mesa despliega su consumo. Se pide al servidor solo al
+            // abrirla: cargar el detalle de todas de golpe seria lento y casi
+            // siempre innecesario.
+            contenido.querySelectorAll('.btn-mi-mesa').forEach(b => {
+                b.addEventListener('click', () => {
+                    const bloque = b.nextElementSibling;
+                    if (!bloque.classList.contains('hidden')) { bloque.classList.add('hidden'); return; }
+                    abrirDetalle(bloque, b.dataset.orden);
+                });
+            });
+
+        } catch (e) {
+            console.error('Error al cargar mis mesas:', e);
+            contenido.innerHTML = '<p class="p-8 text-center text-sm text-rose-500">Error de conexión.</p>';
+        }
+    });
+});
+</script>
+
 {{-- SCRIPTS --}}
 @push('scripts')
     @vite(['resources/js/mesas.js'])
@@ -355,6 +549,26 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof TecladoVirtual !== 'undefined') {
                 TecladoVirtual.attachAll();
+            }
+
+            // Plegar/desplegar la simbologia. En telefono el plano es chico y
+            // la tarjeta puede tapar mesas, asi que conviene poder cerrarla.
+            const btnSimbologia = document.getElementById('btnSimbologia');
+            const listaSimbologia = document.getElementById('listaSimbologia');
+            const iconoSimbologia = document.getElementById('iconoSimbologia');
+
+            if (btnSimbologia && listaSimbologia) {
+                btnSimbologia.addEventListener('click', () => {
+                    const oculta = listaSimbologia.classList.toggle('hidden');
+                    btnSimbologia.classList.toggle('rounded-b-lg', oculta);
+                    if (iconoSimbologia) {
+                        iconoSimbologia.classList.toggle('fa-chevron-up', !oculta);
+                        iconoSimbologia.classList.toggle('fa-chevron-down', oculta);
+                    }
+                });
+
+                // En pantallas chicas arranca plegada.
+                if (window.innerWidth < 640) btnSimbologia.click();
             }
 
             // --- NUEVO: botones de Delivery (Rappi/Uber/DiDi) ---

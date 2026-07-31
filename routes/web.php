@@ -17,6 +17,7 @@ use App\Http\Controllers\PromocionController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\FinanzasController;
 use App\Http\Controllers\MeserosFinanzasController;
+use App\Http\Controllers\MisMesasController;
 use App\Http\Controllers\PlanoEspacialController;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\MesaOperacionController;
@@ -53,6 +54,12 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('mesero')->name('mesero.')->group(function () {
         Route::get('/dashboard', [MesaController::class, 'index'])->name('dashboard');
         Route::get('/comanda/{mesa}', [MesaController::class, 'show'])->name('comanda.show');
+
+        // "Mis mesas": lo que atendio HOY el mesero en sesion. Sin permisos de
+        // modulo a proposito: cada quien ve lo suyo y el controlador filtra por
+        // el usuario autenticado.
+        Route::get('/mis-mesas', [MisMesasController::class, 'index'])->name('mis-mesas');
+        Route::get('/mis-mesas/{orden}/detalle', [MisMesasController::class, 'detalle'])->name('mis-mesas.detalle');
 
         // --- ACCIONES QUE GENERAN CONSUMO ---
         // Requieren un turno de caja abierto. Si la caja está cerrada, lo

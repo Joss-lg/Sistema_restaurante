@@ -52,6 +52,20 @@
         </div>
     </div>
 
+    {{-- BUSCADOR: filtra mientras se escribe, sin recargar. --}}
+    <div class="relative mb-4">
+        <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm pointer-events-none"></i>
+        <input type="text" id="buscadorProductosAdmin"
+               placeholder="Buscar producto por nombre..."
+               autocomplete="off"
+               class="w-full pl-11 pr-11 py-3 rounded-[16px] border border-[var(--border-color)] bg-[var(--bg-panel)] text-sm font-semibold text-[var(--text-color)] placeholder:text-[var(--text-muted)] placeholder:font-normal outline-none focus:border-blue-500 transition-colors shadow-sm">
+        <button type="button" id="limpiarBusquedaAdmin"
+                class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full text-[var(--text-muted)] hover:text-[var(--text-color)] transition-colors"
+                title="Limpiar búsqueda">
+            <i class="fas fa-xmark text-sm"></i>
+        </button>
+    </div>
+
     {{-- Contenedor de productos por categoría --}}
     <div class="bg-[var(--bg-panel)] rounded-[18px] sm:rounded-[24px] p-2.5 sm:p-6 shadow-sm border border-[var(--border-color)] min-h-[420px]">
         <div id="categorias-container" class="space-y-5 sm:space-y-6"
@@ -129,6 +143,17 @@
             .catch(e => console.error('Error cargando estadísticas:', e));
     }
  
+    // Texto del buscador. Vive fuera de la funcion para que al recargar los
+    // productos (crear, editar, borrar) el filtro siga aplicado y la lista no
+    // "salte" mostrando todo de golpe.
+    let filtroProductos = '';
+
+    /** Quita acentos y pasa a minusculas: buscar "cafe" debe encontrar "Café". */
+    function normalizarTexto(texto) {
+        return (texto || '').toString().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
     function renderizarProductos() {
         const container = document.getElementById('categorias-container');
         container.innerHTML = '';
@@ -136,8 +161,24 @@
             container.innerHTML = '<p class="text-center text-[var(--text-muted)] py-10 sm:py-12 font-bold text-sm px-4">No hay productos registrados aún.</p>';
             return;
         }
+
+        const buscado = normalizarTexto(filtroProductos).trim();
+        let encontrados = 0;
+
         Object.keys(estadoGlobal.productos).forEach(catNombre => {
-            const productos = estadoGlobal.productos[catNombre];
+            // Se filtra por nombre de producto y tambien por categoria: asi
+            // escribir "bebidas" trae la seccion completa, que es como la
+            // gente suele buscar.
+            const coincideCategoria = buscado !== '' && normalizarTexto(catNombre).includes(buscado);
+
+            const productos = buscado === '' || coincideCategoria
+                ? estadoGlobal.productos[catNombre]
+                : estadoGlobal.productos[catNombre].filter(p => normalizarTexto(p.nombre).includes(buscado));
+
+            // Las categorias sin coincidencias no se dibujan: dejar encabezados
+            // vacios haria parecer que la busqueda fallo.
+            if (productos.length === 0) return;
+            encontrados += productos.length;
             const gridId = 'grid-' + catNombre.toLowerCase().replace(/[^a-z0-9]/g, '-');    
             const seccion   = document.createElement('div');
             seccion.className = 'mb-6 sm:mb-8 bg-[var(--bg-color)] rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-4 border border-[var(--border-color)]';
@@ -157,7 +198,49 @@
             const grid = seccion.querySelector(`#${gridId}`);
             productos.forEach(p => grid.appendChild(crearCardProducto(p)));
         });
+
+        if (encontrados === 0) {
+            container.innerHTML = `
+                <div class="text-center py-12 px-4">
+                    <i class="fas fa-magnifying-glass text-4xl text-[var(--text-muted)] opacity-30 mb-3"></i>
+                    <p class="font-bold text-[var(--text-color)]">Sin resultados para "${filtroProductos}"</p>
+                    <p class="text-sm text-[var(--text-muted)] mt-1">Prueba con otras letras.</p>
+                </div>`;
+        }
     }
+
+    // --- BUSCADOR ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const buscador = document.getElementById('buscadorProductosAdmin');
+        const btnLimpiar = document.getElementById('limpiarBusquedaAdmin');
+        if (!buscador) return;
+
+        const buscar = () => {
+            filtroProductos = buscador.value || '';
+            if (btnLimpiar) btnLimpiar.classList.toggle('hidden', filtroProductos === '');
+            renderizarProductos();
+        };
+
+        buscador.addEventListener('input', buscar);
+
+        // El teclado tactil escribe con .value y no siempre dispara 'input'.
+        let vigilante = null;
+        buscador.addEventListener('focus', () => {
+            let previo = buscador.value;
+            vigilante = setInterval(() => {
+                if (buscador.value !== previo) { previo = buscador.value; buscar(); }
+            }, 250);
+        });
+        buscador.addEventListener('blur', () => clearInterval(vigilante));
+
+        if (btnLimpiar) {
+            btnLimpiar.addEventListener('click', () => {
+                buscador.value = '';
+                buscar();
+                buscador.focus();
+            });
+        }
+    });
  
     function crearCardProducto(producto) {
         const card = document.createElement('div');

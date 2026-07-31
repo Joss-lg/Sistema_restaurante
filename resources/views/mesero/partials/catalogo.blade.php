@@ -16,11 +16,35 @@
             </div>
         </div>
 
+        {{-- BUSCADOR
+             Filtra mientras se escribe. Trabaja junto con las categorías:
+             buscar "coca" dentro de Bebidas sigue mostrando solo bebidas. --}}
+        <div class="mt-3 relative">
+            <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs pointer-events-none"></i>
+            <input type="text" id="buscadorProductos"
+                   placeholder="Buscar platillo..."
+                   autocomplete="off"
+                   class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] text-sm font-semibold text-[var(--text-main)] placeholder:text-[var(--text-muted)] placeholder:font-normal outline-none focus:border-[#3b82f6] transition-colors">
+            <button type="button" id="limpiarBusquedaProductos"
+                    class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
+                    title="Limpiar búsqueda">
+                <i class="fas fa-xmark text-xs"></i>
+            </button>
+        </div>
+
         {{-- Categorías --}}
         <div id="menuCategorias"
              class="mt-3 flex items-center gap-2 overflow-x-auto hide-scroll pb-1 -mx-1 px-1 snap-x snap-mandatory">
             {{-- Los botones de categoría se inyectan aquí por JavaScript --}}
         </div>
+    </div>
+
+    {{-- Aviso cuando la búsqueda no encuentra nada. Sin esto la cuadrícula
+         se queda vacía y parece que el sistema se trabó. --}}
+    <div id="catalogoSinResultados" class="hidden px-4 py-10 text-center">
+        <i class="fas fa-magnifying-glass text-3xl text-[var(--text-muted)] opacity-30 mb-2"></i>
+        <p class="text-sm font-bold text-[var(--text-muted)]">Sin resultados</p>
+        <p class="text-xs text-[var(--text-muted)] opacity-70 mt-0.5">Prueba con otras letras o cambia de categoría.</p>
     </div>
 
     {{-- Cuadrícula de productos --}}
