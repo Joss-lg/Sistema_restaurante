@@ -69,11 +69,19 @@
         <img src="{{ asset('images/agostadero.png') }}" alt="El Agostadero" class="ticket-logo">
         
         <div style="font-size: 12px; margin-top: 4px;">TICKET</div>
-        
-        <div style="font-size: 12px;">{{ $fecha }}</div>
-        
+
+        @if(!empty($folio))
+            <div class="font-bold" style="font-size: 13px;">FOLIO: {{ $folio }}</div>
+        @endif
+
+        <div style="font-size: 12px;">{{ $fecha }}{{ !empty($hora) ? ' - '.$hora : '' }}</div>
+
         @if($mesero) 
             <div style="font-size: 12px;">ATENDIÓ: {{ $mesero }}</div> 
+        @endif
+
+        @if(!empty($cajero))
+            <div style="font-size: 12px;">CAJERO: {{ $cajero }}</div>
         @endif
         
         <!-- Bloque central de Mesa/Delivery con bordes superior e inferior -->
@@ -135,6 +143,13 @@
             <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
                 <span>DESCUENTO TOTAL:</span>
                 <span>-${{ number_format($descuentoTotal, 2) }}</span>
+            </div>
+        @endif
+
+        @if(($descuentoCajaMonto ?? 0) > 0)
+            <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
+                <span>DESCUENTO CAJA ({{ rtrim(rtrim(number_format($descuentoCajaPorcentaje ?? 0, 2), '0'), '.') }}%):</span>
+                <span>-${{ number_format($descuentoCajaMonto, 2) }}</span>
             </div>
         @endif
 

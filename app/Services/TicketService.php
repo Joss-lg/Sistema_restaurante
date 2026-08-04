@@ -6,9 +6,47 @@ use App\Models\Configuracion;
 use App\Models\Mesa;
 use App\Models\Orden;
 use App\Models\FlujoCaja;
+use App\Models\TicketImpreso;
 
 class TicketService
 {
+    /**
+     * Devuelve el folio correlativo (001, 002...) y la fecha/hora exacta de
+     * impresión de una venta, creándolos la primera vez que se piden.
+     *
+     * Se identifica la venta por el id de su PRIMERA orden, que es estable:
+     * no cambia si se reconsulta el ticket ni si la mesa se libera/borra.
+     * Por eso, aunque se vuelva a abrir esta misma pantalla, el folio y la
+     * hora no cambian — igual que un recibo real no cambia de número ni de
+     * hora cada vez que lo vuelves a ver.
+     */
+    private function obtenerOFolio(?Orden $primeraOrden, ?Mesa $mesa): TicketImpreso
+    {
+        if (!$primeraOrden) {
+            // No debería pasar (siempre hay al menos una orden para poder
+            // cobrar), pero por seguridad no se rompe: se crea un folio sin
+            // referencia a ninguna orden real.
+            return TicketImpreso::create([
+                'orden_referencia_id' => 0,
+                'mesa_numero'         => $mesa->numero ?? null,
+                'impreso_en'          => now(),
+            ]);
+        }
+
+        $existente = TicketImpreso::where('orden_referencia_id', $primeraOrden->id)->first();
+        if ($existente) {
+            return $existente;
+        }
+
+        return TicketImpreso::create([
+            'orden_referencia_id' => $primeraOrden->id,
+            'mesa_numero'         => $mesa->numero ?? null,
+            'mesero_id'           => $primeraOrden->mesero_id,
+            'cajero_id'           => auth()->id(),
+            'impreso_en'          => now(),
+        ]);
+    }
+
     /**
      * Genera los datos del ticket final de caja para una MESA completa,
      * agregando TODAS sus órdenes activas (puede haber más de una si
@@ -86,8 +124,18 @@ class TicketService
             ]);
 
         $subtotalBruto  = $items->sum('subtotal');
-        $descuentoTotal = $items->sum('descuento');
-        $baseImponible  = $subtotalBruto - $descuentoTotal;
+        $descuentoTotal = $items->sum('descuento'); // descuentos de PROMOCIONES
+        $subtotalTrasPromociones = $subtotalBruto - $descuentoTotal;
+
+        // --- Descuento aplicado en Caja al cobrar (distinto al de promociones) ---
+        // Se calcula EXACTAMENTE igual que CajaService::obtenerDesgloseMesa():
+        // sobre lo que queda tras las promociones y ANTES del IVA. Si no se
+        // hiciera igual aquí, el ticket impreso no cuadraría con lo cobrado.
+        $descuentoCajaPorcentaje = (float) ($ordenes->max('descuento_porcentaje') ?? 0);
+        $descuentoCajaPorcentaje = max(0, min(100, $descuentoCajaPorcentaje));
+        $descuentoCajaMonto = round($subtotalTrasPromociones * ($descuentoCajaPorcentaje / 100), 2);
+
+        $baseImponible = round($subtotalTrasPromociones - $descuentoCajaMonto, 2);
 
         // --- IVA: unificado con la MISMA fuente de verdad que usa CajaService
         // y ComandaController (Configuracion), en vez de session(), para que
@@ -118,19 +166,24 @@ class TicketService
         $totalCalculado = $baseImponible + $iva + $propina + $comisionTotal;
 
         $primeraOrden = $ordenes->first();
-        $numeroFolio  = $ordenIds->isNotEmpty()
-            ? $ordenIds->map(fn ($id) => str_pad($id, 4, '0', STR_PAD_LEFT))->implode('/')
-            : '0000';
+
+        // Folio correlativo + fecha/hora EXACTA de impresión (no de cierre de
+        // la orden): se fijan la primera vez que se pide este ticket.
+        $ticketImpreso = $this->obtenerOFolio($primeraOrden, $mesa);
 
         return [
-            'folio'          => 'M' . ($mesa->numero ?? '') . '-' . $numeroFolio,
-            // AJUSTE: se quita la hora, solo queda la fecha.
-            'fecha'          => optional($primeraOrden?->cerrada_el)->format('d/m/Y') ?? now()->format('d/m/Y'),
+            'folio'          => $ticketImpreso->folio_formateado, // "001", "002"...
+            'fecha'          => $ticketImpreso->impreso_en->format('d/m/Y'),
+            'hora'           => $ticketImpreso->impreso_en->format('h:i A'),
             'mesa'           => $mesa->numero ?? null,
-            'mesero'         => $primeraOrden?->mesero->name ?? null,
+            'mesero'         => optional($primeraOrden?->mesero)->nombre ?? optional($primeraOrden?->mesero)->name,
+            'cajero'         => optional($ticketImpreso->cajero)->nombre ?? optional($ticketImpreso->cajero)->name,
             'items'          => $items->values(),
             'subtotal'       => $subtotalBruto,
             'descuentoTotal' => $descuentoTotal,
+            // --- NUEVO: descuento aplicado en Caja (si lo hubo) ---
+            'descuentoCajaPorcentaje' => $descuentoCajaPorcentaje,
+            'descuentoCajaMonto'      => $descuentoCajaMonto,
             'iva'            => $iva,
             'ivaPorcentaje'  => $ivaPorcentaje,
             'ivaHabilitado'  => $ivaHabilitado,
