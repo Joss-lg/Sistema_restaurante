@@ -222,4 +222,53 @@ public function actualizarEstado(Request $request, $id)
 
         return compact('comandas', 'pendientes', 'enProceso', 'servidas', 'ordenesActivasEnArea');
     }
+
+    /**
+     * Historial de comandas: todos los print_jobs del turno activo para el
+     * area seleccionada, ordenados del mas reciente al mas antiguo.
+     *
+     * El campo "contenido" es INMUTABLE: se guardo tal cual llego el pedido
+     * al momento del envio. Si despues el mesero dice "lo pedi sin cebolla"
+     * y las notas dicen otra cosa, este registro es el respaldo oficial de
+     * lo que decia el sistema cuando cocina recibio la comanda.
+     */
+    public function historial(Request $request)
+    {
+        $area = $this->resolverAreaSeleccionada($request);
+
+        // Se buscan los print_jobs del TURNO activo. Si la caja esta cerrada
+        // se muestran los del ultimo turno cerrado, para que cocina pueda
+        // seguir consultando el historial del dia aunque ya se haya hecho el
+        // corte de caja.
+        $cajaMovimiento = \App\Models\CajaMovimiento::where('estado', 'abierta')->first()
+            ?? \App\Models\CajaMovimiento::where('estado', 'cerrada')->latest('updated_at')->first();
+
+        $query = \App\Models\PrintJob::with('orden.mesero')
+            ->orderByDesc('created_at');
+
+        // Filtra por area: Cocina ve sus comandas, Barra ve las suyas.
+        if ($area === 'Barra') {
+            $query->where('area', 'Barra');
+        } else {
+            $query->where(function ($q) {
+                $q->where('area', '!=', 'Barra')->orWhereNull('area');
+            });
+        }
+
+        // Solo los del turno activo / ultimo turno del dia
+        if ($cajaMovimiento) {
+            $query->whereDate('created_at', $cajaMovimiento->created_at->toDateString());
+        } else {
+            $query->whereDate('created_at', now()->toDateString());
+        }
+
+        $jobs = $query->get()->groupBy('lote_envio');
+
+        return view('admin.cocina.historial', [
+            'jobs'             => $jobs,
+            'area'             => $area,
+            'areaSeleccionada' => $area,
+            'fecha'            => now()->format('d/m/Y'),
+        ]);
+    }
 }

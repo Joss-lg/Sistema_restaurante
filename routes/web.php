@@ -25,7 +25,6 @@ use App\Http\Controllers\HistorialCajaController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\PlataformaDeliveryController;
-use App\Http\Controllers\CorteController;
 
 // ==========================================
 // --- AUTENTICACIÓN ---
@@ -221,6 +220,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [CocinaController::class, 'index'])->name('index');
             Route::get('/api/comandas', [CocinaController::class, 'apiComandas'])->name('api.comandas');
             Route::patch('/orden/{id}/estado', [CocinaController::class, 'actualizarEstado'])->name('orden.estado')->middleware('permiso:Cocina,editar');
+
+            // Historial de comandas: lo que llegó al area al momento del envío.
+            // Es el respaldo inmutable que permite resolver discusiones entre
+            // el mesero y cocina ("yo lo pedí sin cebolla" / "aquí dice con todo").
+            Route::get('/historial', [CocinaController::class, 'historial'])->name('historial');
         });
 
         // --- PROMOCIONES ---
@@ -304,9 +308,4 @@ Route::middleware(['auth'])->group(function () {
         Auth::logout(); 
         return redirect()->route('login'); 
     })->name('logout');
-
-// Rutas para el módulo de cortes
-Route::get('/corte', [CorteController::class, 'index'])->name('corte.index');
-Route::get('/corte/pdf', [CorteController::class, 'descargarPdf'])->name('corte.pdf');
-
 });

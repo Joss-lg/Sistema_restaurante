@@ -17,6 +17,13 @@
 </div>
         <div class="flex items-center gap-2 text-xs font-bold text-emerald-500">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> EN VIVO
+
+            {{-- Acceso al historial de comandas del turno --}}
+            <a href="{{ route('admin.cocina.historial', ['area' => $areaSeleccionada]) }}"
+               class="ml-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors font-bold text-[10px] uppercase tracking-wider"
+               title="Ver historial de comandas del turno">
+                <i class="fas fa-clock-rotate-left text-[10px]"></i> Historial
+            </a>
         </div>
     </div>
 
