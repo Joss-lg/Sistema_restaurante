@@ -48,7 +48,10 @@
                     : 'Mesa ' . $numMesa;
             @endphp
 
-            <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] border-t-emerald-500 shadow-lg flex flex-col h-full overflow-hidden relative transition-all duration-300 {{ $claseAlerta }}" data-comanda-id="{{ $comanda->id }}">
+            <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] border-t-emerald-500 shadow-lg flex flex-col h-full overflow-hidden relative transition-all duration-300 comanda-card {{ $claseAlerta }}"
+                     data-comanda-id="{{ $comanda->id }}"
+                     data-lote="{{ $comanda->detalles->first()?->lote_envio ?? $comanda->id }}"
+                     data-tiempo-inicio="{{ $fechaCarbon->getTimestampMs() }}">
                 <div class="p-4 border-b border-[var(--border-color)] min-w-0 flex items-start justify-between gap-2">
                     <div class="min-w-0">
                         <h3 class="font-black text-lg truncate capitalize">{{ $labelMesa }}</h3>
@@ -75,8 +78,12 @@
                                 ];
                                 $tInfo = $tiempoClases[$detalle->tiempo] ?? null;
                             @endphp
-                           <li class="flex flex-col text-sm gap-1.5">
-    <span class="font-bold text-[var(--text-color)] break-words flex flex-wrap items-center gap-1.5">
+                           <li class="flex flex-col text-sm gap-1.5 detalle-item"
+                               data-detalle-id="{{ $detalle->id }}"
+                               data-estado="{{ $detalle->estado_preparacion }}">
+    <div class="flex items-center justify-between gap-2">
+        <span class="font-bold break-words flex flex-wrap items-center gap-1.5 nombre-producto transition-all
+              {{ in_array($detalle->estado_preparacion, ['listo_cocina','servida']) ? 'line-through opacity-40 text-[var(--text-muted)]' : 'text-[var(--text-color)]' }}">
         {{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto Eliminado' }}
         @if($tInfo)
             <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md border {{ $tInfo['clase'] }}">
@@ -91,7 +98,18 @@
                 <i class="fas fa-weight-hanging"></i>{{ $gramajeLimpio }}g
             </span>
         @endif
-    </span>
+        </span>
+
+        {{-- Boton de tachar: marca este producto como listo sin avanzar toda la comanda --}}
+        <button type="button"
+            class="btn-tachar shrink-0 w-8 h-8 rounded-xl border-2 transition-all flex items-center justify-center
+                   {{ in_array($detalle->estado_preparacion, ['listo_cocina','servida'])
+                       ? 'bg-emerald-500 border-emerald-500 text-white scale-95'
+                       : 'border-zinc-300 dark:border-white/20 text-zinc-400 hover:border-emerald-500 hover:text-emerald-500 hover:scale-105' }}"
+            title="{{ in_array($detalle->estado_preparacion, ['listo_cocina','servida']) ? 'Desmarcar' : 'Marcar como listo' }}">
+            <i class="fas fa-check text-[11px]"></i>
+        </button>
+    </div>
     @if($detalle->notas)
         <span class="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-bold w-full break-words leading-snug">
             <i class="fas fa-exclamation-circle mt-0.5 shrink-0"></i>

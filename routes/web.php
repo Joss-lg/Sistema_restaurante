@@ -225,6 +225,12 @@ Route::middleware(['auth'])->group(function () {
             // Es el respaldo inmutable que permite resolver discusiones entre
             // el mesero y cocina ("yo lo pedí sin cebolla" / "aquí dice con todo").
             Route::get('/historial', [CocinaController::class, 'historial'])->name('historial');
+
+            // Tachar un producto individual (ya listo) sin marcar toda la comanda.
+            // Solo requiere editar porque es una accion operativa del cocinero.
+            Route::patch('/detalle/{id}/listo', [CocinaController::class, 'marcarDetalleListoParaCocina'])
+                ->name('detalle.listo')
+                ->middleware('permiso:Cocina,editar');
         });
 
         // --- PROMOCIONES ---

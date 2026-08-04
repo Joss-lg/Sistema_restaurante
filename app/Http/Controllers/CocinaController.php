@@ -224,7 +224,50 @@ public function actualizarEstado(Request $request, $id)
     }
 
     /**
-     * Historial de comandas: todos los print_jobs del turno activo para el
+     * Marca UN producto de la comanda como listo (o lo desmarca).
+     *
+     * Es diferente a "avanzar toda la comanda": aqui el cocinero puede ir
+     * tachando platillo por platillo conforme los saca, sin que la tarjeta
+     * desaparezca hasta que todos esten listos. Cuando el ultimo se tacha
+     * automaticamente se avanza el estado de toda la comanda a "servida".
+     *
+     * Estado que se usa: 'listo_cocina' — no existe en la validacion del
+     * metodo actualizarEstado (que maneja la comanda completa), asi que no
+     * hay riesgo de colision.
+     */
+    public function marcarDetalleListoParaCocina(Request $request, $id)
+    {
+        $detalle = DetalleOrden::with('orden.detalles')->findOrFail($id);
+
+        // Alternar: si ya esta listo, desmarcarlo (por si se taco por error).
+        $nuevoEstado = $detalle->estado_preparacion === 'listo_cocina'
+            ? 'en proceso'
+            : 'listo_cocina';
+
+        $detalle->update(['estado_preparacion' => $nuevoEstado]);
+
+        // Si TODOS los detalles del mismo lote y area ya estan listos,
+        // avanzar toda la comanda a "servida" automaticamente.
+        $lote = $detalle->lote_envio;
+        $orden = $detalle->orden;
+
+        if ($lote && $orden && $nuevoEstado === 'listo_cocina') {
+            $detallesDelLote = $orden->detalles->filter(fn($d) => $d->lote_envio === $lote);
+            $todosListos = $detallesDelLote->every(fn($d) => $d->id === $detalle->id || $d->estado_preparacion === 'listo_cocina');
+
+            if ($todosListos) {
+                $detallesDelLote->each(fn($d) => $d->update(['estado_preparacion' => 'servida']));
+            }
+        }
+
+        return response()->json([
+            'success'      => true,
+            'nuevo_estado' => $nuevoEstado,
+            'todos_listos' => isset($todosListos) && $todosListos,
+        ]);
+    }
+
+    /**
      * area seleccionada, ordenados del mas reciente al mas antiguo.
      *
      * El campo "contenido" es INMUTABLE: se guardo tal cual llego el pedido

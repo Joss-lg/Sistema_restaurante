@@ -218,7 +218,171 @@
         // Intervals de actualización
         setInterval(actualizarComandas, 5000);
         setInterval(cargarKdsMesas, 10000);
-        setInterval(actualizarContadoresEspera, 10000); // Evaluado cada 10s para mayor precisión
+        setInterval(actualizarContadoresEspera, 10000);
+        setInterval(verificarAlertas15min, 30000); // Cada 30s revisa si hay comandas viejas
+
+        // Sonidos y tachar al cargar
+        iniciarSonidosYTachar();
     });
+
+    // ---------------------------------------------------------------
+    // SONIDOS (Web Audio API, sin archivos externos)
+    // ---------------------------------------------------------------
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function sonarEntrada() {
+        // Dos tonos ascendentes: "llegó algo nuevo"
+        [660, 880].forEach((freq, i) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g); g.connect(audioCtx.destination);
+            o.frequency.value = freq;
+            o.type = 'sine';
+            const t = audioCtx.currentTime + i * 0.18;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.4, t + 0.04);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+            o.start(t); o.stop(t + 0.3);
+        });
+    }
+
+    function sonarAlerta() {
+        // Tres pulsos cortos: "esto lleva mucho tiempo"
+        [440, 440, 440].forEach((freq, i) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g); g.connect(audioCtx.destination);
+            o.frequency.value = freq;
+            o.type = 'square';
+            const t = audioCtx.currentTime + i * 0.22;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.25, t + 0.03);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+            o.start(t); o.stop(t + 0.2);
+        });
+    }
+
+    // IDs de comandas ya conocidas (para detectar nuevas entre polling)
+    let lotesConocidos = new Set();
+    let alertasDisparadas = new Set(); // Para no repetir la alerta del mismo lote
+    let audioDesbloqueado = false;
+
+    // El AudioContext necesita un gesto del usuario para funcionar.
+    // Al primer click en la pantalla, lo activamos.
+    document.addEventListener('click', () => {
+        if (!audioDesbloqueado && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        audioDesbloqueado = true;
+    }, { once: true });
+
+    // ---------------------------------------------------------------
+    // VERIFICAR ALERTAS DE 15 MINUTOS
+    // ---------------------------------------------------------------
+    function verificarAlertas15min() {
+        const tarjetas = document.querySelectorAll('.comanda-card[data-tiempo-inicio]');
+        tarjetas.forEach(card => {
+            const lote = card.dataset.lote;
+            const inicio = parseInt(card.dataset.tiempoInicio || '0', 10);
+            if (!inicio || alertasDisparadas.has(lote)) return;
+
+            const minutos = (Date.now() - inicio) / 60000;
+            if (minutos >= 15) {
+                alertasDisparadas.add(lote);
+                sonarAlerta();
+                // Borde rojo pulsante en la tarjeta
+                card.classList.add('ring-2', 'ring-red-500', 'ring-offset-1', 'animate-pulse');
+                setTimeout(() => card.classList.remove('animate-pulse'), 5000);
+            }
+        });
+    }
+
+    // ---------------------------------------------------------------
+    // TACHAR PRODUCTOS
+    // Se usa delegación en el contenedor para que funcione incluso
+    // después de que el polling reemplace el HTML de las tarjetas.
+    // ---------------------------------------------------------------
+    const URL_DETALLE_LISTO = @json(url('/cocina/detalle'));
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    function iniciarSonidosYTachar() {
+        // Registrar lotes ya visibles al cargar (no sonar por ellos)
+        document.querySelectorAll('[data-lote]').forEach(c => {
+            lotesConocidos.add(c.dataset.lote);
+        });
+    }
+
+    // Delegación: escucha clicks en el contenedor padre
+    document.getElementById('comandas-container').addEventListener('click', async (e) => {
+        const btn = e.target.closest('.btn-tachar');
+        if (!btn) return;
+
+        const li = btn.closest('.detalle-item');
+        if (!li) return;
+
+        const detalleId = li.dataset.detalleId;
+        if (!detalleId) return;
+
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`${URL_DETALLE_LISTO}/${detalleId}/listo`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': CSRF,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                const listo = data.nuevo_estado === 'listo_cocina' || data.todos_listos;
+                const nombre = li.querySelector('.nombre-producto');
+
+                if (listo) {
+                    nombre?.classList.add('line-through', 'opacity-40', 'text-[var(--text-muted)]');
+                    nombre?.classList.remove('text-[var(--text-color)]');
+                    btn.classList.add('bg-emerald-500', 'border-emerald-500', 'text-white', 'scale-95');
+                    btn.classList.remove('border-zinc-300', 'dark:border-white/20', 'text-zinc-400');
+                } else {
+                    nombre?.classList.remove('line-through', 'opacity-40', 'text-[var(--text-muted)]');
+                    nombre?.classList.add('text-[var(--text-color)]');
+                    btn.classList.remove('bg-emerald-500', 'border-emerald-500', 'text-white', 'scale-95');
+                    btn.classList.add('border-zinc-300', 'dark:border-white/20', 'text-zinc-400');
+                }
+
+                // Si todos listos, el polling va a refrescar y la tarjeta va a desaparecer.
+                // No hacemos nada extra: el siguiente ciclo de 5s lo maneja.
+            }
+        } catch (err) {
+            console.error('Error al tachar producto:', err);
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // ---------------------------------------------------------------
+    // SONAR al detectar comandas NUEVAS entre refrescos
+    // (se engancha sobre la funcion actualizarComandas existente)
+    // ---------------------------------------------------------------
+    const _actualizarOriginal = actualizarComandas;
+    actualizarComandas = async function() {
+        await _actualizarOriginal();
+
+        // Después del refresco, buscar lotes que no estaban antes
+        const lotesActuales = new Set();
+        document.querySelectorAll('[data-lote]').forEach(c => {
+            const l = c.dataset.lote;
+            lotesActuales.add(l);
+            if (!lotesConocidos.has(l)) {
+                sonarEntrada();
+            }
+        });
+        lotesConocidos = lotesActuales;
+
+        // Revisar alertas de 15 min al refrescar también
+        verificarAlertas15min();
+    };
 </script>
 @endpush
