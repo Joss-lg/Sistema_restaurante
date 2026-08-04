@@ -25,6 +25,7 @@ use App\Http\Controllers\HistorialCajaController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\PlataformaDeliveryController;
+use App\Http\Controllers\CorteController;
 
 // ==========================================
 // --- AUTENTICACIÓN ---
@@ -303,4 +304,9 @@ Route::middleware(['auth'])->group(function () {
         Auth::logout(); 
         return redirect()->route('login'); 
     })->name('logout');
+
+// Rutas para el módulo de cortes
+Route::get('/corte', [CorteController::class, 'index'])->name('corte.index');
+Route::get('/corte/pdf', [CorteController::class, 'descargarPdf'])->name('corte.pdf');
+
 });
