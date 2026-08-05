@@ -24,7 +24,10 @@
             <input type="text" id="buscadorProductos"
                    placeholder="Buscar platillo..."
                    autocomplete="off"
-                   class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] text-sm font-semibold text-[var(--text-main)] placeholder:text-[var(--text-muted)] placeholder:font-normal outline-none focus:border-[#3b82f6] transition-colors">
+                   inputmode="none"
+                   readonly
+                   onclick="abrirTecladoVirtual()"
+                   class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] text-sm font-semibold text-[var(--text-main)] placeholder:text-[var(--text-muted)] placeholder:font-normal outline-none focus:border-[#3b82f6] transition-colors cursor-pointer">
             <button type="button" id="limpiarBusquedaProductos"
                     class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
                     title="Limpiar búsqueda">
@@ -163,169 +166,117 @@
             <i class="fas fa-chevron-up text-[11px] opacity-70"></i>
         </span>
     </button>
-</section>
+
+{{-- ═══════════════════════════════════════════════════════
+     TECLADO VIRTUAL — Buscador de productos
+     Aparece al tocar el input. Cubre solo la parte inferior
+     de la pantalla para no tapar el catálogo.
+     ════════════════════════════════════════════════════════ --}}
+<div id="teclado-virtual-overlay"
+     class="hidden fixed inset-0 z-[9999]"
+     onclick="if(event.target===this) cerrarTecladoVirtual()">
+
+    <div id="teclado-virtual"
+         class="absolute bottom-0 inset-x-0 bg-[var(--bg-base)] border-t border-[var(--border-color)] shadow-2xl rounded-t-3xl pb-safe">
+
+        {{-- Barra superior: display del texto + cerrar --}}
+        <div class="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-[var(--border-color)]">
+            <div class="flex-1 flex items-center gap-2 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 min-h-[40px]">
+                <i class="fas fa-magnifying-glass text-[var(--text-muted)] text-xs shrink-0"></i>
+                <span id="tv-display" class="flex-1 text-sm font-semibold text-[var(--text-main)] break-all"></span>
+                <span class="w-0.5 h-4 bg-blue-500 animate-pulse rounded-full"></span>
+            </div>
+            <button type="button" onclick="cerrarTecladoVirtual()"
+                class="w-10 h-10 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-muted)] flex items-center justify-center shrink-0 active:scale-95">
+                <i class="fas fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        {{-- Teclado QWERTY --}}
+        <div class="px-2 py-3 space-y-1.5 select-none">
+            @php
+                $filas = [
+                    ['Q','W','E','R','T','Y','U','I','O','P'],
+                    ['A','S','D','F','G','H','J','K','L'],
+                    ['Z','X','C','V','B','N','M'],
+                ];
+            @endphp
+
+            @foreach($filas as $fila)
+                <div class="flex justify-center gap-1">
+                    @foreach($fila as $letra)
+                        <button type="button"
+                            onclick="tvEscribir('{{ $letra }}')"
+                            class="tv-key flex-1 max-w-[38px] h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 active:bg-blue-100 dark:active:bg-blue-500/20 transition-all duration-75">
+                            {{ $letra }}
+                        </button>
+                    @endforeach
+                </div>
+            @endforeach
+
+            {{-- Fila inferior: espacio + borrar --}}
+            <div class="flex justify-center gap-1 mt-1">
+                <button type="button" onclick="tvEscribir('1')" class="tv-key w-10 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 transition-all duration-75">1</button>
+                <button type="button" onclick="tvEscribir('2')" class="tv-key w-10 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 transition-all duration-75">2</button>
+                <button type="button" onclick="tvEscribir('3')" class="tv-key w-10 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 transition-all duration-75">3</button>
+                <button type="button" onclick="tvEscribir(' ')"
+                    class="tv-key flex-1 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-500 font-bold text-xs shadow-sm active:scale-95 transition-all duration-75">
+                    ESPACIO
+                </button>
+                <button type="button" onclick="tvEscribir('4')" class="tv-key w-10 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 transition-all duration-75">4</button>
+                <button type="button" onclick="tvEscribir('5')" class="tv-key w-10 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 transition-all duration-75">5</button>
+                <button type="button"
+                    onclick="tvBorrar()"
+                    class="tv-key w-14 h-11 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-500 shadow-sm active:scale-95 flex items-center justify-center transition-all duration-75">
+                    <i class="fas fa-delete-left text-base"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-    // --- Función para abrir/cerrar el carrito flotante en móvil ---
-    function toggleOrdenMobile() {
-        var ticket = document.getElementById('col-ticket');
-        var backdrop = document.getElementById('backdropOrdenMobile');
-        var body = document.body;
+(function () {
+    let tvValor = '';
+    const overlay  = document.getElementById('teclado-virtual-overlay');
+    const display  = document.getElementById('tv-display');
+    const inputReal = document.getElementById('buscadorProductos');
 
-        if (!ticket || !backdrop) return;
+    window.abrirTecladoVirtual = function () {
+        tvValor = inputReal.value || '';
+        display.textContent = tvValor;
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    };
 
-        if (ticket.classList.contains('translate-y-full')) {
-            ticket.classList.remove('translate-y-full');
-            backdrop.classList.remove('opacity-0', 'pointer-events-none');
-            backdrop.classList.add('opacity-100', 'pointer-events-auto');
-            body.style.overflow = 'hidden'; // Bloquea el scroll de fondo
-        } else {
-            ticket.classList.add('translate-y-full');
-            backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-            backdrop.classList.add('opacity-0', 'pointer-events-none');
-            body.style.overflow = ''; // Restaura el scroll
-        }
+    window.cerrarTecladoVirtual = function () {
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+        // Sincronizar con el input real y disparar el evento para que filtre
+        inputReal.value = tvValor;
+        inputReal.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    window.tvEscribir = function (char) {
+        tvValor += char;
+        display.textContent = tvValor;
+        // Filtrar en tiempo real mientras se escribe
+        inputReal.value = tvValor;
+        inputReal.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    window.tvBorrar = function () {
+        tvValor = tvValor.slice(0, -1);
+        display.textContent = tvValor;
+        inputReal.value = tvValor;
+        inputReal.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    // Limpiar también limpia el teclado virtual
+    const btnLimpiar = document.getElementById('limpiarBusquedaProductos');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', () => { tvValor = ''; });
     }
-
-    // --- Función para cerrar modales ---
-    function cerrarModal(idModal) {
-        var modal = document.getElementById(idModal);
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-    }
-
-    // --- Script del catálogo adaptado para Toque Largo y Toque Corto ---
-    (function () {
-        var grid = document.getElementById('gridProductos');
-        if (grid) {
-            var pressTimer;
-            var isLongPress = false;
-            var startY = 0;
-            var threshold = 10; // Píxeles de tolerancia para cancelar si hacen scroll
-
-            grid.addEventListener('touchstart', function (e) {
-                var card = e.target.closest('.btn-producto');
-                if (!card) return;
-
-                isLongPress = false;
-                startY = e.touches[0].clientY;
-
-                pressTimer = setTimeout(function () {
-                    isLongPress = true;
-
-                    if (navigator.vibrate) navigator.vibrate(50);
-
-                    var prodId = card.getAttribute('data-producto-id');
-
-                    if (typeof agregarProducto === 'function' && prodId) {
-                        agregarProducto(prodId);
-                    }
-                    mostrarToastAgregado(card);
-
-                    if (typeof agregarNota === 'function') {
-                        setTimeout(agregarNota, 150);
-                    } else {
-                        var modal = document.getElementById('modalNota');
-                        if (modal) {
-                            modal.classList.remove('hidden');
-                            modal.classList.add('flex');
-                        }
-                    }
-                }, 500);
-            }, { passive: true });
-
-            grid.addEventListener('touchmove', function (e) {
-                var currentY = e.touches[0].clientY;
-                if (Math.abs(currentY - startY) > threshold) {
-                    clearTimeout(pressTimer);
-                }
-            }, { passive: true });
-
-            grid.addEventListener('touchend', function (e) {
-                clearTimeout(pressTimer);
-            });
-
-            grid.addEventListener('click', function (e) {
-                var card = e.target.closest('.btn-producto');
-                if (!card) return;
-
-                if (isLongPress) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
-                }
-
-                var prodId = card.getAttribute('data-producto-id');
-                if (typeof agregarProducto === 'function' && prodId) {
-                    agregarProducto(prodId);
-                }
-                mostrarToastAgregado(card);
-            });
-
-            function mostrarToastAgregado(card) {
-                var check = document.createElement('div');
-                check.className = 'toast-agregado';
-                check.innerHTML = '<i class="fas fa-check"></i>';
-                check.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;' +
-                    'background:rgba(16,185,129,0.85);color:#fff;font-size:22px;border-radius:16px;' +
-                    'animation:toastPop .5s ease-out forwards;pointer-events:none;z-index:5;';
-                card.style.position = 'relative';
-                card.appendChild(check);
-                setTimeout(function () { check.remove(); }, 500);
-            }
-        }
-
-        // --- Lógica del Carrito Flotante ---
-        var bar = document.getElementById('miniCartBar');
-        var barCount = document.getElementById('miniCartCount');
-        var barTotal = document.getElementById('miniCartTotal');
-        var navBadge = document.getElementById('navBadgeOrden');
-        var subtotalEl = document.getElementById('txtSubtotal');
-        var listaTicket = document.getElementById('listaTicket');
-
-        function refrescarMiniCart() {
-            if (!bar) return;
-            var cantidad = listaTicket ? listaTicket.children.length : 0;
-            var total = subtotalEl ? subtotalEl.textContent.trim() : '$0.00';
-
-            if (cantidad > 0) {
-                bar.classList.remove('hidden');
-                bar.classList.add('flex');
-            } else {
-                bar.classList.add('hidden');
-                bar.classList.remove('flex');
-            }
-            if (barCount) barCount.textContent = cantidad;
-            if (barTotal) barTotal.textContent = total;
-
-            if (navBadge) {
-                if (cantidad > 0) {
-                    navBadge.textContent = cantidad;
-                    navBadge.classList.remove('hidden');
-                } else {
-                    navBadge.classList.add('hidden');
-                }
-            }
-        }
-
-        if (listaTicket) {
-            new MutationObserver(refrescarMiniCart).observe(listaTicket, { childList: true, subtree: false });
-        }
-        if (subtotalEl) {
-            new MutationObserver(refrescarMiniCart).observe(subtotalEl, { characterData: true, childList: true, subtree: true });
-        }
-        document.addEventListener('DOMContentLoaded', refrescarMiniCart);
-        refrescarMiniCart();
-    })();
+})();
 </script>
-
-<style>
-    @keyframes toastPop {
-        0% { opacity: 0; transform: scale(0.85); }
-        20% { opacity: 1; transform: scale(1); }
-        75% { opacity: 1; }
-        100% { opacity: 0; }
-    }
-</style>
+</section>

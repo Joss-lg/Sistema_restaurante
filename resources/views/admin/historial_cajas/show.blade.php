@@ -266,6 +266,7 @@
                                                     $colorMetodo = match($pago->metodo_pago) {
                                                         'tarjeta'       => 'sky',
                                                         'transferencia' => 'indigo',
+                                                        'descuento'     => 'violet',
                                                         default          => 'emerald',
                                                     };
                                                 @endphp
@@ -286,6 +287,7 @@
                                                 $colorMetodo = match($primera->metodo_pago) {
                                                     'tarjeta'       => 'sky',
                                                     'transferencia' => 'indigo',
+                                                    'descuento'     => 'violet',
                                                     default          => 'emerald',
                                                 };
                                             @endphp

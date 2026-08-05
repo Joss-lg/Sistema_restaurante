@@ -306,7 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!tab) return;
 
             tab.dataset.subtotal = cuenta.subtotal.toFixed(2);
+            /* IVA_BLOCK_START — iva_tab_division
             tab.dataset.iva = cuenta.iva.toFixed(2);
+            IVA_BLOCK_END */
+            tab.dataset.iva = '0.00'; // IVA desactivado
             tab.dataset.propina = cuenta.propina.toFixed(2);
             tab.dataset.total = cuenta.total.toFixed(2);
 
@@ -319,7 +322,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalPagar = cuenta.total;
                 if (resumenTotal) resumenTotal.textContent = '$' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
                 if (resumenSubtotal) resumenSubtotal.textContent = '$' + cuenta.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                /* IVA_BLOCK_START — iva_resumen_reload
                 if (resumenIva) resumenIva.textContent = '$' + cuenta.iva.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                IVA_BLOCK_END */
+                if (resumenIva) resumenIva.textContent = '$0.00'; // IVA desactivado
                 if (resumenPropina) resumenPropina.textContent = '$' + cuenta.propina.toLocaleString('en-US', { minimumFractionDigits: 2 });
                 if (avisoDivisionPanel) avisoDivisionPanel.textContent = 'Cobrando a Persona ' + cuenta.numero_cuenta + ' · $' + totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 });
                 actualizarDisplay(montoActual); // recalcula "Cambio" con el nuevo total

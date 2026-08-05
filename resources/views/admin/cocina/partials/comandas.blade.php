@@ -46,15 +46,28 @@
                 $labelMesa = \Illuminate\Support\Str::startsWith(strtolower($numMesa), 'mesa') 
                     ? $numMesa 
                     : 'Mesa ' . $numMesa;
+
+                // Delivery
+                $esDelivery  = $comanda->mesa && $comanda->mesa->esDelivery();
+                $plataforma  = $esDelivery ? optional($comanda->mesa->plataformaDelivery)->nombre : null;
+                $colorBorde  = $esDelivery ? 'border-t-orange-500' : 'border-t-emerald-500';
             @endphp
 
-            <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] border-t-emerald-500 shadow-lg flex flex-col h-full overflow-hidden relative transition-all duration-300 comanda-card {{ $claseAlerta }}"
+            <article class="bg-[var(--card-color)] w-full rounded-[20px] border border-[var(--border-color)] border-t-[6px] {{ $colorBorde }} shadow-lg flex flex-col h-full overflow-hidden relative transition-all duration-300 comanda-card {{ $claseAlerta }}"
                      data-comanda-id="{{ $comanda->id }}"
                      data-lote="{{ $comanda->detalles->first()?->lote_envio ?? $comanda->id }}"
                      data-tiempo-inicio="{{ $fechaCarbon->getTimestampMs() }}">
                 <div class="p-4 border-b border-[var(--border-color)] min-w-0 flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                        <h3 class="font-black text-lg truncate capitalize">{{ $labelMesa }}</h3>
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <h3 class="font-black text-lg truncate capitalize">{{ $labelMesa }}</h3>
+                            @if($esDelivery)
+                                <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500 text-white text-[9px] font-black uppercase tracking-wider shadow-sm">
+                                    <i class="fas fa-motorcycle text-[8px]"></i>
+                                    {{ $plataforma ?? 'Delivery' }}
+                                </span>
+                            @endif
+                        </div>
                         <p class="text-xs text-[var(--text-muted)] truncate">Mesero: {{ $comanda->mesero->nombre ?? 'N/A' }}</p>
                     </div>
                     <span

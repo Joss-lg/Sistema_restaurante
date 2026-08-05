@@ -77,7 +77,7 @@
         <div style="font-size: 12px;">{{ $fecha }}{{ !empty($hora) ? ' - '.$hora : '' }}</div>
 
         @if($mesero) 
-            <div style="font-size: 12px;">MESERO: {{ $mesero }}</div> 
+            <div style="font-size: 12px;">ATENDIÓ: {{ $mesero }}</div> 
         @endif
 
         @if(!empty($cajero))
@@ -153,12 +153,14 @@
             </div>
         @endif
 
-        @if(($ivaHabilitado ?? session('iva_habilitado', true)) && isset($iva) && $iva > 0)
+        {{-- IVA_BLOCK_START — iva_ticket_display
+@if(($ivaHabilitado ?? session('iva_habilitado', true)) && isset($iva) && $iva > 0)
             <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
                 <span>IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%):</span>
                 <span>${{ number_format($iva, 2) }}</span>
             </div>
         @endif
+IVA_BLOCK_END --}}
 
         @if(($propina ?? 0) > 0)
             <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">

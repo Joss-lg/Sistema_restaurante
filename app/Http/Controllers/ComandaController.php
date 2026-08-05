@@ -49,8 +49,12 @@ class ComandaController extends Controller
         : collect();
 
         // --- AJUSTE: IVA habilitable desde configuración global ---
+        /* IVA_BLOCK_START — iva_show_mesero
         $ivaHabilitado = Configuracion::ivaHabilitado();
         $ivaPorcentaje = Configuracion::ivaPorcentaje();
+        IVA_BLOCK_END */
+        $ivaHabilitado = false; // IVA desactivado
+        $ivaPorcentaje = 0;
 
         return view('mesero.index', compact('mesa', 'categorias', 'productos', 'mesasAbiertas', 'esCapitan', 'comandaActiva', 'platillosEnviados', 'ivaHabilitado', 'ivaPorcentaje'));
     }
@@ -280,10 +284,16 @@ public function transferirProductos(Request $request)
         $subtotalConDescuento = max(0, $subtotal - $descuento);
 
         // --- AJUSTE: IVA habilitable desde configuración global ---
+        /* IVA_BLOCK_START — iva_precuenta
+        /* IVA_BLOCK_START — iva_precuenta
         $ivaHabilitado = Configuracion::ivaHabilitado();
         $ivaPorcentaje = Configuracion::ivaPorcentaje();
         $iva = $ivaHabilitado ? $subtotalConDescuento * ($ivaPorcentaje / 100) : 0;
-        
+        IVA_BLOCK_END */
+        $iva = 0; // IVA desactivado
+        $ivaHabilitado = false;
+        $ivaPorcentaje = 0;
+       
         // --- EXTRAER PROPINA ---
         $propina = 0;
         if ($orden && Schema::hasColumn('ordenes', 'propina')) {

@@ -52,9 +52,14 @@ class MesaOperacionController extends Controller
             'subtotalBruto' => $desglose['subtotalBruto'],
             'descuentoPromociones' => $desglose['descuentoPromociones'],
             'productosConDescuento' => $desglose['productosConDescuento'],
+            /* IVA_BLOCK_START — iva_cobrar_view
             'iva' => $desglose['iva'],
             'ivaHabilitado' => $desglose['ivaHabilitado'],
             'ivaPorcentaje' => $desglose['ivaPorcentaje'],
+            IVA_BLOCK_END */
+            'iva' => 0,
+            'ivaHabilitado' => false,
+            'ivaPorcentaje' => 0,
             'propina' => $desglose['propina'],
             'totalPagar' => $desglose['total'],
             'cuentasDivididas' => $desglose['cuentasDivididas'],
@@ -193,6 +198,36 @@ class MesaOperacionController extends Controller
                     ? " (Persona {$cuentaDivision->numero_cuenta}/{$cuentaDivision->total_partes})"
                     : '';
 
+                // Datos del descuento para el historial
+                $descuentoPct  = (float) ($orden?->descuento_porcentaje ?? 0);
+                $desgloseMesa  = $this->cajaService->obtenerDesgloseMesa($mesa);
+                $subtotalBruto = $desgloseMesa['subtotalBruto'] ?? $desgloseMesa['subtotal'];
+                $montoCobrado  = $sumaTotal; // ya sin cambio ni excedente
+
+                // Armar sufijo del concepto con descuento si aplica
+                $sufDescuento = '';
+                if ($descuentoPct > 0) {
+                    $montoDescontado = round($subtotalBruto - $montoCobrado, 2);
+                    $sufDescuento = " — Descuento {$descuentoPct}% (\$" . number_format($montoDescontado, 2) . ") por " . (auth()->user()->nombre ?? auth()->user()->name);
+                }
+
+                // Caso especial: descuento 100% — registrar aunque el monto sea $0
+                if ($montoCobrado <= 0 && $descuentoPct > 0) {
+                    FlujoCaja::create([
+                        'caja_movimiento_id' => $cajaActiva->id,
+                        'tipo'               => 'ingreso',
+                        'categoria'          => 'Ventas',
+                        'concepto'           => "Pago Mesa #M" . $mesa->numero . $etiquetaPersona . $sufDescuento,
+                        'monto'              => 0,
+                        'metodo_pago'        => 'descuento',
+                        'referencia'         => "Descuento {$descuentoPct}% — {$subtotalBruto} original",
+                        'fecha'              => now(),
+                        'registrado_por'     => auth()->id(),
+                        'flujoable_id'       => $orden ? $orden->id : null,
+                        'flujoable_type'     => $orden ? get_class($orden) : null,
+                    ]);
+                }
+
                 foreach ($pagosNormalizados as $pago) {
                     $monto = $pago['monto'];
                     $metodo = $pago['metodo'];
@@ -202,7 +237,7 @@ class MesaOperacionController extends Controller
                             'caja_movimiento_id' => $cajaActiva->id, 
                             'tipo'               => 'ingreso',
                             'categoria'          => 'Ventas',
-                            'concepto'           => "Pago Mesa #M" . $mesa->numero . $etiquetaPersona,
+                            'concepto'           => "Pago Mesa #M" . $mesa->numero . $etiquetaPersona . $sufDescuento,
                             'monto'              => $monto,
                             'metodo_pago'        => $metodo,
                             'referencia'         => !empty($pago['referencia']) ? trim($pago['referencia']) : null,
@@ -386,8 +421,12 @@ class MesaOperacionController extends Controller
         // de propina siempre se aplique sobre la base correcta.
         $desglose = $this->cajaService->obtenerDesgloseMesa($mesa);
         $subtotal = $desglose['subtotal'];
+        /* IVA_BLOCK_START — iva_propina
         $iva = $desglose['iva'];
         $base = $subtotal + $iva;
+        IVA_BLOCK_END */
+        $iva = 0; // IVA desactivado
+        $base = $subtotal;
 
         if ($request->tipo === 'porcentaje') {
             if ($request->valor > 100) {

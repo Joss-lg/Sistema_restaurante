@@ -140,8 +140,12 @@ class TicketService
         // --- IVA: unificado con la MISMA fuente de verdad que usa CajaService
         // y ComandaController (Configuracion), en vez de session(), para que
         // el ticket de caja siempre coincida con el desglose que ya se cobró.
+        /* IVA_BLOCK_START — iva_ticket
         $ivaHabilitado = Configuracion::ivaHabilitado();
         $ivaPorcentaje = Configuracion::ivaPorcentaje();
+        IVA_BLOCK_END */
+        $ivaHabilitado = false; // IVA desactivado
+        $ivaPorcentaje = 0;
         $iva = $ivaHabilitado ? round($baseImponible * ($ivaPorcentaje / 100), 2) : 0;
 
         // Propina: se suma la de TODAS las órdenes de la mesa. En la

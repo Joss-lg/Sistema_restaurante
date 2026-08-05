@@ -97,10 +97,11 @@
         </div>
 
         <textarea id="notaTextarea" rows="4"
-            data-teclado="texto"
-            data-teclado-titulo="Instrucción Especial"
-            class="w-full rounded-2xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-sm font-medium text-[var(--text-main)] outline-none resize-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 mb-4"
-            placeholder="Escribe la instrucción aquí...">
+            readonly
+            inputmode="none"
+            onclick="abrirTecladoNota()"
+            class="w-full rounded-2xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-sm font-medium text-[var(--text-main)] outline-none resize-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 mb-4 cursor-pointer"
+            placeholder="Toca aquí para escribir...">
         </textarea>
 
         <div class="flex items-center gap-2 mb-4 overflow-x-auto hide-scroll pb-1">
@@ -377,3 +378,118 @@
         </div>
     </div>
 </div>
+{{-- ═══════════════════════════════════════════════════
+     TECLADO VIRTUAL — Modal de Nota / Instrucción
+     ════════════════════════════════════════════════ --}}
+<div id="teclado-nota-overlay"
+     class="hidden fixed inset-0 z-[99999]"
+     onclick="if(event.target===this) cerrarTecladoNota()">
+
+    <div class="absolute bottom-0 inset-x-0 bg-[var(--bg-base)] border-t border-[var(--border-color)] shadow-2xl rounded-t-3xl">
+
+        {{-- Display + cerrar --}}
+        <div class="flex items-start gap-3 px-4 pt-4 pb-3 border-b border-[var(--border-color)]">
+            <div class="flex-1 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 min-h-[48px] max-h-24 overflow-y-auto">
+                <span id="tn-display" class="text-sm font-medium text-[var(--text-main)] break-words whitespace-pre-wrap"></span><span class="inline-block w-0.5 h-4 bg-blue-500 animate-pulse rounded-full align-middle ml-0.5"></span>
+            </div>
+            <button type="button" onclick="cerrarTecladoNota()"
+                class="w-10 h-10 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-muted)] flex items-center justify-center shrink-0 active:scale-95 mt-0.5">
+                <i class="fas fa-check text-sm text-blue-500"></i>
+            </button>
+        </div>
+
+        {{-- Notas rápidas --}}
+        <div class="flex gap-2 px-3 pt-2.5 overflow-x-auto hide-scroll pb-1">
+            @foreach(['Sin cebolla','Salsa aparte','Bien cocido','Término medio','Para llevar','Sin picante'] as $nota)
+                <button type="button" onclick="tnRapida('{{ $nota }}')"
+                    class="shrink-0 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[11px] font-bold active:scale-90 transition-all">
+                    {{ $nota }}
+                </button>
+            @endforeach
+        </div>
+
+        {{-- QWERTY --}}
+        <div class="px-2 py-2 space-y-1.5 select-none">
+            @php
+                $filasNota = [
+                    ['Q','W','E','R','T','Y','U','I','O','P'],
+                    ['A','S','D','F','G','H','J','K','L'],
+                    ['Z','X','C','V','B','N','M'],
+                ];
+            @endphp
+            @foreach($filasNota as $fila)
+                <div class="flex justify-center gap-1">
+                    @foreach($fila as $letra)
+                        <button type="button" onclick="tnEscribir('{{ $letra }}')"
+                            class="flex-1 max-w-[38px] h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 active:bg-blue-100 dark:active:bg-blue-500/20 transition-all duration-75">
+                            {{ $letra }}
+                        </button>
+                    @endforeach
+                </div>
+            @endforeach
+            {{-- Fila inferior --}}
+            <div class="flex justify-center gap-1 mt-1">
+                <button type="button" onclick="tnEscribir(' ')"
+                    class="flex-1 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-500 font-bold text-xs shadow-sm active:scale-95 transition-all duration-75">
+                    ESPACIO
+                </button>
+                <button type="button" onclick="tnEscribir('.')"
+                    class="w-12 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 transition-all duration-75">
+                    .
+                </button>
+                <button type="button" onclick="tnBorrar()"
+                    class="w-14 h-10 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-500 shadow-sm active:scale-95 flex items-center justify-center transition-all duration-75">
+                    <i class="fas fa-delete-left text-base"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    let tnValor = '';
+    const overlay   = document.getElementById('teclado-nota-overlay');
+    const display   = document.getElementById('tn-display');
+    const textarea  = document.getElementById('notaTextarea');
+
+    window.abrirTecladoNota = function () {
+        tnValor = textarea.value || '';
+        display.textContent = tnValor;
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.cerrarTecladoNota = function () {
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+        textarea.value = tnValor;
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    window.tnEscribir = function (char) {
+        tnValor += char;
+        display.textContent = tnValor;
+    };
+
+    window.tnBorrar = function () {
+        tnValor = tnValor.slice(0, -1);
+        display.textContent = tnValor;
+    };
+
+    window.tnRapida = function (texto) {
+        if (tnValor && !tnValor.endsWith(' ')) tnValor += ' ';
+        tnValor += texto;
+        display.textContent = tnValor;
+    };
+
+    // Las notas rápidas del modal original también deben funcionar
+    window.agregarTextoRapidoNota = function (texto) {
+        const ta = document.getElementById('notaTextarea');
+        if (ta) {
+            if (ta.value && !ta.value.endsWith(' ')) ta.value += ' ';
+            ta.value += texto;
+        }
+    };
+})();
+</script>

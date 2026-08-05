@@ -78,6 +78,7 @@ class CajaService
         $subtotal = round($subtotalTrasPromociones - $descuentoCaja, 2);
         $propina  = $ordenesActivas->sum('propina');
 
+/* IVA_BLOCK_START — calculo_iva_obtenerDesgloseMesa
         // --- AJUSTE: IVA habilitable desde configuración global ---
         $ivaHabilitado = Configuracion::ivaHabilitado();
         $ivaPorcentaje = Configuracion::ivaPorcentaje(); // ej. 16
@@ -85,6 +86,7 @@ class CajaService
         $iva = $ivaHabilitado
             ? round($subtotal * ($ivaPorcentaje / 100), 2)
             : 0;
+IVA_BLOCK_END */
 
         // --- NUEVO: comisión de plataforma de delivery (Rappi/Uber/DiDi) ---
         // Se calcula sobre el valor de venta al público (subtotal + IVA del
@@ -98,12 +100,18 @@ class CajaService
         $comisionPorcentaje = $esDelivery ? (float) ($mesa->comision_porcentaje ?? 0) : 0;
         $comisionIvaPorcentaje = $esDelivery ? (float) ($mesa->comision_iva_porcentaje ?? 0) : 0;
 
+        /* IVA_BLOCK_START — base_comision_con_iva
         $baseComision = $subtotal + $iva;
+        IVA_BLOCK_END */
+        $baseComision = $subtotal; // IVA desactivado: base sin IVA
         $comisionMonto = $esDelivery ? round($baseComision * ($comisionPorcentaje / 100), 2) : 0;
         $comisionIvaMonto = $esDelivery ? round($comisionMonto * ($comisionIvaPorcentaje / 100), 2) : 0;
         $comisionTotal = round($comisionMonto + $comisionIvaMonto, 2);
 
+        /* IVA_BLOCK_START — total_con_iva
         $total = round($subtotal + $iva + $propina + $comisionTotal, 2);
+        IVA_BLOCK_END */
+        $total = round($subtotal + $propina + $comisionTotal, 2); // IVA desactivado
 
         $division = $this->obtenerEstadoDivision($mesa);
 
@@ -115,9 +123,14 @@ class CajaService
             // Descuento manual aplicado desde Caja
             'descuentoPorcentaje'   => $descuentoPorcentaje,
             'descuentoCaja'         => $descuentoCaja,
+            /* IVA_BLOCK_START — return_iva_keys
             'iva'                   => $iva,
             'ivaHabilitado'         => $ivaHabilitado,
             'ivaPorcentaje'         => $ivaPorcentaje,
+            IVA_BLOCK_END */
+            'iva'                   => 0,
+            'ivaHabilitado'         => false,
+            'ivaPorcentaje'         => 0,
             'propina'               => round($propina, 2),
             // --- NUEVO: desglose de comisión de delivery ---
             'esDelivery'            => $esDelivery,

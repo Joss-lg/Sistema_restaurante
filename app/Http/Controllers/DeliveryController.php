@@ -81,4 +81,40 @@ class DeliveryController extends Controller
             'redirect' => route('mesero.comanda.show', $mesa->id),
         ], 201);
     }
+
+    /**
+     * Elimina una mesa de delivery que no tiene productos capturados.
+     * Se llama cuando el mesero entra a un delivery y sale sin agregar nada.
+     * Usa borrado suave para no romper historial si ya hay algo registrado.
+     */
+    public function cancelarVacio(int $mesaId): JsonResponse
+    {
+        $mesa = Mesa::withTrashed()->findOrFail($mesaId);
+
+        // Solo aplica a delivery y solo si el usuario es el dueño o admin
+        if (!$mesa->esDelivery()) {
+            return response()->json(['success' => false, 'message' => 'No es un pedido de delivery.'], 422);
+        }
+
+        // Verificar que no tenga productos
+        $tieneProductos = $mesa->ordenesActivas()
+            ->whereHas('detalles', fn($q) => $q->where('estado', '!=', 'cancelado'))
+            ->exists();
+
+        if ($tieneProductos) {
+            return response()->json(['success' => false, 'message' => 'El pedido ya tiene productos.'], 422);
+        }
+
+        DB::transaction(function () use ($mesa) {
+            // Eliminar órdenes vacías
+            $mesa->ordenes()->delete();
+            // Eliminar la mesa virtual
+            $mesa->delete();
+        });
+
+        return response()->json([
+            'success'  => true,
+            'redirect' => route('mesero.dashboard'),
+        ]);
+    }
 }

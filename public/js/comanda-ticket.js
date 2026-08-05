@@ -261,16 +261,18 @@
         const subtotalTras2x1 = Math.max(0, ticketSubtotal - descuento2x1Monto - descuentoComboMonto);
         const subtotalConDescuento = Math.max(0, subtotalTras2x1 - (subtotalTras2x1 * (descuentoPorcentaje / 100)));
 
+        /* IVA_BLOCK_START — iva_comanda_ticket_js
         // --- AJUSTE: IVA habilitable desde configuración global ---
         const ivaConfig = (window.ComandaConfig && window.ComandaConfig.iva) || { habilitado: true, porcentaje: 16 };
         const iva = ivaConfig.habilitado ? subtotalConDescuento * (ivaConfig.porcentaje / 100) : 0;
-        
-        // Guardamos el total final con el IVA en una variable global para que sea accesible
-        // por la calculadora de porcentajes de propina
         window.totalComandaSinPropina = subtotalConDescuento + iva;
-
         document.getElementById('txtSubtotal').innerText = '$' + subtotalConDescuento.toFixed(2);
         document.getElementById('txtIva').innerText = '$' + iva.toFixed(2);
+        IVA_BLOCK_END */
+        const iva = 0; // IVA desactivado
+        window.totalComandaSinPropina = subtotalConDescuento;
+        document.getElementById('txtSubtotal').innerText = '$' + subtotalConDescuento.toFixed(2);
+        const txtIvaEl = document.getElementById('txtIva'); if (txtIvaEl) txtIvaEl.innerText = '$0.00';
 
         // Si tienes un elemento visual para renderizar el monto de la propina, lo actualizamos aquí:
         const txtPropina = document.getElementById('txtPropina');
@@ -285,12 +287,24 @@
         //   comisión   = base * %plataforma
         //   IVA com.   = comisión * %iva
         // y el total de comisión SE SUMA al total del pedido.
+        /* IVA_BLOCK_START — total_comision_con_iva
         const totalComision = window.calcularComisionDelivery(subtotalConDescuento + iva);
-
         const totalFinal = subtotalConDescuento + iva + window.propinaGlobal + totalComision;
+        IVA_BLOCK_END */
+        const totalComision = window.calcularComisionDelivery(subtotalConDescuento); // IVA desactivado
+        const totalFinal = subtotalConDescuento + window.propinaGlobal + totalComision;
         const txtTotalComanda = document.getElementById('txtTotalComanda');
         if (txtTotalComanda) {
             txtTotalComanda.innerText = '$' + totalFinal.toFixed(2);
+        }
+
+        // ── Sincronizar barra fija inferior (solo móvil) ──────────────────
+        const barraTotal = document.getElementById('barra-mobile-total');
+        const barraCount = document.getElementById('barra-mobile-count');
+        if (barraTotal) barraTotal.innerText = '$' + totalFinal.toFixed(2);
+        if (barraCount) {
+            const totalItems = document.querySelectorAll('#listaTicket .ticket-item').length;
+            barraCount.innerText = totalItems;
         }
 
         actualizarVistaTotal();

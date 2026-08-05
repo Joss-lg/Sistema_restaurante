@@ -9,7 +9,7 @@
 <aside id="col-acciones" class="hidden lg:flex w-full lg:w-[190px] xl:w-[220px] flex-shrink-0 h-full flex-col bg-[var(--bg-base)] border-r border-[var(--border-color)] p-4 pb-4 z-20 overflow-y-auto hide-scroll">
 
     <div class="flex items-center gap-2 mb-6">
-        <button type="button" onclick="window.location.href='{{ route('mesero.dashboard') }}'" class="flex-1 h-10 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-main)] font-semibold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--hover-bg)] hover:border-[var(--border-highlight)] hover:shadow-md transition-all duration-150 active:scale-95 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
+        <button type="button" onclick="salirComanda()" class="flex-1 h-10 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-main)] font-semibold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--hover-bg)] hover:border-[var(--border-highlight)] hover:shadow-md transition-all duration-150 active:scale-95 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
             <i class="fas fa-arrow-left text-[var(--text-muted)] text-[10px]"></i> Mesas
         </button>
         <button type="button" onclick="toggleTheme()" class="w-10 h-10 shrink-0 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-[var(--border-highlight)] hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
@@ -79,6 +79,89 @@
 {{-- ========================================== --}}
 {{-- COLUMNA 2: TICKET / COMANDA (CENTRAL)      --}}
 {{-- ========================================== --}}
+{{-- ═══════════════════════════════════════════════════════════
+     BARRA FIJA INFERIOR — Solo móvil (< md)
+     Siempre visible, con acciones rápidas del platillo y botón
+     para abrir el panel completo del ticket.
+     ════════════════════════════════════════════════════════════ --}}
+<div id="barra-acciones-mobile"
+     class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--bg-base)] border-t border-[var(--border-color)] shadow-[0_-4px_20px_rgba(0,0,0,0.12)]"
+     style="padding-bottom: env(safe-area-inset-bottom)">
+
+    {{-- Fila superior: acciones rápidas --}}
+    <div class="flex items-center gap-2 px-3 pt-2.5 pb-1.5 overflow-x-auto hide-scroll">
+        <button type="button" onclick="ajustarPersonas()"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95 whitespace-nowrap">
+            <i class="fas fa-users text-blue-500 text-[10px]"></i>
+            <span id="txtPersonasMobile">{{ $mesa->capacidad ?? 1 }}</span> Pax
+        </button>
+        <button type="button" onclick="agregarNota()"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95 whitespace-nowrap">
+            <i class="fas fa-pen text-blue-500 text-[10px]"></i> Nota
+        </button>
+        <button type="button" onclick="llamarCapitan()"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95 whitespace-nowrap">
+            <i class="fas fa-exchange-alt text-indigo-500 text-[10px]"></i> Traspaso
+        </button>
+        <button type="button" onclick="imprimirPrecuenta()"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95 whitespace-nowrap">
+            <i class="fas fa-receipt text-blue-500 text-[10px]"></i> Precuenta
+        </button>
+        <button type="button" onclick="limpiarTicket()"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-red-500 shadow-sm active:scale-95 whitespace-nowrap">
+            <i class="fas fa-trash-alt text-[10px]"></i> Limpiar
+        </button>
+    </div>
+
+    {{-- Fila inferior: Ver orden (abre el panel del ticket) --}}
+    <div class="px-3 pb-2">
+        <button type="button" onclick="toggleOrdenMobile()"
+            class="w-full h-12 rounded-2xl bg-[var(--text-main)] text-[var(--bg-base)] flex items-center justify-between px-4 shadow-md active:scale-[0.98] transition-transform">
+            <div class="flex items-center gap-2.5">
+                <span id="barra-mobile-count"
+                    class="w-6 h-6 rounded-full bg-[var(--bg-base)] text-[var(--text-main)] text-[11px] font-black flex items-center justify-center">0</span>
+                <span class="text-[13px] font-black tracking-wide">Ver orden</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="barra-mobile-total" class="text-[13px] font-black">$0.00</span>
+                <i class="fas fa-chevron-up text-[10px] opacity-60"></i>
+            </div>
+        </button>
+    </div>
+</div>
+
+<script>
+(function () {
+    window.salirComanda = async function () {
+        const config  = window.ComandaConfig || {};
+        const mesa    = config.mesa || {};
+        const csrf    = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const dashboard = config.rutas?.dashboard || '/mesero/dashboard';
+
+        // Si es delivery y no tiene items en el ticket, cancelar la mesa virtual
+        if (mesa.esDelivery) {
+            const ticketItems = document.querySelectorAll('#listaTicket .ticket-item').length;
+            const enviadosDB  = (window.platillosEnviadosDB || []).length;
+
+            if (ticketItems === 0 && enviadosDB === 0) {
+                try {
+                    await fetch(`/mesero/delivery/${mesa.id}/cancelar-vacio`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    });
+                } catch (e) {
+                    // Si falla, igual redirigir
+                }
+                window.location.href = dashboard;
+                return;
+            }
+        }
+
+        window.location.href = dashboard;
+    };
+})();
+</script>
+
 <section id="col-ticket" class="
     /* --- ESTILOS PARA TABLET/DESKTOP (≥768px) --- */
     md:flex md:w-[300px] lg:w-[320px] xl:w-[360px] md:flex-shrink-0 md:h-full md:flex-col md:bg-[var(--bg-base)] md:border-r md:border-[var(--border-color)] md:relative md:z-10 md:shadow-[20px_0_40px_-15px_rgba(0,0,0,0.15)] md:translate-y-0 md:rounded-none
@@ -112,7 +195,7 @@
 
     {{-- CABECERA TABLET (768–1023px): solo nombre de mesa, sin manija de arrastre --}}
     <div class="hidden md:flex lg:hidden items-center justify-between px-4 py-3 border-b border-[var(--border-color)]">
-        <button type="button" onclick="window.location.href='{{ route('mesero.dashboard') }}'" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm hover:bg-[var(--hover-bg)] active:scale-95">
+        <button type="button" onclick="salirComanda()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm hover:bg-[var(--hover-bg)] active:scale-95">
             <i class="fas fa-arrow-left text-[var(--text-muted)]"></i> Mesas
         </button>
         <div class="flex items-center gap-1.5 text-[12px] font-black tracking-tight text-[var(--text-main)]">
@@ -129,7 +212,7 @@
     </div>
 
     <div class="p-4 border-b border-[var(--border-color)] flex flex-col gap-3 bg-[var(--bg-base)]">
-        <div id="barraModificadores" class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-3 shadow-sm">
+        <div id="barraModificadores" class="lg:hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-3 shadow-sm">
             <div class="flex items-center justify-between mb-2.5">
                 <span class="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Acciones del platillo</span>
                 <span id="barraModificadores-hint" class="text-[9px] font-semibold text-[var(--text-muted)]">Toca un producto para modificar</span>
@@ -237,29 +320,7 @@
         </div>
     </div>
 
-    {{-- ACCIONES DE CUENTA (MÓVIL Y TABLET, hasta 1023px) --}}
-    {{-- Antes solo vivía en móvil (md:hidden). Como col-acciones ahora solo aparece en
-         desktop (lg), esta barra debe seguir visible en tablet (768–1023px) o se pierde
-         el acceso a Personas/Nota/Descuento/etc. en ese rango. --}}
-    <div class="lg:hidden flex items-center gap-2 px-4 py-3 bg-[var(--bg-base)] border-t border-[var(--border-color)] overflow-x-auto hide-scroll shadow-[0_-5px_15px_rgba(0,0,0,0.02)] z-20 relative">
-        <button type="button" onclick="ajustarPersonas()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
-            <i class="fas fa-users text-blue-500"></i> <span id="txtPersonasMobile">{{ $mesa->capacidad ?? 1 }}</span> Pax
-        </button>
-        <button type="button" onclick="agregarNota()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
-            <i class="fas fa-pen text-blue-500"></i> Nota
-        </button>
-{{-- Gramaje mobile oculto por solicitud --}}
-        <button type="button" onclick="llamarCapitan()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
-            <i class="fas fa-exchange-alt text-indigo-500"></i> Traspaso
-        </button>
-{{-- Promos mobile oculto por solicitud --}}
-        <button type="button" onclick="imprimirPrecuenta()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
-            <i class="fas fa-receipt text-blue-500"></i> Precuenta
-        </button>
-        <button type="button" onclick="limpiarTicket()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-red-500 shadow-sm active:scale-95">
-            <i class="fas fa-trash-alt text-red-500"></i> Limpiar
-        </button>
-    </div>
+    {{-- Barra de acciones mobile movida a barra-acciones-mobile (fija, fuera del panel) --}}
 
     {{-- FOOTER DE TOTALES (PREMIUM) --}}
     <div class="p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-5 border-t border-[var(--border-color)] bg-gradient-to-b from-[var(--bg-panel)] to-[var(--bg-panel)] flex-shrink-0 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] relative">
@@ -267,10 +328,12 @@
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Subtotal</span>
             <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtSubtotal">$0.00</span>
         </div>
+{{-- IVA_BLOCK_START — iva_sidebar_display
        <div class="flex justify-between items-center mb-2">
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">IVA (16%)</span>
             <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtIva">$0.00</span>
         </div>
+IVA_BLOCK_END --}}
 
         <div class="flex justify-between items-center mb-4">
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Propina</span>

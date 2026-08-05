@@ -25,6 +25,7 @@ use App\Http\Controllers\HistorialCajaController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\PlataformaDeliveryController;
+use App\Http\Controllers\CorteController;
 
 // ==========================================
 // --- AUTENTICACIÓN ---
@@ -75,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/mesa/store', [MesaController::class, 'store'])->name('mesa.store');
             Route::post('/mesa/reabrir', [ComandaController::class, 'reabrir'])->name('mesa.reabrir');
             Route::post('/delivery/crear', [DeliveryController::class, 'crear'])->name('delivery.crear');
+        Route::delete('/delivery/{mesa}/cancelar-vacio', [DeliveryController::class, 'cancelarVacio'])->name('delivery.cancelar-vacio');
         });
 
         // NUEVO: cancelación de un producto individual ya enviado a cocina,
@@ -281,6 +283,12 @@ Route::middleware(['auth'])->group(function () {
             Route::prefix('pagos-nomina')->name('pagos-nomina.')->group(function () {
                 Route::post('/', [FinanzasController::class, 'guardarNomina'])->name('store');
             });
+        });
+
+        // --- PRODUCTOS VENDIDOS (Corte por área) ---
+        Route::middleware(['permiso:Inventario,mostrar'])->prefix('corte')->name('corte.')->group(function () {
+            Route::get('/', [CorteController::class, 'index'])->name('index');
+            Route::get('/pdf', [CorteController::class, 'descargarPdf'])->name('pdf');
         });
 
         Route::post('/permisos/store', [PermisoController::class, 'store'])->name('permisos.store');

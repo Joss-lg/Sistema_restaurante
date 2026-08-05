@@ -30,7 +30,7 @@
             @endif
 
             {{-- BOTÓN REPORTE PRODUCTOS VENDIDOS --}}
-            <a href="{{ route('corte.index') }}" 
+            <a href="{{ route('admin.corte.index') }}" 
                class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 h-12 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 active:scale-95 outline-none flex items-center justify-center gap-2">
                 <i class="fas fa-receipt"></i> Productos Vendidos
             </a>

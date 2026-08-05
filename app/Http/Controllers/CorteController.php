@@ -10,24 +10,39 @@ class CorteController extends Controller
 {
     public function index(Request $request)
     {
-        // Tomamos las fechas del request, o usamos hoy por defecto
         $fechaInicio = $request->input('fecha_inicio', today()->toDateString());
-        $fechaFin = $request->input('fecha_fin', today()->toDateString());
-        
+        $fechaFin    = $request->input('fecha_fin',    today()->toDateString());
+        $areaFiltro  = $request->input('area', 'todas'); // 'todas' | cualquier area_impresion
+
         $ventasPorArea = $this->obtenerDatosCorte($fechaInicio, $fechaFin);
 
-        return view('corte.index', compact('ventasPorArea', 'fechaInicio', 'fechaFin'));
+        // Listado de áreas disponibles para los botones de filtro
+        $areasDisponibles = $ventasPorArea->keys()->sort()->values();
+
+        // Filtrar si se pidió un área específica
+        if ($areaFiltro !== 'todas') {
+            $ventasPorArea = $ventasPorArea->filter(fn($_, $k) => strtolower($k) === strtolower($areaFiltro));
+        }
+
+        return view('corte.index', compact('ventasPorArea', 'fechaInicio', 'fechaFin', 'areaFiltro', 'areasDisponibles'));
     }
 
     public function descargarPdf(Request $request)
     {
         $fechaInicio = $request->input('fecha_inicio', today()->toDateString());
-        $fechaFin = $request->input('fecha_fin', today()->toDateString());
+        $fechaFin    = $request->input('fecha_fin',    today()->toDateString());
+        $areaFiltro  = $request->input('area', 'todas');
+
         $ventasPorArea = $this->obtenerDatosCorte($fechaInicio, $fechaFin);
 
-        $pdf = Pdf::loadView('corte.pdf', compact('ventasPorArea', 'fechaInicio', 'fechaFin'));
-        
-        return $pdf->download('ventas_' . $fechaInicio . '_al_' . $fechaFin . '.pdf'); 
+        if ($areaFiltro !== 'todas') {
+            $ventasPorArea = $ventasPorArea->filter(fn($_, $k) => strtolower($k) === strtolower($areaFiltro));
+        }
+
+        $pdf = Pdf::loadView('corte.pdf', compact('ventasPorArea', 'fechaInicio', 'fechaFin', 'areaFiltro'));
+
+        $sufijo = $areaFiltro !== 'todas' ? "_{$areaFiltro}" : '';
+        return $pdf->download("ventas{$sufijo}_{$fechaInicio}_al_{$fechaFin}.pdf");
     }
 
     private function obtenerDatosCorte($fechaInicio, $fechaFin)
