@@ -87,6 +87,7 @@
 
         $platillosEnviadosParaJs = ($platillosEnviados ?? collect())->map(function ($item) {
             return [
+                'id'       => $item->id ?? null,
                 'nombre'   => $item->nombre ?? 'Platillo',
                 'cantidad' => $item->cantidad ?? 1,
                 'precio'   => $item->precio ?? 0,
@@ -134,6 +135,7 @@
                 comandaPersonas: @json(route('mesero.comanda.personas', ['mesa' => $mesaId])),
                 comandaPrecuenta: @json(route('mesero.comanda.precuenta', ['mesa' => $mesaId])),
                 comandaCancelarDetalle: @json(route('mesero.comanda.detalle.cancelar', ['detalle' => 0])),
+                meserosActivos: @json(route('mesero.meseros.activos')),
             }
         };
     </script>

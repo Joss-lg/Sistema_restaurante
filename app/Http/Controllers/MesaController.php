@@ -142,8 +142,9 @@ class MesaController extends Controller
     public function cancelarProducto(Request $request, $detalleId)
     {
         $request->validate([
-            'nip'    => 'required|string',
-            'motivo' => 'nullable|string|max:255',
+            'nip'              => 'required|string',
+            'motivo'           => 'nullable|string|max:255',
+            'cantidad_cancelar' => 'nullable|integer|min:1',
         ]);
 
         // --- Verificación de autorización por NIP (Capitán o Administrador) ---
@@ -156,12 +157,15 @@ class MesaController extends Controller
             ], 403);
         }
 
-        // Administrador = rol_id 1, Capitán = rol_id 2 (según tabla `roles`;
-        // no existe columna 'slug' en tu esquema, así que validamos por id).
-        if (!in_array((int) $autorizador->rol_id, [1, 2])) {
+        // Solo el Administrador puede autorizar cancelaciones de productos.
+        $autorizador->loadMissing('rol');
+        $nombreRol = strtolower(trim($autorizador->rol?->nombre ?? ''));
+        $esAdmin = in_array($nombreRol, ['administrador', 'admin']) || $autorizador->id === 1;
+
+        if (!$esAdmin) {
             return response()->json([
                 'success' => false,
-                'message' => 'Este NIP no tiene permisos para autorizar cancelaciones.'
+                'message' => 'Solo el Administrador puede autorizar cancelaciones de productos.'
             ], 403);
         }
 
@@ -177,17 +181,22 @@ class MesaController extends Controller
         $orden = $detalle->orden;
         $mesa  = Mesa::findOrFail($orden->mesa_id);
 
+        // Cuántas unidades cancelar (por defecto todas)
+        $cantidadCancelar = min(
+            (int) ($request->cantidad_cancelar ?? $detalle->cantidad),
+            $detalle->cantidad
+        );
+        $cancelacionParcial = $cantidadCancelar < $detalle->cantidad;
+
         try {
-            DB::transaction(function () use ($detalle, $orden, $mesa, $autorizador, $request) {
+            DB::transaction(function () use ($detalle, $orden, $mesa, $autorizador, $request, $cantidadCancelar, $cancelacionParcial) {
 
-                // Monto bruto de la línea cancelada
-                $subtotalProducto = $detalle->cantidad * $detalle->precio_unitario;
-
-                // Si tenía descuento de promoción aplicado, lo revertimos también
+                // Proporción del descuento a revertir
+                $proporcion = $cantidadCancelar / $detalle->cantidad;
+                $subtotalCancelado = $cantidadCancelar * $detalle->precio_unitario;
                 $descuentoAsociado = OrdenPromocion::where('detalle_orden_id', $detalle->id)->sum('monto_descuento');
-                OrdenPromocion::where('detalle_orden_id', $detalle->id)->delete();
-
-                $montoNeto = $subtotalProducto - $descuentoAsociado;
+                $descuentoCancelado = round($descuentoAsociado * $proporcion, 2);
+                $montoNeto = $subtotalCancelado - $descuentoCancelado;
 
                 // Reflejar en los totales acumulados de orden/mesa
                 if (Schema::hasColumn('ordenes', 'total')) {
@@ -197,19 +206,36 @@ class MesaController extends Controller
                     $mesa->update(['total_consumo' => max(0, ($mesa->total_consumo ?? 0) - $montoNeto)]);
                 }
 
-                // Marcar el producto como cancelado. Queda como historial, nunca se borra.
-                $detalle->update([
-                    'estado'             => 'cancelado',
-                    'estado_preparacion' => 'cancelado',
-                    'cancelado_motivo'   => $request->motivo,
-                    'cancelado_por'      => $autorizador->id,
-                    'cancelado_en'       => now(),
-                ]);
+                if ($cancelacionParcial) {
+                    // Cancelación parcial: reducir cantidad, no marcar toda la línea
+                    $detalle->update([
+                        'cantidad' => $detalle->cantidad - $cantidadCancelar,
+                    ]);
+                    // Ajustar el descuento de promoción proporcionalmente
+                    if ($descuentoAsociado > 0) {
+                        OrdenPromocion::where('detalle_orden_id', $detalle->id)
+                            ->update(['monto_descuento' => DB::raw("monto_descuento * " . (1 - $proporcion))]);
+                    }
+                } else {
+                    // Cancelación total: marcar como cancelado y limpiar descuentos
+                    OrdenPromocion::where('detalle_orden_id', $detalle->id)->delete();
+                    $detalle->update([
+                        'estado'             => 'cancelado',
+                        'estado_preparacion' => 'cancelado',
+                        'cancelado_motivo'   => $request->motivo,
+                        'cancelado_por'      => $autorizador->id,
+                        'cancelado_en'       => now(),
+                    ]);
+                }
             });
+
+            $msg = $cancelacionParcial
+                ? "{$cantidadCancelar} unidad(es) cancelada(s) correctamente."
+                : 'Producto cancelado correctamente.';
 
             return response()->json([
                 'success' => true,
-                'message' => 'Producto cancelado correctamente.'
+                'message' => $msg
             ]);
 
         } catch (\Exception $e) {

@@ -175,14 +175,15 @@
             const modificadoresParaPintar = JSON.parse(modsString || '[]');
             contenedorBotonesModificadores.innerHTML = '';
 
+            const hint = document.getElementById('barraModificadores-hint');
             if (modificadoresParaPintar.length > 0) {
                 modificadoresParaPintar.forEach(mod => {
                     const nombreMod = mod.nombre || mod.descripcion || mod;
                     contenedorBotonesModificadores.insertAdjacentHTML('beforeend', `<button type="button" onclick="agregarModificadorFijo('${nombreMod}')" class="px-5 py-2 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-[var(--text-main)] text-[10px] font-bold hover:border-[#3b82f6] transition-all shadow-sm">${nombreMod}</button>`);
                 });
-                barraModificadores.classList.remove('hidden');
+                if (hint) hint.textContent = 'Selección activa';
             } else {
-                barraModificadores.classList.add('hidden');
+                if (hint) hint.textContent = 'Sin modificadores';
             }
         }
     };
@@ -196,7 +197,10 @@
                 el.querySelector('.btn-control-eliminar').classList.remove('flex');
             }
         });
-        itemActivo = null; barraModificadores.classList.add('hidden');
+        itemActivo = null;
+        contenedorBotonesModificadores.innerHTML = '';
+        const hint = document.getElementById('barraModificadores-hint');
+        if (hint) hint.textContent = 'Toca un producto para modificar';
     };
 
     window.agregarModificadorFijo = function (texto) {

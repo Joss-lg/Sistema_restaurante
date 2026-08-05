@@ -77,7 +77,7 @@
         <div style="font-size: 12px;">{{ $fecha }}{{ !empty($hora) ? ' - '.$hora : '' }}</div>
 
         @if($mesero) 
-            <div style="font-size: 12px;">ATENDIÓ: {{ $mesero }}</div> 
+            <div style="font-size: 12px;">MESERO: {{ $mesero }}</div> 
         @endif
 
         @if(!empty($cajero))

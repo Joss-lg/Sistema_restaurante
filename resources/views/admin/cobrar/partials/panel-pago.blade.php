@@ -39,22 +39,73 @@
             </div>
 
             {{-- 2. Display de Montos --}}
-            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 p-8 rounded-[2.5rem] text-center shadow-sm dark:shadow-2xl">
-                <p class="text-zinc-400 dark:text-zinc-500 text-[10px] font-black uppercase mb-4 italic">Monto a cobrar</p>
-                {{-- ID monto-input para JS --}}
-                <div class="text-6xl font-black text-zinc-900 dark:text-white italic tracking-tighter" id="monto-input">$0.00</div>
-                <div class="mt-4 text-sm text-zinc-500 dark:text-zinc-400 space-y-1">
-                    <p>Total: <strong class="text-zinc-900 dark:text-white font-black" id="total-pagar-derecha">${{ number_format($totalPagar ?? 0, 2) }}</strong></p>
-                    <p>Cambio: <strong class="text-green-600 dark:text-green-500 font-black" id="display-cambio">$0.00</strong></p>
+            <div class="relative bg-gradient-to-br from-zinc-900 to-zinc-800 dark:from-zinc-900 dark:to-black border border-white/10 rounded-[2rem] overflow-hidden shadow-xl">
+                {{-- Línea de acento superior --}}
+                <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 opacity-80"></div>
+                <div class="px-6 pt-6 pb-5 text-center">
+                    <p class="text-zinc-500 text-[9px] font-black uppercase tracking-[0.3em] mb-3">Monto a cobrar</p>
+                    <div class="text-5xl font-black text-white tracking-tighter" id="monto-input">$0.00</div>
+                    <div class="mt-4 flex items-center justify-center gap-6 text-xs">
+                        <div class="flex flex-col items-center gap-0.5">
+                            <span class="text-zinc-500 uppercase tracking-widest text-[9px] font-bold">Total</span>
+                            <strong class="text-white font-black text-sm" id="total-pagar-derecha">${{ number_format($totalPagar ?? 0, 2) }}</strong>
+                        </div>
+                        <div class="w-px h-8 bg-white/10"></div>
+                        <div class="flex flex-col items-center gap-0.5">
+                            <span class="text-zinc-500 uppercase tracking-widest text-[9px] font-bold">Cambio</span>
+                            <strong class="text-emerald-400 font-black text-sm" id="display-cambio">$0.00</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {{-- 3. Teclado Numérico --}}
-            <div id="cash-section" class="grid grid-cols-4 gap-3">
-                @foreach(['1','2','3','4','5','6','7','8','9','.','0','00'] as $key)
-                    <button type="button" class="btn-tecla h-16 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl font-black text-zinc-900 dark:text-white transition-all active:bg-blue-600/20" data-value="{{ $key }}">{{ $key }}</button>
-                @endforeach
-                <button type="button" class="btn-tecla col-span-2 h-16 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-2xl font-black text-red-500 dark:text-red-400" data-value="DEL">BORRAR</button>
+            <div id="cash-section" class="select-none">
+                {{-- Filas 1-9 --}}
+                <div class="grid grid-cols-3 gap-2 mb-2">
+                    @foreach(['1','2','3','4','5','6','7','8','9'] as $key)
+                        <button type="button"
+                            class="btn-tecla h-14 rounded-2xl font-black text-lg
+                                   bg-white dark:bg-zinc-800
+                                   border border-zinc-200 dark:border-white/10
+                                   text-zinc-800 dark:text-white
+                                   shadow-sm
+                                   hover:bg-blue-50 dark:hover:bg-blue-500/10
+                                   hover:border-blue-400/50 hover:text-blue-600 dark:hover:text-blue-400
+                                   active:scale-95 active:bg-blue-100 dark:active:bg-blue-500/20
+                                   transition-all duration-100"
+                            data-value="{{ $key }}">{{ $key }}</button>
+                    @endforeach
+                </div>
+                {{-- Fila . / 0 / 00 / DEL --}}
+                <div class="grid grid-cols-4 gap-2">
+                    @foreach(['.','0','00'] as $key)
+                        <button type="button"
+                            class="btn-tecla h-14 rounded-2xl font-black text-lg
+                                   bg-white dark:bg-zinc-800
+                                   border border-zinc-200 dark:border-white/10
+                                   text-zinc-800 dark:text-white
+                                   shadow-sm
+                                   hover:bg-blue-50 dark:hover:bg-blue-500/10
+                                   hover:border-blue-400/50 hover:text-blue-600 dark:hover:text-blue-400
+                                   active:scale-95 active:bg-blue-100 dark:active:bg-blue-500/20
+                                   transition-all duration-100"
+                            data-value="{{ $key }}">{{ $key }}</button>
+                    @endforeach
+                    <button type="button"
+                        class="btn-tecla h-14 rounded-2xl font-black
+                               bg-red-50 dark:bg-red-500/10
+                               border border-red-200 dark:border-red-500/20
+                               text-red-500 dark:text-red-400
+                               shadow-sm
+                               hover:bg-red-100 dark:hover:bg-red-500/20
+                               hover:border-red-400
+                               active:scale-95
+                               transition-all duration-100 flex items-center justify-center gap-1.5"
+                        data-value="DEL">
+                        <i class="fas fa-delete-left text-base"></i>
+                    </button>
+                </div>
             </div>
 
             {{-- Selector de Propina — siempre habilitado, incluso con la cuenta dividida --}}

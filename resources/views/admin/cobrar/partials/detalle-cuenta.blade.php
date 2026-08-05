@@ -115,15 +115,26 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="text-right shrink-0">
-                            @if($detalle->promocionAplicada)
-                                <span class="text-zinc-400 dark:text-zinc-500 text-[9px] line-through block leading-tight">
-                                    ${{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}
+                        <div class="text-right shrink-0 flex items-center gap-2">
+                            <div>
+                                @if($detalle->promocionAplicada)
+                                    <span class="text-zinc-400 dark:text-zinc-500 text-[9px] line-through block leading-tight">
+                                        ${{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}
+                                    </span>
+                                @endif
+                                <span class="text-zinc-900 dark:text-white font-black text-[13px]">
+                                    ${{ number_format(($detalle->precio_unitario * $detalle->cantidad) - ($detalle->promocionAplicada->monto_descuento ?? 0), 2) }}
                                 </span>
+                            </div>
+                            {{-- Botón cancelar producto desde Caja (requiere NIP de Administrador) --}}
+                            @if(!$esDividida)
+                                <button type="button"
+                                    onclick="cancelarProductoCaja({{ $detalle->id }}, this, {{ $detalle->cantidad }})"
+                                    class="w-7 h-7 rounded-lg text-red-400 bg-red-500/5 border border-red-500/15 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all flex items-center justify-center shadow-sm"
+                                    title="Cancelar producto">
+                                    <i class="fas fa-trash-alt text-[9px]"></i>
+                                </button>
                             @endif
-                            <span class="text-zinc-900 dark:text-white font-black text-[13px]">
-                                ${{ number_format(($detalle->precio_unitario * $detalle->cantidad) - ($detalle->promocionAplicada->monto_descuento ?? 0), 2) }}
-                            </span>
                         </div>
                     </div>
 
@@ -249,6 +260,47 @@
 document.addEventListener('DOMContentLoaded', function () {
     const ivaSwitch = document.getElementById('ivaSwitch');
     if (!ivaSwitch) return;
+
+    // ── Cancelar producto desde Caja ──────────────────────────────────────────
+    // Reutiliza el endpoint del mesero que ya pide NIP de Administrador.
+    window.cancelarProductoCaja = async function(detalleId, btn, cantidadTotal) {
+        // Paso 1: cuántas unidades cancelar
+        let cantidadCancelar = cantidadTotal;
+        if (cantidadTotal > 1) {
+            const input = prompt(`¿Cuántas unidades quieres cancelar? (1 - ${cantidadTotal})`);
+            if (input === null) return; // canceló el prompt
+            cantidadCancelar = parseInt(input, 10);
+            if (isNaN(cantidadCancelar) || cantidadCancelar < 1 || cantidadCancelar > cantidadTotal) {
+                alert(`Ingresa un número entre 1 y ${cantidadTotal}.`);
+                return;
+            }
+        }
+
+        // Paso 2: NIP del administrador
+        const nip = prompt('Ingresa el NIP del Administrador para autorizar:');
+        if (!nip) return;
+
+        btn.disabled = true;
+        const icono = btn.querySelector('i');
+        if (icono) { icono.className = 'fas fa-spinner fa-spin text-[9px]'; }
+
+        try {
+            const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const res = await fetch(`/mesero/comanda/detalle/${detalleId}/cancelar`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                body: JSON.stringify({ nip: nip, cantidad_cancelar: cantidadCancelar })
+            });
+            const data = await res.json().catch(() => null);
+            if (!res.ok || !data?.success) throw new Error(data?.message || 'No se pudo cancelar');
+
+            window.location.reload();
+        } catch (err) {
+            alert('Error: ' + err.message);
+            btn.disabled = false;
+            if (icono) { icono.className = 'fas fa-trash-alt text-[9px]'; }
+        }
+    };
 
     ivaSwitch.addEventListener('change', async function (e) {
         const habilitado = e.target.checked;

@@ -8,6 +8,8 @@
  */
 (function () {
     const config = window.ComandaConfig || {};
+    let meseroDestinoSeleccionado = null;
+    let meseroDestinoNombre = null;
 
     // Abre el modal para capturar el NIP del capitán (reemplaza al antiguo prompt()).
     window.llamarCapitan = function () {
@@ -63,37 +65,48 @@
                 capitanAutorizado = true;
                 mostrarExito('Capitán autorizado.');
 
-                const container = document.getElementById('capitanMesasContainer');
+                const container = document.getElementById('capitanMeserosContainer');
                 const modal = document.getElementById('modalCapitan');
 
                 if (container) {
-                    container.innerHTML = '';
-                    if (Array.isArray(data.mesas) && data.mesas.length > 0) {
-                        data.mesas.forEach(m => {
-                            const btn = document.createElement('button');
-                            btn.type = 'button';
-                            btn.dataset.mesaId = m.id;
+                    container.innerHTML = '<p class="text-[10px] text-[var(--text-muted)] text-center py-2">Cargando meseros...</p>';
 
-                            const esOcupada = m.estado === 'ocupada';
-                            btn.className = 'w-full text-left rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] px-4 py-4 hover:border-[#3B82F6]/50 transition-all flex items-center justify-between gap-4';
-
-                            btn.innerHTML = `
-    <div>
-        <p class="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] font-bold">Mesa</p>
-        <h3 class="text-lg font-black text-[var(--text-main)]">${m.numero}</h3>
+                    // Cargar meseros activos
+                    fetch(config.rutas.meserosActivos || '/mesero/meseros/activos', {
+                        headers: { 'Accept': 'application/json' }
+                    })
+                    .then(r => r.json())
+                    .then(resp => {
+                        container.innerHTML = '';
+                        if (resp.success && resp.meseros.length > 0) {
+                            resp.meseros.forEach(m => {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.dataset.meseroId = m.id;
+                                btn.className = 'w-full text-left rounded-2xl border border-[var(--border-color)] bg-[var(--bg-base)] px-4 py-4 hover:border-[#3B82F6]/50 transition-all flex items-center justify-between gap-4';
+                                btn.innerHTML = `
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+            <i class="fas fa-user text-indigo-500 text-xs"></i>
+        </div>
+        <div>
+            <p class="text-sm font-black text-[var(--text-main)]">${m.nombre}</p>
+            <p class="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-bold">${m.rol}</p>
+        </div>
     </div>
-    <span class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] ${esOcupada ? 'text-emerald-400' : 'text-blue-400'}">
-        <i class="fas fa-circle text-[6px]"></i> ${esOcupada ? 'Activa' : 'Disponible'}
-    </span>`;
-
-                            btn.addEventListener('click', () => {
-                                seleccionarMesaDestino(m.id, m.numero);
+    <i class="fas fa-chevron-right text-[var(--text-muted)] text-xs"></i>`;
+                                btn.addEventListener('click', () => {
+                                    seleccionarMeseroDestino(m.id, m.nombre);
+                                });
+                                container.appendChild(btn);
                             });
-                            container.appendChild(btn);
-                        });
-                    } else {
-                        container.innerHTML = `<div class="text-xs text-[var(--text-muted)] text-center py-6">No hay mesas disponibles.</div>`;
-                    }
+                        } else {
+                            container.innerHTML = '<div class="text-xs text-[var(--text-muted)] text-center py-6">No hay otros meseros disponibles.</div>';
+                        }
+                    })
+                    .catch(() => {
+                        container.innerHTML = '<div class="text-xs text-rose-500 text-center py-6">Error al cargar meseros.</div>';
+                    });
                 }
 
                 if (modal) {
@@ -105,21 +118,23 @@
         }
     };
 
-    function seleccionarMesaDestino(mesaId, mesaNumero) {
-        mesaDestinoSeleccionada = mesaId; mesaDestinoSeleccionadaNumero = mesaNumero;
-        const container = document.getElementById('capitanMesasContainer');
+    function seleccionarMeseroDestino(meseroId, meseroNombre) {
+        meseroDestinoSeleccionado = meseroId;
+        meseroDestinoNombre = meseroNombre;
+
+        const container = document.getElementById('capitanMeserosContainer');
         if (container) {
-            container.querySelectorAll('button[data-mesa-id]').forEach(btn => {
+            container.querySelectorAll('button[data-mesero-id]').forEach(btn => {
                 btn.classList.remove('border-blue-500/50', 'bg-blue-500/10');
                 btn.classList.add('border-[var(--border-color)]', 'bg-[var(--bg-base)]');
             });
-            const button = container.querySelector(`button[data-mesa-id="${mesaId}"]`);
+            const button = container.querySelector(`button[data-mesero-id="${meseroId}"]`);
             if (button) {
                 button.classList.remove('border-[var(--border-color)]', 'bg-[var(--bg-base)]');
                 button.classList.add('border-blue-500/50', 'bg-blue-500/10');
             }
         }
-        document.getElementById('modalCapitan').classList.add('hidden');
+        cerrarModal('modalCapitan');
         abrirModalTipoTraspaso();
     }
 
@@ -132,7 +147,7 @@
     window.elegirTraspasoCompleto = function () {
         cerrarModal('modalTipoTraspaso');
 
-        if (!mesaDestinoSeleccionada) { mostrarError('No hay mesa destino seleccionada.'); return; }
+        if (!meseroDestinoSeleccionado) { mostrarError('No hay mesero destino seleccionado.'); return; }
 
         const productosNuevos = [];
         const ticketItemIdsAEliminar = [];
@@ -224,7 +239,7 @@
     window.confirmarTraspasoProductos = function () {
         const checks = document.querySelectorAll('#listaProductosTraspaso .chk-traspaso:checked');
         if (checks.length === 0) { mostrarError('Selecciona al menos un producto.'); return; }
-        if (!mesaDestinoSeleccionada) { mostrarError('No hay mesa destino seleccionada.'); return; }
+        if (!meseroDestinoSeleccionado) { mostrarError('No hay mesero destino seleccionado.'); return; }
 
         const productosNuevos = [];
         const ticketItemIdsAEliminar = [];
@@ -265,7 +280,8 @@
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken() },
             body: JSON.stringify({
                 mesa_origen_id: (config.mesa && config.mesa.id),
-                mesa_destino_id: mesaDestinoSeleccionada,
+                mesa_destino_id: (config.mesa && config.mesa.id), // la mesa se queda igual
+                mesero_destino_id: meseroDestinoSeleccionado,
                 productos_nuevos: productosNuevos,
                 productos_enviados_ids: detalleIds
             })
@@ -273,7 +289,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    mostrarExito(data.message || 'Productos traspasados.');
+                    mostrarExito(data.message || 'Mesa traspasada correctamente.');
 
                     ticketItemIdsAEliminar.forEach(id => {
                         const item = document.getElementById(id);
@@ -291,7 +307,7 @@
 
                     actualizarTotales();
                     cerrarModal('modalSeleccionProductos');
-                    mesaDestinoSeleccionada = null; mesaDestinoSeleccionadaNumero = null;
+                    meseroDestinoSeleccionado = null; meseroDestinoNombre = null;
                     actualizarMensajeDestino();
 
                     // Si ya no queda nada en esta mesa, regresa al dashboard
@@ -313,11 +329,12 @@
     function actualizarMensajeDestino() {
         const mensaje = document.getElementById('mensajeMesaDestino');
         const btnEnviar = document.getElementById('btn-enviar');
-        if (capitanAutorizado && mesaDestinoSeleccionada && mesaDestinoSeleccionadaNumero) {
-            mensaje.innerText = `Destino: Mesa ${mesaDestinoSeleccionadaNumero}`;
-            btnEnviar.innerHTML = `<i class="fas fa-paper-plane text-sm"></i> <span>Enviar a Mesa ${mesaDestinoSeleccionadaNumero}</span>`;
+        if (capitanAutorizado && meseroDestinoSeleccionado && meseroDestinoNombre) {
+            if (mensaje) mensaje.innerText = `Traspaso autorizado → ${meseroDestinoNombre}`;
         } else {
-            mensaje.innerText = 'Enviar a cocina o selecciona mesa destino.';
+            if (mensaje) mensaje.innerText = 'Enviar a cocina o traspasa a otro mesero.';
+        }
+        if (btnEnviar) {
             btnEnviar.innerHTML = `<i class="fas fa-paper-plane text-sm"></i> <span>Enviar Orden</span>`;
         }
     }

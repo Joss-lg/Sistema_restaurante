@@ -183,9 +183,10 @@ class ComandaService
         Mesa $mesaDestino,
         array $productosNuevos,
         array $detalleIds,
-        $usuario
+        $usuario,
+        $meseroDestino = null
     ): array {
-        return DB::transaction(function () use ($mesaOrigen, $mesaDestino, $productosNuevos, $detalleIds, $usuario) {
+        return DB::transaction(function () use ($mesaOrigen, $mesaDestino, $productosNuevos, $detalleIds, $usuario, $meseroDestino) {
 
             // 1. Buscar orden activa de la mesa destino, o crear una nueva pendiente
             $ordenDestino = Orden::where('mesa_id', $mesaDestino->id)
@@ -197,10 +198,15 @@ class ComandaService
                 $ordenDestino = Orden::create([
                     'numero_orden' => 'ORD-' . now()->format('YmdHis') . '-' . rand(100, 999),
                     'mesa_id'      => $mesaDestino->id,
-                    'mesero_id'    => $usuario->id,
+                    'mesero_id'    => $meseroDestino ? $meseroDestino->id : $usuario->id,
                     'estado'       => Orden::ESTADO_PENDIENTE,
                     'abierta_el'   => now(),
                 ]);
+            }
+
+            // Si la orden destino ya existe, reasignar el mesero al destino
+            if ($meseroDestino && $ordenDestino->wasRecentlyCreated === false) {
+                $ordenDestino->update(['mesero_id' => $meseroDestino->id]);
             }
 
             // NUEVO: los productos traspasados (tanto los ya enviados como
@@ -306,7 +312,7 @@ class ComandaService
             // 4. Actualizar mesa destino (la abre automáticamente si estaba disponible)
             $destinoUpdate = ['estado' => 'ocupada'];
             if (Schema::hasColumn('mesas', 'mesero_id')) {
-                $destinoUpdate['mesero_id'] = $usuario->id;
+                $destinoUpdate['mesero_id'] = $meseroDestino ? $meseroDestino->id : $usuario->id;
             }
             if (Schema::hasColumn('mesas', 'total_consumo')) {
                 $destinoUpdate['total_consumo'] = ($mesaDestino->total_consumo ?? 0) + $montoTransferido;

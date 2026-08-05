@@ -22,14 +22,13 @@
                 <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/20 flex items-center justify-center">
                     <i class="fas fa-lock text-blue-500 text-xs"></i>
                 </span>
-                <h2 class="text-base sm:text-lg font-bold text-[var(--text-main)] tracking-tight">NIP Capitán</h2>
+                <h2 class="text-base sm:text-lg font-bold text-[var(--text-main)] tracking-tight">NIP Administrador</h2>
             </div>
             <button type="button" onclick="cerrarModal('modalNip')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
         
         <input type="password" id="nipInput"
-               maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
-               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
+               maxlength="6" autocomplete="off" inputmode="none"
                class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 tracking-[0.3em]"
                placeholder="••••">
                
@@ -63,12 +62,12 @@
                 </span>
                 <div class="min-w-0">
                     <p class="text-[10px] uppercase tracking-widest text-indigo-500 font-bold">Autorización</p>
-                    <h2 class="text-lg sm:text-xl font-semibold text-[var(--text-main)] leading-tight">Selecciona mesa destino</h2>
+                    <h2 class="text-lg sm:text-xl font-semibold text-[var(--text-main)] leading-tight">Selecciona mesero destino</h2>
                 </div>
             </div>
             <button type="button" onclick="cerrarModal('modalCapitan')" class="flex-shrink-0 text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
-        <div id="capitanMesasContainer" class="grid gap-2 max-h-[45vh] sm:max-h-[300px] overflow-y-auto hide-scroll pb-2"></div>
+        <div id="capitanMeserosContainer" class="grid gap-2 max-h-[45vh] sm:max-h-[300px] overflow-y-auto hide-scroll pb-2"></div>
         <div class="mt-5 flex justify-end">
             <button type="button" onclick="cerrarModal('modalCapitan')" class="w-full sm:w-auto min-h-[44px] px-5 rounded-xl border border-[var(--border-color)] text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--hover-bg)] active:scale-95 transition-all duration-150">Cancelar</button>
         </div>
@@ -331,7 +330,7 @@
             <button type="button" onclick="cerrarModalCancelacion()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
 
-        <p class="text-[12px] text-[var(--text-muted)] mb-3">Solicita el NIP de un Capitán o Administrador para autorizar la cancelación de este producto.</p>
+        <p class="text-[12px] text-[var(--text-muted)] mb-3">Ingresa el NIP del Administrador para autorizar la cancelación de este producto.</p>
 
         <input type="password" id="nipCancelacionInput"
                maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off"

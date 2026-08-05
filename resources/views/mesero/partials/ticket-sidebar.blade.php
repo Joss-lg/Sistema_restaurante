@@ -54,21 +54,14 @@
         {{-- El botón de Descuento se movió al módulo de Caja: ahora lo
              autoriza quien cobra, no quien levanta el pedido. --}}
 
-        <button type="button" id="btn-gramaje" onclick="ajustarGramaje()" class="relative flex flex-col items-center justify-center p-3 rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-orange-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50">
-            <i class="fas fa-weight-scale text-[var(--text-muted)] group-hover:text-orange-500 mb-2 text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Gramaje</span>
-            <span id="indicador-gramaje-pendiente" class="hidden absolute top-2 right-2 bg-gradient-to-b from-orange-500 to-orange-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md shadow-orange-500/30"></span>
-        </button>
+        {{-- Gramaje oculto por solicitud --}}
 
         <button type="button" onclick="llamarCapitan()" class="flex flex-col items-center justify-center p-3 rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-indigo-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50">
             <i class="fas fa-exchange-alt text-[var(--text-muted)] group-hover:text-indigo-500 mb-2 text-sm transition-colors duration-150"></i>
             <span class="text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Traspaso</span>
         </button>
 
-        <button type="button" onclick="mostrarPromociones()" class="col-span-2 flex flex-col items-center justify-center p-3 rounded-[16px] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:bg-[var(--hover-bg)] hover:border-blue-500/30 hover:shadow-md transition-all duration-150 active:scale-95 group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
-            <i class="fas fa-tag text-[var(--text-muted)] group-hover:text-blue-500 mb-2 text-sm transition-colors duration-150"></i>
-            <span class="text-[10px] font-medium text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Promos</span>
-        </button>
+        {{-- Promos oculto por solicitud --}}
 
         @if($esCapitan ?? false)
             <button type="button" onclick="llamarCapitan()" class="col-span-2 mt-1 h-12 flex items-center justify-center gap-2 rounded-[16px] bg-gradient-to-b from-[var(--accent)] to-[var(--accent)] border border-[var(--border-color)] hover:opacity-90 hover:shadow-lg transition-all duration-150 active:scale-95 group text-white shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]">
@@ -136,32 +129,24 @@
     </div>
 
     <div class="p-4 border-b border-[var(--border-color)] flex flex-col gap-3 bg-[var(--bg-base)]">
-        <div id="barraModificadores" class="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-3 shadow-sm">
+        <div id="barraModificadores" class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-3 shadow-sm">
             <div class="flex items-center justify-between mb-2.5">
                 <span class="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Acciones del platillo</span>
-                <span class="text-[9px] font-semibold text-[var(--text-muted)]">Selección activa</span>
+                <span id="barraModificadores-hint" class="text-[9px] font-semibold text-[var(--text-muted)]">Toca un producto para modificar</span>
             </div>
             <div id="contenedorBotonesModificadores" class="flex flex-wrap gap-2"></div>
         </div>
 
         <div class="relative flex w-full bg-[var(--bg-panel)] p-1 rounded-xl border border-[var(--border-color)] shadow-inner">
             <div class="absolute inset-y-1 left-1 right-1 pointer-events-none">
-                <div id="tab-slider" class="h-full w-1/3 rounded-lg bg-[var(--text-main)] shadow-md transition-transform duration-300 ease-out"></div>
+                <div id="tab-slider" class="h-full w-1/2 rounded-lg bg-[var(--text-main)] shadow-md transition-transform duration-300 ease-out"></div>
             </div>
             <button type="button" onclick="cambiarTab('nueva-orden', this)" id="btn-tab-nueva-orden" class="relative z-10 flex-1 py-2.5 md:py-1.5 text-[11px] md:text-[10px] font-bold text-[var(--bg-base)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 rounded-lg">Orden</button>
-            <button type="button" onclick="cambiarTab('enviados', this)" id="btn-tab-enviados" class="relative z-10 flex-1 py-2.5 md:py-1.5 text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 rounded-lg">Enviado</button>
+            {{-- Tab "Enviado" oculto: el submenú de productos ya pedidos se ocultó por solicitud --}}
             <button type="button" onclick="cambiarTab('comanda', this)" id="btn-tab-comanda" class="relative z-10 flex-1 py-2.5 md:py-1.5 text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 rounded-lg">Total</button>
         </div>
 
-        <div class="flex items-center justify-between">
-            <span class="text-[11px] md:text-[10px] font-medium text-[var(--text-muted)]">Tiempos:</span>
-            <div class="flex gap-1 bg-[var(--bg-panel)] p-1 rounded-lg border border-[var(--border-color)] shadow-inner">
-                <button type="button" onclick="cambiarTiempoGlobal('sin-tiempo')" id="tiempo-global-sin" class="w-9 h-8 md:w-8 md:h-6 rounded flex items-center justify-center text-[11px] md:text-[10px] font-bold bg-[var(--text-main)] text-[var(--bg-base)] shadow-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">S</button>
-                <button type="button" onclick="cambiarTiempoGlobal('primer-tiempo')" id="tiempo-global-1" class="w-9 h-8 md:w-8 md:h-6 rounded flex items-center justify-center text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">1</button>
-                <button type="button" onclick="cambiarTiempoGlobal('segundo-tiempo')" id="tiempo-global-2" class="w-9 h-8 md:w-8 md:h-6 rounded flex items-center justify-center text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">2</button>
-                <button type="button" onclick="cambiarTiempoGlobal('tercer-tiempo')" id="tiempo-global-3" class="w-9 h-8 md:w-8 md:h-6 rounded flex items-center justify-center text-[11px] md:text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">3</button>
-            </div>
-        </div>
+        {{-- Fila de Tiempos eliminada por solicitud --}}
     </div>
 
     {{-- VISTA 1: NUEVA ORDEN --}}
@@ -263,15 +248,11 @@
         <button type="button" onclick="agregarNota()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
             <i class="fas fa-pen text-blue-500"></i> Nota
         </button>
-        <button type="button" onclick="ajustarGramaje()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
-            <i class="fas fa-weight-scale text-orange-500"></i> Gramaje
-        </button>
+{{-- Gramaje mobile oculto por solicitud --}}
         <button type="button" onclick="llamarCapitan()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
             <i class="fas fa-exchange-alt text-indigo-500"></i> Traspaso
         </button>
-        <button type="button" onclick="mostrarPromociones()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
-            <i class="fas fa-tag text-blue-500"></i> Promos
-        </button>
+{{-- Promos mobile oculto por solicitud --}}
         <button type="button" onclick="imprimirPrecuenta()" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-main)] shadow-sm active:scale-95">
             <i class="fas fa-receipt text-blue-500"></i> Precuenta
         </button>

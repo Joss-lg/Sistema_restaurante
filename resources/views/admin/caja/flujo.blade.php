@@ -112,41 +112,97 @@
                         <p class="text-xs sm:text-sm text-[var(--text-muted)] font-medium">No hay ventas registradas en este turno.</p>
                     </div>
                 @else
+                    @php
+                        $ventasAgrupadas = $historicoVentas->groupBy(fn($v) => $v->flujoable_id ?? 'sin-orden-'.$v->id);
+                    @endphp
                     <table class="w-full text-xs sm:text-sm text-center border-collapse">
                         <thead>
                             <tr class="bg-[var(--input-bg)] text-[var(--text-muted)] font-bold text-[10px] sm:text-xs border-b border-[var(--border-color)] uppercase tracking-wider">
                                 <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Hora</th>
                                 <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Concepto</th>
-                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Método de Pago</th>
-                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Monto</th>
+                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Método(s) de Pago</th>
+                                <th class="py-2.5 sm:py-3.5 px-2 sm:px-4">Total</th>
                                 <th class="py-2.5 sm:py-3.5 px-2 sm:px-4"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[var(--border-color)] text-[var(--text-color)]">
-                            @foreach($historicoVentas as $venta)
+                            @foreach($ventasAgrupadas as $ordenId => $pagos)
+                                @php
+                                    $primera     = $pagos->first();
+                                    $totalFila   = $pagos->sum('monto');
+                                    $esMixto     = $pagos->count() > 1;
+                                    $ordenIdReal = $primera->flujoable_id;
+                                @endphp
                                 <tr class="hover:bg-[var(--input-bg)]/50 transition-colors">
-                                    <td class="py-3 sm:py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-[var(--text-muted)] whitespace-nowrap">{{ \Carbon\Carbon::parse($venta->fecha)->format('H:i') }} hrs</td>
-                                    <td class="py-3 sm:py-4 px-2 sm:px-4 font-semibold">{{ $venta->concepto }}</td>
+                                    <td class="py-3 sm:py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-[var(--text-muted)] whitespace-nowrap">
+                                        {{ \Carbon\Carbon::parse($primera->fecha)->format('H:i') }} hrs
+                                    </td>
+                                    <td class="py-3 sm:py-4 px-2 sm:px-4 font-semibold">{{ $primera->concepto }}</td>
                                     <td class="py-3 sm:py-4 px-2 sm:px-4">
                                         <div class="flex flex-col items-center justify-center gap-1.5">
-                                            <span class="px-2 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-black tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 uppercase whitespace-nowrap">
-                                                {{ $venta->metodo_pago }}
-                                            </span>
-                                            @if(!empty($venta->referencia))
-                                                <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-500/10 border border-zinc-500/20 text-zinc-400 uppercase tracking-wide whitespace-nowrap shadow-inner">
-                                                    <i class="fas fa-hashtag text-[8px] text-zinc-500 mr-0.5"></i>Ref: {{ $venta->referencia }}
+                                            @if($esMixto)
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-500 uppercase tracking-wide whitespace-nowrap">
+                                                    <i class="fas fa-layer-group text-[8px] mr-0.5"></i> Pago mixto
                                                 </span>
+                                                @foreach($pagos as $pago)
+                                                    @php
+                                                        $colorMetodo = match($pago->metodo_pago) {
+                                                            'tarjeta'       => 'sky',
+                                                            'transferencia' => 'indigo',
+                                                            default          => 'emerald',
+                                                        };
+                                                    @endphp
+                                                    <div class="flex items-center gap-1.5 whitespace-nowrap">
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider bg-{{ $colorMetodo }}-500/10 border border-{{ $colorMetodo }}-500/20 text-{{ $colorMetodo }}-500 uppercase">
+                                                            {{ $pago->metodo_pago }}
+                                                        </span>
+                                                        <span class="text-[10px] font-bold text-[var(--text-muted)]">${{ number_format($pago->monto, 2) }}</span>
+                                                        @if(!empty($pago->referencia))
+                                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-zinc-500/10 border border-zinc-500/20 text-zinc-400">
+                                                                #{{ $pago->referencia }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                @php
+                                                    $colorMetodo = match($primera->metodo_pago) {
+                                                        'tarjeta'       => 'sky',
+                                                        'transferencia' => 'indigo',
+                                                        default          => 'emerald',
+                                                    };
+                                                @endphp
+                                                <span class="px-2 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-black tracking-wider bg-{{ $colorMetodo }}-500/10 border border-{{ $colorMetodo }}-500/20 text-{{ $colorMetodo }}-500 uppercase whitespace-nowrap">
+                                                    {{ $primera->metodo_pago }}
+                                                </span>
+                                                @if(!empty($primera->referencia))
+                                                    <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-500/10 border border-zinc-500/20 text-zinc-400 uppercase tracking-wide whitespace-nowrap shadow-inner">
+                                                        <i class="fas fa-hashtag text-[8px] text-zinc-500 mr-0.5"></i>Ref: {{ $primera->referencia }}
+                                                    </span>
+                                                @endif
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="py-3 sm:py-4 px-2 sm:px-4 font-black text-emerald-500 whitespace-nowrap">+${{ number_format($venta->monto, 2) }}</td>
+                                    <td class="py-3 sm:py-4 px-2 sm:px-4 font-black text-emerald-500 whitespace-nowrap">
+                                        +${{ number_format($totalFila, 2) }}
+                                    </td>
                                     <td class="py-3 sm:py-4 px-2 sm:px-4">
-                                        <button type="button"
-                                            class="btn-ver-venta w-8 h-8 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] hover:text-blue-500 hover:border-blue-500 transition-colors"
-                                            data-venta="{{ $venta->id }}"
-                                            title="Ver detalle de esta venta">
-                                            <i class="fas fa-eye text-xs"></i>
-                                        </button>
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            <button type="button"
+                                                class="btn-ver-venta w-8 h-8 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] hover:text-blue-500 hover:border-blue-500 transition-colors"
+                                                data-venta="{{ $primera->id }}"
+                                                title="Ver detalle">
+                                                <i class="fas fa-eye text-xs"></i>
+                                            </button>
+                                            @if($ordenIdReal)
+                                                <a href="{{ route('admin.caja.ticket.imprimir.orden', $ordenIdReal) }}"
+                                                   target="_blank"
+                                                   class="w-8 h-8 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] hover:text-amber-500 hover:border-amber-500 transition-colors flex items-center justify-center"
+                                                   title="Reimprimir ticket">
+                                                    <i class="fas fa-print text-xs"></i>
+                                                </a>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

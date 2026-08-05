@@ -407,6 +407,20 @@ class CajaController extends Controller
         return view('admin.caja.ticket', $datos);
     }
 
+    /**
+     * Reimprime el ticket de una venta ya cobrada a partir de la orden.
+     *
+     * En flujo de caja e historial las filas apuntan a la orden (flujoable_id).
+     * Como la mesa ya fue liberada, se busca la orden directamente y se reconstruye
+     * el ticket usando el mismo TicketService (respeta folio, hora original, etc.).
+     */
+    public function imprimirTicketPorOrden(int $ordenId)
+    {
+        $orden = \App\Models\Orden::withTrashed()->findOrFail($ordenId);
+        $datos = $this->ticketService->obtenerDatosTicketPorMesa((int) $orden->mesa_id);
+        return view('admin.caja.ticket', $datos);
+    }
+
     public function toggleIva(Request $request)
     {
         $habilitado = $request->boolean('habilitado');

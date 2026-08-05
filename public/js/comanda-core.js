@@ -124,7 +124,7 @@ var mesaDestinoSeleccionadaNumero = null;
             if (txtTotalElement) txtTotalElement.innerText = '$0.00';
 
         } else if (pestana === 'comanda') {
-            if (slider) slider.style.transform = 'translateX(200%)';
+            if (slider) slider.style.transform = 'translateX(100%)';
             if (btns[2]) { btns[2].classList.add('text-[var(--bg-base)]'); btns[2].classList.remove('text-[var(--text-muted)]'); }
             const vComanda = document.getElementById('vista-comanda');
             if (vComanda) { vComanda.classList.remove('hidden'); vComanda.classList.add('flex'); }
@@ -231,5 +231,25 @@ var mesaDestinoSeleccionadaNumero = null;
     window.cerrarModal = function (id) {
         const modal = document.getElementById(id);
         if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    };
+
+    // ── Teclado numérico virtual (usado en modales de NIP) ────────────────
+    // Se define aquí para que todos los módulos (traspaso, cancelación, etc.)
+    // puedan usarlo sin duplicar código.
+    window.escribirNumVirtual = function (inputId, digit) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        // Máximo 6 dígitos para no dejar escribir indefinidamente
+        if (input.value.length >= 6) return;
+        input.value += digit;
+        // Disparar input/change para que cualquier listener lo detecte
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    window.borrarNumVirtual = function (inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.value = input.value.slice(0, -1);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
     };
 })();

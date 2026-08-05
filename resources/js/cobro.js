@@ -621,13 +621,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // NUEVO: el cajero DEBE teclear el monto que recibió. Antes, si
-            // dejaba el teclado en $0.00 y le daba "FINALIZAR" directo, el
-            // payload mandaba `parseFloat(montoRaw) || totalPagar` — y como
-            // 0 es "falsy" en JS, eso auto-rellenaba el total completo sin
-            // que el cajero hubiera ingresado nada. Ahora se bloquea aquí,
-            // antes de armar el payload.
-            if (montoIngresado <= 0) {
+            // El cajero debe teclear el monto recibido, EXCEPTO cuando el total
+            // es $0.00 por descuento del 100%: en ese caso se permite cobrar $0.
+            if (montoIngresado <= 0 && totalPagar > 0) {
                 mostrarAlerta('Debes ingresar el monto que estás cobrando.', 'error');
                 return;
             }

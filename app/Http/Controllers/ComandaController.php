@@ -105,21 +105,30 @@ class ComandaController extends Controller
     {
         $request->validate(['nip' => 'required|string']);
 
-        $usuario = User::where('codigo_empleado', $request->nip)->first();
+        $usuario = User::where('codigo_empleado', $request->nip)
+            ->whereNull('deleted_at')
+            ->with('rol')
+            ->first();
 
-        if (!$usuario || $usuario->rol_id !== 2) {
+        if (!$usuario) {
             return response()->json([
                 'success' => false,
-                'message' => 'NIP inválido o el usuario no tiene permisos de Capitán.'
+                'message' => 'NIP inválido.'
             ], 403);
         }
 
-        // CAMBIO: ahora regresamos TODAS las mesas (ocupadas y disponibles),
-        // ya que el capitán debe poder traspasar tanto a mesas con pedido
-        // abierto como a mesas libres (que se abrirán automáticamente al
-        // recibir el traspaso). El frontend distingue el estado con un badge.
-        $mesas = Mesa::orderBy('numero', 'asc')
-                     ->get(['id', 'numero', 'estado']);
+        // Solo el Administrador puede autorizar traspasos de mesa.
+        $nombreRol = strtolower(trim($usuario->rol?->nombre ?? ''));
+        $esAdmin = in_array($nombreRol, ['administrador', 'admin']) || $usuario->id === 1;
+
+        if (!$esAdmin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Solo el Administrador puede autorizar traspasos de mesa.'
+            ], 403);
+        }
+
+        $mesas = Mesa::orderBy('numero', 'asc')->get(['id', 'numero', 'estado']);
 
         return response()->json(['success' => true, 'mesas' => $mesas]);
     }
@@ -141,8 +150,9 @@ class ComandaController extends Controller
 public function transferirProductos(Request $request)
     {
         $request->validate([
-            'mesa_origen_id'  => 'required|exists:mesas,id',
-            'mesa_destino_id' => 'required|exists:mesas,id|different:mesa_origen_id',
+            'mesa_origen_id'    => 'required|exists:mesas,id',
+            'mesa_destino_id'   => 'required|exists:mesas,id',
+            'mesero_destino_id' => 'required|exists:users,id',
             'productos_nuevos' => 'nullable|array',
             'productos_nuevos.*.id' => 'required_with:productos_nuevos|exists:productos,id',
             'productos_nuevos.*.cantidad' => 'required_with:productos_nuevos|integer|min:1',
@@ -163,17 +173,24 @@ public function transferirProductos(Request $request)
             $mesaDestino = Mesa::findOrFail($request->mesa_destino_id);
             $usuario = auth()->user();
 
+            $meseroDestino = \App\Models\User::findOrFail($request->mesero_destino_id);
+
             $resultado = $this->comandaService->transferirProductos(
                 $mesaOrigen,
                 $mesaDestino,
                 $request->productos_nuevos ?? [],
                 $request->productos_enviados_ids ?? [],
-                $usuario
+                $usuario,
+                $meseroDestino
             );
+
+            // Actualizar mesero_id en la mesa origen para que el mesero destino
+            // pueda acceder a ella sin el error de "mesa no asignada"
+            $mesaOrigen->update(['mesero_id' => $meseroDestino->id]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Productos traspasados correctamente a Mesa ' . $mesaDestino->numero . '.',
+                'message' => 'Mesa traspasada a ' . $meseroDestino->nombre . ' correctamente.',
                 'orden_destino_id' => $resultado['orden_destino']->id,
             ]);
         } catch (\Exception $e) {
@@ -189,6 +206,27 @@ public function transferirProductos(Request $request)
             'success' => true,
             'mesas_abiertas' => $mesas->where('estado', 'ocupada')->values(),
             'mesas_libres' => $mesas->where('estado', 'disponible')->values(),
+        ]);
+    }
+
+    /**
+     * Devuelve los meseros activos (no eliminados) para el selector de traspaso.
+     * Excluye al usuario autenticado (no tiene sentido traspasarse a sí mismo).
+     */
+    public function apiMeserosActivos()
+    {
+        $meseros = \App\Models\User::whereNull('deleted_at')
+            ->where('id', '!=', auth()->id())
+            ->with('rol:id,nombre')
+            ->get(['id', 'nombre', 'rol_id']);
+
+        return response()->json([
+            'success' => true,
+            'meseros' => $meseros->map(fn($u) => [
+                'id'    => $u->id,
+                'nombre' => $u->nombre,
+                'rol'   => optional($u->rol)->nombre ?? 'Sin rol',
+            ])->values(),
         ]);
     }
 

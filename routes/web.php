@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/capitan/verify', [ComandaController::class, 'verificarCapitan'])->name('capitan.verify');
         Route::get('/mesas/abiertas', [ComandaController::class, 'apiMesasAbiertas'])->name('mesas.abiertas');
+        Route::get('/meseros/activos', [ComandaController::class, 'apiMeserosActivos'])->name('meseros.activos');
         Route::post('/comanda/transferir', [ComandaController::class, 'transferirProductos'])->name('comanda.transferir');
         Route::patch('/comanda/{mesa}/personas', [MesaController::class, 'actualizarPersonas'])->name('comanda.personas'); 
         Route::get('/comanda/promociones/activas', [MesaController::class, 'promocionesActivas'])->name('comanda.promociones.activas');
@@ -147,6 +148,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [CajaController::class, 'index'])->name('index');
             Route::get('/flujo', [CajaController::class, 'flujoDeCaja'])->name('flujo');
             Route::get('/reporte-pdf/{id}', [CajaController::class, 'generarReportePdf'])->name('reporte.pdf');
+            Route::get('/ticket/orden/{ordenId}', [CajaController::class, 'imprimirTicketPorOrden'])->name('ticket.imprimir.orden');
             Route::get('/ticket/{id}', [CajaController::class, 'imprimirTicket'])->name('ticket.imprimir');
             Route::get('/api/estadisticas', [CajaController::class, 'getEstadisticas'])->name('api.estadisticas');
             Route::get('/api/mesas', [CajaController::class, 'apiMesas'])->name('api.mesas');
