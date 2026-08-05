@@ -28,7 +28,9 @@
         </div>
         
         <input type="password" id="nipInput"
-               maxlength="6" autocomplete="off" inputmode="none"
+               maxlength="6" autocomplete="off"
+               data-solo-numeros="true"
+               data-teclado-virtual="true"
                class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 tracking-[0.3em]"
                placeholder="••••">
                
@@ -142,7 +144,7 @@
             <button type="button" onclick="cerrarModal('modalPersonas')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
         
-        <input id="personasInput" type="text"
+        <input id="personasInput" type="text" data-solo-numeros="true" data-teclado-virtual="true"
                maxlength="3" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3)"
                class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-[var(--text-main)] focus:ring-4 focus:ring-[var(--text-main)]/10 transition-all duration-200">
@@ -333,7 +335,7 @@
 
         <p class="text-[12px] text-[var(--text-muted)] mb-3">Ingresa el NIP del Administrador para autorizar la cancelación de este producto.</p>
 
-        <input type="password" id="nipCancelacionInput"
+        <input type="password" id="nipCancelacionInput" data-solo-numeros="true" data-teclado-virtual="true"
                maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
                class="w-full min-h-[64px] rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] shadow-inner p-4 text-2xl sm:text-xl font-black text-center text-[var(--text-main)] outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all duration-200 tracking-[0.3em]"
@@ -492,4 +494,46 @@
         }
     };
 })();
+</script>
+<script>
+// ── Regla universal teclado nativo vs virtual ─────────────────────────────
+// Se ejecuta cuando el DOM y todos los scripts están listos
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.esPantallaTactil !== 'function') return;
+
+    const esPantalla = window.esPantallaTactil();
+
+    // Aplicar a todos los inputs marcados con data-teclado-virtual
+    document.querySelectorAll('[data-teclado-virtual]').forEach(function (input) {
+        if (esPantalla) {
+            // Monitor touch: bloquear teclado del sistema, activar teclado físico
+            input.setAttribute('inputmode', 'none');
+            input.addEventListener('focus', function () {
+                window.setInputVirtualActivo && window.setInputVirtualActivo(input.id);
+            });
+            input.addEventListener('blur', function () {
+                setTimeout(function () {
+                    const hayFoco = document.querySelector('[data-teclado-virtual]:focus');
+                    if (!hayFoco) window.clearInputVirtualActivo && window.clearInputVirtualActivo();
+                }, 100);
+            });
+        } else {
+            // Móvil: teclado nativo, quitar restricciones
+            input.removeAttribute('inputmode');
+            input.removeAttribute('readonly');
+        }
+    });
+
+    // Mismo comportamiento para el textarea de nota
+    const notaTextarea = document.getElementById('notaTextarea');
+    if (notaTextarea) {
+        if (!esPantalla) {
+            // Móvil: teclado nativo
+            notaTextarea.removeAttribute('readonly');
+            notaTextarea.removeAttribute('inputmode');
+            notaTextarea.removeAttribute('onclick');
+        }
+        // Monitor: ya tiene readonly y onclick="abrirTecladoNota()" desde el blade
+    }
+});
 </script>

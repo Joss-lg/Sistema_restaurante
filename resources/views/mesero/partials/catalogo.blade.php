@@ -262,12 +262,11 @@
 
     inputReal.addEventListener('focus', function (e) {
         if (necesitaTecladoVirtual()) {
-            // Monitor touch: bloquear teclado nativo y abrir el virtual
             e.preventDefault();
             inputReal.blur();
             abrirTecladoVirtual();
         }
-        // Móvil: dejar que el teclado nativo aparezca normalmente
+        // Móvil: teclado nativo normal
     });
 
     inputReal.addEventListener('click', function (e) {
@@ -277,6 +276,35 @@
             abrirTecladoVirtual();
         }
     });
+
+    // Cuando el teclado virtual del buscador está abierto,
+    // el teclado físico también escribe en él
+    window.abrirTecladoVirtual_orig = window.abrirTecladoVirtual;
+    window.abrirTecladoVirtual = function () {
+        window.abrirTecladoVirtual_orig();
+        // Activar listener de teclado físico para el buscador
+        window.setInputVirtualActivo && window.setInputVirtualActivo('buscadorProductos');
+        // Redirigir keydown al teclado virtual del buscador
+        document._tvKeyHandler = function (e) {
+            if (!document.getElementById('teclado-virtual-overlay') ||
+                document.getElementById('teclado-virtual-overlay').classList.contains('hidden')) return;
+            if (e.key === 'Backspace') { e.preventDefault(); tvBorrar(); }
+            else if (e.key === 'Escape') { e.preventDefault(); cerrarTecladoVirtual(); }
+            else if (e.key === 'Enter') { e.preventDefault(); cerrarTecladoVirtual(); }
+            else if (e.key.length === 1) { e.preventDefault(); tvEscribir(e.key.toUpperCase()); }
+        };
+        document.addEventListener('keydown', document._tvKeyHandler);
+    };
+
+    window.cerrarTecladoVirtual_orig = window.cerrarTecladoVirtual;
+    window.cerrarTecladoVirtual = function () {
+        window.cerrarTecladoVirtual_orig();
+        window.clearInputVirtualActivo && window.clearInputVirtualActivo();
+        if (document._tvKeyHandler) {
+            document.removeEventListener('keydown', document._tvKeyHandler);
+            document._tvKeyHandler = null;
+        }
+    };
 
     window.tvEscribir = function (char) {
         tvValor += char;

@@ -253,6 +253,51 @@ var mesaDestinoSeleccionadaNumero = null;
         input.dispatchEvent(new Event('input', { bubbles: true }));
     };
 
+    // ── Detección de pantalla táctil vs móvil ────────────────────────────
+    // Móvil (≤768px) → teclado nativo del sistema operativo
+    // Pantalla grande / monitor touch (>768px) → teclado virtual + físico
+    window.esPantallaTactil = function () {
+        return window.innerWidth > 768;
+    };
+
+    // ── Teclado físico para inputs virtuales ─────────────────────────────
+    // Cuando estamos en modo pantalla grande, los inputs tienen inputmode="none"
+    // pero igual queremos que el teclado físico funcione si está conectado.
+    // Escuchamos keydown globalmente y redirigimos al input activo.
+    let _inputVirtualActivo = null;
+
+    window.setInputVirtualActivo = function (inputId) {
+        _inputVirtualActivo = inputId;
+    };
+    window.clearInputVirtualActivo = function () {
+        _inputVirtualActivo = null;
+    };
+
+    document.addEventListener('keydown', function (e) {
+        if (!_inputVirtualActivo) return;
+        const input = document.getElementById(_inputVirtualActivo);
+        if (!input) return;
+
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            input.value = input.value.slice(0, -1);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            // Disparar confirm del modal activo si existe
+            const btnConfirm = document.querySelector('[data-confirm-virtual]:not([disabled])');
+            if (btnConfirm) btnConfirm.click();
+        } else if (e.key.length === 1) {
+            e.preventDefault();
+            // Solo números para inputs numéricos, cualquier char para texto
+            const soloNumeros = input.type === 'password' || input.dataset.soloNumeros === 'true';
+            if (soloNumeros && !/[0-9]/.test(e.key)) return;
+            if (input.maxLength > 0 && input.value.length >= input.maxLength) return;
+            input.value += e.key;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+
     // ── Panel ticket mobile (col-ticket) ────────────────────────────────
     window.toggleOrdenMobile = function () {
         const panel    = document.getElementById('col-ticket');
