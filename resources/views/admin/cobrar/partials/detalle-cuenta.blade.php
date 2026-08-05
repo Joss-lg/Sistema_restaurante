@@ -179,30 +179,15 @@
                         <span class="font-bold">-${{ number_format($descuentoPromociones, 2) }}</span>
                     </div>
                 @endif
-                {{-- IVA_BLOCK_START — switch_iva_ui
-
-                {{-- --- Switch de IVA (funciona por sesión vía CajaController::toggleIva) --- --}}
+                @php /* IVA_BLOCK_START — switch_iva_ui
                 <div class="flex justify-between items-center text-zinc-600 dark:text-zinc-400 text-[11px] font-semibold">
                     <span class="flex items-center gap-2">
-                        IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%)
-                        <label class="relative inline-flex items-center cursor-pointer align-middle">
-                            <input
-                                type="checkbox"
-                                id="ivaSwitch"
-                                class="sr-only peer"
-                                {{ ($ivaHabilitado ?? true) ? 'checked' : '' }}
-                                data-toggle-url="{{ route('admin.caja.toggle-iva') }}"
-                                data-csrf="{{ csrf_token() }}"
-                            >
-                            <div class="w-8 h-4 bg-zinc-300 dark:bg-zinc-700 rounded-full peer
-                                        peer-checked:bg-blue-600 transition-colors"></div>
-                            <div class="absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full
-                                        transition-transform peer-checked:translate-x-4"></div>
-                        </label>
+                        IVA (X%)
+                        <label>...</label>
                     </span>
-                    <span class="font-bold text-zinc-900 dark:text-white" id="resumen-iva">${{ number_format($iva ?? 0, 2) }}</span>
+                    <span id="resumen-iva">$0.00</span>
                 </div>
-                IVA_BLOCK_END --}}
+                IVA_BLOCK_END */ @endphp
 
                 @if(($descuentoCaja ?? 0) > 0)
                     <div class="flex justify-between text-blue-600 dark:text-blue-400 text-[11px] font-semibold">
@@ -257,7 +242,7 @@
     </div>
 </div>
 
-{{-- IVA_BLOCK_START — script_switch_iva
+@php /* IVA_BLOCK_START — script_switch_iva
 {{-- --- Script del switch de IVA --- --}}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -338,4 +323,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-IVA_BLOCK_END --}}
+IVA_BLOCK_END */ @endphp

@@ -328,12 +328,9 @@
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Subtotal</span>
             <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtSubtotal">$0.00</span>
         </div>
-{{-- IVA_BLOCK_START — iva_sidebar_display
-       <div class="flex justify-between items-center mb-2">
-            <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">IVA (16%)</span>
-            <span class="text-[13px] md:text-[12px] font-bold text-[var(--text-main)]" id="txtIva">$0.00</span>
-        </div>
-IVA_BLOCK_END --}}
+@php /* IVA_BLOCK_START — iva_sidebar_display
+        <div id="txtIva">IVA $0.00</div>
+        IVA_BLOCK_END */ @endphp
 
         <div class="flex justify-between items-center mb-4">
             <span class="text-xs md:text-[11px] text-[var(--text-muted)] font-medium">Propina</span>

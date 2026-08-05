@@ -252,4 +252,27 @@ var mesaDestinoSeleccionadaNumero = null;
         input.value = input.value.slice(0, -1);
         input.dispatchEvent(new Event('input', { bubbles: true }));
     };
+
+    // ── Panel ticket mobile (col-ticket) ────────────────────────────────
+    window.toggleOrdenMobile = function () {
+        const panel    = document.getElementById('col-ticket');
+        const backdrop = document.getElementById('backdropOrdenMobile');
+        if (!panel) return;
+
+        const estaAbierto = !panel.classList.contains('translate-y-full');
+
+        if (estaAbierto) {
+            // Cerrar
+            panel.classList.add('translate-y-full');
+            panel.classList.remove('translate-y-0');
+            if (backdrop) { backdrop.classList.add('hidden'); backdrop.classList.remove('flex'); }
+            document.body.style.overflow = '';
+        } else {
+            // Abrir
+            panel.classList.remove('translate-y-full');
+            panel.classList.add('translate-y-0');
+            if (backdrop) { backdrop.classList.remove('hidden'); backdrop.classList.add('flex'); }
+            document.body.style.overflow = 'hidden';
+        }
+    };
 })();

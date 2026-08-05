@@ -57,6 +57,21 @@ class CajaController extends Controller
             if ($mesa->estado === Mesa::ESTADO_OCUPADA && $mesa->ordenesActivas()->count() === 0) {
                 $this->cajaService->liberarMesa($mesa);
                 $mesa->estado = Mesa::ESTADO_DISPONIBLE;
+                return;
+            }
+
+            // Delivery sin productos: ocultar de caja sin eliminarlo todavía
+            // (el mesero puede estar capturando el pedido en ese momento).
+            // Se elimina definitivamente cuando el mesero sale sin agregar nada.
+            if ($mesa->esDelivery() && $mesa->estado === Mesa::ESTADO_OCUPADA) {
+                $tieneProductos = $mesa->ordenesActivas
+                    ->flatMap(fn($o) => $o->detalles)
+                    ->where('estado', '!=', 'cancelado')
+                    ->isNotEmpty();
+
+                if (!$tieneProductos) {
+                    $mesa->estado = Mesa::ESTADO_DISPONIBLE; // solo para ocultarla del listado
+                }
             }
         });
 

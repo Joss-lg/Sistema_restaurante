@@ -24,10 +24,7 @@
             <input type="text" id="buscadorProductos"
                    placeholder="Buscar platillo..."
                    autocomplete="off"
-                   inputmode="none"
-                   readonly
-                   onclick="abrirTecladoVirtual()"
-                   class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] text-sm font-semibold text-[var(--text-main)] placeholder:text-[var(--text-muted)] placeholder:font-normal outline-none focus:border-[#3b82f6] transition-colors cursor-pointer">
+                   class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] text-sm font-semibold text-[var(--text-main)] placeholder:text-[var(--text-muted)] placeholder:font-normal outline-none focus:border-[#3b82f6] transition-colors">
             <button type="button" id="limpiarBusquedaProductos"
                     class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
                     title="Limpiar búsqueda">
@@ -252,10 +249,34 @@
     window.cerrarTecladoVirtual = function () {
         overlay.classList.add('hidden');
         document.body.style.overflow = '';
-        // Sincronizar con el input real y disparar el evento para que filtre
         inputReal.value = tvValor;
         inputReal.dispatchEvent(new Event('input', { bubbles: true }));
     };
+
+    // ── Detectar si necesitamos teclado virtual o nativo ──────────────
+    // Móvil (pantalla pequeña ≤ 768px) → teclado nativo del sistema
+    // Monitor touch o tablet grande → teclado virtual
+    function necesitaTecladoVirtual() {
+        return window.innerWidth > 768;
+    }
+
+    inputReal.addEventListener('focus', function (e) {
+        if (necesitaTecladoVirtual()) {
+            // Monitor touch: bloquear teclado nativo y abrir el virtual
+            e.preventDefault();
+            inputReal.blur();
+            abrirTecladoVirtual();
+        }
+        // Móvil: dejar que el teclado nativo aparezca normalmente
+    });
+
+    inputReal.addEventListener('click', function (e) {
+        if (necesitaTecladoVirtual()) {
+            e.preventDefault();
+            inputReal.blur();
+            abrirTecladoVirtual();
+        }
+    });
 
     window.tvEscribir = function (char) {
         tvValor += char;

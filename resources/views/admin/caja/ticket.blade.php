@@ -153,14 +153,11 @@
             </div>
         @endif
 
-        {{-- IVA_BLOCK_START — iva_ticket_display
-@if(($ivaHabilitado ?? session('iva_habilitado', true)) && isset($iva) && $iva > 0)
-            <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
-                <span>IVA ({{ number_format($ivaPorcentaje ?? 16, 0) }}%):</span>
-                <span>${{ number_format($iva, 2) }}</span>
-            </div>
+        @php /* IVA_BLOCK_START — iva_ticket_display
+        @if ivaHabilitado && iva > 0
+            IVA X% : $X.XX
         @endif
-IVA_BLOCK_END --}}
+        IVA_BLOCK_END */ @endphp
 
         @if(($propina ?? 0) > 0)
             <div class="flex-between" style="font-size: 14px; margin-bottom: 3px;">
