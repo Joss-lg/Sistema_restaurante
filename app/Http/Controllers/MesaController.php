@@ -40,7 +40,7 @@ class MesaController extends Controller
         return view('admin.mesas.index', compact('mesas', 'plataformasDelivery', 'cajaAbierta'));
     }
 
-    public function show($mesaId)
+   public function show($mesaId)
     {
         $mesa = Mesa::with('plataformaDelivery')->findOrFail($mesaId);
         $usuario = auth()->user();
@@ -50,15 +50,12 @@ class MesaController extends Controller
 
         $categorias = Categoria::all();
 
-        // OPTIMIZADO: no cargamos el blob 'imagen' completo, solo verificamos
-        // si existe (selectRaw) para que la tarjeta de comanda pueda mostrar
-        // la miniatura vía la ruta api.imagen sin inflar esta consulta.
+        // Consulta limpia sin hacer referencia a la columna 'imagen'
         $productos = Producto::with(['categoria', 'modificadores'])
             ->select([
                 'id', 'categoria_id', 'nombre', 'descripcion', 'precio',
                 'se_vende_por_peso', 'precio_por_100g', 'esta_disponible',
             ])
-            ->selectRaw('imagen IS NOT NULL as tiene_imagen')
             ->orderBy('nombre', 'asc')
             ->get();
 

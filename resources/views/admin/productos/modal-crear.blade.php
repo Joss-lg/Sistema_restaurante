@@ -89,30 +89,6 @@
                     <textarea id="descripcion" name="descripcion" rows="2" data-teclado="texto" inputmode="none" class="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-3 sm:p-4 mt-1.5 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none text-base" placeholder="Describe qué lleva este platillo..."></textarea>
                 </div>
 
-                {{-- Imagen del Platillo --}}
-                <div class="col-span-2">
-                    <label class="text-[11px] sm:text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">
-                        Imagen del Platillo <span class="normal-case font-semibold text-zinc-400">(Opcional)</span>
-                    </label>
-
-                    <div class="mt-1.5 relative w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900/40">
-                        <label for="imagen" class="flex flex-col items-center justify-center w-full aspect-video sm:aspect-[21/9] cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900/70 transition relative">
-                            <div id="imagen-placeholder-crear" class="flex flex-col items-center justify-center text-center px-4">
-                                <i class="fas fa-image text-2xl text-zinc-400 mb-2"></i>
-                                <p class="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300">Haz clic para subir</p>
-                                <p class="text-[10px] text-zinc-400 mt-0.5">PNG, JPG, WEBP hasta 2MB</p>
-                            </div>
-                            <img id="imagen-preview-crear" src="#" alt="Preview" class="hidden absolute inset-0 w-full h-full object-cover">
-                            <input id="imagen" name="imagen" type="file" accept="image/png, image/jpeg, image/webp" class="hidden" onchange="previewImagen(event, 'crear')">
-                        </label>
-
-                        <button type="button" id="btn-quitar-imagen-crear" onclick="quitarImagenCrear()"
-                            class="hidden absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/60 hover:bg-red-500 text-white flex items-center justify-center transition active:scale-90 backdrop-blur-sm z-10 shadow-lg">
-                            <i class="fas fa-times text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-
                 {{-- Ingredientes del Platillo --}}
                 <div class="col-span-2">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
