@@ -19,16 +19,17 @@ return new class extends Migration
             $table->text('descripcion')->nullable(); 
             $table->decimal('precio', 10, 2);
             $table->boolean('esta_disponible')->default(true);
-            $table->binary('imagen')->nullable()->comment('Los bytes binarios de la imagen');
-            $table->string('imagen_mime_type', 100)->nullable()->comment('Ej. image/jpeg, image/png');
+            // Lógica de imágenes desactivada temporalmente.
+            // $table->binary('imagen')->nullable()->comment('Los bytes binarios de la imagen');
+            // $table->string('imagen_mime_type', 100)->nullable()->comment('Ej. image/jpeg, image/png');
             // ---------------------------------------------------------
 
             $table->softDeletes();
             $table->timestamps();
         });
 
-        // Aseguramos que la columna sea LONGBLOB específicamente en MySQL
-        DB::statement('ALTER TABLE productos MODIFY imagen LONGBLOB NULL');
+        // Lógica de imágenes desactivada temporalmente.
+        // DB::statement('ALTER TABLE productos MODIFY imagen LONGBLOB NULL');
     }
 
     /**

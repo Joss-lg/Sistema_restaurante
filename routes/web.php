@@ -40,8 +40,8 @@ Auth::routes();
 // ==========================================
 // --- RUTAS PÚBLICAS (SIN AUTENTICACIÓN) ---
 // ==========================================
-// Se extrae la ruta de la imagen para evitar el error 302 y problemas de CORS en incógnito
-Route::get('/productos/api/{id}/imagen', [ProductoController::class, 'imagen'])->name('admin.productos.api.imagen');
+// Lógica de imágenes desactivada temporalmente.
+// Route::get('/productos/api/{id}/imagen', [ProductoController::class, 'imagen'])->name('admin.productos.api.imagen');
 
 
 // ==========================================

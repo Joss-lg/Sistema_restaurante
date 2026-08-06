@@ -32,7 +32,8 @@
                     </button>
                 </div>
 
-                <form id="formulario-editar-alimento" onsubmit="actualizarProducto(event)" enctype="multipart/form-data">
+                {{-- La subida de imágenes quedó desactivada temporalmente. --}}
+                <form id="formulario-editar-alimento" onsubmit="actualizarProducto(event)">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         {{-- Nombre (TECLADO VIRTUAL DE TEXTO) --}}
                         <div class="col-span-1 sm:col-span-2">

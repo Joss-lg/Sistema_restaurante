@@ -31,7 +31,8 @@
             </button>
         </div>
 
-        <form id="formulario-crear-producto" onsubmit="guardarProducto(event)" enctype="multipart/form-data" class="overflow-y-auto overscroll-contain flex-1 p-5 sm:p-10 pt-4 sm:pt-6">
+        {{-- La subida de imágenes quedó desactivada temporalmente. --}}
+        <form id="formulario-crear-producto" onsubmit="guardarProducto(event)" class="overflow-y-auto overscroll-contain flex-1 p-5 sm:p-10 pt-4 sm:pt-6">
             <div class="grid grid-cols-2 gap-4 sm:gap-6">
 
                 {{-- Nombre (TECLADO VIRTUAL DE TEXTO) --}}
@@ -168,7 +169,7 @@
         desbloquearScrollFondo();
         const form = document.getElementById('formulario-crear-producto');
         if (form) form.reset();
-        resetPreviewImagen('crear');
+        // resetPreviewImagen('crear');
     };
 
     // ─── Muestra/oculta precio fijo vs precio por 100g según el toggle ──────
@@ -190,6 +191,7 @@
         if (esPorPeso) { inputFijo.value = 0; }
     }
 
+    /*
     // ─── Preview de imagen (compartido crear/editar) ─────────────────────────
     function previewImagen(event, tipo) {
         const input = event.target;
@@ -230,6 +232,7 @@
         if (inputImagen) inputImagen.value = '';
         resetPreviewImagen('crear');
     }
+    */
 
     // ─── Envío multipart genérico (soporta archivos) ─────────────────────────
     // FIX: ya NO recarga la página con location.reload(). Ahora solo refresca
