@@ -23,7 +23,6 @@ class ProductoController extends Controller
                                  'se_vende_por_peso', 'precio_por_100g', 'esta_disponible',
                                  'created_at', 'updated_at', 'deleted_at',
                              ])
-                             ->selectRaw('imagen IS NOT NULL as tiene_imagen')
                              ->orderBy('nombre')
                              ->get();
 
@@ -57,7 +56,6 @@ class ProductoController extends Controller
             'insumos.*'         => 'exists:insumos,id',
             'cantidades'        => 'nullable|array',
             'cantidades.*'      => 'required_with:insumos|numeric|min:0.001',
-            'imagen'            => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         try {
@@ -74,12 +72,6 @@ class ProductoController extends Controller
                 'precio_por_100g'   => $sePorPeso ? $request->precio_por_100g : null,
                 'esta_disponible'   => $request->boolean('esta_disponible'),
             ]);
-
-            if ($request->hasFile('imagen')) {
-                $file = $request->file('imagen');
-                $producto->imagen = file_get_contents($file->getRealPath());
-                $producto->imagen_mime_type = $file->getMimeType();
-            }
 
             $producto->save();
 
@@ -128,8 +120,6 @@ class ProductoController extends Controller
             'insumos.*'         => 'exists:insumos,id',
             'cantidades'        => 'nullable|array',
             'cantidades.*'      => 'required_with:insumos|numeric|min:0.001',
-            'imagen'            => 'nullable|image|mimes:jpeg,png,webp|max:2048',
-            'quitar_imagen'     => 'nullable|boolean',
         ]);
 
         try {
@@ -147,17 +137,6 @@ class ProductoController extends Controller
                 'precio_por_100g'   => $sePorPeso ? $request->precio_por_100g : null,
                 'esta_disponible'   => $request->boolean('esta_disponible'),
             ]);
-
-            if ($request->boolean('quitar_imagen')) {
-                $producto->imagen = null;
-                $producto->imagen_mime_type = null;
-                $producto->save();
-            } elseif ($request->hasFile('imagen')) {
-                $file = $request->file('imagen');
-                $producto->imagen = file_get_contents($file->getRealPath());
-                $producto->imagen_mime_type = $file->getMimeType();
-                $producto->save();
-            }
 
             $receta = [];
             if ($request->filled('insumos') && $request->filled('cantidades')) {
@@ -220,9 +199,8 @@ class ProductoController extends Controller
             ->select([
                 'id', 'categoria_id', 'nombre', 'descripcion', 'precio',
                 'se_vende_por_peso', 'precio_por_100g', 'esta_disponible',
-                'updated_at', // 👈 AGREGADO: necesario para el cache-busting de imagen_url
+                'updated_at',
             ])
-            ->selectRaw('imagen IS NOT NULL as tiene_imagen')
             ->get()
             ->groupBy(function ($producto) {
                 return $producto->categoria->nombre ?? 'Sin Categoría';
@@ -238,21 +216,5 @@ class ProductoController extends Controller
             'disponibles' => Producto::where('esta_disponible', true)->count(),
             'categorias'  => Categoria::count(),
         ]);
-    }
-
-    /**
-     * Sirve el binario de la imagen del producto con su content-type correcto.
-     * Ahora que la URL incluye ?v={timestamp}, cada versión de la imagen tiene
-     * su propia URL única, por lo que es seguro cachear agresivamente.
-     */
-    public function imagen($id)
-    {
-        $producto = Producto::select('id', 'imagen', 'imagen_mime_type')->findOrFail($id);
-
-        abort_if(!$producto->imagen, 404);
-
-        return response($producto->imagen, 200)
-            ->header('Content-Type', $producto->imagen_mime_type)
-            ->header('Cache-Control', 'public, max-age=31536000, immutable');
     }
 }

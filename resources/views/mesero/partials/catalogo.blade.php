@@ -1,5 +1,5 @@
 {{-- ============================================================
-     CATÁLOGO — Panel de productos (adaptable, sin encimado)
+     CATÁLOGO — Panel de productos (Minimalista, sin imágenes)
      ============================================================ --}}
 <section id="col-catalogo"
     class="col-mobile-panel flex w-full md:flex-1 md:min-w-[280px] h-full flex-col bg-[var(--bg-base)] border-l md:border-l-0 md:border-r border-[var(--border-color)] z-20">
@@ -16,9 +16,7 @@
             </div>
         </div>
 
-        {{-- BUSCADOR
-             Filtra mientras se escribe. Trabaja junto con las categorías:
-             buscar "coca" dentro de Bebidas sigue mostrando solo bebidas. --}}
+        {{-- BUSCADOR --}}
         <div class="mt-3 relative">
             <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs pointer-events-none"></i>
             <input type="text" id="buscadorProductos"
@@ -39,8 +37,7 @@
         </div>
     </div>
 
-    {{-- Aviso cuando la búsqueda no encuentra nada. Sin esto la cuadrícula
-         se queda vacía y parece que el sistema se trabó. --}}
+    {{-- Aviso sin resultados --}}
     <div id="catalogoSinResultados" class="hidden px-4 py-10 text-center">
         <i class="fas fa-magnifying-glass text-3xl text-[var(--text-muted)] opacity-30 mb-2"></i>
         <p class="text-sm font-bold text-[var(--text-muted)]">Sin resultados</p>
@@ -51,87 +48,48 @@
     <div id="gridProductos"
          class="flex-1 min-h-0 overflow-y-auto hide-scroll overscroll-contain
                 p-3 sm:p-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-4
-                grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fill,minmax(135px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]
-                gap-3 sm:gap-3.5
+                grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(160px,1fr))]
+                gap-3 sm:gap-4
                 content-start auto-rows-min">
 
         @forelse($productos ?? [] as $producto)
         @php
-            $categoriaRel = $producto->categoria ?? null;
-            if (is_object($categoriaRel)) {
-                $categoriaNombre = $categoriaRel->nombre ?? $categoriaRel->name ?? '';
-            } else {
-                $categoriaNombre = $categoriaRel ?? '';
-            }
-
             $precioMostrar = $producto->precio
                 ?? $producto->precio_100g
                 ?? $producto->precio_gramaje
                 ?? $producto->precio_kg
                 ?? $producto->costo
                 ?? 0;
-
-            $esPorPeso = !empty($producto->unidad);
         @endphp
 
         <button type="button"
             data-producto-id="{{ $producto->id ?? 0 }}"
-            class="btn-producto group relative flex flex-col text-left rounded-2xl border border-[var(--border-color)]
-                   bg-[var(--bg-panel)] overflow-hidden isolate
-                   shadow-sm shadow-black/5
-                   hover:border-blue-500/40 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5
+            class="btn-producto group relative flex flex-col justify-between text-left rounded-[20px] border border-blue-200/60
+                   bg-white p-4
+                   shadow-sm min-h-[130px]
+                   hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5
                    active:scale-[0.97] active:translate-y-0
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)]
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
                    transition-all duration-150">
 
-            {{-- Imagen --}}
-            <div class="relative w-full aspect-[4/3] bg-gradient-to-br from-[var(--hover-bg)] to-[var(--hover-bg)]/60 flex items-center justify-center overflow-hidden">
-                @if(!empty($producto->imagen))
-                    <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}" loading="lazy"
-                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                @else
-                    <span class="text-4xl font-black text-[var(--text-muted)]/25 select-none">
-                        {{ strtoupper(substr($producto->nombre ?? '?', 0, 1)) }}
-                    </span>
-                @endif
+            {{-- Nombre del producto --}}
+            <h3 class="text-[14px] sm:text-[15px] font-black text-slate-900 leading-tight uppercase mb-4 pr-2">
+                {{ $producto->nombre }}
+            </h3>
 
-                <div class="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/25 to-transparent pointer-events-none"></div>
+            {{-- Precio y Botón Agregar --}}
+            <div class="mt-auto flex items-center justify-between gap-2 w-full">
+                <p class="text-[16px] sm:text-[18px] font-black text-slate-900 leading-none tracking-tight">
+                    ${{ number_format($precioMostrar, 2) }}
+                </p>
 
-                @if($esPorPeso)
-                <span class="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm shadow-black/20">
-                    <i class="fas fa-weight-hanging text-[9px]"></i>PESO
+                <span class="flex-shrink-0 w-9 h-9 rounded-full bg-[#3b82f6] text-white
+                             flex items-center justify-center text-sm font-bold
+                             shadow-sm
+                             group-hover:bg-blue-600 group-active:scale-90
+                             transition-all duration-150">
+                    <i class="fas fa-plus"></i>
                 </span>
-                @endif
-
-                @if($categoriaNombre)
-                <span class="absolute top-2 right-2 rounded-full bg-black/60 backdrop-blur-sm px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white max-w-[45%] truncate shadow-sm">
-                    {{ $categoriaNombre }}
-                </span>
-                @endif
-            </div>
-
-            {{-- Información del producto --}}
-            <div class="flex flex-col gap-1.5 p-2.5 sm:p-3 flex-1">
-                <h3 class="text-[13px] sm:text-[14px] font-bold text-[var(--text-main)] leading-snug line-clamp-2 min-h-[2.4em]">
-                    {{ $producto->nombre }}
-                </h3>
-
-                <div class="mt-auto flex items-end justify-between gap-2">
-                    <p class="text-[13px] sm:text-sm font-black text-[var(--text-main)] leading-none">
-                        ${{ number_format($precioMostrar, 2) }}
-                        @if(!empty($producto->unidad))
-                            <span class="text-[10px] font-semibold text-[var(--text-muted)]">/{{ $producto->unidad }}</span>
-                        @endif
-                    </p>
-
-                    <span class="flex-shrink-0 w-9 h-9 sm:w-7 sm:h-7 rounded-full bg-[var(--text-main)] text-[var(--bg-base)]
-                                 flex items-center justify-center text-xs font-black
-                                 shadow-sm
-                                 group-hover:scale-110 group-active:scale-90
-                                 transition-transform duration-150">
-                        <i class="fas fa-plus"></i>
-                    </span>
-                </div>
             </div>
         </button>
         @empty
@@ -164,11 +122,7 @@
         </span>
     </button>
 
-{{-- ═══════════════════════════════════════════════════════
-     TECLADO VIRTUAL — Buscador de productos
-     Aparece al tocar el input. Cubre solo la parte inferior
-     de la pantalla para no tapar el catálogo.
-     ════════════════════════════════════════════════════════ --}}
+{{-- TECLADO VIRTUAL --}}
 <div id="teclado-virtual-overlay"
      class="hidden fixed inset-0 z-[9999]"
      onclick="if(event.target===this) cerrarTecladoVirtual()">
@@ -176,7 +130,7 @@
     <div id="teclado-virtual"
          class="absolute bottom-0 inset-x-0 bg-[var(--bg-base)] border-t border-[var(--border-color)] shadow-2xl rounded-t-3xl pb-safe">
 
-        {{-- Barra superior: display del texto + cerrar --}}
+        {{-- Barra superior --}}
         <div class="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-[var(--border-color)]">
             <div class="flex-1 flex items-center gap-2 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 min-h-[40px]">
                 <i class="fas fa-magnifying-glass text-[var(--text-muted)] text-xs shrink-0"></i>
@@ -211,7 +165,7 @@
                 </div>
             @endforeach
 
-            {{-- Fila inferior: espacio + borrar --}}
+            {{-- Fila inferior --}}
             <div class="flex justify-center gap-1 mt-1">
                 <button type="button" onclick="tvEscribir('1')" class="tv-key w-10 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 transition-all duration-75">1</button>
                 <button type="button" onclick="tvEscribir('2')" class="tv-key w-10 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-white font-black text-sm shadow-sm active:scale-95 transition-all duration-75">2</button>
@@ -253,9 +207,6 @@
         inputReal.dispatchEvent(new Event('input', { bubbles: true }));
     };
 
-    // ── Detectar si necesitamos teclado virtual o nativo ──────────────
-    // Móvil (pantalla pequeña ≤ 768px) → teclado nativo del sistema
-    // Monitor touch o tablet grande → teclado virtual
     function necesitaTecladoVirtual() {
         return window.innerWidth > 768;
     }
@@ -266,7 +217,6 @@
             inputReal.blur();
             abrirTecladoVirtual();
         }
-        // Móvil: teclado nativo normal
     });
 
     inputReal.addEventListener('click', function (e) {
@@ -277,14 +227,10 @@
         }
     });
 
-    // Cuando el teclado virtual del buscador está abierto,
-    // el teclado físico también escribe en él
     window.abrirTecladoVirtual_orig = window.abrirTecladoVirtual;
     window.abrirTecladoVirtual = function () {
         window.abrirTecladoVirtual_orig();
-        // Activar listener de teclado físico para el buscador
         window.setInputVirtualActivo && window.setInputVirtualActivo('buscadorProductos');
-        // Redirigir keydown al teclado virtual del buscador
         document._tvKeyHandler = function (e) {
             if (!document.getElementById('teclado-virtual-overlay') ||
                 document.getElementById('teclado-virtual-overlay').classList.contains('hidden')) return;
@@ -309,7 +255,6 @@
     window.tvEscribir = function (char) {
         tvValor += char;
         display.textContent = tvValor;
-        // Filtrar en tiempo real mientras se escribe
         inputReal.value = tvValor;
         inputReal.dispatchEvent(new Event('input', { bubbles: true }));
     };
@@ -321,7 +266,6 @@
         inputReal.dispatchEvent(new Event('input', { bubbles: true }));
     };
 
-    // Limpiar también limpia el teclado virtual
     const btnLimpiar = document.getElementById('limpiarBusquedaProductos');
     if (btnLimpiar) {
         btnLimpiar.addEventListener('click', () => { tvValor = ''; });

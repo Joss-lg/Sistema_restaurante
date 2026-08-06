@@ -34,40 +34,33 @@
                 const sePorPeso = !!prod.se_vende_por_peso;
                 const precioPor100g = parseFloat(prod.precio_por_100g) || 0;
                 const modsJSON = prod.modificadores ? JSON.stringify(prod.modificadores).replace(/'/g, "\\'") : '[]';
-                const letraInicial = prod.nombre.charAt(0).toUpperCase();
 
+                // Etiqueta de precio adaptada al nuevo diseño limpio
                 const etiquetaPrecio = sePorPeso
-                    ? `$${precioPor100g.toFixed(2)} <span class="text-[9px] font-bold opacity-70">/100g</span>`
+                    ? `$${precioPor100g.toFixed(2)} <span class="text-[11px] font-semibold text-slate-500">/100g</span>`
                     : `$${precioNum.toFixed(2)}`;
 
-                const badgePorPeso = sePorPeso
-                    ? `<span class="absolute top-2.5 left-2.5 text-[7px] font-black uppercase tracking-widest text-white bg-orange-500 px-1.5 py-0.5 rounded-md shadow-sm z-10"><i class="fas fa-weight-hanging mr-0.5"></i>Peso</span>`
-                    : '';
-
-                const mediaHTML = prod.imagen_url
-                    ? `<img src="${prod.imagen_url}" alt="${prod.nombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`
-                    : `<span class="text-5xl font-black text-[var(--text-muted)] opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-110 select-none">${letraInicial}</span>`;
-
                 gridProd.innerHTML += `
-                    <div data-categoria-item="${catNombre}" data-nombre-item="${(prod.nombre || '').toLowerCase()}" onclick='agregarAlTicket(${prod.id}, "${prod.nombre}", ${precioNum}, "${catNombre}", ${modsJSON}, ${sePorPeso ? 'true' : 'false'}, ${precioPor100g}); event.stopPropagation();'
-                         class="producto-card rounded-[20px] bg-[var(--bg-panel)] border border-[var(--border-color)] shadow-[var(--card-shadow)] overflow-hidden hover:border-[#3b82f6]/50 hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-[150px] xl:h-[170px] outline-none relative">
+                    <button type="button"
+                         data-categoria-item="${catNombre}" 
+                         data-nombre-item="${(prod.nombre || '').toLowerCase()}" 
+                         onclick='agregarAlTicket(${prod.id}, "${prod.nombre}", ${precioNum}, "${catNombre}", ${modsJSON}, ${sePorPeso ? 'true' : 'false'}, ${precioPor100g}); event.stopPropagation();'
+                         class="producto-card group relative flex flex-col justify-between text-left rounded-[20px] border border-blue-200/60 bg-white p-4 shadow-sm min-h-[130px] hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.97] active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 transition-all duration-150">
 
-                        <div class="h-[50%] bg-[var(--input-bg)] flex items-center justify-center relative overflow-hidden border-b border-[var(--border-color)]">
-                            ${badgePorPeso}
-                            <span class="absolute top-2.5 right-2.5 text-[8px] font-bold uppercase tracking-widest text-[var(--text-muted)] bg-[var(--bg-panel)] border border-[var(--border-color)] px-2 py-0.5 rounded-md shadow-sm z-10">${catNombre}</span>
-                            ${mediaHTML}
-                        </div>
+                        <h3 class="text-[14px] sm:text-[15px] font-black text-slate-900 leading-tight uppercase mb-4 pr-2">
+                            ${prod.nombre}
+                        </h3>
 
-                        <div class="p-4 flex-1 flex flex-col justify-between">
-                            <h3 class="text-[12px] xl:text-[13px] font-bold text-[var(--text-main)] leading-snug line-clamp-2">${prod.nombre}</h3>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="text-[14px] font-black text-[var(--text-main)] tracking-tight">${etiquetaPrecio}</span>
-                                <div class="w-6 h-6 rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] group-hover:bg-[#3b82f6] group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-sm">
-                                    <i class="fas fa-plus text-[10px]"></i>
-                                </div>
-                            </div>
+                        <div class="mt-auto flex items-center justify-between gap-2 w-full">
+                            <p class="text-[16px] sm:text-[18px] font-black text-slate-900 leading-none tracking-tight">
+                                ${etiquetaPrecio}
+                            </p>
+
+                            <span class="flex-shrink-0 w-9 h-9 rounded-full bg-[#3b82f6] text-white flex items-center justify-center text-sm font-bold shadow-sm group-hover:bg-blue-600 group-active:scale-90 transition-all duration-150">
+                                <i class="fas fa-plus"></i>
+                            </span>
                         </div>
-                    </div>
+                    </button>
                 `;
             });
         } else {
@@ -112,6 +105,7 @@
             const coincideTexto = buscado === '' || nombre.includes(buscado);
 
             const mostrar = coincideCategoria && coincideTexto;
+            // Se cambia a 'flex' para respetar la estructura del botón
             card.style.display = mostrar ? 'flex' : 'none';
             if (mostrar) visibles++;
         });
