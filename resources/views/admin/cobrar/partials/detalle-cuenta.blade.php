@@ -242,42 +242,251 @@
     </div>
 </div>
 
-{{-- Función para cancelar producto desde Caja --}}
+{{-- ═══════════════════════════════════════════════════════
+     MODAL: Cancelar producto desde Caja
+     Paso 1 (opcional): elegir cuántas unidades
+     Paso 2: NIP del Administrador
+     ════════════════════════════════════════════════════════ --}}
+<div id="modal-cancelar-producto" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="cerrarModalCancelarProducto()"></div>
+    <div class="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+
+        {{-- Header --}}
+        <div class="bg-red-50 dark:bg-red-500/10 border-b border-red-100 dark:border-red-500/20 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-red-500/15 border border-red-500/20 flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-red-500 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-zinc-900 dark:text-white" id="mcp-titulo">Cancelar producto</h3>
+                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400" id="mcp-subtitulo">Requiere autorización</p>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarModalCancelarProducto()"
+                class="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors">
+                <i class="fas fa-xmark text-xs"></i>
+            </button>
+        </div>
+
+        {{-- Paso 1: Cantidad --}}
+        <div id="mcp-paso-cantidad" class="px-6 py-5 space-y-4">
+            <p class="text-sm text-zinc-600 dark:text-zinc-400 text-center">
+                ¿Cuántas unidades deseas cancelar?
+            </p>
+            <div class="flex items-center justify-center gap-4">
+                <button type="button" onclick="mcpAjustarCantidad(-1)"
+                    class="w-11 h-11 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-white font-black text-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all">
+                    −
+                </button>
+                <div class="flex flex-col items-center">
+                    <span id="mcp-cantidad-display" class="text-4xl font-black text-zinc-900 dark:text-white tabular-nums">1</span>
+                    <span id="mcp-cantidad-max" class="text-[10px] text-zinc-400 font-medium mt-0.5">de 1</span>
+                </div>
+                <button type="button" onclick="mcpAjustarCantidad(1)"
+                    class="w-11 h-11 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-white font-black text-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all">
+                    +
+                </button>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button type="button" onclick="cerrarModalCancelarProducto()"
+                    class="flex-1 h-11 rounded-2xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" onclick="mcpIrANip()"
+                    class="flex-1 h-11 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm active:scale-95 transition-all">
+                    Continuar →
+                </button>
+            </div>
+        </div>
+
+        {{-- Paso 2: NIP --}}
+        <div id="mcp-paso-nip" class="hidden px-6 py-5 space-y-4">
+            <p class="text-sm text-zinc-600 dark:text-zinc-400 text-center">
+                NIP del <span class="font-black text-zinc-900 dark:text-white">Administrador</span>
+            </p>
+
+            {{-- Display NIP --}}
+            <div class="flex justify-center gap-3 py-1">
+                @for($i = 0; $i < 4; $i++)
+                    <div class="mcp-nip-dot w-4 h-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 bg-transparent transition-all duration-150"></div>
+                @endfor
+            </div>
+
+            {{-- Teclado numérico --}}
+            <div class="grid grid-cols-3 gap-2">
+                @foreach(['1','2','3','4','5','6','7','8','9'] as $k)
+                    <button type="button" onclick="mcpNipEscribir('{{ $k }}')"
+                        class="h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-black text-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all">
+                        {{ $k }}
+                    </button>
+                @endforeach
+                <button type="button" onclick="mcpNipBorrar()"
+                    class="h-12 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-500 font-black hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-95 transition-all flex items-center justify-center">
+                    <i class="fas fa-delete-left text-base"></i>
+                </button>
+                <button type="button" onclick="mcpNipEscribir('0')"
+                    class="h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-black text-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all">
+                    0
+                </button>
+                <button type="button" id="mcp-btn-confirmar" onclick="mcpConfirmar()"
+                    class="h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                    <i class="fas fa-check text-xs"></i> OK
+                </button>
+            </div>
+
+            {{-- Error --}}
+            <p id="mcp-error" class="hidden text-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-xl py-2 px-3"></p>
+
+            <button type="button" onclick="mcpVolverCantidad()"
+                class="w-full text-center text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 font-medium transition-colors py-1">
+                ← Volver
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
-window.cancelarProductoCaja = async function(detalleId, btn, cantidadTotal) {
-    let cantidadCancelar = cantidadTotal;
-    if (cantidadTotal > 1) {
-        const input = prompt(`¿Cuántas unidades quieres cancelar? (1 - ${cantidadTotal})`);
-        if (input === null) return;
-        cantidadCancelar = parseInt(input, 10);
-        if (isNaN(cantidadCancelar) || cantidadCancelar < 1 || cantidadCancelar > cantidadTotal) {
-            alert(`Ingresa un número entre 1 y ${cantidadTotal}.`);
+(function () {
+    let _mcpDetalleId   = null;
+    let _mcpBtn         = null;
+    let _mcpCantTotal   = 1;
+    let _mcpCantSel     = 1;
+    let _mcpNip         = '';
+
+    const modal         = () => document.getElementById('modal-cancelar-producto');
+    const pasoCantidad  = () => document.getElementById('mcp-paso-cantidad');
+    const pasoNip       = () => document.getElementById('mcp-paso-nip');
+    const displayCant   = () => document.getElementById('mcp-cantidad-display');
+    const maxLabel      = () => document.getElementById('mcp-cantidad-max');
+    const errorEl       = () => document.getElementById('mcp-error');
+    const dots          = () => document.querySelectorAll('.mcp-nip-dot');
+
+    function actualizarDots() {
+        dots().forEach((d, i) => {
+            if (i < _mcpNip.length) {
+                d.classList.add('bg-zinc-900', 'dark:bg-white', 'border-zinc-900', 'dark:border-white');
+                d.classList.remove('border-zinc-300', 'dark:border-zinc-600');
+            } else {
+                d.classList.remove('bg-zinc-900', 'dark:bg-white', 'border-zinc-900', 'dark:border-white');
+                d.classList.add('border-zinc-300', 'dark:border-zinc-600');
+            }
+        });
+    }
+
+    window.cancelarProductoCaja = function (detalleId, btn, cantidadTotal) {
+        _mcpDetalleId = detalleId;
+        _mcpBtn       = btn;
+        _mcpCantTotal = cantidadTotal;
+        _mcpCantSel   = 1;
+        _mcpNip       = '';
+
+        // Si solo hay 1 unidad saltamos directo al NIP
+        if (cantidadTotal <= 1) {
+            pasoCantidad().classList.add('hidden');
+            pasoNip().classList.remove('hidden');
+            document.getElementById('mcp-titulo').textContent = 'Cancelar producto';
+            document.getElementById('mcp-subtitulo').textContent = 'Ingresa el NIP del Administrador';
+        } else {
+            pasoCantidad().classList.remove('hidden');
+            pasoNip().classList.add('hidden');
+            displayCant().textContent = '1';
+            maxLabel().textContent = `de ${cantidadTotal}`;
+            document.getElementById('mcp-titulo').textContent = 'Cancelar unidades';
+            document.getElementById('mcp-subtitulo').textContent = `Máximo ${cantidadTotal} unidades`;
+        }
+
+        actualizarDots();
+        if (errorEl()) errorEl().classList.add('hidden');
+        modal().classList.remove('hidden');
+    };
+
+    window.cerrarModalCancelarProducto = function () {
+        modal().classList.add('hidden');
+        _mcpNip = '';
+    };
+
+    window.mcpAjustarCantidad = function (delta) {
+        _mcpCantSel = Math.min(_mcpCantTotal, Math.max(1, _mcpCantSel + delta));
+        displayCant().textContent = _mcpCantSel;
+    };
+
+    window.mcpIrANip = function () {
+        pasoCantidad().classList.add('hidden');
+        pasoNip().classList.remove('hidden');
+        document.getElementById('mcp-subtitulo').textContent = `Cancelar ${_mcpCantSel} unidad(es)`;
+        _mcpNip = '';
+        actualizarDots();
+        if (errorEl()) errorEl().classList.add('hidden');
+    };
+
+    window.mcpVolverCantidad = function () {
+        if (_mcpCantTotal <= 1) { cerrarModalCancelarProducto(); return; }
+        pasoNip().classList.add('hidden');
+        pasoCantidad().classList.remove('hidden');
+    };
+
+    window.mcpNipEscribir = function (digit) {
+        if (_mcpNip.length >= 4) return;
+        _mcpNip += digit;
+        actualizarDots();
+        if (errorEl()) errorEl().classList.add('hidden');
+        // Auto-confirmar al completar 4 dígitos
+        if (_mcpNip.length === 4) mcpConfirmar();
+    };
+
+    window.mcpNipBorrar = function () {
+        _mcpNip = _mcpNip.slice(0, -1);
+        actualizarDots();
+    };
+
+    window.mcpConfirmar = async function () {
+        if (_mcpNip.length < 1) {
+            mostrarErrorMcp('Ingresa el NIP del Administrador.');
             return;
         }
-    }
-    const nip = prompt('Ingresa el NIP del Administrador para autorizar:');
-    if (!nip) return;
 
-    btn.disabled = true;
-    const icono = btn.querySelector('i');
-    if (icono) { icono.className = 'fas fa-spinner fa-spin text-[9px]'; }
+        const btnConfirmar = document.getElementById('mcp-btn-confirmar');
+        btnConfirmar.disabled = true;
+        btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
 
-    try {
-        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const res = await fetch(`/mesero/comanda/detalle/${detalleId}/cancelar`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-            body: JSON.stringify({ nip: nip, cantidad_cancelar: cantidadCancelar })
-        });
-        const data = await res.json().catch(() => null);
-        if (!res.ok || !data?.success) throw new Error(data?.message || 'No se pudo cancelar');
-        window.location.reload();
-    } catch (err) {
-        alert('Error: ' + err.message);
-        btn.disabled = false;
-        if (icono) { icono.className = 'fas fa-trash-alt text-[9px]'; }
+        try {
+            const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const res = await fetch(`/mesero/comanda/detalle/${_mcpDetalleId}/cancelar`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                body: JSON.stringify({ nip: _mcpNip, cantidad_cancelar: _mcpCantSel })
+            });
+            const data = await res.json().catch(() => null);
+
+            if (!res.ok || !data?.success) {
+                mostrarErrorMcp(data?.message || 'NIP incorrecto o sin permisos.');
+                btnConfirmar.disabled = false;
+                btnConfirmar.innerHTML = '<i class="fas fa-check text-xs"></i> OK';
+                _mcpNip = '';
+                actualizarDots();
+                return;
+            }
+
+            window.location.reload();
+        } catch (err) {
+            mostrarErrorMcp('Error de conexión. Intenta de nuevo.');
+            btnConfirmar.disabled = false;
+            btnConfirmar.innerHTML = '<i class="fas fa-check text-xs"></i> OK';
+        }
+    };
+
+    function mostrarErrorMcp(msg) {
+        const el = errorEl();
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.remove('hidden');
     }
-};
+
+    // Cerrar con Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') cerrarModalCancelarProducto();
+    });
+})();
 </script>
 
 @php /* IVA_BLOCK_START — script_switch_iva
