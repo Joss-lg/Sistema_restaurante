@@ -242,54 +242,49 @@
     </div>
 </div>
 
+{{-- Función para cancelar producto desde Caja --}}
+<script>
+window.cancelarProductoCaja = async function(detalleId, btn, cantidadTotal) {
+    let cantidadCancelar = cantidadTotal;
+    if (cantidadTotal > 1) {
+        const input = prompt(`¿Cuántas unidades quieres cancelar? (1 - ${cantidadTotal})`);
+        if (input === null) return;
+        cantidadCancelar = parseInt(input, 10);
+        if (isNaN(cantidadCancelar) || cantidadCancelar < 1 || cantidadCancelar > cantidadTotal) {
+            alert(`Ingresa un número entre 1 y ${cantidadTotal}.`);
+            return;
+        }
+    }
+    const nip = prompt('Ingresa el NIP del Administrador para autorizar:');
+    if (!nip) return;
+
+    btn.disabled = true;
+    const icono = btn.querySelector('i');
+    if (icono) { icono.className = 'fas fa-spinner fa-spin text-[9px]'; }
+
+    try {
+        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const res = await fetch(`/mesero/comanda/detalle/${detalleId}/cancelar`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+            body: JSON.stringify({ nip: nip, cantidad_cancelar: cantidadCancelar })
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.success) throw new Error(data?.message || 'No se pudo cancelar');
+        window.location.reload();
+    } catch (err) {
+        alert('Error: ' + err.message);
+        btn.disabled = false;
+        if (icono) { icono.className = 'fas fa-trash-alt text-[9px]'; }
+    }
+};
+</script>
+
 @php /* IVA_BLOCK_START — script_switch_iva
-{{-- --- Script del switch de IVA --- --}}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const ivaSwitch = document.getElementById('ivaSwitch');
     if (!ivaSwitch) return;
-
-    // ── Cancelar producto desde Caja ──────────────────────────────────────────
-    // Reutiliza el endpoint del mesero que ya pide NIP de Administrador.
-    window.cancelarProductoCaja = async function(detalleId, btn, cantidadTotal) {
-        // Paso 1: cuántas unidades cancelar
-        let cantidadCancelar = cantidadTotal;
-        if (cantidadTotal > 1) {
-            const input = prompt(`¿Cuántas unidades quieres cancelar? (1 - ${cantidadTotal})`);
-            if (input === null) return; // canceló el prompt
-            cantidadCancelar = parseInt(input, 10);
-            if (isNaN(cantidadCancelar) || cantidadCancelar < 1 || cantidadCancelar > cantidadTotal) {
-                alert(`Ingresa un número entre 1 y ${cantidadTotal}.`);
-                return;
-            }
-        }
-
-        // Paso 2: NIP del administrador
-        const nip = prompt('Ingresa el NIP del Administrador para autorizar:');
-        if (!nip) return;
-
-        btn.disabled = true;
-        const icono = btn.querySelector('i');
-        if (icono) { icono.className = 'fas fa-spinner fa-spin text-[9px]'; }
-
-        try {
-            const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            const res = await fetch(`/mesero/comanda/detalle/${detalleId}/cancelar`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-                body: JSON.stringify({ nip: nip, cantidad_cancelar: cantidadCancelar })
-            });
-            const data = await res.json().catch(() => null);
-            if (!res.ok || !data?.success) throw new Error(data?.message || 'No se pudo cancelar');
-
-            window.location.reload();
-        } catch (err) {
-            alert('Error: ' + err.message);
-            btn.disabled = false;
-            if (icono) { icono.className = 'fas fa-trash-alt text-[9px]'; }
-        }
-    };
-
     ivaSwitch.addEventListener('change', async function (e) {
         const habilitado = e.target.checked;
         const url = e.target.dataset.toggleUrl;

@@ -35,18 +35,27 @@ class ComandaController extends Controller
         $productos = Producto::with(['categoria', 'modificadores'])->orderBy('nombre', 'asc')->get();
         $mesasAbiertas = $esCapitan ? Mesa::where('estado', 'ocupada')->orderBy('numero', 'asc')->get() : collect();
 
-        $comandaActiva = Orden::where('mesa_id', $mesa->id)->where('estado', '!=', 'pagada')->latest()->first();
-        $platillosEnviados = $comandaActiva
-        ? $comandaActiva->detalles()->with('producto')->get()->map(function ($detalle) {
-            return (object) [
-                'id'       => $detalle->id,
-                'nombre'   => $detalle->producto->nombre ?? 'Platillo',
-                'cantidad' => $detalle->cantidad,
-                'precio'   => $detalle->precio_unitario,
-                'estado'   => $detalle->estado,
-            ];
-        })
-        : collect();
+        // Traer TODAS las órdenes activas de la mesa (puede haber varias rondas)
+        $ordenesActivas = Orden::where('mesa_id', $mesa->id)
+            ->whereIn('estado', Orden::getEstadosActivos())
+            ->with(['detalles.producto'])
+            ->get();
+
+        // Para compatibilidad con el resto del código que usa $comandaActiva
+        $comandaActiva = $ordenesActivas->first();
+
+        // Aplanar los detalles de TODAS las órdenes en una sola colección
+        $platillosEnviados = $ordenesActivas->flatMap(function ($orden) {
+            return $orden->detalles->map(function ($detalle) {
+                return (object) [
+                    'id'       => $detalle->id,
+                    'nombre'   => $detalle->producto->nombre ?? 'Platillo',
+                    'cantidad' => $detalle->cantidad,
+                    'precio'   => $detalle->precio_unitario,
+                    'estado'   => $detalle->estado,
+                ];
+            });
+        });
 
         // --- AJUSTE: IVA habilitable desde configuración global ---
         /* IVA_BLOCK_START — iva_show_mesero
@@ -265,13 +274,16 @@ public function transferirProductos(Request $request)
     {
         $mesa = Mesa::findOrFail($mesaId);
 
-        $orden = Orden::where('mesa_id', $mesa->id)
-            ->where('estado', '!=', 'pagada')
+        // Traer TODAS las órdenes activas (igual que en show())
+        $ordenesActivas = Orden::where('mesa_id', $mesa->id)
+            ->whereIn('estado', Orden::getEstadosActivos())
             ->with(['detalles.producto', 'mesero:id,nombre'])
-            ->latest()
-            ->first();
+            ->get();
 
-        $detalles = $orden ? $orden->detalles : collect();
+        $orden = $ordenesActivas->first(); // para datos como mesero, número de orden
+
+        // Aplanar todos los detalles de todas las órdenes
+        $detalles = $ordenesActivas->flatMap(fn($o) => $o->detalles);
 
         $subtotal = $detalles->sum(fn ($d) => $d->cantidad * $d->precio_unitario);
 
@@ -293,7 +305,7 @@ public function transferirProductos(Request $request)
         $iva = 0; // IVA desactivado
         $ivaHabilitado = false;
         $ivaPorcentaje = 0;
-       
+
         // --- EXTRAER PROPINA ---
         $propina = 0;
         if ($orden && Schema::hasColumn('ordenes', 'propina')) {

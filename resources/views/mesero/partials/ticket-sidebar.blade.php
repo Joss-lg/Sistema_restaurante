@@ -245,7 +245,55 @@
             <i class="fas fa-plate-wheat text-4xl md:text-3xl text-[var(--text-muted)] mb-3"></i>
             <p class="text-xs md:text-[11px] font-medium text-[var(--text-muted)] text-center">Sin productos.<br>Comienza a agregar.</p>
         </div>
+
+        {{-- ── HISTORIAL DE ENVIADOS (siempre visible en el tab Orden) ── --}}
+        @if(isset($platillosEnviados) && count($platillosEnviados) > 0)
+            <div class="mt-2 mb-1">
+                <div class="flex items-center gap-2 px-1 mb-2">
+                    <div class="flex-1 h-px bg-[var(--border-color)]"></div>
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Ya enviado a cocina</span>
+                    <div class="flex-1 h-px bg-[var(--border-color)]"></div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    @foreach($platillosEnviados as $item)
+                        @php $cancelado = ($item->estado ?? '') === 'cancelado'; @endphp
+                        @if(!$cancelado)
+                            <div class="flex justify-between items-center px-2 py-1.5 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-lg bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-muted)] text-[10px] font-bold flex items-center justify-center">{{ $item->cantidad }}</span>
+                                    <span class="text-[12px] font-medium text-[var(--text-muted)]">{{ $item->nombre }}</span>
+                                </div>
+                                <span class="text-[11px] font-bold text-[var(--text-muted)]">${{ number_format(($item->precio ?? 0) * ($item->cantidad ?? 1), 2) }}</span>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
+
+    @php
+        // Asegurar que $platillosEnviados tenga TODOS los detalles de TODAS
+        // las órdenes activas, independientemente de qué versión del
+        // controlador esté corriendo en el servidor.
+        $todasLasOrdenes = \App\Models\Orden::where('mesa_id', $mesa->id)
+            ->whereIn('estado', \App\Models\Orden::getEstadosActivos())
+            ->with(['detalles.producto'])
+            ->get();
+
+        // Reconstruir platillosEnviados con TODAS las órdenes
+        $platillosEnviados = $todasLasOrdenes->flatMap(function ($orden) {
+            return $orden->detalles->map(function ($detalle) {
+                return (object) [
+                    'id'       => $detalle->id,
+                    'nombre'   => optional($detalle->producto)->nombre ?? 'Platillo',
+                    'cantidad' => $detalle->cantidad,
+                    'precio'   => $detalle->precio_unitario,
+                    'estado'   => $detalle->estado,
+                ];
+            });
+        });
+    @endphp
 
     {{-- VISTA 2: ENVIADOS --}}
     <div id="vista-enviados" class="hidden panel-fade flex-1 overflow-y-auto hide-scroll p-4 flex-col relative bg-[var(--bg-base)]">
