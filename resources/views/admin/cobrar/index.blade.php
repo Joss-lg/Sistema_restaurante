@@ -86,6 +86,153 @@
 @endif
 @endsection
 
+{{-- ═══════════════════════════════════════════════════════
+     MODAL NIP — Compartido para Descuento y Cancelar Cuenta
+     ════════════════════════════════════════════════════════ --}}
+<div id="modal-nip-caja" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="cerrarModalNipCaja()"></div>
+    <div class="relative w-full max-w-xs bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+
+        {{-- Header --}}
+        <div id="mnc-header" class="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div id="mnc-icono-wrap" class="w-9 h-9 rounded-xl flex items-center justify-center">
+                    <i id="mnc-icono" class="fas fa-lock text-sm"></i>
+                </div>
+                <div>
+                    <h3 id="mnc-titulo" class="text-sm font-black text-zinc-900 dark:text-white">Autorización</h3>
+                    <p id="mnc-subtitulo" class="text-[11px] text-zinc-500 dark:text-zinc-400">Ingresa el NIP del Administrador</p>
+                </div>
+            </div>
+            <button type="button" onclick="cerrarModalNipCaja()"
+                class="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors">
+                <i class="fas fa-xmark text-xs"></i>
+            </button>
+        </div>
+
+        {{-- Body --}}
+        <div class="px-6 py-5 space-y-4">
+            {{-- Dots --}}
+            <div class="flex justify-center gap-3 py-1">
+                @for($i = 0; $i < 4; $i++)
+                    <div class="mnc-dot w-4 h-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 bg-transparent transition-all duration-150"></div>
+                @endfor
+            </div>
+
+            {{-- Teclado --}}
+            <div class="grid grid-cols-3 gap-2">
+                @foreach(['1','2','3','4','5','6','7','8','9'] as $k)
+                    <button type="button" onclick="mncEscribir('{{ $k }}')"
+                        class="h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-black text-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all">
+                        {{ $k }}
+                    </button>
+                @endforeach
+                <button type="button" onclick="mncBorrar()"
+                    class="h-12 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-95 transition-all">
+                    <i class="fas fa-delete-left text-base"></i>
+                </button>
+                <button type="button" onclick="mncEscribir('0')"
+                    class="h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-black text-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all">
+                    0
+                </button>
+                <button type="button" id="mnc-btn-ok" onclick="mncConfirmar()"
+                    class="h-12 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                    <i class="fas fa-check text-xs"></i> OK
+                </button>
+            </div>
+
+            {{-- Error --}}
+            <p id="mnc-error" class="hidden text-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-xl py-2 px-3"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    let _mncNip      = '';
+    let _mncCallback = null;
+
+    const dots    = () => document.querySelectorAll('.mnc-dot');
+    const errorEl = () => document.getElementById('mnc-error');
+    const btnOk   = () => document.getElementById('mnc-btn-ok');
+
+    function actualizarDots() {
+        dots().forEach((d, i) => {
+            if (i < _mncNip.length) {
+                d.classList.add('bg-zinc-900', 'dark:bg-white', 'border-zinc-900', 'dark:border-white');
+                d.classList.remove('border-zinc-300', 'dark:border-zinc-600', 'bg-transparent');
+            } else {
+                d.classList.remove('bg-zinc-900', 'dark:bg-white', 'border-zinc-900', 'dark:border-white');
+                d.classList.add('border-zinc-300', 'dark:border-zinc-600', 'bg-transparent');
+            }
+        });
+    }
+
+    window.abrirModalNipCaja = function ({ titulo, subtitulo, icono, colorIcono, onConfirm }) {
+        _mncNip      = '';
+        _mncCallback = onConfirm;
+
+        document.getElementById('mnc-titulo').textContent    = titulo || 'Autorización';
+        document.getElementById('mnc-subtitulo').textContent = subtitulo || 'Ingresa el NIP del Administrador';
+
+        const wrap = document.getElementById('mnc-icono-wrap');
+        const ico  = document.getElementById('mnc-icono');
+        wrap.className = `w-9 h-9 rounded-xl flex items-center justify-center bg-${colorIcono || 'blue'}-500/15 border border-${colorIcono || 'blue'}-500/20`;
+        ico.className  = `fas ${icono || 'fa-lock'} text-${colorIcono || 'blue'}-500 text-sm`;
+
+        actualizarDots();
+        if (errorEl()) errorEl().classList.add('hidden');
+        document.getElementById('modal-nip-caja').classList.remove('hidden');
+    };
+
+    window.cerrarModalNipCaja = function () {
+        document.getElementById('modal-nip-caja').classList.add('hidden');
+        _mncNip = '';
+        _mncCallback = null;
+    };
+
+    window.mncEscribir = function (digit) {
+        if (_mncNip.length >= 4) return;
+        _mncNip += digit;
+        actualizarDots();
+        if (errorEl()) errorEl().classList.add('hidden');
+        if (_mncNip.length === 4) mncConfirmar();
+    };
+
+    window.mncBorrar = function () {
+        _mncNip = _mncNip.slice(0, -1);
+        actualizarDots();
+    };
+
+    window.mncConfirmar = async function () {
+        if (!_mncNip || _mncNip.length < 1) return;
+        if (!_mncCallback) return;
+
+        const btn = btnOk();
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>'; }
+
+        try {
+            await _mncCallback(_mncNip);
+        } catch (err) {
+            const el = errorEl();
+            if (el) { el.textContent = err.message || 'Error al verificar.'; el.classList.remove('hidden'); }
+            _mncNip = '';
+            actualizarDots();
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check text-xs"></i> OK'; }
+        }
+    };
+
+    document.addEventListener('keydown', function (e) {
+        const modal = document.getElementById('modal-nip-caja');
+        if (!modal || modal.classList.contains('hidden')) return;
+        if (e.key === 'Escape') cerrarModalNipCaja();
+        else if (e.key === 'Backspace') mncBorrar();
+        else if (/^[0-9]$/.test(e.key)) mncEscribir(e.key);
+    });
+})();
+</script>
+
 @push('scripts')
 @vite(['resources/js/cobro.js'])
 <script>
@@ -114,9 +261,7 @@
         const msgDescuento = document.getElementById('msg-descuento-caja');
 
         if (btnDescuento && inputDescuento) {
-            btnDescuento.addEventListener('click', async () => {
-                // El campo es de texto para que el teclado táctil escriba el
-                // punto decimal; se acepta también la coma.
+            btnDescuento.addEventListener('click', () => {
                 const crudo = (inputDescuento.value || '').trim().replace(',', '.');
                 const porcentaje = crudo === '' ? 0 : parseFloat(crudo);
 
@@ -131,39 +276,35 @@
                     return;
                 }
 
-                btnDescuento.disabled = true;
-                const textoOriginal = btnDescuento.textContent;
-                btnDescuento.textContent = 'Aplicando...';
+                // Pedir NIP antes de aplicar el descuento
+                abrirModalNipCaja({
+                    titulo: 'Autorizar descuento',
+                    subtitulo: `Descuento del ${porcentaje}% — ingresa tu NIP`,
+                    icono: 'fa-tag',
+                    colorIcono: 'blue',
+                    onConfirm: async (nip) => {
+                        // Verificar NIP
+                        const resNip = await fetch('/mesero/capitan/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}", 'Accept': 'application/json' },
+                            body: JSON.stringify({ nip })
+                        });
+                        const dataNip = await resNip.json().catch(() => null);
+                        if (!resNip.ok || !dataNip?.success) {
+                            throw new Error(dataNip?.message || 'NIP incorrecto.');
+                        }
 
-                try {
-                    const res = await fetch(@json(route('admin.caja.cuenta.descuento')), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': "{{ csrf_token() }}",
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({ mesa_id: {{ $mesa->id }}, porcentaje: porcentaje }),
-                    });
-
-                    const data = await res.json();
-
-                    if (res.ok && data.success) {
-                        // Se recarga para que el desglose, el total y las
-                        // partes de la división queden con el nuevo importe:
-                        // todos esos números salen del servidor.
+                        // Aplicar descuento
+                        const res = await fetch(@json(route('admin.caja.cuenta.descuento')), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}", 'Accept': 'application/json' },
+                            body: JSON.stringify({ mesa_id: {{ $mesa->id }}, porcentaje: porcentaje }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo aplicar el descuento.');
                         window.location.reload();
-                        return;
                     }
-
-                    avisar(data.message || 'No se pudo aplicar el descuento.', false);
-                } catch (e) {
-                    console.error('Error al aplicar descuento:', e);
-                    avisar('Error de conexión.', false);
-                } finally {
-                    btnDescuento.disabled = false;
-                    btnDescuento.textContent = textoOriginal;
-                }
+                });
             });
         }
     });

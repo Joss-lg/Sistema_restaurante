@@ -89,7 +89,32 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('flex');
     };
 
-    abrir.addEventListener('click', mostrar);
+    abrir.addEventListener('click', () => {
+        // Pedir NIP de Administrador antes de mostrar el modal
+        abrirModalNipCaja({
+            titulo: 'Cancelar cuenta',
+            subtitulo: 'Esta acción no se puede deshacer',
+            icono: 'fa-ban',
+            colorIcono: 'rose',
+            onConfirm: async (nip) => {
+                const resNip = await fetch('/mesero/capitan/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ nip })
+                });
+                const dataNip = await resNip.json().catch(() => null);
+                if (!resNip.ok || !dataNip?.success) {
+                    throw new Error(dataNip?.message || 'NIP incorrecto.');
+                }
+                cerrarModalNipCaja();
+                mostrar();
+            }
+        });
+    });
     modal.querySelectorAll('[data-cerrar-cancelar]').forEach(el => el.addEventListener('click', ocultar));
 
     confirmar.addEventListener('click', async () => {
