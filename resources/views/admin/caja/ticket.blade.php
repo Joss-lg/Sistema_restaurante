@@ -188,19 +188,73 @@
 
     <!-- Pagos -->
     @if(isset($pagos) && collect($pagos)->isNotEmpty())
+        @php
+            $pagosCobrados = collect($pagos)->filter(fn($p) => ($p['monto'] ?? 0) > 0);
+            $esDivision    = $pagosCobrados->contains(fn($p) => !is_null($p['persona'] ?? null));
+        @endphp
         <div class="dashed-line"></div>
-        <div class="font-bold" style="font-size: 13px; margin-bottom: 5px;">FORMA DE PAGO:</div>
-        
-        @foreach($pagos as $pago)
-            <div style="margin-bottom: 5px;">
-                <div class="flex-between font-bold" style="font-size: 14px;">
-                    <span>{{ mb_strtoupper($pago['metodo']) }}</span>
-                    <span>${{ number_format($pago['monto'], 2) }}</span>
-                </div>
-                @if(!empty($pago['referencia']))
-                    <div style="font-size: 12px; color: #333;">REF: {{ mb_strtoupper($pago['referencia']) }}</div>
-                @endif
+
+        @if($esDivision)
+            {{-- Cuenta dividida: agrupar por persona --}}
+            <div class="font-bold text-center" style="font-size: 13px; margin-bottom: 6px;">
+                CUENTA DIVIDIDA ENTRE {{ $pagosCobrados->first()['totalPersonas'] }} PERSONAS
             </div>
+            @php $pagosPorPersona = $pagosCobrados->groupBy('persona')->sortKeys(); @endphp
+            @foreach($pagosPorPersona as $numPersona => $pagosPersona)
+                <div style="margin-bottom: 6px;">
+                    <div class="font-bold" style="font-size: 12px; border-bottom: 1px dotted #999; margin-bottom: 3px;">
+                        PERSONA {{ $numPersona }} DE {{ $pagosPersona->first()['totalPersonas'] }}
+                    </div>
+                    @foreach($pagosPersona as $pago)
+                        <div class="flex-between" style="font-size: 13px; padding-left: 4px;">
+                            <span>{{ mb_strtoupper($pago['metodo']) }}</span>
+                            <span class="font-bold">${{ number_format($pago['monto'], 2) }}</span>
+                        </div>
+                        @if(!empty($pago['referencia']))
+                            <div style="font-size: 11px; color: #444; padding-left: 4px;">REF: {{ mb_strtoupper($pago['referencia']) }}</div>
+                        @endif
+                    @endforeach
+                </div>
+            @endforeach
+        @else
+            {{-- Pago normal sin división --}}
+            <div class="font-bold" style="font-size: 13px; margin-bottom: 5px;">FORMA DE PAGO:</div>
+            @foreach($pagosCobrados as $pago)
+                <div style="margin-bottom: 5px;">
+                    <div class="flex-between font-bold" style="font-size: 14px;">
+                        <span>{{ mb_strtoupper($pago['metodo']) }}</span>
+                        <span>${{ number_format($pago['monto'], 2) }}</span>
+                    </div>
+                    @if(!empty($pago['referencia']))
+                        <div style="font-size: 12px; color: #333;">REF: {{ mb_strtoupper($pago['referencia']) }}</div>
+                    @endif
+                </div>
+            @endforeach
+        @endif
+    @endif
+
+    <!-- División de cuenta -->
+    @if(isset($hayDivision) && $hayDivision && $partesDivision->isNotEmpty())
+        <div class="dashed-line"></div>
+        <div class="font-bold text-center" style="font-size: 13px; margin-bottom: 6px;">
+            CUENTA DIVIDIDA ENTRE {{ $totalPartes }} PERSONAS
+        </div>
+        @foreach($partesDivision as $parte)
+            <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+                <span>
+                    PERSONA {{ $parte['numero'] }} DE {{ $totalPartes }}
+                    @if($parte['estado'] === 'pagada')
+                        ✓
+                    @endif
+                </span>
+                <span class="font-bold">${{ number_format($parte['total'], 2) }}</span>
+            </div>
+            @if(($parte['propina'] ?? 0) > 0)
+                <div class="flex-between" style="font-size: 12px; margin-bottom: 4px; padding-left: 8px; color: #444;">
+                    <span>PROPINA:</span>
+                    <span>${{ number_format($parte['propina'], 2) }}</span>
+                </div>
+            @endif
         @endforeach
     @endif
 

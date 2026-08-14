@@ -7,6 +7,7 @@ use App\Models\Mesa;
 use App\Models\Orden;
 use App\Models\FlujoCaja;
 use App\Models\TicketImpreso;
+use App\Models\CuentaDivision;
 
 class TicketService
 {
@@ -117,11 +118,22 @@ class TicketService
             ->where('flujoable_type', Orden::class)
             ->where('categoria', 'Ventas')
             ->get()
-            ->map(fn ($flujo) => [
-                'metodo'     => ucfirst($flujo->metodo_pago),
-                'monto'      => $flujo->monto,
-                'referencia' => $flujo->referencia,
-            ]);
+            ->map(function ($flujo) {
+                // Extraer número de persona del concepto si existe: "(Persona 2/3)"
+                $persona = null;
+                $totalPersonas = null;
+                if (preg_match('/\(Persona (\d+)\/(\d+)\)/i', $flujo->concepto ?? '', $m)) {
+                    $persona       = (int) $m[1];
+                    $totalPersonas = (int) $m[2];
+                }
+                return [
+                    'metodo'        => ucfirst($flujo->metodo_pago),
+                    'monto'         => $flujo->monto,
+                    'referencia'    => $flujo->referencia,
+                    'persona'       => $persona,
+                    'totalPersonas' => $totalPersonas,
+                ];
+            });
 
         $subtotalBruto  = $items->sum('subtotal');
         $descuentoTotal = $items->sum('descuento'); // descuentos de PROMOCIONES
@@ -175,6 +187,20 @@ class TicketService
         // la orden): se fijan la primera vez que se pide este ticket.
         $ticketImpreso = $this->obtenerOFolio($primeraOrden, $mesa);
 
+        // --- División de cuenta ---
+        $cuentasDivision = CuentaDivision::where('mesa_id', $mesa->id)
+            ->orderBy('numero_cuenta')
+            ->get();
+
+        $hayDivision    = $cuentasDivision->isNotEmpty();
+        $totalPartes    = $hayDivision ? $cuentasDivision->first()->total_partes : 1;
+        $partesDivision = $hayDivision ? $cuentasDivision->map(fn($c) => [
+            'numero'  => $c->numero_cuenta,
+            'total'   => $c->total,
+            'estado'  => $c->estado,
+            'propina' => $c->propina ?? 0,
+        ])->values() : collect();
+
         return [
             'folio'          => $ticketImpreso->folio_formateado, // "001", "002"...
             'fecha'          => $ticketImpreso->impreso_en->format('d/m/Y'),
@@ -203,6 +229,10 @@ class TicketService
             'total'          => round($totalCalculado, 2),
             'pagos'          => $pagos,
             'negocio'        => ['nombre' => 'Agostadero'],
+            // --- División ---
+            'hayDivision'    => $hayDivision,
+            'totalPartes'    => $totalPartes,
+            'partesDivision' => $partesDivision,
         ];
     }
 }
