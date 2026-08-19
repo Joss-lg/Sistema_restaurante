@@ -95,20 +95,25 @@ class TicketService
                 : collect();
         }
 
-        // --- Items: se aplanan los detalles de TODAS las órdenes de la mesa ---
+// --- Items: se aplanan los detalles de TODAS las órdenes de la mesa ---
         $items = $ordenes->flatMap(function ($orden) {
-            return $orden->detalles->map(function ($detalle) {
-                $descuento = $detalle->promocionAplicada?->monto_descuento ?? 0;
-                $subtotalLinea = $detalle->subtotal ?? ($detalle->cantidad * $detalle->precio_unitario);
+            return $orden->detalles
+                ->filter(function ($detalle) {
+                    // Excluir los productos cancelados ANTES de pasarlos al ticket
+                    return strtolower($detalle->estado ?? '') !== 'cancelado';
+                })
+                ->map(function ($detalle) {
+                    $descuento = $detalle->promocionAplicada?->monto_descuento ?? 0;
+                    $subtotalLinea = $detalle->subtotal ?? ($detalle->cantidad * $detalle->precio_unitario);
 
-                return [
-                    'cantidad'         => $detalle->cantidad,
-                    'nombre'           => $detalle->producto->nombre ?? 'Producto sin registro',
-                    'subtotal'         => $subtotalLinea,
-                    'descuento'        => $descuento,
-                    'promocion_nombre' => $detalle->promocionAplicada?->promocion?->nombre,
-                ];
-            });
+                    return [
+                        'cantidad'         => $detalle->cantidad,
+                        'nombre'           => $detalle->producto->nombre ?? 'Producto sin registro',
+                        'subtotal'         => $subtotalLinea,
+                        'descuento'        => $descuento,
+                        'promocion_nombre' => $detalle->promocionAplicada?->promocion?->nombre,
+                    ];
+                });
         });
 
         $ordenIds = $ordenes->pluck('id');
