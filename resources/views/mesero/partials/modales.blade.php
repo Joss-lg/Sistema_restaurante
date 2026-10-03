@@ -333,8 +333,23 @@
             <button type="button" onclick="cerrarModalCancelacion()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] w-9 h-9 -m-1 rounded-full hover:bg-[var(--hover-bg)] flex items-center justify-center transition-all duration-200"><i class="fas fa-times text-lg"></i></button>
         </div>
 
-        <p class="text-[12px] text-[var(--text-muted)] mb-3">Ingresa el NIP del Administrador para autorizar la cancelación de este producto.</p>
+        {{-- Motivo obligatorio: queda registrado en flujo de caja y en el detalle de la orden --}}
+        <div class="mb-4">
+            <label class="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-1.5">
+                Motivo <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="motivoCancelacionInput"
+                   maxlength="255" autocomplete="off"
+                   placeholder="Ej: Cliente ya no lo quiso, error de captura…"
+                   class="w-full rounded-xl border border-[var(--border-color)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--text-main)] outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all duration-200 placeholder:text-[var(--text-muted)]">
+            <p id="motivoCancelacionError" class="hidden mt-1.5 text-[11px] text-red-500 font-semibold">
+                <i class="fas fa-circle-exclamation mr-1"></i>El motivo es obligatorio para autorizar la cancelación.
+            </p>
+        </div>
 
+        <label class="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-1.5">
+            NIP Administrador <span class="text-red-500">*</span>
+        </label>
         <input type="password" id="nipCancelacionInput" data-solo-numeros="true" data-teclado-virtual="true"
                maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"

@@ -11,6 +11,8 @@ use App\Models\DetalleOrden;
 use App\Models\Configuracion;
 use App\Models\User;
 use App\Models\OrdenPromocion;
+use App\Models\CajaMovimiento;
+use App\Models\FlujoCaja;
 use App\Services\MesaService;
 use App\Services\ComandaService;
 use Illuminate\Http\Request;
@@ -139,8 +141,8 @@ class MesaController extends Controller
     public function cancelarProducto(Request $request, $detalleId)
     {
         $request->validate([
-            'nip'              => 'required|string',
-            'motivo'           => 'nullable|string|max:255',
+            'nip'               => 'required|string',
+            'motivo'            => 'required|string|min:3|max:255',
             'cantidad_cancelar' => 'nullable|integer|min:1',
         ]);
 
@@ -223,6 +225,34 @@ class MesaController extends Controller
                         'cancelado_por'      => $autorizador->id,
                         'cancelado_en'       => now(),
                     ]);
+                }
+
+                // ── AUDITORÍA EN FLUJO DE CAJA ──────────────────────────────────────
+                // Toda cancelación de producto queda registrada como egreso en el turno
+                // activo, igual que cancelarCuenta(). Esto cierra el hueco que permitía
+                // ocultar ventas: si se cancela un producto después de imprimirse el
+                // ticket, el monto aparece explícitamente como pérdida en el corte.
+                if ($montoNeto > 0) {
+                    $cajaActiva = CajaMovimiento::where('estado', 'abierta')->first();
+                    if ($cajaActiva) {
+                        $nombreProducto = $detalle->producto->nombre ?? 'Producto #' . $detalle->producto_id;
+                        FlujoCaja::create([
+                            'caja_movimiento_id' => $cajaActiva->id,
+                            'tipo'               => 'egreso',
+                            'categoria'          => 'Cancelaciones',
+                            'concepto'           => 'Producto cancelado: ' . $nombreProducto
+                                                    . ' — Mesa ' . $mesa->numero
+                                                    . ' (Ord. ' . $orden->numero_orden . ')',
+                            'monto'              => $montoNeto,
+                            'metodo_pago'        => 'no_aplica',
+                            'referencia'         => 'Autorizó: ' . $autorizador->nombre
+                                                    . ' | Motivo: ' . $request->motivo
+                                                    . ' | Registró: ' . (auth()->user()->nombre ?? auth()->id()),
+                            'fecha'              => now(),
+                            'flujoable_id'       => $orden->id,
+                            'flujoable_type'     => Orden::class,
+                        ]);
+                    }
                 }
             });
 

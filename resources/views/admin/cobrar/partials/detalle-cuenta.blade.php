@@ -305,6 +305,20 @@
                 NIP del <span class="font-black text-zinc-900 dark:text-white">Administrador</span>
             </p>
 
+            {{-- Motivo obligatorio --}}
+            <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">
+                    Motivo <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="mcp-motivo"
+                       maxlength="255" autocomplete="off"
+                       placeholder="Ej: Cliente ya no lo quiso…"
+                       class="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/20 transition-all placeholder:text-zinc-400">
+                <p id="mcp-error-motivo" class="hidden mt-1.5 text-[11px] font-bold text-red-500">
+                    <i class="fas fa-circle-exclamation mr-1"></i>El motivo es obligatorio.
+                </p>
+            </div>
+
             {{-- Display NIP --}}
             <div class="flex justify-center gap-3 py-1">
                 @for($i = 0; $i < 4; $i++)
@@ -380,12 +394,19 @@
         _mcpCantSel   = 1;
         _mcpNip       = '';
 
+        // Limpiar motivo siempre al abrir
+        const motInicial = document.getElementById('mcp-motivo');
+        if (motInicial) motInicial.value = '';
+        const errMotInicial = document.getElementById('mcp-error-motivo');
+        if (errMotInicial) errMotInicial.classList.add('hidden');
+
         // Si solo hay 1 unidad saltamos directo al NIP
         if (cantidadTotal <= 1) {
             pasoCantidad().classList.add('hidden');
             pasoNip().classList.remove('hidden');
             document.getElementById('mcp-titulo').textContent = 'Cancelar producto';
             document.getElementById('mcp-subtitulo').textContent = 'Ingresa el NIP del Administrador';
+            setTimeout(() => { if (motInicial) motInicial.focus(); }, 100);
         } else {
             pasoCantidad().classList.remove('hidden');
             pasoNip().classList.add('hidden');
@@ -403,6 +424,10 @@
     window.cerrarModalCancelarProducto = function () {
         modal().classList.add('hidden');
         _mcpNip = '';
+        const mot = document.getElementById('mcp-motivo');
+        if (mot) mot.value = '';
+        const errMot = document.getElementById('mcp-error-motivo');
+        if (errMot) errMot.classList.add('hidden');
     };
 
     window.mcpAjustarCantidad = function (delta) {
@@ -417,6 +442,12 @@
         _mcpNip = '';
         actualizarDots();
         if (errorEl()) errorEl().classList.add('hidden');
+        // Limpiar campo motivo
+        const mot = document.getElementById('mcp-motivo');
+        if (mot) mot.value = '';
+        const errMot = document.getElementById('mcp-error-motivo');
+        if (errMot) errMot.classList.add('hidden');
+        setTimeout(() => { if (mot) mot.focus(); }, 100);
     };
 
     window.mcpVolverCantidad = function () {
@@ -440,6 +471,18 @@
     };
 
     window.mcpConfirmar = async function () {
+        // Validar motivo obligatorio
+        const motInput = document.getElementById('mcp-motivo');
+        const motivo = motInput ? motInput.value.trim() : '';
+        const errMot = document.getElementById('mcp-error-motivo');
+
+        if (!motivo || motivo.length < 3) {
+            if (errMot) errMot.classList.remove('hidden');
+            if (motInput) motInput.focus();
+            return;
+        }
+        if (errMot) errMot.classList.add('hidden');
+
         if (_mcpNip.length < 1) {
             mostrarErrorMcp('Ingresa el NIP del Administrador.');
             return;
@@ -454,7 +497,7 @@
             const res = await fetch(`/mesero/comanda/detalle/${_mcpDetalleId}/cancelar`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-                body: JSON.stringify({ nip: _mcpNip, cantidad_cancelar: _mcpCantSel })
+                body: JSON.stringify({ nip: _mcpNip, motivo: motivo, cantidad_cancelar: _mcpCantSel })
             });
             const data = await res.json().catch(() => null);
 

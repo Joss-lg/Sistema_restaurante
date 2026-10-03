@@ -404,11 +404,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += '<div><p class="text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Consumo de la mesa</p>'
                         + '<table class="w-full text-xs"><tbody class="divide-y divide-[var(--border-color)]">';
                     d.productos.forEach(p => {
-                        html += '<tr class="' + (p.cancelado ? 'line-through opacity-50' : '') + '">'
-                            + '<td class="py-2 text-[var(--text-color)]">' + p.producto
-                            + (p.cancelado ? ' <span class="text-rose-500 font-bold text-[10px] no-underline">CANCELADO</span>' : '')
-                            + (p.notas ? '<div class="text-[10px] text-[var(--text-muted)] italic">' + p.notas + '</div>' : '')
-                            + '</td>'
+                        html += '<tr class="' + (p.cancelado ? 'opacity-60' : '') + '">'
+                            + '<td class="py-2 text-[var(--text-color)]">'
+                            + '<span class="' + (p.cancelado ? 'line-through' : '') + '">' + p.producto + '</span>'
+                            + (p.cancelado ? ' <span class="text-rose-500 font-bold text-[10px]">CANCELADO</span>' : '')
+                            + (p.notas ? '<div class="text-[10px] text-[var(--text-muted)] italic">' + p.notas + '</div>' : '');
+
+                        // Auditoría de cancelación
+                        if (p.cancelado) {
+                            html += '<div class="mt-1 text-[10px] leading-snug space-y-0.5">';
+                            if (p.cancelado_motivo)
+                                html += '<div><span class="font-bold text-rose-500">Motivo:</span> <span class="text-[var(--text-muted)]">' + p.cancelado_motivo + '</span></div>';
+                            if (p.cancelado_por)
+                                html += '<div><span class="font-bold text-rose-500">Autorizó:</span> <span class="text-[var(--text-muted)]">' + p.cancelado_por + '</span></div>';
+                            if (p.cancelado_en)
+                                html += '<div><span class="font-bold text-rose-500">Hora:</span> <span class="text-[var(--text-muted)]">' + p.cancelado_en + '</span></div>';
+                            html += '</div>';
+                        }
+
+                        html += '</td>'
                             + '<td class="py-2 text-center w-12">x' + p.cantidad + '</td>'
                             + '<td class="py-2 text-right w-24 font-bold text-[var(--text-color)]">' + dinero(p.importe) + '</td></tr>';
                     });

@@ -170,13 +170,26 @@ class CajaController extends Controller
             $productos = $orden->detalles->map(function ($d) {
                 $cancelado = strtolower($d->estado ?? '') === 'cancelado';
 
+                // Datos de auditoría de cancelación
+                $autorizador = null;
+                $canceladoEn = null;
+                if ($cancelado && $d->cancelado_por) {
+                    $autorizador = \App\Models\User::find($d->cancelado_por)?->nombre ?? 'ID ' . $d->cancelado_por;
+                    $canceladoEn = $d->cancelado_en
+                        ? \Carbon\Carbon::parse($d->cancelado_en)->format('d/m/Y H:i')
+                        : null;
+                }
+
                 return [
-                    'producto'        => optional($d->producto)->nombre ?? 'Producto eliminado',
-                    'cantidad'        => (float) $d->cantidad,
-                    'precio_unitario' => round((float) $d->precio_unitario, 2),
-                    'importe'         => $cancelado ? 0 : round($d->cantidad * $d->precio_unitario, 2),
-                    'cancelado'       => $cancelado,
-                    'notas'           => $d->notas,
+                    'producto'          => optional($d->producto)->nombre ?? 'Producto eliminado',
+                    'cantidad'          => (float) $d->cantidad,
+                    'precio_unitario'   => round((float) $d->precio_unitario, 2),
+                    'importe'           => $cancelado ? 0 : round($d->cantidad * $d->precio_unitario, 2),
+                    'cancelado'         => $cancelado,
+                    'cancelado_motivo'  => $d->cancelado_motivo,
+                    'cancelado_por'     => $autorizador,
+                    'cancelado_en'      => $canceladoEn,
+                    'notas'             => $d->notas,
                 ];
             });
         }
